@@ -1,4 +1,3 @@
-import { usePostHog } from 'posthog-js/react';
 import { api } from '@/services';
 import { useState } from 'react';
 import { AuthContext } from '@/contexts';
@@ -13,12 +12,10 @@ type Props = {
 };
 
 const AuthProvider = ({ children }: Props) => {
-  const posthog = usePostHog();
 
   const [user, setUser] = useState<User | undefined>();
 
   const signUp = async (user: User) => {
-    posthog?.capture('sign_up', { user });
     await api.post(usersApiPath, user);
     return signIn({ email: user.email, password: user.password });
   };
@@ -29,8 +26,6 @@ const AuthProvider = ({ children }: Props) => {
       api.defaults.headers.common.Authorization = `Bearer ${data.access_token}`;
       localStorage.setItem(localStorageUserKey, JSON.stringify(data));
       setUser(data.user);
-      posthog?.identify(String(data.user._id), { ...data.user, password: undefined });
-      posthog?.capture('sign_in', { email: data.user.email });
     }
     return data;
   };
@@ -43,7 +38,6 @@ const AuthProvider = ({ children }: Props) => {
     }
     api.defaults.headers.common.Authorization = undefined;
     localStorage.removeItem(localStorageUserKey);
-    posthog?.capture('sign_out');
     setUser(undefined);
   };
 
@@ -68,7 +62,6 @@ const AuthProvider = ({ children }: Props) => {
       if (!user) {
         setUser(localStorageUser.user);
         api.defaults.headers.common.Authorization = `Bearer ${localStorageUser.access_token}`;
-        posthog?.identify(String(localStorageUser.user._id), { ...localStorageUser.user, password: undefined });
       }
     }
   };
