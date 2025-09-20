@@ -69,7 +69,7 @@ const themeOptions: ThemeOptions = {
           padding: 0,
           display: 'flex',
           placeItems: 'center',
-          backgroundColor: 'rgb(245, 245, 245)',
+          backgroundColor: 'rgb(255, 255, 255)',
           width: '100%'
         },
         '#root': {

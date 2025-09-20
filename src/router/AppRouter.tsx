@@ -8,6 +8,7 @@ import { useScreen } from '@/hooks/useScreen';
 const Home = lazy(() => import('@/pages/Home/Home'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy/PrivacyPolicy'));
+const Auth = lazy(() => import('@/pages/Auth/Auth'));
 // const TermsAndConditions = lazy(() => import('@/pages/TermsAndConditions/TermsAndConditions'));
 // const FAQs = lazy(() => import('@/pages/FAQs/FAQs'));
 // const AboutUs = lazy(() => import('@/pages/AboutUs/AboutUs'));
@@ -19,7 +20,7 @@ const AppRouter = () => {
   const { user } = useAuth();
   const { isDesktop } = useScreen();
 
-    useEffect(() => {
+  useEffect(() => {
     const notTrackingParam = searchParams.get('not-tracking');
     if (notTrackingParam) {
       setCookie('trafficType', 'internal', {
@@ -28,6 +29,12 @@ const AppRouter = () => {
       });
     }
   }, [pathname]);
+
+  useEffect(() => {
+    if (!user) {
+      window.history.replaceState({}, '', isDesktop ? '/auth' : '/');
+    }
+  }, [user]);
 
   return (
     <>
@@ -45,6 +52,10 @@ const AppRouter = () => {
         }
       >
         <Routes>
+          <Route
+            path='/auth'
+            element={<Auth />}
+          />
           <Route
             path='/'
             element={<Home />}
@@ -69,7 +80,7 @@ const AppRouter = () => {
             path='about-us'
             element={<AboutUs />}
           /> */}
-          
+
           <Route
             path='*'
             element={<NotFoundPage />}
