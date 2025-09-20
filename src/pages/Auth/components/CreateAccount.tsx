@@ -1,0 +1,339 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Box, Button, Grid, Paper, TextField, Typography } from '@mui/material';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
+import type { Credentials } from '@/globals/types/Credentials';
+import { useAuth } from '@/hooks';
+
+type Props = {
+  setIsSignIn: (value: boolean) => void;
+};
+
+const authSchema = z
+  .object({
+    name: z
+      .string()
+      .min(2, 'O nome deve ter pelo menos 2 caracteres')
+      .max(100, 'O nome deve ter no máximo 100 caracteres'),
+    lastName: z
+      .string()
+      .min(2, 'O sobrenome deve ter pelo menos 2 caracteres')
+      .max(100, 'O sobrenome deve ter no máximo 100 caracteres'),
+    email: z.email('Email não é válido'),
+    password: z
+      .string()
+      .min(8, 'A senha deve ter pelo menos 8 caracteres')
+      .max(25, 'A senha deve ter no máximo 25 caracteres'),
+    confirmPassword: z
+      .string()
+      .min(8, 'A senha deve ter pelo menos 8 caracteres')
+      .max(25, 'A senha deve ter no máximo 25 caracteres')
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'As senhas não coincidem',
+    path: ['confirmPassword']
+  });
+
+const CreateAccount = ({ setIsSignIn }: Props) => {
+  const { signIn, checkIfUserExists } = useAuth();
+  const navigate = useNavigate();
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+
+  const onSubmit = (credentials: Credentials) => {
+    console.log('credentials', credentials);
+    signIn(credentials).then(() => navigate('/'));
+  };
+
+  const {
+    control,
+    handleSubmit,
+    clearErrors,
+    setError,
+    formState: { errors, isDirty }
+  } = useForm<z.infer<typeof authSchema>>({ resolver: zodResolver(authSchema) });
+
+  return (
+    <Paper>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Grid
+          container
+          sx={{
+            borderRadius: '0.5rem'
+          }}
+        >
+          <Grid
+            size={12}
+            sx={{ p: 4 }}
+          >
+            <Grid
+              container
+              direction='column'
+              spacing={4}
+            >
+              <Grid>
+                <Typography
+                  variant='h5'
+                  component='h2'
+                  fontWeight={600}
+                >
+                  Criar Conta
+                </Typography>
+                <Typography sx={{ color: 'text.secondary' }}>Digite seus dados para continuar.</Typography>
+              </Grid>
+              <Grid>
+                <Controller
+                  name='name'
+                  control={control}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <Box>
+                      <TextField
+                        {...field}
+                        type='text'
+                        placeholder='Digite seu nome'
+                        onFocus={() => clearErrors('name')}
+                        sx={{
+                          width: '100%',
+                          height: '40px',
+                          p: 0,
+                          '& .MuiInputBase-input': {
+                            height: '40px',
+                            boxSizing: 'border-box',
+                            padding: '10px'
+                          },
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: errors.name ? 'red' : '#ccc'
+                          }
+                        }}
+                      />
+                      {errors.name && <span style={{ color: 'red', fontSize: '12px' }}>{errors.name.message}</span>}
+                    </Box>
+                  )}
+                />
+              </Grid>
+              <Grid>
+                <Controller
+                  name='lastName'
+                  control={control}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <Box>
+                      <TextField
+                        {...field}
+                        type='text'
+                        placeholder='Digite seu sobrenome'
+                        onFocus={() => clearErrors('lastName')}
+                        sx={{
+                          width: '100%',
+                          height: '40px',
+                          p: 0,
+
+                          '& .MuiInputBase-input': {
+                            height: '40px',
+                            boxSizing: 'border-box',
+                            padding: '10px'
+                          },
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: errors.lastName ? 'red' : '#ccc'
+                          }
+                        }}
+                      />
+                      {errors.lastName && (
+                        <span style={{ color: 'red', fontSize: '12px' }}>{errors.lastName.message}</span>
+                      )}
+                    </Box>
+                  )}
+                />
+              </Grid>
+              <Grid>
+                <Controller
+                  name='email'
+                  control={control}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <Box>
+                      <TextField
+                        {...field}
+                        type='email'
+                        placeholder='Digite seu email'
+                        onFocus={() => clearErrors('email')}
+                        onBlur={async (e) => {
+                          const email = e.target.value;
+                          if (email && email.length > 0) {
+                            const exists = await checkIfUserExists(email);
+                            if (exists) {
+                              setError('email', { type: 'manual', message: 'Este email já está em uso' });
+                            }
+                          }
+                        }}
+                        sx={{
+                          width: '100%',
+                          height: '40px',
+                          p: 0,
+                          '& .MuiInputBase-input': {
+                            height: '40px',
+                            boxSizing: 'border-box',
+                            padding: '10px'
+                          },
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: errors.password ? 'red' : '#ccc'
+                          }
+                        }}
+                      />
+                      {errors.email && <span style={{ color: 'red', fontSize: '12px' }}>{errors.email.message}</span>}
+                    </Box>
+                  )}
+                />
+              </Grid>
+              <Grid>
+                <Controller
+                  name='password'
+                  control={control}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <Box>
+                      <TextField
+                        {...field}
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder='Digite sua senha'
+                        onFocus={() => clearErrors('password')}
+                        slotProps={{
+                          input: {
+                            onFocus: () => clearErrors('password'),
+                            endAdornment: (
+                              <Button
+                                onClick={() => setShowPassword(!showPassword)}
+                                sx={{ textTransform: 'none', fontSize: '12px' }}
+                              >
+                                {showPassword ? 'Esconder' : 'Mostrar'}
+                              </Button>
+                            )
+                          }
+                        }}
+                        sx={{
+                          width: '100%',
+                          height: '40px',
+                          p: 0,
+                          '& .MuiInputBase-input': {
+                            height: '40px',
+                            boxSizing: 'border-box',
+                            padding: '10px'
+                          },
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: errors.password ? 'red' : '#ccc'
+                          }
+                        }}
+                      />
+                      {errors.password && (
+                        <span style={{ color: 'red', fontSize: '12px' }}>{errors.password.message}</span>
+                      )}
+                    </Box>
+                  )}
+                />
+              </Grid>
+              <Grid>
+                <Controller
+                  name='confirmPassword'
+                  control={control}
+                  defaultValue=''
+                  render={({ field }) => (
+                    <Box>
+                      <TextField
+                        {...field}
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        placeholder='Confirme sua senha'
+                        onFocus={() => clearErrors('confirmPassword')}
+                        slotProps={{
+                          input: {
+                            onFocus: () => clearErrors('confirmPassword'),
+                            endAdornment: (
+                              <Button
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                sx={{ textTransform: 'none', fontSize: '12px' }}
+                              >
+                                {showConfirmPassword ? 'Esconder' : 'Mostrar'}
+                              </Button>
+                            )
+                          }
+                        }}
+                        sx={{
+                          width: '100%',
+                          height: '40px',
+                          p: 0,
+                          '& .MuiInputBase-input': {
+                            height: '40px',
+                            boxSizing: 'border-box',
+                            padding: '10px'
+                          },
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: errors.confirmPassword ? 'red' : '#ccc'
+                          }
+                        }}
+                      />
+                      {errors.confirmPassword && (
+                        <span style={{ color: 'red', fontSize: '12px' }}>{errors.confirmPassword.message}</span>
+                      )}
+                    </Box>
+                  )}
+                />
+              </Grid>
+              <Grid>
+                <Button
+                  disabled={!isDirty}
+                  type='submit'
+                  style={{
+                    width: '100%',
+                    padding: '10px',
+                    borderRadius: '4px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, hsl(262 83% 58%), hsl(224 71% 59%))',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    opacity: !isDirty ? 0.5 : 1
+                  }}
+                >
+                  Enviar
+                </Button>
+              </Grid>
+              <Grid>
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    color: 'text.secondary',
+                    textAlign: 'center'
+                  }}
+                >
+                  Já possui uma conta?{' '}
+                  <Typography
+                    component='a'
+                    onClick={() => {
+                      setIsSignIn(true);
+                    }}
+                    sx={{
+                      fontSize: '14px',
+                      color: 'primary.main',
+                      textDecoration: 'none',
+                      cursor: 'pointer',
+                      '&:hover': {
+                        textDecoration: 'underline'
+                      }
+                    }}
+                  >
+                    Entrar
+                  </Typography>
+                </Typography>
+              </Grid>
+            </Grid>
+          </Grid>
+        </Grid>
+      </form>
+    </Paper>
+  );
+};
+
+export default CreateAccount;

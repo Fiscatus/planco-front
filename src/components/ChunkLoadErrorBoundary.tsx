@@ -123,7 +123,7 @@ const ChunkErrorFallback = ({ error }: { error: Error }) => {
         variant='h6'
         gutterBottom
       >
-        Something went wrong
+        Oops! Algo deu errado.
       </Typography>
       <Typography
         variant='body2'
@@ -131,14 +131,14 @@ const ChunkErrorFallback = ({ error }: { error: Error }) => {
         gutterBottom
         textAlign='center'
       >
-        An error occurred while loading the page.
+        Um erro inesperado ocorreu. Por favor, tente atualizar a página.
       </Typography>
       <Button
         variant='contained'
         onClick={handleRefresh}
         sx={{ mt: 2 }}
       >
-        Refresh Page
+        Recarregue a página
       </Button>
     </Box>
   );
