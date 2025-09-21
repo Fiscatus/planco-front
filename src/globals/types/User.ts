@@ -2,18 +2,32 @@ export type User = {
   _id?: string;
   firstName: string;
   lastName: string;
-  age?: number;
-  gender?: 'male' | 'female' | 'other';
   email: string;
-  phoneNumber: string;
+  password?: string;
+  isPlatformAdmin?: boolean;
+  org?: {
+    _id: string;
+    name: string;
+  } | null;
+  role?: {
+    _id: string;
+    name: string;
+    permissions: string[];
+  } | null;
+};
+
+export type AuthResponse = {
+  access_token: string;
+};
+
+export type RegisterDto = {
+  firstName: string;
+  lastName: string;
+  email: string;
   password: string;
-  country: string;
-  state: string;
-  city: string;
-  testing?: boolean;
-  // klaviyoProfileId?: string; TODO: create after a marketing list with klaviyo
-  // marketingLists?: string[];
-  role: 'user' | 'admin' | 'employee';
-  createdAt?: Date;
-  updatedAt?: Date;
+};
+
+export type LoginDto = {
+  email: string;
+  password: string;
 };

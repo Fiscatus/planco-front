@@ -1,7 +1,8 @@
+import type { AuthResponse, LoginDto, RegisterDto, User } from '@/globals/types';
+
+import { AuthContext } from '@/contexts';
 import { api } from '@/services';
 import { useState } from 'react';
-import { AuthContext } from '@/contexts';
-import type { Credentials, User } from '@/globals/types';
 
 const authApiPath = '/auth';
 const usersApiPath = '/users';
@@ -15,17 +16,29 @@ const AuthProvider = ({ children }: Props) => {
 
   const [user, setUser] = useState<User | undefined>();
 
-  const signUp = async (user: User) => {
-    await api.post(usersApiPath, user);
-    return signIn({ email: user.email, password: user.password });
+  const signUp = async (registerData: RegisterDto): Promise<AuthResponse> => {
+    const { data } = await api.post(`${authApiPath}/register`, registerData);
+    return data;
   };
 
-  const signIn = async (credentials: Credentials): Promise<User> => {
-    const { data } = await api.post(authApiPath, credentials);
+  const signIn = async (credentials: LoginDto): Promise<AuthResponse> => {
+    const { data } = await api.post(`${authApiPath}/login`, credentials);
     if (data.access_token) {
       api.defaults.headers.common.Authorization = `Bearer ${data.access_token}`;
       localStorage.setItem(localStorageUserKey, JSON.stringify(data));
-      setUser(data.user);
+      
+      const decodedJwt = parseJwt(data.access_token);
+      if (decodedJwt) {
+        setUser({
+          _id: decodedJwt.sub,
+          firstName: decodedJwt.firstName,
+          lastName: decodedJwt.lastName,
+          email: decodedJwt.email,
+          isPlatformAdmin: decodedJwt.isPlatformAdmin,
+          org: decodedJwt.org,
+          role: decodedJwt.role
+        });
+      }
     }
     return data;
   };
@@ -51,16 +64,31 @@ const AuthProvider = ({ children }: Props) => {
   };
 
   const checkIfUserExists = async (email: string) => {
-    const { data } = await api.get(`${usersApiPath}/check-if-exists/${email}`);
-    return !!data;
+    try {
+      const { data } = await api.get(`${usersApiPath}/check-if-exists/${email}`);
+      return !!data;
+    } catch (error) {
+      return false;
+    }
   };
 
   const loadUserFromLocalStorage = () => {
     if (localStorage.getItem(localStorageUserKey)) {
       const localStorageUser = JSON.parse(String(localStorage.getItem(localStorageUserKey)));
       verifyAuth(localStorageUser.access_token);
-      if (!user) {
-        setUser(localStorageUser.user);
+      if (!user && localStorageUser.access_token) {
+        const decodedJwt = parseJwt(localStorageUser.access_token);
+        if (decodedJwt) {
+          setUser({
+            _id: decodedJwt.sub,
+            firstName: decodedJwt.firstName,
+            lastName: decodedJwt.lastName,
+            email: decodedJwt.email,
+            isPlatformAdmin: decodedJwt.isPlatformAdmin,
+            org: decodedJwt.org,
+            role: decodedJwt.role
+          });
+        }
         api.defaults.headers.common.Authorization = `Bearer ${localStorageUser.access_token}`;
       }
     }

@@ -1,8 +1,8 @@
 import { Box, Button, Checkbox, FormControlLabel, Grid, Paper, TextField, Typography } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
+import { PrivacyPolicyModal, useNotification } from '@/components';
 
-import type { Credentials } from '@/globals/types/Credentials';
-import { PrivacyPolicyModal } from '@/components';
+import type { RegisterDto } from '@/globals/types/User';
 import { useAuth } from '@/hooks';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -27,7 +27,11 @@ const authSchema = z
     password: z
       .string()
       .min(8, 'A senha deve ter pelo menos 8 caracteres')
-      .max(25, 'A senha deve ter no máximo 25 caracteres'),
+      .max(25, 'A senha deve ter no máximo 25 caracteres')
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+        'Senha deve conter pelo menos uma letra maiúscula, uma minúscula, um número e um caractere especial'
+      ),
     confirmPassword: z
       .string()
       .min(8, 'A senha deve ter pelo menos 8 caracteres')
@@ -39,7 +43,8 @@ const authSchema = z
   });
 
 const CreateAccount = ({ setIsSignIn }: Props) => {
-  const { signIn, checkIfUserExists } = useAuth();
+  const { signUp, checkIfUserExists } = useAuth();
+  const { showNotification } = useNotification();
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -47,9 +52,34 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
 
-  const onSubmit = (credentials: Credentials) => {
-    console.log('credentials', credentials);
-    signIn(credentials).then(() => navigate('/'));
+  const onSubmit = async (formData: z.infer<typeof authSchema>) => {
+    try {
+      const registerData: RegisterDto = {
+        firstName: formData.name,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password
+      };
+      
+      await signUp(registerData);
+      
+      showNotification('Conta criada com sucesso! Faça login para continuar.', 'success');
+      setIsSignIn(true);
+    } catch (error: any) {
+      console.error('Erro ao criar conta:', error);
+      
+      const status = error.response?.status;
+      
+      if (status === 409) {
+        showNotification('Este email já está em uso. Tente outro email.', 'error');
+      } else if (status === 400) {
+        showNotification('Dados inválidos. Verifique os campos e tente novamente.', 'error');
+      } else if (error.code === 'ERR_NETWORK' || status === 0) {
+        showNotification('Erro de conexão. Verifique sua internet e tente novamente.', 'error');
+      } else {
+        showNotification('Erro ao criar conta. Tente novamente.', 'error');
+      }
+    }
   };
 
   const {
@@ -94,8 +124,8 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 <Typography sx={{ color: 'text.secondary' }}>Digite seus dados para continuar.</Typography>
               </Grid>
               <Grid>
-                <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
-                  Nome *
+                <Typography variant='body2' sx={{ mb: 1, fontWeight: 'bold' }}>
+                  Nome <span style={{ color: 'red' }}>*</span>
                 </Typography>
                 <Controller
                   name='name'
@@ -128,8 +158,8 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 />
               </Grid>
               <Grid>
-                <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
-                  Sobrenome *
+                <Typography variant='body2' sx={{ mb: 1, fontWeight: 'bold' }}>
+                  Sobrenome <span style={{ color: 'red' }}>*</span>
                 </Typography>
                 <Controller
                   name='lastName'
@@ -165,8 +195,8 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 />
               </Grid>
               <Grid>
-                <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
-                  Email *
+                <Typography variant='body2' sx={{ mb: 1, fontWeight: 'bold' }}>
+                  Email <span style={{ color: 'red' }}>*</span>
                 </Typography>
                 <Controller
                   name='email'
@@ -208,8 +238,8 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 />
               </Grid>
               <Grid>
-                <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
-                  Senha *
+                <Typography variant='body2' sx={{ mb: 1, fontWeight: 'bold' }}>
+                  Senha <span style={{ color: 'red' }}>*</span>
                 </Typography>
                 <Controller
                   name='password'
@@ -257,8 +287,8 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 />
               </Grid>
               <Grid>
-                <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
-                  Confirmar Senha *
+                <Typography variant='body2' sx={{ mb: 1, fontWeight: 'bold' }}>
+                  Confirmar Senha <span style={{ color: 'red' }}>*</span>
                 </Typography>
                 <Controller
                   name='confirmPassword'
