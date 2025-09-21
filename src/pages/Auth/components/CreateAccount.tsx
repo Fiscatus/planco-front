@@ -1,11 +1,13 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Box, Button, Grid, Paper, TextField, Typography } from '@mui/material';
-import { useState } from 'react';
+import { Box, Button, Checkbox, FormControlLabel, Grid, Paper, TextField, Typography } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import { z } from 'zod';
+
 import type { Credentials } from '@/globals/types/Credentials';
+import { PrivacyPolicyModal } from '@/components';
 import { useAuth } from '@/hooks';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 type Props = {
   setIsSignIn: (value: boolean) => void;
@@ -43,6 +45,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
 
   const onSubmit = (credentials: Credentials) => {
     console.log('credentials', credentials);
@@ -58,7 +61,12 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
   } = useForm<z.infer<typeof authSchema>>({ resolver: zodResolver(authSchema) });
 
   return (
-    <Paper>
+    <Paper
+      sx={{
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08)',
+        borderRadius: '12px'
+      }}
+    >
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid
           container
@@ -86,6 +94,9 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 <Typography sx={{ color: 'text.secondary' }}>Digite seus dados para continuar.</Typography>
               </Grid>
               <Grid>
+                <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
+                  Nome *
+                </Typography>
                 <Controller
                   name='name'
                   control={control}
@@ -117,6 +128,9 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 />
               </Grid>
               <Grid>
+                <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
+                  Sobrenome *
+                </Typography>
                 <Controller
                   name='lastName'
                   control={control}
@@ -151,6 +165,9 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 />
               </Grid>
               <Grid>
+                <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
+                  Email *
+                </Typography>
                 <Controller
                   name='email'
                   control={control}
@@ -191,6 +208,9 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 />
               </Grid>
               <Grid>
+                <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
+                  Senha *
+                </Typography>
                 <Controller
                   name='password'
                   control={control}
@@ -237,6 +257,9 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 />
               </Grid>
               <Grid>
+                <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
+                  Confirmar Senha *
+                </Typography>
                 <Controller
                   name='confirmPassword'
                   control={control}
@@ -283,8 +306,42 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 />
               </Grid>
               <Grid>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={acceptedTerms}
+                      onChange={(e) => setAcceptedTerms(e.target.checked)}
+                      sx={{
+                        '&.Mui-checked': {
+                          color: 'hsl(262 83% 58%)'
+                        }
+                      }}
+                    />
+                  }
+                  label={
+                    <Typography variant='body2' sx={{ fontSize: '14px' }}>
+                      Li e aceito a{' '}
+                      <Typography
+                        component='span'
+                        onClick={() => setPrivacyModalOpen(true)}
+                        sx={{
+                          color: 'primary.main',
+                          textDecoration: 'underline',
+                          cursor: 'pointer',
+                          '&:hover': {
+                            textDecoration: 'none'
+                          }
+                        }}
+                      >
+                        política de privacidade
+                      </Typography>
+                    </Typography>
+                  }
+                />
+              </Grid>
+              <Grid>
                 <Button
-                  disabled={!isDirty}
+                  disabled={!isDirty || !acceptedTerms}
                   type='submit'
                   style={{
                     width: '100%',
@@ -294,7 +351,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                     background: 'linear-gradient(135deg, hsl(262 83% 58%), hsl(224 71% 59%))',
                     color: '#fff',
                     cursor: 'pointer',
-                    opacity: !isDirty ? 0.5 : 1
+                    opacity: !isDirty || !acceptedTerms ? 0.5 : 1
                   }}
                 >
                   Enviar
@@ -332,6 +389,10 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
           </Grid>
         </Grid>
       </form>
+      <PrivacyPolicyModal
+        open={privacyModalOpen}
+        onClose={() => setPrivacyModalOpen(false)}
+      />
     </Paper>
   );
 };

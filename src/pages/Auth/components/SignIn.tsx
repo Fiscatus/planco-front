@@ -1,11 +1,12 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Box, Button, Grid, Link, Paper, TextField, Typography } from '@mui/material';
-import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import { z } from 'zod';
+
 import type { Credentials } from '@/globals/types/Credentials';
 import { useAuth } from '@/hooks';
+import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 type Props = {
   setIsSignIn: (value: boolean) => void;
@@ -36,7 +37,12 @@ const SignIn = ({ setIsSignIn }: Props) => {
   } = useForm<z.infer<typeof authSchema>>({ resolver: zodResolver(authSchema) });
 
   return (
-    <Paper>
+    <Paper
+      sx={{
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08)',
+        borderRadius: '12px'
+      }}
+    >
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid
           container
@@ -64,6 +70,9 @@ const SignIn = ({ setIsSignIn }: Props) => {
                 <Typography sx={{ color: 'text.secondary' }}>Entre na sua conta para continuar.</Typography>
               </Grid>
               <Grid>
+              <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
+                  Email *
+                </Typography>
                 <Controller
                   name='email'
                   control={control}
@@ -101,6 +110,9 @@ const SignIn = ({ setIsSignIn }: Props) => {
                   gap: '8px'
                 }}
               >
+                <Typography variant='body2' sx={{ mb: 1, fontWeight: 500 }}>
+                  Senha *
+                </Typography>
                 <Controller
                   name='password'
                   control={control}

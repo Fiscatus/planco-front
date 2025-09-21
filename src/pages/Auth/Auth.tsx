@@ -1,7 +1,8 @@
 import { Box, Button, Container, FormControl, Grid, InputBase } from '@mui/material';
-import { useState } from 'react';
+
 import CreateAccount from './components/CreateAccount';
 import SignIn from './components/SignIn';
+import { useState } from 'react';
 
 const Auth = () => {
   const [isSignIn, setIsSignIn] = useState(true);
@@ -32,16 +33,12 @@ const Auth = () => {
       >
         <Grid
           size={{ xs: 8, sm: 8, md: 4, lg: 4, xl: 4 }}
-          sx={{
-            bgcolor: 'red'
-          }}
         >
           {isSignIn ? <SignIn setIsSignIn={setIsSignIn} /> : <CreateAccount setIsSignIn={setIsSignIn} />}
         </Grid>
         <Grid
           size={{ xs: 8, sm: 8, md: 4, lg: 4, xl: 4 }}
           sx={{
-            bgcolor: 'blue',
             width: '100%',
             height: '100%'
           }}
@@ -52,7 +49,9 @@ const Auth = () => {
               height: '100%',
               background: 'linear-gradient(135deg, hsl(262 83% 65%), hsl(224 71% 65%))',
               backgroundSize: 'cover',
-              backgroundPosition: 'center'
+              backgroundPosition: 'center',
+              borderRadius: '12px',
+              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08)'
             }}
           />
         </Grid>
