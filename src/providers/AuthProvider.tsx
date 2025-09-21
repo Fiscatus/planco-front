@@ -5,7 +5,6 @@ import { api } from '@/services';
 import { useState } from 'react';
 
 const authApiPath = '/auth';
-const usersApiPath = '/users';
 const localStorageUserKey = '@fiscatus:user';
 
 type Props = {
@@ -43,35 +42,6 @@ const AuthProvider = ({ children }: Props) => {
     return data;
   };
 
-  const signOut = async () => {
-    try {
-      await api.post(`${authApiPath}/logout`);
-    } catch (error) {
-      console.error(error);
-    }
-    api.defaults.headers.common.Authorization = undefined;
-    localStorage.removeItem(localStorageUserKey);
-    setUser(undefined);
-  };
-
-  const editUser = async (user: Partial<User>) => {
-    const { data } = await api.patch(`${usersApiPath}/${user._id}`, user);
-    setUser(data);
-    localStorage.setItem(
-      localStorageUserKey,
-      JSON.stringify({ ...data, access_token: api.defaults.headers.common.Authorization })
-    );
-  };
-
-  const checkIfUserExists = async (email: string) => {
-    try {
-      const { data } = await api.get(`${usersApiPath}/check-if-exists/${email}`);
-      return !!data;
-    } catch (error) {
-      return false;
-    }
-  };
-
   const loadUserFromLocalStorage = () => {
     if (localStorage.getItem(localStorageUserKey)) {
       const localStorageUser = JSON.parse(String(localStorage.getItem(localStorageUserKey)));
@@ -97,7 +67,7 @@ const AuthProvider = ({ children }: Props) => {
   const verifyAuth = (accessToken: string) => {
     const decodedJwt = parseJwt(accessToken);
     if (decodedJwt.exp * 1000 < Date.now()) {
-      signOut();
+      localStorage.removeItem(localStorageUserKey);
     }
   };
 
@@ -113,7 +83,7 @@ const AuthProvider = ({ children }: Props) => {
   loadUserFromLocalStorage();
 
   return (
-    <AuthContext.Provider value={{ user, signUp, signIn, signOut, editUser, checkIfUserExists }}>
+    <AuthContext.Provider value={{ user, signUp, signIn }}>
       {children}
     </AuthContext.Provider>
   );
