@@ -1,17 +1,17 @@
 import { Box, CircularProgress } from '@mui/material';
-import { lazy, Suspense, useEffect, useState } from 'react';
-import { useCookies } from 'react-cookie';
 import { Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
+import { Suspense, lazy, useEffect, useState } from 'react';
+
 import { useAuth } from '@/hooks/useAuth';
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
+import { useCookies } from 'react-cookie';
 import { useScreen } from '@/hooks/useScreen';
 
-const Home = lazy(() => import('@/pages/Home/Home'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy/PrivacyPolicy'));
 const Auth = lazy(() => import('@/pages/Auth/Auth'));
-// const TermsAndConditions = lazy(() => import('@/pages/TermsAndConditions/TermsAndConditions'));
-// const FAQs = lazy(() => import('@/pages/FAQs/FAQs'));
-// const AboutUs = lazy(() => import('@/pages/AboutUs/AboutUs'));
+const OrganizationHome = lazy(() => import('@/pages/OrganizationHome/OrganizationHome'));
+const Invites = lazy(() => import('@/pages/Invites/Invites'));
 
 const AppRouter = () => {
   const [_cookie, setCookie] = useCookies(['trafficType']);
@@ -19,6 +19,8 @@ const AppRouter = () => {
   const { pathname } = useLocation();
   const { user } = useAuth();
   const { isDesktop } = useScreen();
+  
+  useAuthRedirect();
 
   useEffect(() => {
     const notTrackingParam = searchParams.get('not-tracking');
@@ -57,8 +59,12 @@ const AppRouter = () => {
             element={<Auth />}
           />
           <Route
-            path='/'
-            element={<Home />}
+            path='/organization-home'
+            element={<OrganizationHome />}
+          />
+          <Route
+            path='/invites'
+            element={<Invites />}
           />
           <Route
             path='404'
@@ -68,19 +74,6 @@ const AppRouter = () => {
             path='privacy-policy'
             element={<PrivacyPolicy />}
           />
-          {/* <Route
-            path='terms-and-conditions'
-            element={<TermsAndConditions />}
-          />
-          <Route
-            path='faqs'
-            element={<FAQs />}
-          />
-          <Route
-            path='about-us'
-            element={<AboutUs />}
-          /> */}
-
           <Route
             path='*'
             element={<NotFoundPage />}

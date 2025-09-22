@@ -1,11 +1,13 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Box, Button, Grid, Link, Paper, TextField, Typography } from '@mui/material';
-import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
-import { z } from 'zod';
-import type { Credentials } from '@/globals/types/Credentials';
+
+import type { LoginDto } from '@/globals/types/User';
 import { useAuth } from '@/hooks';
+import { useNavigate } from 'react-router-dom';
+import { useNotification } from '@/components';
+import { useState } from 'react';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 type Props = {
   setIsSignIn: (value: boolean) => void;
@@ -21,11 +23,29 @@ const authSchema = z.object({
 
 const SignIn = ({ setIsSignIn }: Props) => {
   const { signIn } = useAuth();
+  const { showNotification } = useNotification();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(true);
 
-  const onSubmit = (credentials: Credentials) => {
-    signIn(credentials).then(() => navigate('/'));
+  const onSubmit = async (credentials: LoginDto) => {
+    try {
+      await signIn(credentials);
+      showNotification('Login realizado com sucesso!', 'success');
+    } catch (error: any) {
+      console.error('Erro ao fazer login:', error);
+      
+      const status = error.response?.status;
+      
+      if (status === 401) {
+        showNotification('Email ou senha incorretos. Tente novamente.', 'error');
+      } else if (status === 400) {
+        showNotification('Dados inválidos. Verifique os campos e tente novamente.', 'error');
+      } else if (error.code === 'ERR_NETWORK' || status === 0) {
+        showNotification('Erro de conexão. Verifique sua internet e tente novamente.', 'error');
+      } else {
+        showNotification('Erro ao fazer login. Tente novamente.', 'error');
+      }
+    }
   };
 
   const {
@@ -36,7 +56,12 @@ const SignIn = ({ setIsSignIn }: Props) => {
   } = useForm<z.infer<typeof authSchema>>({ resolver: zodResolver(authSchema) });
 
   return (
-    <Paper>
+    <Paper
+      sx={{
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08)',
+        borderRadius: '12px'
+      }}
+    >
       <form onSubmit={handleSubmit(onSubmit)}>
         <Grid
           container
@@ -64,6 +89,9 @@ const SignIn = ({ setIsSignIn }: Props) => {
                 <Typography sx={{ color: 'text.secondary' }}>Entre na sua conta para continuar.</Typography>
               </Grid>
               <Grid>
+              <Typography variant='body2' sx={{ mb: 1, fontWeight: 'bold' }}>
+                  Email <span style={{ color: 'red' }}>*</span>
+                </Typography>
                 <Controller
                   name='email'
                   control={control}
@@ -101,6 +129,9 @@ const SignIn = ({ setIsSignIn }: Props) => {
                   gap: '8px'
                 }}
               >
+                <Typography variant='body2' sx={{ mb: 1, fontWeight: 'bold' }}>
+                  Senha <span style={{ color: 'red' }}>*</span>
+                </Typography>
                 <Controller
                   name='password'
                   control={control}

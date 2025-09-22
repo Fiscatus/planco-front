@@ -1,2 +1,2 @@
-export type { Processo } from './Processo';
-export type { User } from './User';
+export type { User, AuthResponse, RegisterDto, LoginDto } from './User';
+export type { Invite } from './Invite';

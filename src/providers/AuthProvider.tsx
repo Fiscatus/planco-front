@@ -1,10 +1,10 @@
+import type { AuthResponse, LoginDto, RegisterDto, User } from '@/globals/types';
+
+import { AuthContext } from '@/contexts';
 import { api } from '@/services';
 import { useState } from 'react';
-import { AuthContext } from '@/contexts';
-import type { Credentials, User } from '@/globals/types';
 
 const authApiPath = '/auth';
-const usersApiPath = '/users';
 const localStorageUserKey = '@fiscatus:user';
 
 type Props = {
@@ -15,52 +15,50 @@ const AuthProvider = ({ children }: Props) => {
 
   const [user, setUser] = useState<User | undefined>();
 
-  const signUp = async (user: User) => {
-    await api.post(usersApiPath, user);
-    return signIn({ email: user.email, password: user.password });
-  };
-
-  const signIn = async (credentials: Credentials): Promise<User> => {
-    const { data } = await api.post(authApiPath, credentials);
-    if (data.access_token) {
-      api.defaults.headers.common.Authorization = `Bearer ${data.access_token}`;
-      localStorage.setItem(localStorageUserKey, JSON.stringify(data));
-      setUser(data.user);
-    }
+  const signUp = async (registerData: RegisterDto): Promise<AuthResponse> => {
+    const { data } = await api.post(`${authApiPath}/register`, registerData);
     return data;
   };
 
-  const signOut = async () => {
-    try {
-      await api.post(`${authApiPath}/logout`);
-    } catch (error) {
-      console.error(error);
+  const signIn = async (credentials: LoginDto): Promise<AuthResponse> => {
+    const { data } = await api.post(`${authApiPath}/login`, credentials);
+    if (data.access_token) {
+      api.defaults.headers.common.Authorization = `Bearer ${data.access_token}`;
+      localStorage.setItem(localStorageUserKey, JSON.stringify(data));
+      
+      const decodedJwt = parseJwt(data.access_token);
+      if (decodedJwt) {
+        setUser({
+          _id: decodedJwt.sub,
+          firstName: decodedJwt.firstName,
+          lastName: decodedJwt.lastName,
+          email: decodedJwt.email,
+          isPlatformAdmin: decodedJwt.isPlatformAdmin,
+          org: decodedJwt.org,
+          role: decodedJwt.role
+        });
+      }
     }
-    api.defaults.headers.common.Authorization = undefined;
-    localStorage.removeItem(localStorageUserKey);
-    setUser(undefined);
-  };
-
-  const editUser = async (user: Partial<User>) => {
-    const { data } = await api.patch(`${usersApiPath}/${user._id}`, user);
-    setUser(data);
-    localStorage.setItem(
-      localStorageUserKey,
-      JSON.stringify({ ...data, access_token: api.defaults.headers.common.Authorization })
-    );
-  };
-
-  const checkIfUserExists = async (email: string) => {
-    const { data } = await api.get(`${usersApiPath}/check-if-exists/${email}`);
-    return !!data;
+    return data;
   };
 
   const loadUserFromLocalStorage = () => {
     if (localStorage.getItem(localStorageUserKey)) {
       const localStorageUser = JSON.parse(String(localStorage.getItem(localStorageUserKey)));
       verifyAuth(localStorageUser.access_token);
-      if (!user) {
-        setUser(localStorageUser.user);
+      if (!user && localStorageUser.access_token) {
+        const decodedJwt = parseJwt(localStorageUser.access_token);
+        if (decodedJwt) {
+          setUser({
+            _id: decodedJwt.sub,
+            firstName: decodedJwt.firstName,
+            lastName: decodedJwt.lastName,
+            email: decodedJwt.email,
+            isPlatformAdmin: decodedJwt.isPlatformAdmin,
+            org: decodedJwt.org,
+            role: decodedJwt.role
+          });
+        }
         api.defaults.headers.common.Authorization = `Bearer ${localStorageUser.access_token}`;
       }
     }
@@ -69,7 +67,7 @@ const AuthProvider = ({ children }: Props) => {
   const verifyAuth = (accessToken: string) => {
     const decodedJwt = parseJwt(accessToken);
     if (decodedJwt.exp * 1000 < Date.now()) {
-      signOut();
+      localStorage.removeItem(localStorageUserKey);
     }
   };
 
@@ -85,7 +83,7 @@ const AuthProvider = ({ children }: Props) => {
   loadUserFromLocalStorage();
 
   return (
-    <AuthContext.Provider value={{ user, signUp, signIn, signOut, editUser, checkIfUserExists }}>
+    <AuthContext.Provider value={{ user, signUp, signIn }}>
       {children}
     </AuthContext.Provider>
   );
