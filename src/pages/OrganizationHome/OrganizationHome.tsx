@@ -2,10 +2,12 @@ import { BarChart as BarChartIcon, ChevronRight as ChevronRightIcon, FolderOpen 
 import { Box, Container, Typography } from "@mui/material";
 
 import { AppLayout } from "@/components";
+import { FaqSection } from "./components/FaqSection";
 import { HeroSection } from "./components/HeroSection";
 import { ModulesSection } from "./components/ModulesSection";
 import React from "react";
 import { SupportSection } from "./components/SupportSection";
+import { TutorialsSection } from "./components/TutorialsSection";
 import { useAuth } from "@/hooks";
 import { useNavigate } from "react-router-dom";
 
@@ -16,6 +18,7 @@ const OrganizationHome = () => {
 
   const modulosSectionRef = React.useRef<HTMLDivElement | null>(null);
   const tutoriaisSectionRef = React.useRef<HTMLDivElement | null>(null);
+  const faqSectionRef = React.useRef<HTMLDivElement | null>(null);
 
   const handleScrollToModulos = React.useCallback(() => {
     modulosSectionRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -95,16 +98,9 @@ const OrganizationHome = () => {
         onOpenChat={() => setChatbotOpen(true)}
       />
 
-      <Box ref={tutoriaisSectionRef} component="section" sx={{ py: { xs: 6, md: 8 } }}>
-        <Container maxWidth="lg">
-          <Typography variant="h5" fontWeight={700} gutterBottom>
-            Guia Rápido
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Em breve: vídeos e materiais introdutórios para acelerar seu onboarding.
-          </Typography>
-        </Container>
-      </Box>
+      <TutorialsSection sectionRef={tutoriaisSectionRef} />
+
+      <FaqSection sectionRef={faqSectionRef} />
     </AppLayout>
   );
 };
