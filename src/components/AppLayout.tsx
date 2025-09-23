@@ -20,30 +20,34 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   };
 
   return (
-    <Box sx={{ 
-      display: "flex", 
-      flexDirection: "column", 
-      minHeight: "100vh",
-      width: "100%",
-    }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        width: "100%",
+      }}
+    >
       <Topbar onMenuClick={handleMenuClick} />
 
-      <Box sx={{
-        display: 'flex',
-        flex: 1,
-        pt: '64px',
-        width: '100%',
-      }}>
+      <Box
+        sx={{
+          display: "flex",
+          flex: 1,
+          pt: "64px",
+          width: "100%",
+        }}
+      >
         <Sidebar open={sidebarOpen} onClose={handleSidebarClose} />
 
         <Box
           component="main"
           sx={{
             flex: 1,
-            width: '100%',
+            width: "100%",
             py: 2,
-            display: 'flex',
-            flexDirection: 'column',
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           {children}

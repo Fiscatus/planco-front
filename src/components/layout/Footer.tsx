@@ -34,10 +34,10 @@ const Footer = () => {
         textAlign: "center",
       }}
     >
-       <Container
-         maxWidth="lg"
-         sx={{ px: { xs: 1.5, md: 2 }, py: { xs: 1, md: 1.5 } }}
-       >
+      <Container
+        maxWidth="lg"
+        sx={{ px: { xs: 1.5, md: 2 }, py: { xs: 1, md: 1.5 } }}
+      >
         <Box
           sx={{
             display: "grid",
@@ -46,7 +46,7 @@ const Footer = () => {
               sm: "repeat(2, 1fr)",
               md: "repeat(4, 1fr)",
             },
-             gap: { xs: 1.5, md: 2 },
+            gap: { xs: 1.5, md: 2 },
             justifyItems: "center",
             textAlign: "center",
           }}
@@ -57,8 +57,8 @@ const Footer = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                 gap: 0.5,
-                 mb: 0.5,
+                gap: 0.5,
+                mb: 0.5,
               }}
             >
               <img
@@ -81,12 +81,12 @@ const Footer = () => {
           <Box>
             <Typography
               variant="caption"
-               sx={{
-                 textTransform: "uppercase",
-                 color: "black",
-                 display: "block",
-                 fontWeight: "bold",
-               }}
+              sx={{
+                textTransform: "uppercase",
+                color: "black",
+                display: "block",
+                fontWeight: "bold",
+              }}
             >
               Status do sistema
             </Typography>
@@ -122,37 +122,37 @@ const Footer = () => {
           <Box>
             <Typography
               variant="caption"
-               sx={{
-                 textTransform: "uppercase",
-                 color: "black",
-                 mb: 0.5,
-                 display: "block",
-                 fontWeight: "bold",
-               }}
+              sx={{
+                textTransform: "uppercase",
+                color: "black",
+                mb: 0.5,
+                display: "block",
+                fontWeight: "bold",
+              }}
             >
               Links úteis
             </Typography>
             <Box
-               sx={{
-                 display: "flex",
-                 flexDirection: "column",
-                 alignItems: "center"
-               }}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
             >
               <Button
                 variant="text"
                 size="small"
                 onClick={() => navigate(NAVIGATE_PATHS.PRIVACY_POLICY_PATH)}
-                 sx={{
-                   justifyContent: "center",
-                   color: theme.palette.grey[700],
-                   fontSize: "14px",
-                   minHeight: "auto",
-                   py: 0.25,
-                   "&:hover": {
-                     color: theme.palette.primary.main,
-                   },
-                 }}
+                sx={{
+                  justifyContent: "center",
+                  color: theme.palette.grey[700],
+                  fontSize: "14px",
+                  minHeight: "auto",
+                  py: 0.25,
+                  "&:hover": {
+                    color: theme.palette.primary.main,
+                  },
+                }}
               >
                 Política de Privacidade
               </Button>
@@ -160,16 +160,16 @@ const Footer = () => {
                 variant="text"
                 size="small"
                 onClick={() => navigate(NAVIGATE_PATHS.TERMS_OF_USE_PATH)}
-                 sx={{
-                   justifyContent: "center",
-                   color: theme.palette.grey[700],
-                   fontSize: "14px",
-                   minHeight: "auto",
-                   py: 0.25,
-                   "&:hover": {
-                     color: theme.palette.primary.main,
-                   },
-                 }}
+                sx={{
+                  justifyContent: "center",
+                  color: theme.palette.grey[700],
+                  fontSize: "14px",
+                  minHeight: "auto",
+                  py: 0.25,
+                  "&:hover": {
+                    color: theme.palette.primary.main,
+                  },
+                }}
               >
                 Termos de Uso
               </Button>
@@ -177,16 +177,16 @@ const Footer = () => {
                 variant="text"
                 size="small"
                 onClick={() => navigate(NAVIGATE_PATHS.SUPPORT_PATH)}
-                 sx={{
-                   justifyContent: "center",
-                   color: theme.palette.grey[700],
-                   fontSize: "14px",
-                   minHeight: "auto",
-                   py: 0.25,
-                   "&:hover": {
-                     color: theme.palette.primary.main,
-                   },
-                 }}
+                sx={{
+                  justifyContent: "center",
+                  color: theme.palette.grey[700],
+                  fontSize: "14px",
+                  minHeight: "auto",
+                  py: 0.25,
+                  "&:hover": {
+                    color: theme.palette.primary.main,
+                  },
+                }}
               >
                 Suporte
               </Button>
@@ -206,27 +206,27 @@ const Footer = () => {
               Informações técnicas
             </Typography>
             <Box
-               sx={{
-                 display: "flex",
-                 flexDirection: "column",
-                 alignItems: "center",
-               }}
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+              }}
             >
               <Typography
                 variant="body2"
-                sx={{ color: theme.palette.grey[700]}}
+                sx={{ color: theme.palette.grey[700] }}
               >
                 Versão: v1.0.0
               </Typography>
               <Typography
                 variant="body2"
-                sx={{ color: theme.palette.grey[700]}}
+                sx={{ color: theme.palette.grey[700] }}
               >
                 Ano: 2025
               </Typography>
               <Typography
                 variant="body2"
-                sx={{ color: theme.palette.grey[700]}}
+                sx={{ color: theme.palette.grey[700] }}
               >
                 Ambiente: Produção
               </Typography>
@@ -235,13 +235,13 @@ const Footer = () => {
         </Box>
       </Container>
 
-       <Box
-         sx={{
-           py: 0.5,
-           textAlign: "center",
-           borderTop: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
-         }}
-       >
+      <Box
+        sx={{
+          py: 0.5,
+          textAlign: "center",
+          borderTop: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`,
+        }}
+      >
         <Typography variant="caption" sx={{ color: theme.palette.grey[600] }}>
           © 2025 Fiscatus — Feito com dedicação para a administração pública
           brasileira

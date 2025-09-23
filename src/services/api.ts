@@ -9,8 +9,11 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.data) {
-      throw new Error(error.response.data.message);
+    if (error.response?.data?.message) {
+      const backendError = new Error(error.response.data.message);
+      (backendError as any).status = error.response.status;
+      (backendError as any).response = error.response;
+      throw backendError;
     }
     if (error.code === 'ERR_NETWORK') {
       throw new Error('Erro de conexão. Verifique se o backend está rodando.');

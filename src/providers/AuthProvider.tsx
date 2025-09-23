@@ -1,18 +1,22 @@
-import type { AuthResponse, LoginDto, RegisterDto, User } from '@/globals/types';
+import type {
+  AuthResponse,
+  LoginDto,
+  RegisterDto,
+  User,
+} from "@/globals/types";
 
-import { AuthContext } from '@/contexts';
-import { api } from '@/services';
-import { useState } from 'react';
+import { AuthContext } from "@/contexts";
+import { api } from "@/services";
+import { useState } from "react";
 
-const authApiPath = '/auth';
-const localStorageUserKey = '@fiscatus:user';
+const authApiPath = "/auth";
+const localStorageUserKey = "@fiscatus:user";
 
 type Props = {
   children: React.ReactNode;
 };
 
 const AuthProvider = ({ children }: Props) => {
-
   const [user, setUser] = useState<User | undefined>();
 
   const signUp = async (registerData: RegisterDto): Promise<AuthResponse> => {
@@ -25,7 +29,7 @@ const AuthProvider = ({ children }: Props) => {
     if (data.access_token) {
       api.defaults.headers.common.Authorization = `Bearer ${data.access_token}`;
       localStorage.setItem(localStorageUserKey, JSON.stringify(data));
-      
+
       const decodedJwt = parseJwt(data.access_token);
       if (decodedJwt) {
         setUser({
@@ -35,7 +39,7 @@ const AuthProvider = ({ children }: Props) => {
           email: decodedJwt.email,
           isPlatformAdmin: decodedJwt.isPlatformAdmin,
           org: decodedJwt.org,
-          role: decodedJwt.role
+          role: decodedJwt.role,
         });
       }
     }
@@ -44,7 +48,9 @@ const AuthProvider = ({ children }: Props) => {
 
   const loadUserFromLocalStorage = () => {
     if (localStorage.getItem(localStorageUserKey)) {
-      const localStorageUser = JSON.parse(String(localStorage.getItem(localStorageUserKey)));
+      const localStorageUser = JSON.parse(
+        String(localStorage.getItem(localStorageUserKey))
+      );
       verifyAuth(localStorageUser.access_token);
       if (!user && localStorageUser.access_token) {
         const decodedJwt = parseJwt(localStorageUser.access_token);
@@ -56,7 +62,7 @@ const AuthProvider = ({ children }: Props) => {
             email: decodedJwt.email,
             isPlatformAdmin: decodedJwt.isPlatformAdmin,
             org: decodedJwt.org,
-            role: decodedJwt.role
+            role: decodedJwt.role,
           });
         }
         api.defaults.headers.common.Authorization = `Bearer ${localStorageUser.access_token}`;
@@ -73,9 +79,9 @@ const AuthProvider = ({ children }: Props) => {
 
   const parseJwt = (accessToken: string) => {
     try {
-      return JSON.parse(window.atob(accessToken.split('.')[1]));
+      return JSON.parse(window.atob(accessToken.split(".")[1]));
     } catch (e) {
-      console.error('Error parsing JWT', e);
+      console.error("Error parsing JWT", e);
       return null;
     }
   };

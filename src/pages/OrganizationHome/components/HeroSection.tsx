@@ -8,9 +8,22 @@ type HeroSectionProps = {
   onSecondaryClick: () => void;
 };
 
-const HeroSection: React.FC<HeroSectionProps> = ({ firstName, onPrimaryClick, onSecondaryClick }) => {
+const HeroSection: React.FC<HeroSectionProps> = ({
+  firstName,
+  onPrimaryClick,
+  onSecondaryClick,
+}) => {
   return (
-    <Box component="section" sx={{ py: { xs: 4, md: 6 }, px: { xs: 4, md: 6 }, display: "flex", justifyContent: "center", alignItems: "center" }}>
+    <Box
+      component="section"
+      sx={{
+        py: { xs: 4, md: 6 },
+        px: { xs: 4, md: 6 },
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
       <Container maxWidth="lg">
         <Box
           sx={{
@@ -26,9 +39,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ firstName, onPrimaryClick, on
                 {`Bem-vindo, ${firstName}`}
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                Sua central para gerenciar contratações públicas de forma inteligente e integrada.
+                Sua central para gerenciar contratações públicas de forma
+                inteligente e integrada.
               </Typography>
-              <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mt: 1 }}>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                spacing={2}
+                sx={{ mt: 1 }}
+              >
                 <Button
                   variant="contained"
                   onClick={onPrimaryClick}
@@ -45,7 +63,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ firstName, onPrimaryClick, on
                   color="primary"
                   onClick={onSecondaryClick}
                   size="large"
-                  sx={{ color: "#000", borderColor: "#000", ":hover": { borderColor: "#000", bgcolor: "rgba(0,0,0,0.04)" } }}
+                  sx={{
+                    color: "#000",
+                    borderColor: "#000",
+                    ":hover": {
+                      borderColor: "#000",
+                      bgcolor: "rgba(0,0,0,0.04)",
+                    },
+                  }}
                 >
                   Assistir Guia Rápido
                 </Button>
@@ -75,7 +100,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ firstName, onPrimaryClick, on
                 component="img"
                 alt="Painel do Fiscatus"
                 src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1400&q=60"
-                sx={{ position: "relative", width: "100%", height: "auto", borderRadius: 2, boxShadow: 3, display: "block" }}
+                sx={{
+                  position: "relative",
+                  width: "100%",
+                  height: "auto",
+                  borderRadius: 2,
+                  boxShadow: 3,
+                  display: "block",
+                }}
               />
             </Box>
           </Box>
@@ -86,5 +118,3 @@ const HeroSection: React.FC<HeroSectionProps> = ({ firstName, onPrimaryClick, on
 };
 
 export { HeroSection };
-
-

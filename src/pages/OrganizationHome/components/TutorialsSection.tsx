@@ -10,7 +10,7 @@ import {
   Typography,
 } from "@mui/material";
 
-import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import OpenInFullIcon from "@mui/icons-material/OpenInFull";
 import React from "react";
 
 type TutorialsSectionProps = {
@@ -19,9 +19,13 @@ type TutorialsSectionProps = {
 
 const TutorialsSection: React.FC<TutorialsSectionProps> = ({ sectionRef }) => {
   const [modalOpen, setModalOpen] = React.useState(false);
-  const [selectedVideo, setSelectedVideo] = React.useState<{ titulo: string; youtubeId: string } | null>(null);
+  const [selectedVideo, setSelectedVideo] = React.useState<{
+    titulo: string;
+    youtubeId: string;
+  } | null>(null);
 
-  const PLAYLIST_URL_TUTORIALS = "https://www.youtube.com/watch?v=RP63r2esgb0&list=PLktMu4vFX2FADZjgsdscuhO7ISO_AZiR1";
+  const PLAYLIST_URL_TUTORIALS =
+    "https://www.youtube.com/watch?v=RP63r2esgb0&list=PLktMu4vFX2FADZjgsdscuhO7ISO_AZiR1";
   const videos = React.useMemo(
     () => [
       { titulo: "Introdução ao Fiscatus", youtubeId: "ZR_6Z1IDD8s" },
@@ -55,14 +59,14 @@ const TutorialsSection: React.FC<TutorialsSectionProps> = ({ sectionRef }) => {
           <Typography variant="h6" fontWeight={600} color="text.primary">
             Tutoriais & Recursos
           </Typography>
-          <Button 
-            variant="text" 
-            size="small" 
-            onClick={() => window.open(PLAYLIST_URL_TUTORIALS, '_blank')}
-            sx={{ 
-              color: "rgb(137, 78, 238)", 
-              ":hover": { color: "#1d4ed8" }, 
-              fontWeight: "bold"
+          <Button
+            variant="text"
+            size="small"
+            onClick={() => window.open(PLAYLIST_URL_TUTORIALS, "_blank")}
+            sx={{
+              color: "rgb(137, 78, 238)",
+              ":hover": { color: "#1d4ed8" },
+              fontWeight: "bold",
             }}
           >
             Ver todos os tutoriais
@@ -99,12 +103,19 @@ const TutorialsSection: React.FC<TutorialsSectionProps> = ({ sectionRef }) => {
                 }}
               >
                 <CardContent sx={{ p: 3.75, pb: 3.125 }}>
-                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3.125 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 3.125,
+                    }}
+                  >
                     <Typography
-                      sx={{ 
-                        fontSize: 20, 
-                        fontWeight: 700, 
-                        color: "#111827" 
+                      sx={{
+                        fontSize: 20,
+                        fontWeight: 700,
+                        color: "#111827",
                       }}
                     >
                       {v.titulo}

@@ -37,8 +37,9 @@ interface TopbarProps {
 
 const Topbar = ({ onMenuClick }: TopbarProps) => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [accountMenuAnchor, setAccountMenuAnchor] = useState<null | HTMLElement>(null);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [accountMenuAnchor, setAccountMenuAnchor] =
+    useState<null | HTMLElement>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [isScrolling, setIsScrolling] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const navigate = useNavigate();
@@ -47,7 +48,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
   const user = {
     nome: "Usuário Exemplo",
     email: "usuario@exemplo.com",
-    avatar: null
+    avatar: null,
   };
 
   useEffect(() => {
@@ -59,30 +60,30 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
       setIsScrolling(true);
 
       clearTimeout(scrollTimer);
-      
+
       scrollTimer = setTimeout(() => {
         setIsScrolling(false);
       }, 150);
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
 
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener("scroll", handleScroll);
       clearTimeout(scrollTimer);
     };
   }, []);
 
   const getBackgroundOpacity = () => {
     if (scrollY <= 10) return 0.9;
-    
+
     return 0.6;
   };
 
   const getBlurIntensity = () => {
-    if (scrollY <= 10) return '8px';
-    
-    return '4px';
+    if (scrollY <= 10) return "8px";
+
+    return "4px";
   };
 
   const handleAccountMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -114,77 +115,81 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
       sx={{
         backgroundColor: `rgba(255, 255, 255, ${getBackgroundOpacity()})`,
         backdropFilter: `blur(${getBlurIntensity()})`,
-        borderBottom: '1px solid #f3f4f6',
-        boxShadow: 'none',
+        borderBottom: "1px solid #f3f4f6",
+        boxShadow: "none",
         zIndex: 50,
-        width: '100%',
+        width: "100%",
         left: 0,
         right: 0,
-        transition: 'all 0.3s ease-in-out',
+        transition: "all 0.3s ease-in-out",
       }}
     >
       <Toolbar
         sx={{
-          width: '100%',
+          width: "100%",
           px: { xs: 1, sm: 2 },
-          minHeight: '64px !important',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          overflow: 'hidden',
-          maxWidth: '100%',
+          minHeight: "64px !important",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          overflow: "hidden",
+          maxWidth: "100%",
         }}
       >
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: { xs: 0.25, sm: 0.5 },
-          flexShrink: 0,
-          minWidth: 0,
-        }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: { xs: 0.25, sm: 0.5 },
+            flexShrink: 0,
+            minWidth: 0,
+          }}
+        >
           <IconButton
             onClick={onMenuClick}
             sx={{
               width: 36,
               height: 36,
               borderRadius: 1,
-              '&:hover': {
-                backgroundColor: '#f3f4f6',
+              "&:hover": {
+                backgroundColor: "#f3f4f6",
               },
-              '&:focus-visible': {
-                outline: '2px solid #6366f1',
-                outlineOffset: '2px',
+              "&:focus-visible": {
+                outline: "2px solid #6366f1",
+                outlineOffset: "2px",
               },
             }}
             aria-label="Abrir menu"
           >
-            <MenuIcon sx={{ color: '#374151', fontSize: 20 }} />
+            <MenuIcon sx={{ color: "#374151", fontSize: 20 }} />
           </IconButton>
 
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: { xs: 0.25, sm: 0.5 },
-            minWidth: 0,
-          }}>
-            <img 
-              src={logo} 
-              alt="Logo Fiscatus" 
-              style={{ 
-                width: 32, 
-                height: 32 
-              }} 
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: { xs: 0.25, sm: 0.5 },
+              minWidth: 0,
+            }}
+          >
+            <img
+              src={logo}
+              alt="Logo Fiscatus"
+              style={{
+                width: 32,
+                height: 32,
+              }}
             />
             <Typography
               variant="h6"
               sx={{
                 fontWeight: 700,
-                color: '#1f2937',
-                fontSize: '1.125rem',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: { xs: 'none', sm: 'block' },
+                color: "#1f2937",
+                fontSize: "1.125rem",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                display: { xs: "none", sm: "block" },
               }}
             >
               Fiscatus
@@ -192,29 +197,31 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
           </Box>
         </Box>
 
-        <Box sx={{ 
-          flex: 1,
-          display: { xs: 'none', sm: 'flex' },
-          justifyContent: 'center',
-          mx: 1,
-          minWidth: 0,
-          maxWidth: { sm: '250px', md: '350px' },
-        }}>
+        <Box
+          sx={{
+            flex: 1,
+            display: { xs: "none", sm: "flex" },
+            justifyContent: "center",
+            mx: 1,
+            minWidth: 0,
+            maxWidth: { sm: "250px", md: "350px" },
+          }}
+        >
           <Box
             sx={{
-              position: 'relative',
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
+              position: "relative",
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
             }}
           >
             <Search
               sx={{
-                position: 'absolute',
+                position: "absolute",
                 left: 8,
-                color: '#9ca3af',
+                color: "#9ca3af",
                 fontSize: 16,
-                pointerEvents: 'none',
+                pointerEvents: "none",
                 zIndex: 1,
               }}
             />
@@ -223,48 +230,49 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{
-                width: '100%',
+                width: "100%",
                 height: 32,
-                borderRadius: '16px',
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
+                borderRadius: "16px",
+                backgroundColor: "white",
+                border: "1px solid #e5e7eb",
                 pl: 4,
                 pr: 1,
-                fontSize: '0.875rem',
-                transition: 'all 0.2s ease',
-                '&:focus': {
-                  outline: '2px solid #6366f1',
-                  outlineOffset: '2px',
-                  borderColor: '#6366f1',
-                  boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.1)',
+                fontSize: "0.875rem",
+                transition: "all 0.2s ease",
+                "&:focus": {
+                  outline: "2px solid #6366f1",
+                  outlineOffset: "2px",
+                  borderColor: "#6366f1",
+                  boxShadow: "0 0 0 3px rgba(99, 102, 241, 0.1)",
                 },
-                '&:hover': {
-                  borderColor: '#d1d5db',
+                "&:hover": {
+                  borderColor: "#d1d5db",
                 },
-                '&::placeholder': {
-                  color: '#9ca3af',
+                "&::placeholder": {
+                  color: "#9ca3af",
                 },
               }}
             />
           </Box>
         </Box>
 
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: { xs: 0.25, sm: 0.5 },
-          flexShrink: 0,
-          minWidth: 0,
-        }}>
-
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: { xs: 0.25, sm: 0.5 },
+            flexShrink: 0,
+            minWidth: 0,
+          }}
+        >
           <IconButton
             sx={{
               width: 36,
               height: 36,
-              position: 'relative',
-              color: '#374151',
-              '&:hover': {
-                backgroundColor: '#f3f4f6',
+              position: "relative",
+              color: "#374151",
+              "&:hover": {
+                backgroundColor: "#f3f4f6",
               },
             }}
             aria-label="Notificações"
@@ -273,10 +281,10 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             <Badge
               badgeContent={156}
               sx={{
-                '& .MuiBadge-badge': {
-                  backgroundColor: '#ef4444',
-                  color: 'white',
-                  fontSize: '12px',
+                "& .MuiBadge-badge": {
+                  backgroundColor: "#ef4444",
+                  color: "white",
+                  fontSize: "12px",
                   minWidth: 16,
                   height: 16,
                   top: -2,
@@ -295,11 +303,11 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
               width: 36,
               height: 36,
               p: 0,
-              overflow: 'hidden',
-              borderRadius: '50%',
-              border: '1px solid #e5e7eb',
-              '&:hover': {
-                backgroundColor: '#f3f4f6',
+              overflow: "hidden",
+              borderRadius: "50%",
+              border: "1px solid #e5e7eb",
+              "&:hover": {
+                backgroundColor: "#f3f4f6",
               },
             }}
             aria-label="Abrir menu da conta"
@@ -308,10 +316,10 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
               sx={{
                 width: 36,
                 height: 36,
-                fontSize: '0.875rem',
+                fontSize: "0.875rem",
                 fontWeight: 500,
-                backgroundColor: '#6366f1',
-                color: 'white',
+                backgroundColor: "#6366f1",
+                color: "white",
               }}
             >
               {getInitials(user.nome)}
@@ -323,12 +331,12 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             open={Boolean(accountMenuAnchor)}
             onClose={handleAccountMenuClose}
             anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
+              vertical: "bottom",
+              horizontal: "right",
             }}
             transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
+              vertical: "top",
+              horizontal: "right",
             }}
             slotProps={{
               paper: {
@@ -340,25 +348,27 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             }}
           >
             <Box sx={{ px: 2, py: 1 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: '0.875rem' }}>
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: "0.875rem" }}
+              >
                 {user.nome}
               </Typography>
               <Typography
                 variant="caption"
                 sx={{
-                  color: '#6b7280',
-                  display: 'block',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  fontSize: '0.75rem',
+                  color: "#6b7280",
+                  display: "block",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  fontSize: "0.75rem",
                 }}
               >
                 {user.email}
               </Typography>
             </Box>
             <Divider />
-
 
             <MenuItem
               onClick={() => {
@@ -370,7 +380,10 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
               <ListItemIcon sx={{ minWidth: 32 }}>
                 <Settings sx={{ fontSize: 16 }} />
               </ListItemIcon>
-              <ListItemText primary="Configurações" sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }} />
+              <ListItemText
+                primary="Configurações"
+                sx={{ "& .MuiTypography-root": { fontSize: "0.875rem" } }}
+              />
             </MenuItem>
 
             <MenuItem
@@ -383,7 +396,10 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
               <ListItemIcon sx={{ minWidth: 32 }}>
                 <Headphones sx={{ fontSize: 16 }} />
               </ListItemIcon>
-              <ListItemText primary="Suporte" sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }} />
+              <ListItemText
+                primary="Suporte"
+                sx={{ "& .MuiTypography-root": { fontSize: "0.875rem" } }}
+              />
             </MenuItem>
 
             <Divider />
@@ -393,22 +409,25 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
               sx={{
                 py: 1,
                 minHeight: 36,
-                color: '#dc2626',
-                '&:hover': {
-                  backgroundColor: '#fef2f2',
+                color: "#dc2626",
+                "&:hover": {
+                  backgroundColor: "#fef2f2",
                 },
               }}
             >
               <ListItemIcon sx={{ minWidth: 32 }}>
-                <Logout sx={{ fontSize: 16, color: '#dc2626' }} />
+                <Logout sx={{ fontSize: 16, color: "#dc2626" }} />
               </ListItemIcon>
-              <ListItemText primary="Sair do sistema" sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }} />
+              <ListItemText
+                primary="Sair do sistema"
+                sx={{ "& .MuiTypography-root": { fontSize: "0.875rem" } }}
+              />
             </MenuItem>
           </Menu>
         </Box>
       </Toolbar>
     </AppBar>
   );
-}
+};
 
 export { Topbar };

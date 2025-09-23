@@ -46,10 +46,24 @@ const FaqSection: React.FC<FaqSectionProps> = ({ sectionRef }) => {
   );
 
   return (
-    <Box ref={sectionRef} component="section" sx={{ py: { xs: 2, md: 4 }, px: { xs: 4, md: 6 }, width: "100%", bgcolor: "#fff" }}>
+    <Box
+      ref={sectionRef}
+      component="section"
+      sx={{
+        py: { xs: 2, md: 4 },
+        px: { xs: 4, md: 6 },
+        width: "100%",
+        bgcolor: "#fff",
+      }}
+    >
       <Container maxWidth={false}>
         <Box sx={{ mb: 3 }}>
-          <Typography variant="h6" fontWeight={600} color="text.primary" sx={{ mb: 2 }}>
+          <Typography
+            variant="h6"
+            fontWeight={600}
+            color="text.primary"
+            sx={{ mb: 2 }}
+          >
             Perguntas Frequentes
           </Typography>
 
@@ -68,14 +82,42 @@ const FaqSection: React.FC<FaqSectionProps> = ({ sectionRef }) => {
                 }}
               >
                 {columns.map((group, colIdx) => (
-                  <Box key={colIdx} sx={{ borderRadius: 4, border: "1px solid", borderColor: "rgba(229,231,235,1)", bgcolor: "#fff", boxShadow: 1 }}>
+                  <Box
+                    key={colIdx}
+                    sx={{
+                      borderRadius: 4,
+                      border: "1px solid",
+                      borderColor: "rgba(229,231,235,1)",
+                      bgcolor: "#fff",
+                      boxShadow: 1,
+                    }}
+                  >
                     {group.map((faq, idx) => (
-                      <Accordion key={idx} disableGutters sx={{ boxShadow: "none", borderTop: idx === 0 ? "none" : "1px solid rgba(243,244,246,1)" }}>
-                        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 2, py: 1.5 }}>
-                          <Typography sx={{ fontWeight: 600, color: "#111827" }}>{faq.q}</Typography>
+                      <Accordion
+                        key={idx}
+                        disableGutters
+                        sx={{
+                          boxShadow: "none",
+                          borderTop:
+                            idx === 0
+                              ? "none"
+                              : "1px solid rgba(243,244,246,1)",
+                        }}
+                      >
+                        <AccordionSummary
+                          expandIcon={<ExpandMoreIcon />}
+                          sx={{ px: 2, py: 1.5 }}
+                        >
+                          <Typography
+                            sx={{ fontWeight: 600, color: "#111827" }}
+                          >
+                            {faq.q}
+                          </Typography>
                         </AccordionSummary>
                         <AccordionDetails sx={{ px: 2, pb: 2 }}>
-                          <Typography sx={{ color: "#4b5563" }}>{faq.a}</Typography>
+                          <Typography sx={{ color: "#4b5563" }}>
+                            {faq.a}
+                          </Typography>
                         </AccordionDetails>
                       </Accordion>
                     ))}

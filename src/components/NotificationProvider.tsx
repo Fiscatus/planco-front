@@ -1,20 +1,23 @@
-import { Alert, Snackbar } from '@mui/material';
-import { ReactNode, createContext, useContext, useState } from 'react';
+import { Alert, Box } from "@mui/material";
+import { ReactNode, createContext, useContext, useState } from "react";
 
-type NotificationType = 'success' | 'error' | 'warning' | 'info';
+type NotificationType = "success" | "error" | "warning" | "info";
 
 type Notification = {
   id: string;
   message: string;
   type: NotificationType;
   open: boolean;
+  isExiting?: boolean;
 };
 
 type NotificationContextType = {
   showNotification: (message: string, type: NotificationType) => void;
 };
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+const NotificationContext = createContext<NotificationContextType | undefined>(
+  undefined
+);
 
 type Props = {
   children: ReactNode;
@@ -29,48 +32,95 @@ export const NotificationProvider = ({ children }: Props) => {
       id,
       message,
       type,
-      open: true
+      open: true,
+      isExiting: false,
     };
 
-    setNotifications(prev => [...prev, newNotification]);
+    setNotifications((prev) => {
+      const updatedNotifications = [...prev, newNotification];
+      
+      if (updatedNotifications.length > 3) {
+        const excessCount = updatedNotifications.length - 3;
+        return updatedNotifications.slice(excessCount);
+      }
+      
+      return updatedNotifications;
+    });
 
     setTimeout(() => {
-      setNotifications(prev => prev.filter(notification => notification.id !== id));
+      handleClose(id);
     }, 5000); // 5 seconds duration
   };
 
   const handleClose = (id: string) => {
-    setNotifications(prev => 
-      prev.map(notification => 
+    setNotifications((prev) =>
+      prev.map((notification) =>
         notification.id === id 
-          ? { ...notification, open: false }
+          ? { ...notification, isExiting: true }
           : notification
       )
     );
+
+    setTimeout(() => {
+      setNotifications((prev) =>
+        prev.filter((notification) => notification.id !== id)
+      );
+    }, 300);
   };
 
   return (
     <NotificationContext.Provider value={{ showNotification }}>
       {children}
-      {notifications.map((notification) => (
-        <Snackbar
-          key={notification.id}
-          open={notification.open}
-          autoHideDuration={5000}
-          onClose={() => handleClose(notification.id)}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-          sx={{ mt: 8 }}
-        >
+      <Box
+        sx={{
+          position: "fixed",
+          top: 80,
+          right: 16,
+          zIndex: 9999,
+          display: "flex",
+          flexDirection: "column",
+          gap: 1,
+          maxWidth: 400,
+        }}
+      >
+        {notifications.map((notification, index) => (
           <Alert
+            key={notification.id}
             onClose={() => handleClose(notification.id)}
             severity={notification.type}
             variant="filled"
-            sx={{ width: '100%' }}
+            sx={{
+              width: "100%",
+              minWidth: 300,
+              animation: notification.isExiting 
+                ? "slideOut 0.3s ease-in forwards"
+                : "slideIn 0.3s ease-out",
+              "@keyframes slideIn": {
+                from: {
+                  transform: "translateX(100%)",
+                  opacity: 0,
+                },
+                to: {
+                  transform: "translateX(0)",
+                  opacity: 1,
+                },
+              },
+              "@keyframes slideOut": {
+                from: {
+                  transform: "translateX(0)",
+                  opacity: 1,
+                },
+                to: {
+                  transform: "translateX(100%)",
+                  opacity: 0,
+                },
+              },
+            }}
           >
             {notification.message}
           </Alert>
-        </Snackbar>
-      ))}
+        ))}
+      </Box>
     </NotificationContext.Provider>
   );
 };
@@ -78,7 +128,9 @@ export const NotificationProvider = ({ children }: Props) => {
 export const useNotification = () => {
   const context = useContext(NotificationContext);
   if (context === undefined) {
-    throw new Error('useNotification must be used within a NotificationProvider');
+    throw new Error(
+      "useNotification must be used within a NotificationProvider"
+    );
   }
   return context;
 };
