@@ -26,8 +26,27 @@ const LayoutNavbar = ({ children }: LayoutProps) => {
       width: "100%",
     }}>
       <Topbar onMenuClick={handleMenuClick} />
-      <Sidebar open={sidebarOpen} onClose={handleSidebarClose} />
-      {children}
+
+      <Box sx={{
+        display: 'flex',
+        flex: 1,
+        pt: '64px',
+        width: '100%',
+      }}>
+        <Sidebar open={sidebarOpen} onClose={handleSidebarClose} />
+
+        <Box
+          component="main"
+          sx={{
+            flex: 1,
+            width: '100%',
+            px: { xs: 2, md: 3 },
+            py: 2,
+          }}
+        >
+          {children}
+        </Box>
+      </Box>
     </Box>
   );
 };
