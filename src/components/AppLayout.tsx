@@ -41,7 +41,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           sx={{
             flex: 1,
             width: '100%',
-            px: { xs: 2, md: 3 },
             py: 2,
             display: 'flex',
             flexDirection: 'column',

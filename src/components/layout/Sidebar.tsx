@@ -430,7 +430,6 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
 
   return (
     <>
-      {/* Overlay para mobile */}
       <Box
         sx={{
           position: 'fixed',
