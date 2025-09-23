@@ -1,13 +1,14 @@
 import React, { useState } from "react";
-import { Sidebar, Topbar } from "./navbar";
+import { Sidebar, Topbar } from "./layout";
 
 import { Box } from "@mui/material";
+import { Footer } from "./layout/Footer";
 
-interface LayoutProps {
+interface AppLayoutProps {
   children: React.ReactNode;
 }
 
-const LayoutNavbar = ({ children }: LayoutProps) => {
+const AppLayout = ({ children }: AppLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleMenuClick = () => {
@@ -42,13 +43,17 @@ const LayoutNavbar = ({ children }: LayoutProps) => {
             width: '100%',
             px: { xs: 2, md: 3 },
             py: 2,
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
           {children}
         </Box>
       </Box>
+
+      <Footer />
     </Box>
   );
 };
 
-export { LayoutNavbar };
+export { AppLayout };
