@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { Invite } from '@/globals/types';
 import { api } from '@/services';
@@ -10,9 +10,13 @@ export const useInvites = () => {
   const { showNotification } = useNotification();
   const [invites, setInvites] = useState<Invite[]>([]);
   const [loading, setLoading] = useState(true);
+  const hasFetched = useRef(false);
 
-  const fetchInvites = async () => {
-    if (!user?._id) return;
+  const fetchInvites = useCallback(async () => {
+    if (!user?._id) {
+      setLoading(false);
+      return;
+    }
     
     try {
       setLoading(true);
@@ -24,7 +28,7 @@ export const useInvites = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?._id, showNotification]);
 
   const acceptInvite = async (inviteId: string) => {
     try {
@@ -49,8 +53,11 @@ export const useInvites = () => {
   };
 
   useEffect(() => {
-    fetchInvites();
-  }, [user?._id]);
+    if (user?._id && !hasFetched.current) {
+      hasFetched.current = true;
+      fetchInvites();
+    }
+  }, [user?._id, fetchInvites]);
 
   return {
     invites,

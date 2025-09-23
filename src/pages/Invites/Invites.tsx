@@ -110,13 +110,13 @@ const Invites = () => {
                   sx={{
                     width: 36,
                     height: 36,
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    borderRadius: "50%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  <InfoOutlined sx={{ color: 'primary.main' }} />
+                  <InfoOutlined sx={{ color: "primary.main" }} />
                 </Box>
               }
               sx={{
