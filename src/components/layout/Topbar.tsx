@@ -298,7 +298,9 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
                 color: 'white'
               }}
             >
-              {getInitials(user.firstName + ' ' + user.lastName)}
+              {getInitials(
+                ((user?.firstName ? user.firstName : '') + ' ' + (user?.lastName ? user.lastName : '')).trim() || 'U'
+              )}
             </Avatar>
           </IconButton>
 
@@ -328,7 +330,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
                 variant='subtitle2'
                 sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: '0.875rem' }}
               >
-                {user.firstName}
+                {user?.firstName || 'Usuário'}
               </Typography>
               <Typography
                 variant='caption'
@@ -341,7 +343,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
                   fontSize: '0.75rem'
                 }}
               >
-                {user.email}
+                {user?.email || ''}
               </Typography>
             </Box>
             <Divider />

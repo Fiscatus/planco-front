@@ -15,9 +15,13 @@ type Props = {
 const AuthProvider = ({ children }: Props) => {
   const [user, setUser] = useState<User | undefined>();
   const [hasOrganization, setHasOrganization] = useState(false);
+  const [isOrgAdmin, setIsOrgAdmin] = useState(false);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
   useEffect(() => {
     setHasOrganization(user && user.org !== null);
+    setIsOrgAdmin(user?.role?.permissions?.includes('admin'));
+    setIsPlatformAdmin(user?.isPlatformAdmin);
   }, [user]);
 
   const signUp = async (registerData: RegisterDto): Promise<AuthResponse> => {
@@ -42,6 +46,7 @@ const AuthProvider = ({ children }: Props) => {
           org: decodedJwt.org,
           role: decodedJwt.role
         });
+        setHasOrganization(decodedJwt.org !== null);
       }
     }
     return data;
@@ -69,6 +74,7 @@ const AuthProvider = ({ children }: Props) => {
             org: decodedJwt.org,
             role: decodedJwt.role
           });
+          setHasOrganization(decodedJwt.org !== null);
         }
         api.defaults.headers.common.Authorization = `Bearer ${localStorageUser.access_token}`;
       }
@@ -86,7 +92,9 @@ const AuthProvider = ({ children }: Props) => {
   loadUserFromLocalStorage();
 
   return (
-    <AuthContext.Provider value={{ user, signUp, signIn, signOut, hasOrganization }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user, signUp, signIn, signOut, hasOrganization, isOrgAdmin, isPlatformAdmin }}>
+      {children}
+    </AuthContext.Provider>
   );
 };
 

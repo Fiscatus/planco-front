@@ -1,6 +1,7 @@
 import { Box, CircularProgress } from '@mui/material';
-import { lazy, Suspense, useEffect, useState } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
+import { Suspense, lazy, useEffect, useState } from 'react';
+
 import { AppLayout } from '@/components';
 import { useAuth } from '@/hooks/useAuth';
 import { useScreen } from '@/hooks/useScreen';
@@ -11,13 +12,14 @@ const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy/PrivacyPolicy'));
 const Auth = lazy(() => import('@/pages/Auth/Auth'));
 const OrganizationHome = lazy(() => import('@/pages/OrganizationHome/OrganizationHome'));
 const Invites = lazy(() => import('@/pages/Invites/Invites'));
+const NotAccess = lazy(() => import('@/pages/NotAccessPage/NotAccessPage'));
+const AdminPage = lazy(() => import('@/pages/AdminPage/AdminPage'));
 
 const withoutHeaderRoutes = ['/auth', '/privacy-policy'];
 
 const AppRouter = () => {
-  // const [searchParams] = useSearchParams();
   const { pathname } = useLocation();
-  const { user, hasOrganization } = useAuth();
+  const { user, hasOrganization, isOrgAdmin } = useAuth();
   const { isDesktop } = useScreen();
   const [routeWithoutHeader, setRouteWithoutHeader] = useState(false);
 
@@ -74,6 +76,10 @@ const AppRouter = () => {
                   element={<OrganizationHome />}
                 />
               )}
+              <Route
+                path='/admin'
+                element={isOrgAdmin ? <AdminPage /> : <NotAccess />}
+              />
             </>
           )}
 

@@ -14,6 +14,7 @@ import { type ReactNode, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { version } from '@/../package.json';
 import logo from '/assets/isologo.svg';
+import { useAuth } from '@/hooks';
 
 type SidebarProps = {
   open: boolean;
@@ -83,10 +84,8 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Simulação de dados do usuário
-  const user = {
-    gerencia: 'Comissão de Implantação'
-  };
+  const { user } = useAuth();
+  const canSeeAdmin = Boolean(user?.isPlatformAdmin || user?.role?.permissions?.includes('admin'));
 
   useEffect(() => {
     function handleEsc(e: KeyboardEvent) {
@@ -106,7 +105,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
       location.pathname === modulePath ||
       (modulePath === '/' && location.pathname === '/') ||
       (modulePath === '/planejamento-da-contratacao' && location.pathname === '/planejamento-da-contratacao') ||
-      (modulePath === '/administracao' && location.pathname === '/administracao')
+      (modulePath === '/admin' && location.pathname === '/admin')
     );
   };
 
@@ -329,8 +328,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         </List>
       </Box>
 
-      {/* TODO: tratar permissões de administração do usuário para acessar o painel de administração */}
-      {user?.gerencia === 'Comissão de Implantação' && (
+      {canSeeAdmin && (
         <Box sx={{ borderTop: '1px solid #e5e7eb', p: 2 }}>
           <Typography
             variant='caption'
@@ -352,18 +350,18 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
               handleModuleClick({
                 label: 'Administração',
                 icon: <Shield sx={{ fontSize: 16 }} />,
-                path: '/administracao',
+                path: '/admin',
                 description: 'Painel de administração'
               })
             }
             sx={{
               borderRadius: 1,
-              border: isActiveModule('/administracao') ? '1px solid #bfdbfe' : '1px solid transparent',
-              backgroundColor: isActiveModule('/administracao') ? '#eff6ff' : 'transparent',
-              color: isActiveModule('/administracao') ? '#2563eb' : '#4b5563',
+              border: isActiveModule('/admin') ? '1px solid #bfdbfe' : '1px solid transparent',
+              backgroundColor: isActiveModule('/admin') ? '#eff6ff' : 'transparent',
+              color: isActiveModule('/admin') ? '#2563eb' : '#4b5563',
               '&:hover': {
-                backgroundColor: isActiveModule('/administracao') ? '#eff6ff' : '#f9fafb',
-                border: isActiveModule('/administracao') ? '1px solid #bfdbfe' : '1px solid #e5e7eb'
+                backgroundColor: isActiveModule('/admin') ? '#eff6ff' : '#f9fafb',
+                border: isActiveModule('/admin') ? '1px solid #bfdbfe' : '1px solid #e5e7eb'
               },
               py: 1,
               px: 2
@@ -372,7 +370,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
             <ListItemIcon
               sx={{
                 minWidth: 32,
-                color: isActiveModule('/administracao') ? '#2563eb' : '#6b7280'
+                color: isActiveModule('/admin') ? '#2563eb' : '#6b7280'
               }}
             >
               <Shield sx={{ fontSize: 16 }} />

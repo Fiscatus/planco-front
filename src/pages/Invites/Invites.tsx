@@ -1,7 +1,8 @@
 import { AccessTime, CheckCircle, InfoOutlined, Mail, PersonAdd, Shield } from '@mui/icons-material';
 import { Alert, Box, Button, Card, CardContent, CardHeader, Chip, Divider, Paper, Typography } from '@mui/material';
-import type { Invite } from '@/globals/types';
 import { useAuth, useInvites } from '@/hooks';
+
+import type { Invite } from '@/globals/types';
 
 const Invites = () => {
   const { hasOrganization } = useAuth();
@@ -20,12 +21,10 @@ const Invites = () => {
     return (
       <Box
         sx={{
-          minHeight: '100vh',
-          bgcolor: 'grey.50',
+          minHeight: '50vh',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          p: 3
+          justifyContent: 'center'
         }}
       >
         <Card
