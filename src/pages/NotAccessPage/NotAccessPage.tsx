@@ -1,13 +1,13 @@
 import { Box, Button, Container, Stack, Typography } from "@mui/material";
 import {
   Home as HomeIcon,
-  SearchOff as SearchOffIcon,
+  Block as BlockIcon
 } from "@mui/icons-material";
 
 import { useAuth } from "@/hooks";
 import { useNavigate } from "react-router-dom";
 
-const NotFoundPage = () => {
+const NotAccessPage = () => {
   const navigate = useNavigate();
   const { user, hasOrganization } = useAuth();
 
@@ -90,7 +90,7 @@ const NotFoundPage = () => {
                 boxShadow: 3,
               }}
             >
-              <SearchOffIcon
+              <BlockIcon
                 sx={{
                   fontSize: 60,
                   color: "rgb(137, 78, 238)",
@@ -102,17 +102,6 @@ const NotFoundPage = () => {
           <Stack spacing={3} sx={{ position: "relative" }}>
             <Box>
               <Typography
-                variant="h1"
-                sx={{
-                  fontSize: { xs: 48, md: 72 },
-                  fontWeight: 700,
-                  color: "rgb(137, 78, 238)",
-                  mb: 1,
-                }}
-              >
-                404
-              </Typography>
-              <Typography
                 variant="h3"
                 sx={{
                   fontSize: { xs: 24, md: 32 },
@@ -121,7 +110,7 @@ const NotFoundPage = () => {
                   mb: 2,
                 }}
               >
-                Página não encontrada
+                Sem acesso a esse recurso
               </Typography>
               <Typography
                 variant="body1"
@@ -133,8 +122,7 @@ const NotFoundPage = () => {
                   lineHeight: 1.6,
                 }}
               >
-                Ops! A página que você está procurando não existe ou foi
-                movida. {hasOrganization ? "Que tal voltar para o início e explorar nossos módulos?" : "Que tal fazer login para acessar nossa plataforma?"}
+                Ops! Você não tem acesso a esse recurso. {hasOrganization ? "Que tal voltar para o início e explorar nossos módulos?" : "Que tal fazer login para acessar nossa plataforma?"}
               </Typography>
             </Box>
 
@@ -210,4 +198,4 @@ const NotFoundPage = () => {
   )
 };
 
-export default NotFoundPage;
+export default NotAccessPage;

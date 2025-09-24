@@ -3,6 +3,8 @@ import type { AuthResponse, LoginDto, RegisterDto, User } from '@/globals/types'
 
 type AuthContextType = {
   user: User | undefined;
+  hasOrganization: boolean
+  signOut(): Promise<void>;
   signUp(user: RegisterDto): Promise<AuthResponse>;
   signIn(credentials: LoginDto): Promise<AuthResponse>;
 };

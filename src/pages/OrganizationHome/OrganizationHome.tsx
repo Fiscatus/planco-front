@@ -38,8 +38,8 @@ const OrganizationHome = () => {
   );
 
   return (
-    <AppLayout>
-      <HeroSection
+   <>
+   <HeroSection
         firstName={firstName}
         onPrimaryClick={handleScrollToModulos}
         onSecondaryClick={handleScrollToTutoriais}
@@ -58,7 +58,7 @@ const OrganizationHome = () => {
       <TutorialsSection sectionRef={tutoriaisSectionRef} />
 
       <FaqSection sectionRef={faqSectionRef} />
-    </AppLayout>
+   </>
   );
 };
 

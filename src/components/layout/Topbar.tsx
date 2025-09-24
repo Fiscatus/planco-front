@@ -22,10 +22,11 @@ import {
   Search,
   Settings,
 } from "@mui/icons-material";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import logo from "/assets/isologo.svg";
+import { useAuth } from "@/hooks";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -44,6 +45,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
   const [scrollY, setScrollY] = useState(0);
   const navigate = useNavigate();
   const location = useLocation();
+  const { signOut } = useAuth();
 
   const user = {
     nome: "Usuário Exemplo",
@@ -94,9 +96,9 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
     setAccountMenuAnchor(null);
   };
 
-  const handleLogout = () => {
-    // TODO: implementar logout
-    navigate("/login");
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth");
     handleAccountMenuClose();
   };
 
