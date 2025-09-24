@@ -1,19 +1,15 @@
-import type {
-  AuthResponse,
-  LoginDto,
-  RegisterDto,
-  User,
-} from "@/globals/types";
+import { type ReactNode, useEffect, useState } from 'react';
 
-import { AuthContext } from "@/contexts";
-import { api } from "@/services";
-import { useState, useEffect } from "react";
+import { AuthContext } from '@/contexts';
+import type { AuthResponse, LoginDto, RegisterDto, User } from '@/globals/types';
+import { api } from '@/services';
+import parseJwtToJson from '@/utils/parseJwtToJson';
 
-const authApiPath = "/auth";
-const localStorageUserKey = "@fiscatus:user";
+const authApiPath = '/auth';
+const localStorageUserKey = '@fiscatus:user';
 
 type Props = {
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 const AuthProvider = ({ children }: Props) => {
@@ -35,7 +31,7 @@ const AuthProvider = ({ children }: Props) => {
       api.defaults.headers.common.Authorization = `Bearer ${data.access_token}`;
       localStorage.setItem(localStorageUserKey, JSON.stringify(data));
 
-      const decodedJwt = parseJwt(data.access_token);
+      const decodedJwt = parseJwtToJson(data.access_token);
       if (decodedJwt) {
         setUser({
           _id: decodedJwt.sub,
@@ -44,7 +40,7 @@ const AuthProvider = ({ children }: Props) => {
           email: decodedJwt.email,
           isPlatformAdmin: decodedJwt.isPlatformAdmin,
           org: decodedJwt.org,
-          role: decodedJwt.role,
+          role: decodedJwt.role
         });
       }
     }
@@ -59,12 +55,10 @@ const AuthProvider = ({ children }: Props) => {
 
   const loadUserFromLocalStorage = () => {
     if (localStorage.getItem(localStorageUserKey)) {
-      const localStorageUser = JSON.parse(
-        String(localStorage.getItem(localStorageUserKey))
-      );
+      const localStorageUser = JSON.parse(String(localStorage.getItem(localStorageUserKey)));
       verifyAuth(localStorageUser.access_token);
       if (!user && localStorageUser.access_token) {
-        const decodedJwt = parseJwt(localStorageUser.access_token);
+        const decodedJwt = parseJwtToJson(localStorageUser.access_token);
         if (decodedJwt) {
           setUser({
             _id: decodedJwt.sub,
@@ -73,7 +67,7 @@ const AuthProvider = ({ children }: Props) => {
             email: decodedJwt.email,
             isPlatformAdmin: decodedJwt.isPlatformAdmin,
             org: decodedJwt.org,
-            role: decodedJwt.role,
+            role: decodedJwt.role
           });
         }
         api.defaults.headers.common.Authorization = `Bearer ${localStorageUser.access_token}`;
@@ -82,30 +76,17 @@ const AuthProvider = ({ children }: Props) => {
   };
 
   const verifyAuth = (accessToken: string) => {
-    const decodedJwt = parseJwt(accessToken);
+    const decodedJwt = parseJwtToJson(accessToken);
     if (decodedJwt.exp * 1000 < Date.now()) {
-      signOut()
+      signOut();
       localStorage.removeItem(localStorageUserKey);
-    }
-  };
-
-  const parseJwt = (accessToken: string) => {
-    try {
-      return JSON.parse(window.atob(accessToken.split(".")[1]));
-    } catch (e) {
-      console.error("Error parsing JWT", e);
-      return null;
     }
   };
 
   loadUserFromLocalStorage();
 
   return (
-    <AuthContext.Provider
-      value={{ user, signUp, signIn, signOut, hasOrganization }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={{ user, signUp, signIn, signOut, hasOrganization }}>{children}</AuthContext.Provider>
   );
 };
 
