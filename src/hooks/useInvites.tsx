@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-
+import { useNotification } from '@/components';
 import type { Invite } from '@/globals/types';
 import { api } from '@/services';
 import { useAuth } from './useAuth';
-import { useNotification } from '@/components';
 
 export const useInvites = () => {
   const { user } = useAuth();
@@ -17,11 +16,12 @@ export const useInvites = () => {
       setLoading(false);
       return;
     }
-    
+
     try {
       setLoading(true);
       const { data } = await api.get(`/invites/${user._id}`);
       setInvites(data);
+      // biome-ignore lint/suspicious/noExplicitAny: <TODO: create error type>
     } catch (error: any) {
       console.error('Erro ao buscar convites:', error);
       showNotification('Erro ao carregar convites', 'error');
@@ -35,6 +35,7 @@ export const useInvites = () => {
       await api.post(`/invites/${inviteId}/accept`);
       showNotification('Convite aceito com sucesso!', 'success');
       fetchInvites();
+      // biome-ignore lint/suspicious/noExplicitAny: <TODO: create error type>
     } catch (error: any) {
       console.error('Erro ao aceitar convite:', error);
       showNotification('Erro ao aceitar convite', 'error');
@@ -46,6 +47,7 @@ export const useInvites = () => {
       await api.post(`/invites/${inviteId}/decline`);
       showNotification('Convite recusado', 'info');
       fetchInvites();
+      // biome-ignore lint/suspicious/noExplicitAny: <TODO: create error type>
     } catch (error: any) {
       console.error('Erro ao recusar convite:', error);
       showNotification('Erro ao recusar convite', 'error');

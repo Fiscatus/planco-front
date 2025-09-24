@@ -1,20 +1,15 @@
-import React, { useState } from "react";
-import { Sidebar, Topbar } from "./layout";
-
-import { Box } from "@mui/material";
-import { Footer } from "./layout/Footer";
+import { Box } from '@mui/material';
+import { type ReactNode, useState } from 'react';
+import { Sidebar, Topbar } from './layout';
+import { Footer } from './layout/Footer';
 
 type AppLayoutProps = {
-  children: React.ReactNode;
+  children: ReactNode;
   hideHeader?: boolean;
   hideSidebar?: boolean;
 };
 
-const AppLayout = ({
-  children,
-  hideHeader = false,
-  hideSidebar = false,
-}: AppLayoutProps) => {
+const AppLayout = ({ children, hideHeader = false, hideSidebar = false }: AppLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleMenuClick = () => {
@@ -30,34 +25,37 @@ const AppLayout = ({
       {!hideSidebar ? (
         <Box
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            minHeight: "100vh",
-            width: "100%",
+            display: 'flex',
+            flexDirection: 'column',
+            minHeight: '100vh',
+            width: '100%'
           }}
         >
           {!hideHeader && <Topbar onMenuClick={handleMenuClick} />}
 
           <Box
             sx={{
-              display: "flex",
+              display: 'flex',
               flex: 1,
-              pt: "64px",
-              width: "100%",
+              pt: '64px',
+              width: '100%'
             }}
           >
             {!hideSidebar && (
-              <Sidebar open={sidebarOpen} onClose={handleSidebarClose} />
+              <Sidebar
+                open={sidebarOpen}
+                onClose={handleSidebarClose}
+              />
             )}
 
             <Box
-              component="main"
+              component='main'
               sx={{
                 flex: 1,
-                width: "100%",
+                width: '100%',
                 py: 2,
-                display: "flex",
-                flexDirection: "column",
+                display: 'flex',
+                flexDirection: 'column'
               }}
             >
               {children}

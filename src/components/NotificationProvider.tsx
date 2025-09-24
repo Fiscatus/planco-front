@@ -1,7 +1,7 @@
-import { Alert, Box } from "@mui/material";
-import { ReactNode, createContext, useContext, useState } from "react";
+import { Alert, Box } from '@mui/material';
+import { createContext, type ReactNode, useContext, useState } from 'react';
 
-type NotificationType = "success" | "error" | "warning" | "info";
+type NotificationType = 'success' | 'error' | 'warning' | 'info';
 
 type Notification = {
   id: string;
@@ -15,9 +15,7 @@ type NotificationContextType = {
   showNotification: (message: string, type: NotificationType) => void;
 };
 
-const NotificationContext = createContext<NotificationContextType | undefined>(
-  undefined
-);
+const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 type Props = {
   children: ReactNode;
@@ -33,17 +31,17 @@ export const NotificationProvider = ({ children }: Props) => {
       message,
       type,
       open: true,
-      isExiting: false,
+      isExiting: false
     };
 
     setNotifications((prev) => {
       const updatedNotifications = [...prev, newNotification];
-      
+
       if (updatedNotifications.length > 3) {
         const excessCount = updatedNotifications.length - 3;
         return updatedNotifications.slice(excessCount);
       }
-      
+
       return updatedNotifications;
     });
 
@@ -54,17 +52,11 @@ export const NotificationProvider = ({ children }: Props) => {
 
   const handleClose = (id: string) => {
     setNotifications((prev) =>
-      prev.map((notification) =>
-        notification.id === id 
-          ? { ...notification, isExiting: true }
-          : notification
-      )
+      prev.map((notification) => (notification.id === id ? { ...notification, isExiting: true } : notification))
     );
 
     setTimeout(() => {
-      setNotifications((prev) =>
-        prev.filter((notification) => notification.id !== id)
-      );
+      setNotifications((prev) => prev.filter((notification) => notification.id !== id));
     }, 300);
   };
 
@@ -73,48 +65,46 @@ export const NotificationProvider = ({ children }: Props) => {
       {children}
       <Box
         sx={{
-          position: "fixed",
+          position: 'fixed',
           top: 80,
           right: 16,
           zIndex: 9999,
-          display: "flex",
-          flexDirection: "column",
+          display: 'flex',
+          flexDirection: 'column',
           gap: 1,
-          maxWidth: 400,
+          maxWidth: 400
         }}
       >
-        {notifications.map((notification, index) => (
+        {notifications.map((notification) => (
           <Alert
             key={notification.id}
             onClose={() => handleClose(notification.id)}
             severity={notification.type}
-            variant="filled"
+            variant='filled'
             sx={{
-              width: "100%",
+              width: '100%',
               minWidth: 300,
-              animation: notification.isExiting 
-                ? "slideOut 0.3s ease-in forwards"
-                : "slideIn 0.3s ease-out",
-              "@keyframes slideIn": {
+              animation: notification.isExiting ? 'slideOut 0.3s ease-in forwards' : 'slideIn 0.3s ease-out',
+              '@keyframes slideIn': {
                 from: {
-                  transform: "translateX(100%)",
-                  opacity: 0,
+                  transform: 'translateX(100%)',
+                  opacity: 0
                 },
                 to: {
-                  transform: "translateX(0)",
-                  opacity: 1,
-                },
+                  transform: 'translateX(0)',
+                  opacity: 1
+                }
               },
-              "@keyframes slideOut": {
+              '@keyframes slideOut': {
                 from: {
-                  transform: "translateX(0)",
-                  opacity: 1,
+                  transform: 'translateX(0)',
+                  opacity: 1
                 },
                 to: {
-                  transform: "translateX(100%)",
-                  opacity: 0,
-                },
-              },
+                  transform: 'translateX(100%)',
+                  opacity: 0
+                }
+              }
             }}
           >
             {notification.message}
@@ -128,9 +118,7 @@ export const NotificationProvider = ({ children }: Props) => {
 export const useNotification = () => {
   const context = useContext(NotificationContext);
   if (context === undefined) {
-    throw new Error(
-      "useNotification must be used within a NotificationProvider"
-    );
+    throw new Error('useNotification must be used within a NotificationProvider');
   }
   return context;
 };
