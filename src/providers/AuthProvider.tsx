@@ -7,7 +7,7 @@ import type {
 
 import { AuthContext } from "@/contexts";
 import { api } from "@/services";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const authApiPath = "/auth";
 const localStorageUserKey = "@fiscatus:user";
@@ -18,6 +18,11 @@ type Props = {
 
 const AuthProvider = ({ children }: Props) => {
   const [user, setUser] = useState<User | undefined>();
+  const [hasOrganization, setHasOrganization] = useState(false);
+
+  useEffect(() => {
+    setHasOrganization(user && user.org !== null);
+  }, [user]);
 
   const signUp = async (registerData: RegisterDto): Promise<AuthResponse> => {
     const { data } = await api.post(`${authApiPath}/register`, registerData);
@@ -44,6 +49,12 @@ const AuthProvider = ({ children }: Props) => {
       }
     }
     return data;
+  };
+
+  const signOut = async () => {
+    api.defaults.headers.common.Authorization = undefined;
+    localStorage.removeItem(localStorageUserKey);
+    setUser(undefined);
   };
 
   const loadUserFromLocalStorage = () => {
@@ -73,6 +84,7 @@ const AuthProvider = ({ children }: Props) => {
   const verifyAuth = (accessToken: string) => {
     const decodedJwt = parseJwt(accessToken);
     if (decodedJwt.exp * 1000 < Date.now()) {
+      signOut()
       localStorage.removeItem(localStorageUserKey);
     }
   };
@@ -89,7 +101,9 @@ const AuthProvider = ({ children }: Props) => {
   loadUserFromLocalStorage();
 
   return (
-    <AuthContext.Provider value={{ user, signUp, signIn }}>
+    <AuthContext.Provider
+      value={{ user, signUp, signIn, signOut, hasOrganization }}
+    >
       {children}
     </AuthContext.Provider>
   );

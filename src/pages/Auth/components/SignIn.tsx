@@ -39,7 +39,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
     try {
       await signIn(credentials);
       showNotification("Login realizado com sucesso!", "success");
-      navigate("/organization-home");
+      navigate("/");
     } catch (error: any) {
       console.error("Erro ao fazer login:", error);
 

@@ -10,9 +10,11 @@ import {
 import CreateAccount from "./components/CreateAccount";
 import SignIn from "./components/SignIn";
 import { useState } from "react";
+import { useAuth } from "@/hooks";
 
 const Auth = () => {
   const [isSignIn, setIsSignIn] = useState(true);
+  const {user} = useAuth()
 
   return (
     <Container

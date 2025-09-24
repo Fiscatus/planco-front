@@ -238,7 +238,7 @@ const Invites = () => {
                 sx={{
                   minWidth: 200,
                   borderRadius: 1,
-                  bgcolor: "rgb(124, 59, 237)",
+                  bgcolor: "primary.main",
                 }}
               >
                 Verificar Novamente
@@ -321,7 +321,7 @@ const Invites = () => {
               <CardHeader
                 title={
                   <Box display="flex" alignItems="center" gap={1}>
-                    <Shield sx={{ color: "rgb(124, 59, 237)" }} />
+                    <Shield sx={{ color: "primary.main" }} />
                     <Typography variant="h6">
                       Convite para Organização
                     </Typography>

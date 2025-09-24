@@ -33,7 +33,7 @@ interface SidebarProps {
 const dashboard = {
   label: "Início",
   icon: <Home sx={{ fontSize: 20 }} />,
-  path: "/organization-home",
+  path: "/",
   description: "Painel inicial do sistema",
 };
 
@@ -106,8 +106,8 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
   const isActiveModule = (modulePath: string) => {
     return (
       location.pathname === modulePath ||
-      (modulePath === "/organization-home" &&
-        location.pathname === "/organization-home") ||
+      (modulePath === "/" &&
+        location.pathname === "/") ||
       (modulePath === "/planejamento-da-contratacao" &&
         location.pathname === "/planejamento-da-contratacao") ||
       (modulePath === "/administracao" &&

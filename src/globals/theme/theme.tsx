@@ -4,7 +4,7 @@ const themeOptions: ThemeOptions = {
   palette: {
     mode: 'light',
     primary: {
-      main: 'rgb(28, 77, 150)',
+      main: 'rgb(124, 59, 237)',
       light: 'rgb(96, 126, 200)',
       dark: 'rgb(6, 40, 99)'
     },
