@@ -1,6 +1,5 @@
-import { Box, Card, CardContent, CardHeader, MenuItem, Select, TextField, Typography } from '@mui/material';
+import { Box, Card, CardContent, CardHeader, Grid, MenuItem, Select, TextField, Typography } from '@mui/material';
 
-import Grid from '@mui/material/Grid';
 import { useState } from 'react';
 
 const UserSection = () => {
@@ -23,26 +22,31 @@ const UserSection = () => {
           sx={{ mb: 2 }}
         >
           <Grid
-            item
-            xs={12}
-            md={6}
+            size={{
+              xs: 12,
+              md: 6
+            }}
           >
             <TextField
               fullWidth
+
               placeholder='Buscar por nome, email ou gerência'
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
           </Grid>
           <Grid
-            item
-            xs={12}
-            md={3}
+            size={{
+              xs: 12,
+              md: 3
+            }}
           >
             <Select
               fullWidth
               value={status}
+              // biome-ignore lint/suspicious/noExplicitAny: <explanation>
               onChange={(e) => setStatus(e.target.value as any)}
+          
             >
               <MenuItem value='todos'>Todos</MenuItem>
               <MenuItem value='ativos'>Ativos</MenuItem>
@@ -50,9 +54,10 @@ const UserSection = () => {
             </Select>
           </Grid>
           <Grid
-            item
-            xs={12}
-            md={3}
+            size={{
+              xs: 12,
+              md: 3
+            }}
           >
             <Select
               fullWidth
