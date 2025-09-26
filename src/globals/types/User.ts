@@ -5,6 +5,7 @@ export type User = {
   email: string;
   password?: string;
   isPlatformAdmin?: boolean;
+  isActive?: boolean;
   org?: {
     _id: string;
     name: string;
@@ -14,6 +15,12 @@ export type User = {
     name: string;
     permissions: string[];
   } | null;
+  departments?: Array<{
+    _id: string;
+    department_name: string;
+  }>;
+  createdAt?: string;
+  updatedAt?: string;
 };
 
 export type AuthResponse = {
@@ -30,4 +37,29 @@ export type RegisterDto = {
 export type LoginDto = {
   email: string;
   password: string;
+};
+
+export type FilterUsersDto = {
+  page?: number;
+  limit?: number;
+  name?: string;
+  email?: string;
+  isActive?: boolean;
+  departments?: string[];
+  role?: string;
+};
+
+export type PaginatedUsersDto = {
+  users: User[];
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrev: boolean;
+};
+
+export type ToggleUserStatusResponse = {
+  message: string;
+  isActive: boolean;
 };

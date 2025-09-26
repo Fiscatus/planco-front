@@ -18,7 +18,7 @@ api.interceptors.response.use(
       throw backendError;
     }
     if (error.code === 'ERR_NETWORK') {
-      throw new Error('Erro de conexão. Verifique se o backend está rodando.');
+      throw new Error('Erro de conexão. Verifique se o servidor está rodando.');
     }
     throw error;
   }

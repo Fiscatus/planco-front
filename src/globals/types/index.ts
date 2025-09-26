@@ -1,2 +1,10 @@
 export type { Invite } from './Invite';
-export type { AuthResponse, LoginDto, RegisterDto, User } from './User';
+export type {
+  AuthResponse,
+  FilterUsersDto,
+  LoginDto,
+  PaginatedUsersDto,
+  RegisterDto,
+  ToggleUserStatusResponse,
+  User
+} from './User';
