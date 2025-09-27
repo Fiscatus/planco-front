@@ -10,6 +10,7 @@ type AuthContextType = {
   signOut(): Promise<void>;
   signUp(user: RegisterDto): Promise<AuthResponse>;
   signIn(credentials: LoginDto): Promise<AuthResponse>;
+  refreshToken(): Promise<AuthResponse>;
 };
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);

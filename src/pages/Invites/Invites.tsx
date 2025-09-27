@@ -1,21 +1,55 @@
 import { AccessTime, CheckCircle, InfoOutlined, Mail, PersonAdd, Shield } from '@mui/icons-material';
 import { Alert, Box, Button, Card, CardContent, CardHeader, Chip, Divider, Paper, Typography } from '@mui/material';
 import { useAuth, useInvites } from '@/hooks';
+import { useCallback, useEffect } from 'react';
 
 import type { Invite } from '@/globals/types';
+import { useNotification } from '@/components';
 
 const Invites = () => {
-  const { hasOrganization } = useAuth();
-  const { invites, acceptInvite, declineInvite, refetch } = useInvites();
-  const pendingInvites = invites.filter((invite) => invite.status === 'pending');
+  const { user, hasOrganization } = useAuth();
+  const { invites, loading, error, fetchUserInvites, acceptInvite, declineInvite, clearError } = useInvites();
+  const { showNotification } = useNotification();
 
-  const handleAcceptInvite = async (inviteId: string) => {
-    await acceptInvite(inviteId);
-  };
+  useEffect(() => {
+    if (user?.email && !hasOrganization) {
+      fetchUserInvites(user.email);
+    }
+  }, [user?.email, hasOrganization, fetchUserInvites]);
 
-  const handleDeclineInvite = async (inviteId: string) => {
-    await declineInvite(inviteId);
-  };
+  const handleAcceptInvite = useCallback(
+    async (inviteId: string) => {
+      try {
+        await acceptInvite(inviteId);
+        if (user?.email) {
+          await fetchUserInvites(user.email);
+        }
+      } catch {
+        showNotification('Erro ao aceitar convite', 'error');
+      }
+    },
+    [acceptInvite, fetchUserInvites, user?.email]
+  );
+
+  const handleDeclineInvite = useCallback(
+    async (inviteId: string) => {
+      try {
+        await declineInvite(inviteId);
+        if (user?.email) {
+          await fetchUserInvites(user.email);
+        }
+      } catch {
+        showNotification('Erro ao recusar convite', 'error');
+      }
+    },
+    [declineInvite, fetchUserInvites, user?.email]
+  );
+
+  const handleRefresh = useCallback(() => {
+    if (user?.email) {
+      fetchUserInvites(user.email);
+    }
+  }, [fetchUserInvites, user?.email]);
 
   if (hasOrganization) {
     return (
@@ -79,8 +113,7 @@ const Invites = () => {
     );
   }
 
-  // Se não tem convites pendentes
-  if (pendingInvites.length === 0) {
+  if (!loading && invites.length === 0) {
     return (
       <Box
         sx={{
@@ -309,7 +342,8 @@ const Invites = () => {
             <Box sx={{ textAlign: 'center' }}>
               <Button
                 variant='contained'
-                onClick={refetch}
+                onClick={handleRefresh}
+                disabled={loading}
                 sx={{
                   minWidth: 200,
                   borderRadius: 1,
@@ -386,137 +420,179 @@ const Invites = () => {
         </Box>
 
         <CardContent sx={{ px: 4, pb: 4 }}>
-          {pendingInvites.map((invite: Invite) => (
-            <Card
-              key={invite._id}
-              variant='outlined'
-              sx={{
-                mb: 3,
-                textAlign: 'left',
-                borderRadius: 1
-              }}
+          {error && (
+            <Alert
+              severity='error'
+              sx={{ mb: 3 }}
+              onClose={clearError}
             >
-              <CardHeader
-                title={
-                  <Box
-                    display='flex'
-                    alignItems='center'
-                    gap={1}
-                  >
-                    <Shield sx={{ color: 'primary.main' }} />
-                    <Typography variant='h6'>Convite para Organização</Typography>
-                  </Box>
-                }
-                action={
-                  <Chip
-                    icon={<AccessTime />}
-                    label={`Expira em ${new Date(invite.expiresAt).toLocaleDateString('pt-BR')}`}
-                    variant='outlined'
-                    sx={{
-                      color: 'black',
-                      borderColor: 'black',
-                      '&:hover': {
-                        borderColor: 'darkred'
-                      }
-                    }}
-                  />
-                }
-              />
-              <CardContent>
-                <Box
-                  sx={{
-                    display: 'grid',
-                    gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                    gap: 3
-                  }}
-                >
-                  <Box>
-                    <Typography
-                      variant='body2'
-                      color='text.secondary'
-                      gutterBottom
+              {error}
+            </Alert>
+          )}
+
+          {loading ? (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography
+                variant='body2'
+                color='text.secondary'
+              >
+                Carregando convites...
+              </Typography>
+            </Box>
+          ) : (
+            invites.map((invite: Invite) => (
+              <Card
+                key={invite._id}
+                variant='outlined'
+                sx={{
+                  mb: 3,
+                  textAlign: 'left',
+                  borderRadius: 1
+                }}
+              >
+                <CardHeader
+                  title={
+                    <Box
+                      display='flex'
+                      alignItems='center'
+                      gap={1}
                     >
-                      Token do Convite
-                    </Typography>
-                    <Paper
+                      <Shield sx={{ color: 'primary.main' }} />
+                      <Typography variant='h6'>Convite para Organização</Typography>
+                    </Box>
+                  }
+                  action={
+                    <Chip
+                      icon={<AccessTime />}
+                      label={`Expira em ${new Date(invite.expiresAt).toLocaleDateString('pt-BR')}`}
                       variant='outlined'
                       sx={{
-                        p: 1,
-                        bgcolor: 'grey.50',
-                        fontFamily: 'monospace',
-                        fontSize: '0.875rem',
-                        width: 'fit-content'
+                        color: 'black',
+                        borderColor: 'black',
+                        '&:hover': {
+                          borderColor: 'darkred'
+                        }
+                      }}
+                    />
+                  }
+                />
+                <CardContent>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+                      gap: 3
+                    }}
+                  >
+                    <Box>
+                      <Typography
+                        variant='body2'
+                        color='text.secondary'
+                        gutterBottom
+                      >
+                        Email
+                      </Typography>
+                      <Typography variant='body1'>{invite.email}</Typography>
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant='body2'
+                        color='text.secondary'
+                        gutterBottom
+                      >
+                        Role
+                      </Typography>
+                      <Typography variant='body1'>{invite.role.name}</Typography>
+                    </Box>
+                    {invite.departments && invite.departments.length > 0 && (
+                      <Box sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}>
+                        <Typography
+                          variant='body2'
+                          color='text.secondary'
+                          gutterBottom
+                        >
+                          Gerências
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                          {invite.departments.map((dept) => (
+                            <Chip
+                              key={dept._id}
+                              label={dept.department_name}
+                              size='small'
+                              variant='outlined'
+                              color='secondary'
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+                    <Box>
+                      <Typography
+                        variant='body2'
+                        color='text.secondary'
+                        gutterBottom
+                      >
+                        Convidado por
+                      </Typography>
+                      <Typography variant='body1'>
+                        {invite.invitedBy.firstName} {invite.invitedBy.lastName}
+                      </Typography>
+                      <Typography
+                        variant='caption'
+                        color='text.secondary'
+                      >
+                        {invite.invitedBy.email}
+                      </Typography>
+                    </Box>
+                    <Box>
+                      <Typography
+                        variant='body2'
+                        color='text.secondary'
+                        gutterBottom
+                      >
+                        Criado em
+                      </Typography>
+                      <Typography variant='body1'>{new Date(invite.createdAt).toLocaleDateString('pt-BR')}</Typography>
+                    </Box>
+                  </Box>
+
+                  <Divider sx={{ my: 3 }} />
+
+                  <Box
+                    display='flex'
+                    gap={2}
+                  >
+                    <Button
+                      variant='contained'
+                      startIcon={<CheckCircle />}
+                      onClick={() => handleAcceptInvite(invite._id)}
+                      disabled={loading}
+                      sx={{
+                        flex: 1,
+                        bgcolor: 'rgb(124, 59, 237)'
                       }}
                     >
-                      {invite.token}
-                    </Paper>
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant='body2'
-                      color='text.secondary'
-                      gutterBottom
+                      Aceitar Convite
+                    </Button>
+                    <Button
+                      variant='outlined'
+                      onClick={() => handleDeclineInvite(invite._id)}
+                      disabled={loading}
+                      sx={{
+                        borderColor: 'rgb(124, 59, 237)',
+                        color: 'rgb(124, 59, 237)',
+                        '&:hover': {
+                          borderColor: 'darkred'
+                        }
+                      }}
                     >
-                      Email
-                    </Typography>
-                    <Typography variant='body1'>{invite.email}</Typography>
+                      Recusar
+                    </Button>
                   </Box>
-                  <Box>
-                    <Typography
-                      variant='body2'
-                      color='text.secondary'
-                      gutterBottom
-                    >
-                      Organização
-                    </Typography>
-                    <Typography variant='body1'>{invite.organizationName}</Typography>
-                  </Box>
-                  <Box>
-                    <Typography
-                      variant='body2'
-                      color='text.secondary'
-                      gutterBottom
-                    >
-                      Função
-                    </Typography>
-                    <Typography variant='body1'>{invite.role}</Typography>
-                  </Box>
-                </Box>
-
-                <Divider sx={{ my: 3 }} />
-
-                <Box
-                  display='flex'
-                  gap={2}
-                >
-                  <Button
-                    variant='contained'
-                    startIcon={<CheckCircle />}
-                    onClick={() => handleAcceptInvite(invite._id)}
-                    sx={{
-                      flex: 1,
-                      bgcolor: 'rgb(124, 59, 237)'
-                    }}
-                  >
-                    Aceitar Convite
-                  </Button>
-                  <Button
-                    variant='outlined'
-                    onClick={() => handleDeclineInvite(invite._id)}
-                    sx={{
-                      borderColor: 'rgb(124, 59, 237)',
-                      color: 'rgb(124, 59, 237)',
-                      '&:hover': {
-                        borderColor: 'darkred'
-                      }
-                    }}
-                  >
-                    Recusar
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))
+          )}
         </CardContent>
       </Card>
     </Box>

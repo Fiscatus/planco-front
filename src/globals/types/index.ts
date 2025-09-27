@@ -1,4 +1,17 @@
-export type { Invite } from './Invite';
+export type {
+  AcceptInviteResponse,
+  CreateInviteDto,
+  DeclineInviteResponse,
+  DeleteInviteResponse,
+  FilterInvitesDto,
+  Invite,
+  InviteDepartment,
+  InviteResponseDto,
+  InviteRole,
+  InviteStatus,
+  InviteUser,
+  PaginatedInvitesDto
+} from './Invite';
 export type {
   AuthResponse,
   FilterUsersDto,
@@ -8,3 +21,12 @@ export type {
   ToggleUserStatusResponse,
   User
 } from './User';
+export type {
+  CreateRoleDto,
+  UpdateRoleDto,
+  Role,
+  RoleDeleteImpact,
+  RoleDeleteResponse,
+  PermissionDto,
+  PermissionsResponseDto
+} from './Role';

@@ -20,7 +20,6 @@ import {
   MenuItem,
   Paper,
   Select,
-  Snackbar,
   Switch,
   Table,
   TableBody,
@@ -42,7 +41,10 @@ import type { FilterUsersDto, User } from '@/globals/types';
 import { useAuth, useDepartments, useRoles, useUsers } from '@/hooks';
 import { useCallback, useEffect, useState } from 'react';
 
+import { useNotification } from '@/components';
+
 const UserSection = () => {
+  const { showNotification } = useNotification();
   const {
     users,
     loading,
@@ -63,9 +65,6 @@ const UserSection = () => {
   const [departmentsDropdownOpen, setDepartmentsDropdownOpen] = useState(false);
   const [editRolesDropdownOpen, setEditRolesDropdownOpen] = useState(false);
   const [editDepartmentsDropdownOpen, setEditDepartmentsDropdownOpen] = useState(false);
-
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const [filters, setFilters] = useState<FilterUsersDto>({
     page: 1,
@@ -192,8 +191,8 @@ const UserSection = () => {
       setEditModalOpen(false);
       setSelectedUser(null);
       setEditForm({ role: '', departments: [] });
-    } catch (err) {
-      console.error('Erro ao atualizar usuário:', err);
+    } catch {
+      showNotification('Erro ao atualizar usuário', 'error');
     }
   }, [selectedUser, editForm, updateUserRole, updateUserDepartments]);
 
@@ -202,15 +201,14 @@ const UserSection = () => {
       if (!user._id) return;
 
       if (currentUser?._id === user._id && user.isActive) {
-        setSnackbarMessage('Você não pode desabilitar a si mesmo');
-        setSnackbarOpen(true);
+        showNotification('Você não pode desabilitar a si mesmo', 'warning');
         return;
       }
 
       try {
         await toggleUserStatus(user._id);
-      } catch (err) {
-        console.error('Erro ao alterar status do usuário:', err);
+      } catch {
+        showNotification('Erro ao alterar status do usuário', 'error');
       }
     },
     [toggleUserStatus, currentUser?._id]
@@ -304,18 +302,7 @@ const UserSection = () => {
                     label='Role'
                     placeholder='Digite ou clique para buscar'
                     InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          {roles.length === 0 && rolesDropdownOpen ? (
-                            <CircularProgress
-                              color='inherit'
-                              size={20}
-                            />
-                          ) : null}
-                          {params.InputProps.endAdornment}
-                        </>
-                      )
+                      ...params.InputProps
                     }}
                   />
                 )}
@@ -324,6 +311,12 @@ const UserSection = () => {
                 selectOnFocus
                 handleHomeEndKeys
                 loading={roles.length === 0 && rolesDropdownOpen}
+                loadingText={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={20} />
+                    Carregando roles...
+                  </Box>
+                }
               />
             </Grid>
             <Grid size={{ xs: 12, md: 2 }}>
@@ -347,18 +340,7 @@ const UserSection = () => {
                     label='Gerências'
                     placeholder='Digite ou clique para buscar'
                     InputProps={{
-                      ...params.InputProps,
-                      endAdornment: (
-                        <>
-                          {departments.length === 0 && departmentsDropdownOpen ? (
-                            <CircularProgress
-                              color='inherit'
-                              size={20}
-                            />
-                          ) : null}
-                          {params.InputProps.endAdornment}
-                        </>
-                      )
+                      ...params.InputProps
                     }}
                   />
                 )}
@@ -367,6 +349,12 @@ const UserSection = () => {
                 selectOnFocus
                 handleHomeEndKeys
                 loading={departments.length === 0 && departmentsDropdownOpen}
+                loadingText={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={20} />
+                    Carregando gerências...
+                  </Box>
+                }
               />
             </Grid>
             <Grid size={{ xs: 12, md: 1 }}>
@@ -412,7 +400,7 @@ const UserSection = () => {
                 {loading ? (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={8}
                       align='center'
                       sx={{ py: 4 }}
                     >
@@ -421,7 +409,7 @@ const UserSection = () => {
                         variant='body2'
                         sx={{ mt: 1 }}
                       >
-                        Carregando...
+                        Carregando usuários...
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -572,18 +560,7 @@ const UserSection = () => {
                   label='Role'
                   placeholder='Digite ou clique para buscar roles'
                   InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {roles.length === 0 && editRolesDropdownOpen ? (
-                          <CircularProgress
-                            color='inherit'
-                            size={20}
-                          />
-                        ) : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    )
+                    ...params.InputProps
                   }}
                 />
               )}
@@ -592,6 +569,12 @@ const UserSection = () => {
               selectOnFocus
               handleHomeEndKeys
               loading={roles.length === 0 && editRolesDropdownOpen}
+              loadingText={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CircularProgress size={20} />
+                  Carregando roles...
+                </Box>
+              }
             />
 
             <Autocomplete
@@ -614,18 +597,7 @@ const UserSection = () => {
                   label='Gerências'
                   placeholder='Digite ou clique para buscar gerências'
                   InputProps={{
-                    ...params.InputProps,
-                    endAdornment: (
-                      <>
-                        {departments.length === 0 && editDepartmentsDropdownOpen ? (
-                          <CircularProgress
-                            color='inherit'
-                            size={20}
-                          />
-                        ) : null}
-                        {params.InputProps.endAdornment}
-                      </>
-                    )
+                    ...params.InputProps
                   }}
                 />
               )}
@@ -634,6 +606,12 @@ const UserSection = () => {
               selectOnFocus
               handleHomeEndKeys
               loading={departments.length === 0 && editDepartmentsDropdownOpen}
+              loadingText={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CircularProgress size={20} />
+                  Carregando gerências...
+                </Box>
+              }
             />
           </Box>
         </DialogContent>
@@ -648,21 +626,6 @@ const UserSection = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity='warning'
-          sx={{ width: '100%' }}
-        >
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };

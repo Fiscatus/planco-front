@@ -58,6 +58,30 @@ const AuthProvider = ({ children }: Props) => {
     setUser(undefined);
   };
 
+  const refreshToken = async (): Promise<AuthResponse> => {
+    const { data } = await api.post(`${authApiPath}/refresh`);
+    if (data.access_token) {
+      api.defaults.headers.common.Authorization = `Bearer ${data.access_token}`;
+      localStorage.setItem(localStorageUserKey, JSON.stringify(data));
+
+      const decodedJwt = parseJwtToJson(data.access_token);
+      if (decodedJwt) {
+        setUser({
+          _id: decodedJwt.sub,
+          firstName: decodedJwt.firstName,
+          lastName: decodedJwt.lastName,
+          email: decodedJwt.email,
+          isPlatformAdmin: decodedJwt.isPlatformAdmin,
+          org: decodedJwt.org,
+          role: decodedJwt.role,
+          departments: decodedJwt.departments
+        });
+        setHasOrganization(decodedJwt.org !== null);
+      }
+    }
+    return data;
+  };
+
   const loadUserFromLocalStorage = () => {
     if (localStorage.getItem(localStorageUserKey)) {
       const localStorageUser = JSON.parse(String(localStorage.getItem(localStorageUserKey)));
@@ -92,7 +116,9 @@ const AuthProvider = ({ children }: Props) => {
   loadUserFromLocalStorage();
 
   return (
-    <AuthContext.Provider value={{ user, signUp, signIn, signOut, hasOrganization, isOrgAdmin, isPlatformAdmin }}>
+    <AuthContext.Provider
+      value={{ user, signUp, signIn, signOut, refreshToken, hasOrganization, isOrgAdmin, isPlatformAdmin }}
+    >
       {children}
     </AuthContext.Provider>
   );

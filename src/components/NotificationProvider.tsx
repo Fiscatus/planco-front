@@ -1,4 +1,4 @@
-import { Alert, Box } from '@mui/material';
+import { Snackbar, Alert } from '@mui/material';
 import { createContext, type ReactNode, useContext, useState } from 'react';
 
 type NotificationType = 'success' | 'error' | 'warning' | 'info';
@@ -63,54 +63,48 @@ export const NotificationProvider = ({ children }: Props) => {
   return (
     <NotificationContext.Provider value={{ showNotification }}>
       {children}
-      <Box
-        sx={{
-          position: 'fixed',
-          top: 80,
-          right: 16,
-          zIndex: 9999,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 1,
-          maxWidth: 400
-        }}
-      >
-        {notifications.map((notification) => (
+      {notifications.map((notification) => (
+        <Snackbar
+          key={notification.id}
+          open={notification.open}
+          autoHideDuration={5000}
+          onClose={() => handleClose(notification.id)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          sx={{
+            top: '100px !important',
+            zIndex: 10000
+          }}
+        >
           <Alert
-            key={notification.id}
             onClose={() => handleClose(notification.id)}
             severity={notification.type}
             variant='filled'
             sx={{
-              width: '100%',
-              minWidth: 300,
-              animation: notification.isExiting ? 'slideOut 0.3s ease-in forwards' : 'slideIn 0.3s ease-out',
-              '@keyframes slideIn': {
-                from: {
-                  transform: 'translateX(100%)',
-                  opacity: 0
-                },
-                to: {
-                  transform: 'translateX(0)',
-                  opacity: 1
-                }
+              minWidth: '300px',
+              maxWidth: '400px',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              backgroundColor:
+                notification.type === 'success'
+                  ? 'rgba(76, 175, 80, 0.9)'
+                  : notification.type === 'error'
+                    ? 'rgba(244, 67, 54, 0.9)'
+                    : notification.type === 'warning'
+                      ? 'rgba(255, 152, 0, 0.9)'
+                      : 'rgba(33, 150, 243, 0.9)', // info
+              backdropFilter: 'blur(8px)',
+              '& .MuiAlert-icon': {
+                color: 'white'
               },
-              '@keyframes slideOut': {
-                from: {
-                  transform: 'translateX(0)',
-                  opacity: 1
-                },
-                to: {
-                  transform: 'translateX(100%)',
-                  opacity: 0
-                }
+              '& .MuiAlert-action': {
+                color: 'white'
               }
             }}
           >
             {notification.message}
           </Alert>
-        ))}
-      </Box>
+        </Snackbar>
+      ))}
     </NotificationContext.Provider>
   );
 };
