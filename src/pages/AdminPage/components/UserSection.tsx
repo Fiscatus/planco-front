@@ -222,7 +222,7 @@ const UserSection = () => {
     <Box>
       <Card>
         <CardHeader
-          title={<Typography variant='h6'>Usuários da Organização</Typography>}
+          title={<Typography variant='h6'>Usuários</Typography>}
           subheader='Gerencie os usuários e suas permissões'
           action={
             <Button
