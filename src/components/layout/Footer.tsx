@@ -1,7 +1,8 @@
-import { alpha, Box, Button, Chip, Container, Typography, useTheme } from '@mui/material';
+import { Box, Button, Chip, Container, Typography, alpha, useTheme } from '@mui/material';
+
+import logo from '/assets/isologo.svg';
 import { useNavigate } from 'react-router-dom';
 import { version } from '@/../package.json';
-import logo from '/assets/isologo.svg';
 
 const NAVIGATE_PATHS = {
   PRIVACY_POLICY_PATH: '/politica-privacidade',

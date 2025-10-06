@@ -30,3 +30,9 @@ export type {
   PermissionDto,
   PermissionsResponseDto
 } from './Role';
+export type {
+  Department,
+  PaginatedDepartments,
+  CreateDepartmentDto,
+  UpdateDepartmentDto
+} from './Department';

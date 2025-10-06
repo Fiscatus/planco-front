@@ -1,14 +1,8 @@
+import type { CreateDepartmentDto, Department, PaginatedDepartments, UpdateDepartmentDto } from '@/globals/types';
 import { useCallback, useState } from 'react';
 
 import { api } from '@/services';
 import { useAuth } from './useAuth';
-
-export type Department = {
-  _id: string;
-  department_name: string;
-  description?: string;
-  org: string;
-};
 
 export const useDepartments = () => {
   const { user } = useAuth();
@@ -16,7 +10,7 @@ export const useDepartments = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchDepartments = useCallback(async () => {
+  const fetchDepartments = useCallback(async (page = 1, limit = 10, search = '') => {
     if (!user?.org?._id) {
       setError('Usuário não possui organização');
       return;
@@ -26,8 +20,17 @@ export const useDepartments = () => {
       setLoading(true);
       setError(null);
 
-      const response = await api.get<Department[]>(`/departments/org/${user.org._id}`);
-      setDepartments(response.data);
+      const params: any = {
+        page,
+        limit
+      };
+
+      if (search) {
+        params.department_name = search;
+      }
+
+      const response = await api.get<PaginatedDepartments>('/departments', { params });
+      setDepartments(response.data.departments);
 
       return response.data;
     } catch (err) {
@@ -39,6 +42,134 @@ export const useDepartments = () => {
     }
   }, [user?.org?._id]);
 
+  const createDepartment = useCallback(async (data: CreateDepartmentDto) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await api.post<Department>('/departments', data);
+      
+      // Atualizar lista local
+      setDepartments(prev => [response.data, ...prev]);
+      
+      return response.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao criar departamento';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const updateDepartment = useCallback(async (id: string, data: UpdateDepartmentDto) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await api.put<Department>(`/departments/${id}`, data);
+      
+      // Atualizar lista local
+      setDepartments(prev => prev.map(dept => dept._id === id ? response.data : dept));
+      
+      return response.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar departamento';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteDepartment = useCallback(async (id: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      await api.delete(`/departments/${id}`);
+      
+      // Remover da lista local
+      setDepartments(prev => prev.filter(dept => dept._id !== id));
+      
+      return true;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir departamento';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const getDepartmentMembers = useCallback(async (departmentId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await api.get(`/departments/${departmentId}/members`);
+      
+      return response.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar membros do departamento';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const updateDepartmentMembers = useCallback(async (departmentId: string, userIds: string[]) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await api.put(`/departments/${departmentId}/members`, { userIds });
+      
+      return response.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao atualizar membros do departamento';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const addMembersBulk = useCallback(async (departmentId: string, userIds: string[]) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await api.post(`/departments/${departmentId}/add-members`, { userIds });
+      
+      return response.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao adicionar membros ao departamento';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const removeMember = useCallback(async (departmentId: string, userId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await api.delete(`/departments/${departmentId}/members/${userId}`);
+      
+      return response.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao remover membro do departamento';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -48,6 +179,13 @@ export const useDepartments = () => {
     loading,
     error,
     fetchDepartments,
+    createDepartment,
+    updateDepartment,
+    deleteDepartment,
+    getDepartmentMembers,
+    updateDepartmentMembers,
+    addMembersBulk,
+    removeMember,
     clearError
   };
 };
