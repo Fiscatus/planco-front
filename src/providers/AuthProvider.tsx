@@ -15,9 +15,13 @@ type Props = {
 const AuthProvider = ({ children }: Props) => {
   const [user, setUser] = useState<User | undefined>();
   const [hasOrganization, setHasOrganization] = useState(false);
+  const [isOrgAdmin, setIsOrgAdmin] = useState(false);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
   useEffect(() => {
     setHasOrganization(user && user.org !== null);
+    setIsOrgAdmin(user?.role?.permissions?.includes('admin'));
+    setIsPlatformAdmin(user?.isPlatformAdmin);
   }, [user]);
 
   const signUp = async (registerData: RegisterDto): Promise<AuthResponse> => {
@@ -42,6 +46,7 @@ const AuthProvider = ({ children }: Props) => {
           org: decodedJwt.org,
           role: decodedJwt.role
         });
+        setHasOrganization(decodedJwt.org !== null);
       }
     }
     return data;
@@ -51,6 +56,30 @@ const AuthProvider = ({ children }: Props) => {
     api.defaults.headers.common.Authorization = undefined;
     localStorage.removeItem(localStorageUserKey);
     setUser(undefined);
+  };
+
+  const refreshToken = async (): Promise<AuthResponse> => {
+    const { data } = await api.post(`${authApiPath}/refresh`);
+    if (data.access_token) {
+      api.defaults.headers.common.Authorization = `Bearer ${data.access_token}`;
+      localStorage.setItem(localStorageUserKey, JSON.stringify(data));
+
+      const decodedJwt = parseJwtToJson(data.access_token);
+      if (decodedJwt) {
+        setUser({
+          _id: decodedJwt.sub,
+          firstName: decodedJwt.firstName,
+          lastName: decodedJwt.lastName,
+          email: decodedJwt.email,
+          isPlatformAdmin: decodedJwt.isPlatformAdmin,
+          org: decodedJwt.org,
+          role: decodedJwt.role,
+          departments: decodedJwt.departments
+        });
+        setHasOrganization(decodedJwt.org !== null);
+      }
+    }
+    return data;
   };
 
   const loadUserFromLocalStorage = () => {
@@ -69,6 +98,7 @@ const AuthProvider = ({ children }: Props) => {
             org: decodedJwt.org,
             role: decodedJwt.role
           });
+          setHasOrganization(decodedJwt.org !== null);
         }
         api.defaults.headers.common.Authorization = `Bearer ${localStorageUser.access_token}`;
       }
@@ -86,7 +116,11 @@ const AuthProvider = ({ children }: Props) => {
   loadUserFromLocalStorage();
 
   return (
-    <AuthContext.Provider value={{ user, signUp, signIn, signOut, hasOrganization }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider
+      value={{ user, signUp, signIn, signOut, refreshToken, hasOrganization, isOrgAdmin, isPlatformAdmin }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
 };
 

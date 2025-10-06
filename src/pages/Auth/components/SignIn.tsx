@@ -1,11 +1,11 @@
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Box, Button, Grid, Link, Paper, TextField, Typography } from '@mui/material';
-import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
-import { useNotification } from '@/components';
+import { zodResolver } from '@hookform/resolvers/zod';
 import type { LoginDto } from '@/globals/types/User';
+import { useNotification } from '@/components';
 import { useAuth } from '@/hooks';
 
 type Props = {
@@ -21,16 +21,18 @@ const authSchema = z.object({
 });
 
 const SignIn = ({ setIsSignIn }: Props) => {
-  const { signIn } = useAuth();
+  const { signIn, hasOrganization, user } = useAuth();
   const { showNotification } = useNotification();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(true);
+  const [shouldRedirectAfterLogin, setShouldRedirectAfterLogin] = useState(false);
 
   const onSubmit = async (credentials: LoginDto) => {
     try {
       await signIn(credentials);
       showNotification('Login realizado com sucesso!', 'success');
-      navigate('/');
+
+      setShouldRedirectAfterLogin(true);
     } catch (error: unknown) {
       console.error('Erro ao fazer login:', error);
 
@@ -41,6 +43,17 @@ const SignIn = ({ setIsSignIn }: Props) => {
       }
     }
   };
+
+  useEffect(() => {
+    if (!shouldRedirectAfterLogin) return;
+    if (!user) return;
+
+    if (hasOrganization) {
+      navigate('/');
+      return;
+    }
+    navigate('/invites');
+  }, [shouldRedirectAfterLogin, user, hasOrganization, navigate]);
 
   const {
     control,
