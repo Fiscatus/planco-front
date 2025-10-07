@@ -3,6 +3,7 @@ import { Route, Routes, useLocation } from 'react-router-dom';
 import { Suspense, lazy, useEffect, useState } from 'react';
 
 import { AppLayout } from '@/components';
+import { useAccessControl } from '@/hooks/useAccessControl';
 import { useAuth } from '@/hooks/useAuth';
 import { useScreen } from '@/hooks/useScreen';
 
@@ -19,7 +20,8 @@ const withoutHeaderRoutes = ['/auth', '/privacy-policy'];
 
 const AppRouter = () => {
   const { pathname } = useLocation();
-  const { user, hasOrganization, isOrgAdmin } = useAuth();
+  const { user, hasOrganization } = useAuth();
+  const { canAccessAdmin } = useAccessControl();
   const { isDesktop } = useScreen();
   const [routeWithoutHeader, setRouteWithoutHeader] = useState(false);
 
@@ -76,10 +78,10 @@ const AppRouter = () => {
                   element={<OrganizationHome />}
                 />
               )}
-              <Route
-                path='/admin'
-                element={isOrgAdmin ? <AdminPage /> : <NotAccess />}
-              />
+               <Route
+                 path='/admin'
+                 element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
+               />
             </>
           )}
 
