@@ -102,6 +102,19 @@ const GerenciaSection = () => {
     fetchUsers({ page: 1, limit: 100 });
   }, [fetchDepartments, fetchUsers, pagination.page, pagination.limit, search]);
 
+  useEffect(() => {
+    if (selectedDept?._id) {
+      const loadMembers = async () => {
+        try {
+          await getDepartmentMembers(selectedDept._id);
+        } catch (error) {
+          console.error('Erro ao carregar membros:', error);
+        }
+      };
+      loadMembers();
+    }
+  }, [selectedDept, getDepartmentMembers]);
+
   const paginatedDepartments = departments;
 
   const handleRefresh = useCallback(() => {
@@ -175,8 +188,8 @@ const GerenciaSection = () => {
     async (query: string) => {
       setLoadingResponsavel(true);
       try {
-        await fetchUsers({ page: 1, limit: 50, name: query.trim() || undefined });
-        setResponsavelUsers(users);
+        const result = await fetchUsers({ page: 1, limit: 50, name: query.trim() || undefined });
+        setResponsavelUsers(result?.users || []);
       } catch (error) {
         console.error('Erro ao buscar usuários:', error);
         setResponsavelUsers([]);
@@ -184,7 +197,7 @@ const GerenciaSection = () => {
         setLoadingResponsavel(false);
       }
     },
-    [fetchUsers, users]
+    [fetchUsers]
   );
 
   const handleOpenCreate = useCallback(async () => {
@@ -197,6 +210,11 @@ const GerenciaSection = () => {
 
   const handleOpenEdit = useCallback(
     async (dept: Department) => {
+      
+      const responsavelId = typeof dept.responsavelUserId === 'string' 
+        ? dept.responsavelUserId 
+        : dept.responsavelUserId?._id || dept.responsavelUserId_details?._id;
+      
       setDepartmentForm({
         department_name: dept.department_name,
         department_acronym: dept.department_acronym,
@@ -204,7 +222,7 @@ const GerenciaSection = () => {
         department_phone: dept.department_phone,
         email_owner: dept.email_owner,
         description: dept.description,
-        responsavelUserId: dept.responsavelUserId
+        responsavelUserId: responsavelId
       });
       setSelectedDept(dept);
       setResponsavelSearch('');
@@ -250,6 +268,7 @@ const GerenciaSection = () => {
 
       handleCloseDialogs();
       fetchDepartments(pagination.page + 1, pagination.limit, search);
+      fetchUsers({ page: 1, limit: 100 });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao salvar gerência';
       showNotification(errorMessage, 'error');
@@ -279,6 +298,7 @@ const GerenciaSection = () => {
       showNotification('Gerência excluída com sucesso!', 'success');
       handleCloseDialogs();
       fetchDepartments(pagination.page + 1, pagination.limit, search);
+      fetchUsers({ page: 1, limit: 100 });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir gerência';
       showNotification(errorMessage, 'error');

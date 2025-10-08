@@ -1,7 +1,8 @@
 import { Block as BlockIcon, Home as HomeIcon } from '@mui/icons-material';
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+
 import { useAuth } from '@/hooks';
+import { useNavigate } from 'react-router-dom';
 
 const NotAccessPage = () => {
   const navigate = useNavigate();
