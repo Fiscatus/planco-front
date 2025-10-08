@@ -14,7 +14,7 @@ import { type ReactNode, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { version } from '@/../package.json';
 import logo from '/assets/isologo.svg';
-import { useAuth } from '@/hooks';
+import { useAccessControl, useAuth } from '@/hooks';
 
 type SidebarProps = {
   open: boolean;
@@ -85,7 +85,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
   const location = useLocation();
 
   const { user } = useAuth();
-  const canSeeAdmin = Boolean(user?.isPlatformAdmin || user?.role?.permissions?.includes('admin'));
+  const { canAccessAdmin } = useAccessControl();
 
   useEffect(() => {
     function handleEsc(e: KeyboardEvent) {
@@ -328,7 +328,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         </List>
       </Box>
 
-      {canSeeAdmin && (
+      {canAccessAdmin && (
         <Box sx={{ borderTop: '1px solid #e5e7eb', p: 2 }}>
           <Typography
             variant='caption'

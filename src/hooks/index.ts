@@ -1,3 +1,4 @@
+export { useAccessControl } from './useAccessControl';
 export { useAuth } from './useAuth';
 export { useDepartments } from './useDepartments';
 export { useInvites } from './useInvites';

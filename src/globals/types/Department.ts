@@ -6,7 +6,12 @@ export type Department = {
   department_phone?: string;
   email_owner?: string;
   description?: string;
-  responsavelUserId?: string;
+  responsavelUserId?: string | {
+    _id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
   responsavelUserId_details?: {
     _id: string;
     firstName: string;

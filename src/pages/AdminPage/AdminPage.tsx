@@ -1,8 +1,9 @@
-import { GroupOutlined, PersonAddOutlined, RouteOutlined, ShieldOutlined } from '@mui/icons-material';
 import { Alert, Box, Chip, Skeleton, Tab, Tabs, Typography } from '@mui/material';
-import type { ErrorInfo, ReactNode } from 'react';
 import { Component, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-import { useAuth, useScreen } from '@/hooks';
+import type { ErrorInfo, ReactNode } from 'react';
+import { GroupOutlined, PersonAddOutlined, RouteOutlined, ShieldOutlined } from '@mui/icons-material';
+import { useAccessControl, useAuth, useScreen } from '@/hooks';
+
 import { GerenciaSection } from './components/GerenciaSection';
 import { InvitesSection } from './components/InvitesSection';
 import { RolesSection } from './components/RolesSection';
@@ -21,39 +22,57 @@ type PageConfig = TabConfig & {
   component: React.ComponentType;
 };
 
-// Memoized configuration to prevent recreation on each render
-const createPages = (): PageConfig[] => [
-  {
-    label: 'Usuários',
-    value: 'users',
-    icon: <GroupOutlined />,
-    description: 'Gerencie usuários e suas permissões',
-    component: UserSection
-  },
-  {
-    label: 'Gerências',
-    value: 'gerencias',
-    icon: <RouteOutlined />,
-    description: 'Configure estrutura organizacional',
-    component: GerenciaSection
-  },
-  {
-    label: 'Convites',
-    value: 'invites',
-    icon: <PersonAddOutlined />,
-    description: 'Gerencie convites pendentes',
-    component: InvitesSection
-  },
-  {
-    label: 'Roles',
-    value: 'roles',
-    icon: <ShieldOutlined />,
-    description: 'Configure roles e permissões',
-    component: RolesSection
-  }
-];
+const createPages = (permissions: {
+  canAccessUsers: boolean;
+  canAccessDepartments: boolean;
+  canAccessInvites: boolean;
+  canAccessRoles: boolean;
+}): PageConfig[] => {
+  const pages: PageConfig[] = [];
 
-// Loading component for tab content
+  if (permissions.canAccessUsers) {
+    pages.push({
+      label: 'Usuários',
+      value: 'users',
+      icon: <GroupOutlined />,
+      description: 'Gerencie usuários e suas permissões',
+      component: UserSection
+    });
+  }
+
+  if (permissions.canAccessDepartments) {
+    pages.push({
+      label: 'Gerências',
+      value: 'gerencias',
+      icon: <RouteOutlined />,
+      description: 'Configure estrutura organizacional',
+      component: GerenciaSection
+    });
+  }
+
+  if (permissions.canAccessInvites) {
+    pages.push({
+      label: 'Convites',
+      value: 'invites',
+      icon: <PersonAddOutlined />,
+      description: 'Gerencie convites pendentes',
+      component: InvitesSection
+    });
+  }
+
+  if (permissions.canAccessRoles) {
+    pages.push({
+      label: 'Roles',
+      value: 'roles',
+      icon: <ShieldOutlined />,
+      description: 'Configure roles e permissões',
+      component: RolesSection
+    });
+  }
+
+  return pages;
+};
+
 const LoadingFallback = () => (
   <Box sx={{ p: 3 }}>
     <Skeleton
@@ -75,7 +94,6 @@ const LoadingFallback = () => (
   </Box>
 );
 
-// Error boundary component
 const ErrorFallback = ({ error, resetError }: { error: Error; resetError: () => void }) => (
   <Alert
     severity='error'
@@ -95,7 +113,6 @@ const ErrorFallback = ({ error, resetError }: { error: Error; resetError: () => 
   </Alert>
 );
 
-// Error Boundary Class Component
 class TabErrorBoundary extends Component<
   { children: ReactNode; fallback: React.ComponentType<{ error: Error; resetError: () => void }> },
   { hasError: boolean; error: Error | null }
@@ -134,7 +151,14 @@ class TabErrorBoundary extends Component<
 const AdminPage = () => {
   const { isPlatformAdmin } = useAuth();
   const { isMobile } = useScreen();
-  const pages = useMemo(() => createPages(), []);
+  const { canAccessUsers, canAccessDepartments, canAccessInvites, canAccessRoles } = useAccessControl();
+  
+  const pages = useMemo(() => createPages({
+    canAccessUsers,
+    canAccessDepartments,
+    canAccessInvites,
+    canAccessRoles
+  }), [canAccessUsers, canAccessDepartments, canAccessInvites, canAccessRoles]);
 
   const [activeTabValue, setActiveTabValue] = useState<TabValue>('users');
 

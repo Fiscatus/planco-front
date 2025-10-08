@@ -100,7 +100,12 @@ export const useInvites = () => {
         setError(null);
 
         const response = await api.post<InviteResponseDto>('/invites', createInviteDto);
-        setInvites((prevInvites) => [...prevInvites, response.data]);
+        
+        const currentFilters = { page: '1', limit: '10' };
+        const refreshResponse = await api.get<PaginatedInvitesDto>('/invites', {
+          params: currentFilters
+        });
+        setInvites(refreshResponse.data.invites);
 
         return response.data;
       } catch (err) {

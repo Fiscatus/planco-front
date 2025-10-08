@@ -416,26 +416,32 @@ const InvitesSection = () => {
                         />
                       </TableCell>
                       <TableCell>
-                        {invite.departments && invite.departments.length > 0 ? (
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                            {invite.departments.map((dept) => (
-                              <Chip
-                                key={dept._id}
-                                label={dept.department_name}
-                                size='small'
-                                variant='outlined'
-                                color='secondary'
-                              />
-                            ))}
-                          </Box>
-                        ) : (
-                          <Typography
-                            variant='body2'
-                            color='text.secondary'
-                          >
-                            Sem gerências
-                          </Typography>
-                        )}
+                        {(() => {
+                          if (invite.departments && invite.departments.length > 0) {
+                            return (
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                {invite.departments.map((dept) => (
+                                  <Chip
+                                    key={dept._id}
+                                    label={dept.department_name}
+                                    size='small'
+                                    variant='outlined'
+                                    color='secondary'
+                                  />
+                                ))}
+                              </Box>
+                            );
+                          }
+                          
+                          return (
+                            <Typography
+                              variant='body2'
+                              color='text.secondary'
+                            >
+                              Sem gerências
+                            </Typography>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>
                         <Chip
