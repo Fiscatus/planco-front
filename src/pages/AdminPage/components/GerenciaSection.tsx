@@ -132,7 +132,6 @@ const GerenciaSection = () => {
 
   const toggleUserSelection = useCallback(
     (userId: string) => {
-      // Verificar se o usuário já é membro
       const user = allUsers.find((u) => u._id === userId);
       if (user && (user as any).isMember) {
         showNotification('Este usuário já é membro do departamento', 'warning');

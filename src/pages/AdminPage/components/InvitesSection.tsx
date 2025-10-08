@@ -136,6 +136,8 @@ const InvitesSection = () => {
       showNotification('Convite criado com sucesso!', 'success');
       setCreateModalOpen(false);
       setCreateForm({ email: '', roleId: '', departmentIds: [] });
+      
+      fetchInvites(filters);
     } catch (err) {
       let errorMessage = 'Erro ao criar convite';
 
@@ -154,7 +156,7 @@ const InvitesSection = () => {
 
       showNotification(errorMessage, 'error');
     }
-  }, [createForm, createInvite, showNotification]);
+  }, [createForm, createInvite, showNotification, fetchInvites, filters]);
 
   const handleOpenDeleteConfirm = useCallback((invite: Invite) => {
     setInviteToDelete(invite);
@@ -569,8 +571,12 @@ const InvitesSection = () => {
                     ...prev,
                     departmentIds: value
                   }));
+                  // Fechar o dropdown após a seleção
+                  setDepartmentsDropdownOpen(false);
                 }}
                 onOpen={handleDepartmentsDropdownOpen}
+                onClose={() => setDepartmentsDropdownOpen(false)}
+                open={departmentsDropdownOpen}
                 disabled={loading}
                 renderValue={(selected) => {
                   if (!selected || selected.length === 0) return '';
