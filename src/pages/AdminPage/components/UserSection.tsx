@@ -19,6 +19,7 @@ import {
   MenuItem,
   Paper,
   Select,
+  Switch,
   Table,
   TableBody,
   TableCell,
@@ -39,7 +40,7 @@ import type { FilterUsersDto, User } from '@/globals/types';
 import { useAuth, useDepartments, useRoles, useUsers } from '@/hooks';
 import { useCallback, useEffect, useState } from 'react';
 
-import { CustomSwitch, useNotification } from '@/components';
+import { useNotification } from '@/components';
 
 const UserSection = () => {
   const { showNotification } = useNotification();
@@ -723,12 +724,34 @@ const UserSection = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        <CustomSwitch
-                          checked={user.isActive ?? true}
-                          onChange={() => handleToggleStatus(user)}
-                          disabled={loading || (currentUser?._id === user._id && user.isActive)}
-                          label={user.isActive ? 'Ativo' : 'Inativo'}
-                        />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Switch
+                            checked={user.isActive ?? true}
+                            onChange={() => handleToggleStatus(user)}
+                            disabled={loading || (currentUser?._id === user._id && user.isActive)}
+                            sx={{
+                              '& .MuiSwitch-switchBase.Mui-checked': {
+                                color: '#1976d2',
+                                '& + .MuiSwitch-track': {
+                                  backgroundColor: '#1976d2',
+                                },
+                              },
+                              '& .MuiSwitch-track': {
+                                backgroundColor: '#ccc',
+                              },
+                            }}
+                          />
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: user.isActive ? 'primary.main' : 'text.secondary',
+                              fontWeight: user.isActive ? 600 : 400,
+                              transition: 'color 0.2s ease-in-out'
+                            }}
+                          >
+                            {user.isActive ? 'Ativo' : 'Inativo'}
+                          </Typography>
+                        </Box>
                       </TableCell>
                       <TableCell align='center'>
                         <IconButton

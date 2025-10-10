@@ -428,19 +428,20 @@ const GerenciaSection = () => {
   }, [membersOfSelected, membersPagination.page, membersPagination.limit]);
 
   return (
-    <Box sx={{ height: '100%', p: 3, bgcolor: 'background.default' }}>
-      <Grid container spacing={3} sx={{ height: '100%' }}>
+    <Box sx={{ minHeight: '100%', p: 3, bgcolor: 'background.default' }}>
+      <Grid container spacing={3} sx={{ alignItems: 'flex-start' }}>
         {/* Coluna da esquerda - Lista de Gerências */}
         <Grid size={{ xs: 12, lg: 4 }}>
           <Card
             sx={{
-              height: '100%',
               display: 'flex',
               flexDirection: 'column',
               borderRadius: 3,
               boxShadow: 1,
               border: '1px solid',
-              borderColor: 'divider'
+              borderColor: 'divider',
+              height: 'fit-content',
+              maxHeight: '80vh'
             }}
           >
             <Box sx={{ p: 2 }}>
@@ -544,14 +545,14 @@ const GerenciaSection = () => {
               </Box>
             </Box>
 
-            <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
                   <CircularProgress />
                 </Box>
               ) : (
                 <>
-                  <Box sx={{ flex: 1, overflow: 'auto', px: 1, pb: 1 }}>
+                  <Box sx={{ overflow: 'auto', px: 1, pb: 1, maxHeight: '50vh' }}>
                     <List disablePadding>
                       {paginatedDepartments.map((dept) => {
                         const memberCount = effectiveUsersForCounts.filter((u) =>
@@ -660,14 +661,15 @@ const GerenciaSection = () => {
 
         {/* Coluna da direita - Detalhes e Membros */}
         <Grid size={{ xs: 12, lg: 8 }}>
-          <Stack spacing={3} sx={{ height: '100%' }}>
+          <Stack spacing={3} sx={{ alignItems: 'stretch' }}>
             {/* Card de Detalhes da Gerência */}
             <Card
               sx={{
                 borderRadius: 3,
                 border: '1px solid',
                 borderColor: 'divider',
-                boxShadow: 1
+                boxShadow: 1,
+                height: 'fit-content'
               }}
             >
               <Box sx={{ p: 3 }}>
@@ -789,13 +791,14 @@ const GerenciaSection = () => {
             {/* Card de Membros */}
             <Card
               sx={{
-                flex: 1,
                 borderRadius: 3,
                 border: '1px solid',
                 borderColor: 'divider',
                 boxShadow: 1,
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                height: 'fit-content',
+                maxHeight: '70vh'
               }}
             >
               <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
@@ -828,7 +831,7 @@ const GerenciaSection = () => {
                 </Box>
               </Box>
 
-              <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 {!selected ? (
                   <Box sx={{ p: 3 }}>
                     <Alert severity='info'>Selecione uma gerência para ver os membros</Alert>
@@ -839,8 +842,8 @@ const GerenciaSection = () => {
                   </Box>
                 ) : (
                   <>
-                    <TableContainer sx={{ flex: 1 }}>
-                      <Table>
+                    <TableContainer sx={{ overflow: 'auto', maxHeight: '50vh' }}>
+                      <Table stickyHeader>
                         <TableHead>
                           <TableRow>
                             <TableCell sx={{ fontWeight: 500, color: 'text.secondary', py: 2 }}>
