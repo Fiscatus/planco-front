@@ -1,4 +1,4 @@
-import { Add as AddIcon, Close as CloseIcon, Delete as DeleteIcon, Edit as EditIcon, Refresh as RefreshIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Add as AddIcon, Close as CloseIcon, Delete as DeleteIcon, Edit as EditIcon, Refresh as RefreshIcon, Search as SearchIcon, Warning as WarningIcon } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -1119,44 +1119,205 @@ const RolesSection = () => {
         onClose={handleCloseModals}
         fullWidth
         maxWidth='sm'
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle>Confirmar Exclusão da Role</DialogTitle>
-        <DialogContent>
-          {deleteImpact && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-              <Alert severity={deleteImpact.canDelete ? 'warning' : 'error'}>{deleteImpact.message}</Alert>
-
-              <Typography variant='body1'>
-                <strong>Role:</strong> {deleteImpact.roleName}
-              </Typography>
-
-              <Typography variant='body1'>
-                <strong>Usuários afetados:</strong> {deleteImpact.affectedUsers}
-              </Typography>
-
-              {deleteImpact.affectedUsers > 0 && (
-                <Alert severity='info'>Os usuários que possuem esta role terão suas permissões removidas.</Alert>
-              )}
+        <DialogContent sx={{ p: 4 }}>
+          {/* Header com ícone */}
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            textAlign: 'center', 
+            mb: 3 
+          }}>
+            <Box sx={{
+              backgroundColor: '#fef2f2',
+              borderRadius: '50%',
+              p: 1.5,
+              mb: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <DeleteIcon sx={{
+                fontSize: 32,
+                color: '#DC2626'
+              }} />
             </Box>
+            <Typography
+              variant='h5'
+              sx={{
+                fontWeight: 700,
+                color: '#1F2937',
+                fontSize: '1.5rem'
+              }}
+            >
+              Confirmar Exclusão da Role
+            </Typography>
+          </Box>
+
+          {deleteImpact && (
+            <>
+              {/* Texto de confirmação */}
+              <Typography
+                variant='body1'
+                sx={{
+                  textAlign: 'center',
+                  color: '#6B7280',
+                  mb: 3,
+                  fontSize: '1rem'
+                }}
+              >
+                Tem certeza que deseja excluir a role <strong style={{ color: '#1F2937' }}>{deleteImpact.roleName}</strong>?
+              </Typography>
+
+              {/* Detalhes da role */}
+              <Box sx={{ 
+                backgroundColor: '#f9fafb',
+                borderRadius: 2,
+                p: 2,
+                mb: 3
+              }}>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    fontWeight: 600,
+                    color: '#1F2937',
+                    mb: 1,
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  Detalhes da role:
+                </Typography>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                  <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                    <strong style={{ fontWeight: 500 }}>Role:</strong> {deleteImpact.roleName}
+                  </Typography>
+                  <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                    <strong style={{ fontWeight: 500 }}>Usuários afetados:</strong> {deleteImpact.affectedUsers}
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Alert de impacto */}
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: deleteImpact.canDelete ? '#FEF3C7' : '#FEF2F2',
+                border: `1px solid ${deleteImpact.canDelete ? '#FCD34D' : '#FECACA'}`,
+                mb: 3
+              }}>
+                <WarningIcon sx={{
+                  color: deleteImpact.canDelete ? '#92400E' : '#DC2626',
+                  fontSize: 20,
+                  mr: 1.5,
+                  mt: 0.25
+                }} />
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: deleteImpact.canDelete ? '#92400E' : '#DC2626',
+                    fontSize: '0.875rem',
+                    lineHeight: 1.5
+                  }}
+                >
+                  {deleteImpact.message}
+                </Typography>
+              </Box>
+
+              {/* Alert adicional para usuários afetados */}
+              {deleteImpact.affectedUsers > 0 && (
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  p: 2,
+                  borderRadius: 2,
+                  backgroundColor: '#EFF6FF',
+                  border: '1px solid #BFDBFE',
+                  mb: 3
+                }}>
+                  <WarningIcon sx={{
+                    color: '#1877F2',
+                    fontSize: 20,
+                    mr: 1.5,
+                    mt: 0.25
+                  }} />
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: '#1E40AF',
+                      fontSize: '0.875rem',
+                      lineHeight: 1.5
+                    }}
+                  >
+                    Os usuários que possuem esta role terão suas permissões removidas.
+                  </Typography>
+                </Box>
+              )}
+            </>
           )}
+
+          {/* Botões de ação */}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            gap: 2 
+          }}>
+            <Button
+              onClick={handleCloseModals}
+              sx={{
+                px: 3,
+                py: 1.25,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: '#1F2937',
+                textTransform: 'uppercase',
+                borderRadius: 2,
+                border: '1px solid #E5E7EB',
+                backgroundColor: 'transparent',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: '#f3f4f6',
+                  borderColor: '#D1D5DB'
+                }
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmDelete}
+              disabled={loading || !deleteImpact?.canDelete}
+              sx={{
+                px: 3,
+                py: 1.25,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                backgroundColor: '#DC2626',
+                textTransform: 'uppercase',
+                borderRadius: 2,
+                color: 'white',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: '#B91C1C'
+                },
+                '&:disabled': {
+                  backgroundColor: '#e5e7eb',
+                  color: '#9ca3af'
+                }
+              }}
+            >
+              {loading ? 'Excluindo...' : 'Confirmar Exclusão'}
+            </Button>
+          </Box>
         </DialogContent>
-        <DialogActions>
-          <Button
-            variant='outlined'
-            onClick={handleCloseModals}
-            sx={{ textTransform: 'none' }}
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleConfirmDelete}
-            disabled={loading || !deleteImpact?.canDelete}
-            color='error'
-            sx={{ textTransform: 'none' }}
-          >
-            Confirmar Exclusão
-          </Button>
-        </DialogActions>
       </Dialog>
     </Box>
   );

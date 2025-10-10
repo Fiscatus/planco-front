@@ -1,4 +1,4 @@
-import { Add as AddIcon, FilterListOff as FilterListOffIcon, Delete as DeleteIcon, Refresh as RefreshIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Add as AddIcon, FilterListOff as FilterListOffIcon, Delete as DeleteIcon, Refresh as RefreshIcon, Search as SearchIcon, Warning as WarningIcon } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -1124,57 +1124,179 @@ const InvitesSection = () => {
         onClose={handleCancelDelete}
         maxWidth='sm'
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle>Confirmar Exclusão</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <Typography variant='body1'>
-              Tem certeza que deseja excluir o convite para <strong>{inviteToDelete?.email}</strong>?
+        <DialogContent sx={{ p: 4 }}>
+          {/* Header com ícone */}
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            textAlign: 'center', 
+            mb: 3 
+          }}>
+            <Box sx={{
+              backgroundColor: '#fef2f2',
+              borderRadius: '50%',
+              p: 1.5,
+              mb: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <DeleteIcon sx={{
+                fontSize: 32,
+                color: '#DC2626'
+              }} />
+            </Box>
+            <Typography
+              variant='h5'
+              sx={{
+                fontWeight: 700,
+                color: '#1F2937',
+                fontSize: '1.5rem'
+              }}
+            >
+              Confirmar Exclusão
             </Typography>
+          </Box>
 
-            {inviteToDelete && (
-              <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                <Typography
-                  variant='body2'
-                  color='text.secondary'
-                  gutterBottom
-                >
-                  Detalhes do convite:
+          {/* Texto de confirmação */}
+          <Typography
+            variant='body1'
+            sx={{
+              textAlign: 'center',
+              color: '#6B7280',
+              mb: 3,
+              fontSize: '1rem'
+            }}
+          >
+            Tem certeza que deseja excluir o convite para <strong style={{ color: '#1F2937' }}>{inviteToDelete?.email}</strong>?
+          </Typography>
+
+          {/* Detalhes do convite */}
+          {inviteToDelete && (
+            <Box sx={{ 
+              backgroundColor: '#f9fafb',
+              borderRadius: 2,
+              p: 2,
+              mb: 3
+            }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  fontWeight: 600,
+                  color: '#1F2937',
+                  mb: 1,
+                  fontSize: '0.875rem'
+                }}
+              >
+                Detalhes do convite:
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                  <strong style={{ fontWeight: 500 }}>Email:</strong> {inviteToDelete.email}
                 </Typography>
-                <Typography variant='body2'>
-                  <strong>Email:</strong> {inviteToDelete.email}
+                <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                  <strong style={{ fontWeight: 500 }}>Role:</strong> {inviteToDelete.role.name}
                 </Typography>
-                <Typography variant='body2'>
-                  <strong>Role:</strong> {inviteToDelete.role.name}
+                <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                  <strong style={{ fontWeight: 500 }}>Status:</strong> {getStatusText(inviteToDelete.status)}
                 </Typography>
-                <Typography variant='body2'>
-                  <strong>Status:</strong> {getStatusText(inviteToDelete.status)}
-                </Typography>
-                <Typography variant='body2'>
-                  <strong>Criado em:</strong> {new Date(inviteToDelete.createdAt).toLocaleDateString('pt-BR')}
+                <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                  <strong style={{ fontWeight: 500 }}>Criado em:</strong> {new Date(inviteToDelete.createdAt).toLocaleDateString('pt-BR')}
                 </Typography>
               </Box>
-            )}
+            </Box>
+          )}
 
-            <Alert severity='warning'>Esta ação não pode ser desfeita. O convite será permanentemente removido.</Alert>
+          {/* Alert de aviso */}
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            p: 2,
+            borderRadius: 2,
+            backgroundColor: '#FEF3C7',
+            border: '1px solid #FCD34D',
+            mb: 3
+          }}>
+            <WarningIcon sx={{
+              color: '#92400E',
+              fontSize: 20,
+              mr: 1.5,
+              mt: 0.25
+            }} />
+            <Typography
+              variant='body2'
+              sx={{
+                color: '#92400E',
+                fontSize: '0.875rem',
+                lineHeight: 1.5
+              }}
+            >
+              Esta ação não pode ser desfeita. O convite será permanentemente removido.
+            </Typography>
+          </Box>
+
+          {/* Botões de ação */}
+          <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            gap: 2 
+          }}>
+            <Button
+              onClick={handleCancelDelete}
+              sx={{
+                px: 3,
+                py: 1.25,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: '#1F2937',
+                textTransform: 'uppercase',
+                borderRadius: 2,
+                border: '1px solid #E5E7EB',
+                backgroundColor: 'transparent',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: '#f3f4f6',
+                  borderColor: '#D1D5DB'
+                }
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmDelete}
+              disabled={loading}
+              sx={{
+                px: 3,
+                py: 1.25,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                backgroundColor: '#DC2626',
+                textTransform: 'uppercase',
+                borderRadius: 2,
+                color: 'white',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: '#B91C1C'
+                },
+                '&:disabled': {
+                  backgroundColor: '#e5e7eb',
+                  color: '#9ca3af'
+                }
+              }}
+            >
+              {loading ? 'Excluindo...' : 'Excluir Convite'}
+            </Button>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleCancelDelete}
-            variant='outlined'
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleConfirmDelete}
-            color='error'
-            variant='contained'
-            disabled={loading}
-          >
-            Excluir Convite
-          </Button>
-        </DialogActions>
       </Dialog>
     </Box>
   );
