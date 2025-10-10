@@ -222,8 +222,18 @@ const InvitesSection = () => {
   };
 
   return (
-    <Box>
-      <Card>
+    <Box sx={{ height: '100%', p: 2 }}>
+      <Card
+        sx={{
+          borderRadius: 0,
+          boxShadow: 'none',
+          border: 'none',
+          overflow: 'hidden',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
         <CardHeader
           title={<Typography variant='h6'>Convites</Typography>}
           subheader='Gerencie os convites para novos usuários'
@@ -239,7 +249,7 @@ const InvitesSection = () => {
             </Button>
           }
         />
-        <CardContent>
+        <CardContent sx={{ p: 4, flex: 1, display: 'flex', flexDirection: 'column' }}>
           <Grid
             container
             spacing={2}

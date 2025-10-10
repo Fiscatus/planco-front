@@ -170,8 +170,18 @@ const RolesSection = () => {
   }, {});
 
   return (
-    <Box>
-      <Card>
+    <Box sx={{ height: '100%', p: 2 }}>
+      <Card
+        sx={{
+          borderRadius: 0,
+          boxShadow: 'none',
+          border: 'none',
+          overflow: 'hidden',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
         <CardHeader
           title={<Typography variant='h6'>Roles e Permissões</Typography>}
           subheader='Gerencie as roles e suas permissões'
@@ -198,7 +208,7 @@ const RolesSection = () => {
             </Box>
           }
         />
-        <CardContent>
+        <CardContent sx={{ p: 4, flex: 1, display: 'flex', flexDirection: 'column' }}>
           {error && (
             <Alert
               severity='error'

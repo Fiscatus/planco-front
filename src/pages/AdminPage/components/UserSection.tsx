@@ -13,14 +13,12 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
-  FormControlLabel,
   Grid,
   IconButton,
   InputLabel,
   MenuItem,
   Paper,
   Select,
-  Switch,
   Table,
   TableBody,
   TableCell,
@@ -32,8 +30,8 @@ import {
   Typography
 } from '@mui/material';
 import {
-  Clear as ClearIcon,
-  Edit as EditIcon,
+  FilterListOff as FilterListOffIcon,
+  MoreHoriz as MoreHorizIcon,
   Refresh as RefreshIcon,
   Search as SearchIcon
 } from '@mui/icons-material';
@@ -41,7 +39,7 @@ import type { FilterUsersDto, User } from '@/globals/types';
 import { useAuth, useDepartments, useRoles, useUsers } from '@/hooks';
 import { useCallback, useEffect, useState } from 'react';
 
-import { useNotification } from '@/components';
+import { CustomSwitch, useNotification } from '@/components';
 
 const UserSection = () => {
   const { showNotification } = useNotification();
@@ -219,34 +217,30 @@ const UserSection = () => {
   }, [filters, fetchUsers]);
 
   return (
-    <Box>
-      <Card>
-        <CardHeader
-          title={<Typography variant='h6'>Usuários</Typography>}
-          subheader='Gerencie os usuários e suas permissões'
-          action={
-            <Button
-              startIcon={<RefreshIcon />}
-              onClick={handleRefresh}
-              disabled={loading}
-              variant='outlined'
-              size='small'
+    <Box sx={{ height: '100%', p: 2 }}>
+      <Card
+        sx={{
+          borderRadius: 0,
+          boxShadow: 'none',
+          border: 'none',
+          overflow: 'hidden',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
+        <CardContent sx={{ p: 4, flex: 1, display: 'flex', flexDirection: 'column' }}>
+          {/* Filtros e Botão Atualizar */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 4 }}>
+            <Grid
+              container
+              spacing={3}
+              sx={{ flex: 1 }}
             >
-              Atualizar
-            </Button>
-          }
-        />
-        <CardContent>
-          <Grid
-            container
-            spacing={2}
-            sx={{ mb: 3 }}
-          >
-            <Grid size={{ xs: 12, md: 4 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 5 }}>
               <TextField
                 fullWidth
-                label='Buscar por nome ou email'
-                placeholder='Digite o nome ou email do usuário'
+                placeholder='Buscar por nome ou email'
                 value={searchValue}
                 onChange={(e) => {
                   const value = e.target.value;
@@ -258,22 +252,65 @@ const UserSection = () => {
                   }));
                 }}
                 InputProps={{
-                  startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                  startAdornment: <SearchIcon sx={{ mr: 1, color: '#9ca3af', fontSize: '1.25rem' }} />
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 3,
+                    backgroundColor: '#ffffff',
+                    border: '2px solid #e5e7eb',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      borderColor: '#d1d5db'
+                    },
+                    '&.Mui-focused': {
+                      borderColor: '#1e40af',
+                      boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
+                    }
+                  },
+                  '& .MuiInputBase-input::placeholder': {
+                    color: '#9ca3af',
+                    opacity: 1,
+                    fontWeight: 400
+                  }
                 }}
               />
             </Grid>
-            <Grid size={{ xs: 12, md: 2 }}>
+            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
               <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
                 <Select
                   value={filters.isActive === undefined ? 'todos' : filters.isActive}
-                  label='Status'
+                  displayEmpty
                   onChange={(e) => {
                     const value = e.target.value;
                     setFilters((prev) => ({
                       ...prev,
                       isActive: value === 'todos' ? undefined : value === 'true'
                     }));
+                  }}
+                  sx={{
+                    borderRadius: 3,
+                    backgroundColor: '#ffffff',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: '2px solid #e5e7eb',
+                      transition: 'all 0.2s ease-in-out'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#d1d5db'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1e40af',
+                      boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
+                    },
+                    '& .MuiSelect-select': {
+                      color: filters.isActive === undefined ? '#9ca3af' : '#374151'
+                    }
+                  }}
+                  renderValue={(value) => {
+                    if (value === 'todos' || value === undefined) {
+                      return <span style={{ color: '#9ca3af' }}>Status</span>;
+                    }
+                    return value === true ? 'Ativos' : 'Inativos';
                   }}
                 >
                   <MenuItem value='todos'>Todos</MenuItem>
@@ -282,7 +319,7 @@ const UserSection = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid size={{ xs: 12, md: 2 }}>
+            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
               <Autocomplete
                 options={roles}
                 getOptionLabel={(option) => (typeof option === 'string' ? option : option.name)}
@@ -299,10 +336,29 @@ const UserSection = () => {
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label='Role'
-                    placeholder='Digite ou clique para buscar'
+                    placeholder='Role'
                     InputProps={{
                       ...params.InputProps
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 3,
+                        backgroundColor: '#ffffff',
+                        border: '2px solid #e5e7eb',
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                          borderColor: '#d1d5db'
+                        },
+                        '&.Mui-focused': {
+                          borderColor: '#1e40af',
+                          boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
+                        }
+                      },
+                      '& .MuiInputBase-input::placeholder': {
+                        color: '#9ca3af',
+                        opacity: 1,
+                        fontWeight: 400
+                      }
                     }}
                   />
                 )}
@@ -319,7 +375,7 @@ const UserSection = () => {
                 }
               />
             </Grid>
-            <Grid size={{ xs: 12, md: 2 }}>
+            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
               <Autocomplete
                 multiple
                 options={departments}
@@ -337,10 +393,29 @@ const UserSection = () => {
                 renderInput={(params) => (
                   <TextField
                     {...params}
-                    label='Gerências'
-                    placeholder='Digite ou clique para buscar'
+                    placeholder='Gerências'
                     InputProps={{
                       ...params.InputProps
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: 3,
+                        backgroundColor: '#ffffff',
+                        border: '2px solid #e5e7eb',
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                          borderColor: '#d1d5db'
+                        },
+                        '&.Mui-focused': {
+                          borderColor: '#1e40af',
+                          boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
+                        }
+                      },
+                      '& .MuiInputBase-input::placeholder': {
+                        color: '#9ca3af',
+                        opacity: 1,
+                        fontWeight: 400
+                      }
                     }}
                   />
                 )}
@@ -357,24 +432,96 @@ const UserSection = () => {
                 }
               />
             </Grid>
-            <Grid size={{ xs: 12, md: 1 }}>
-              <Box sx={{ display: 'flex', gap: 1, height: '100%', alignItems: 'center' }}>
+            <Grid size={{ xs: 12, sm: 12, md: 1 }}>
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: { xs: 'center', md: 'flex-start' },
+                alignItems: 'center',
+                height: '100%',
+                minHeight: '56px'
+              }}>
                 <IconButton
                   onClick={handleClearFilters}
                   disabled={loading}
-                  color='secondary'
                   title='Limpar filtros'
+                  sx={{
+                    backgroundColor: '#f3f4f6',
+                    color: '#6b7280',
+                    borderRadius: 3,
+                    p: 1.5,
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      backgroundColor: '#fee2e2',
+                      color: '#dc2626',
+                      transform: 'scale(1.05)'
+                    },
+                    '&:disabled': {
+                      backgroundColor: '#f9fafb',
+                      color: '#d1d5db'
+                    }
+                  }}
                 >
-                  <ClearIcon />
+                  <FilterListOffIcon sx={{ fontSize: '1.25rem' }} />
                 </IconButton>
               </Box>
             </Grid>
-          </Grid>
+            </Grid>
+            
+            {/* Botão Atualizar */}
+            <Button
+              startIcon={<RefreshIcon sx={{ fontSize: '1.25rem' }} />}
+              onClick={handleRefresh}
+              disabled={loading}
+              variant='contained'
+              size='medium'
+              sx={{
+                borderRadius: 3,
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                letterSpacing: '0.05em',
+                px: 4,
+                py: 1.5,
+                backgroundColor: '#1976d2',
+                color: '#ffffff',
+                boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: '#1565c0',
+                  boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                  transform: 'translateY(-1px)'
+                },
+                '&:active': {
+                  transform: 'translateY(0)',
+                  boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)'
+                },
+                '&:disabled': {
+                  backgroundColor: '#e3f2fd',
+                  color: '#90caf9',
+                  boxShadow: 'none',
+                  transform: 'none'
+                }
+              }}
+            >
+              Atualizar
+            </Button>
+          </Box>
 
           {error && (
             <Alert
               severity='error'
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 3,
+                borderRadius: 3,
+                border: '1px solid #fecaca',
+                backgroundColor: '#fef2f2',
+                '& .MuiAlert-icon': {
+                  color: '#dc2626'
+                },
+                '& .MuiAlert-message': {
+                  color: '#991b1b',
+                  fontWeight: 500
+                }
+              }}
               onClose={clearError}
             >
               {error}
@@ -384,10 +531,33 @@ const UserSection = () => {
           <TableContainer
             component={Paper}
             variant='outlined'
+            sx={{
+              borderRadius: 2,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              border: '1px solid #e5e7eb',
+              overflow: 'hidden',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column'
+            }}
           >
-            <Table>
+            <Table sx={{ flex: 1 }}>
               <TableHead>
-                <TableRow>
+                <TableRow
+                  sx={{
+                    backgroundColor: '#f8fafc',
+                    '& .MuiTableCell-head': {
+                      backgroundColor: '#f8fafc',
+                      color: '#374151',
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      borderBottom: '2px solid #e5e7eb',
+                      py: 2
+                    }
+                  }}
+                >
                   <TableCell>Nome</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell>Role</TableCell>
@@ -400,17 +570,28 @@ const UserSection = () => {
                 {loading ? (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={6}
                       align='center'
-                      sx={{ py: 4 }}
+                      sx={{ 
+                        py: 6,
+                        backgroundColor: '#fafafa'
+                      }}
                     >
-                      <CircularProgress />
-                      <Typography
-                        variant='body2'
-                        sx={{ mt: 1 }}
-                      >
-                        Carregando usuários...
-                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                        <CircularProgress 
+                          size={32}
+                          sx={{ color: '#1e40af' }}
+                        />
+                        <Typography
+                          variant='body2'
+                          sx={{ 
+                            color: '#6b7280',
+                            fontWeight: 500
+                          }}
+                        >
+                          Carregando usuários...
+                        </Typography>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ) : users.length === 0 ? (
@@ -418,9 +599,31 @@ const UserSection = () => {
                     <TableCell
                       colSpan={6}
                       align='center'
-                      sx={{ py: 4 }}
+                      sx={{ 
+                        py: 6,
+                        backgroundColor: '#fafafa'
+                      }}
                     >
-                      <Typography color='text.secondary'>Nenhum usuário encontrado</Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant='h6'
+                          sx={{ 
+                            color: '#6b7280',
+                            fontWeight: 500
+                          }}
+                        >
+                          Nenhum usuário encontrado
+                        </Typography>
+                        <Typography 
+                          variant='body2'
+                          sx={{ 
+                            color: '#9ca3af',
+                            fontStyle: 'italic'
+                          }}
+                        >
+                          Tente ajustar os filtros de busca
+                        </Typography>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -428,6 +631,19 @@ const UserSection = () => {
                     <TableRow
                       key={user._id}
                       hover
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc',
+                          transform: 'translateY(-1px)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                          transition: 'all 0.2s ease-in-out'
+                        },
+                        '& .MuiTableCell-root': {
+                          borderBottom: '1px solid #f1f5f9',
+                          py: 2,
+                          transition: 'all 0.2s ease-in-out'
+                        }
+                      }}
                     >
                       <TableCell>
                         <Typography
@@ -445,13 +661,22 @@ const UserSection = () => {
                           <Chip
                             label={user.role.name}
                             size='small'
-                            variant='outlined'
-                            color='primary'
+                            variant='filled'
+                            sx={{
+                              backgroundColor: '#fef3c7',
+                              color: '#92400e',
+                              fontWeight: 500,
+                              borderRadius: 2,
+                              '& .MuiChip-label': {
+                                px: 1.5
+                              }
+                            }}
                           />
                         ) : (
                           <Typography
                             variant='body2'
                             color='text.secondary'
+                            sx={{ fontStyle: 'italic' }}
                           >
                             Sem role
                           </Typography>
@@ -465,8 +690,16 @@ const UserSection = () => {
                                 key={dept._id}
                                 label={dept.department_name}
                                 size='small'
-                                variant='outlined'
-                                color='secondary'
+                                variant='filled'
+                                sx={{
+                                  backgroundColor: '#dcfce7',
+                                  color: '#166534',
+                                  fontWeight: 500,
+                                  borderRadius: 2,
+                                  '& .MuiChip-label': {
+                                    px: 1.5
+                                  }
+                                }}
                               />
                             ))}
                           </Box>
@@ -474,20 +707,17 @@ const UserSection = () => {
                           <Typography
                             variant='body2'
                             color='text.secondary'
+                            sx={{ fontStyle: 'italic' }}
                           >
                             Sem gerências
                           </Typography>
                         )}
                       </TableCell>
                       <TableCell>
-                        <FormControlLabel
-                          control={
-                            <Switch
-                              checked={user.isActive ?? true}
-                              onChange={() => handleToggleStatus(user)}
-                              disabled={loading || (currentUser?._id === user._id && user.isActive)}
-                            />
-                          }
+                        <CustomSwitch
+                          checked={user.isActive ?? true}
+                          onChange={() => handleToggleStatus(user)}
+                          disabled={loading || (currentUser?._id === user._id && user.isActive)}
                           label={user.isActive ? 'Ativo' : 'Inativo'}
                         />
                       </TableCell>
@@ -495,9 +725,20 @@ const UserSection = () => {
                         <IconButton
                           size='small'
                           onClick={() => handleEditUser(user)}
-                          color='primary'
+                          sx={{
+                            color: '#6b7280',
+                            backgroundColor: 'transparent',
+                            borderRadius: 2,
+                            p: 1,
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              backgroundColor: '#f3f4f6',
+                              color: '#1e40af',
+                              transform: 'scale(1.1)'
+                            }
+                          }}
                         >
-                          <EditIcon />
+                          <MoreHorizIcon sx={{ fontSize: '1.25rem' }} />
                         </IconButton>
                       </TableCell>
                     </TableRow>
@@ -517,6 +758,30 @@ const UserSection = () => {
             rowsPerPageOptions={[5, 10, 25, 50]}
             labelRowsPerPage='Itens por página:'
             labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`}
+            sx={{
+              backgroundColor: '#f8fafc',
+              borderTop: '1px solid #e5e7eb',
+              '& .MuiTablePagination-toolbar': {
+                paddingLeft: 2,
+                paddingRight: 2,
+                minHeight: 56
+              },
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                color: '#374151',
+                fontWeight: 500
+              },
+              '& .MuiTablePagination-select': {
+                color: '#1e40af',
+                fontWeight: 600
+              },
+              '& .MuiIconButton-root': {
+                color: '#6b7280',
+                '&:hover': {
+                  backgroundColor: '#f3f4f6',
+                  color: '#1e40af'
+                }
+              }
+            }}
           />
         </CardContent>
       </Card>

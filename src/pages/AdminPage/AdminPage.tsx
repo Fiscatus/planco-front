@@ -1,7 +1,7 @@
 import { Alert, Box, Chip, Skeleton, Tab, Tabs, Typography } from '@mui/material';
 import { Component, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
-import { GroupOutlined, PersonAddOutlined, RouteOutlined, ShieldOutlined } from '@mui/icons-material';
+import { PeopleAltOutlined, BusinessOutlined, MailOutlineOutlined, AdminPanelSettingsOutlined } from '@mui/icons-material';
 import { useAccessControl, useAuth, useScreen } from '@/hooks';
 
 import { GerenciaSection } from './components/GerenciaSection';
@@ -34,7 +34,7 @@ const createPages = (permissions: {
     pages.push({
       label: 'Usuários',
       value: 'users',
-      icon: <GroupOutlined />,
+      icon: <PeopleAltOutlined />,
       description: 'Gerencie usuários e suas permissões',
       component: UserSection
     });
@@ -44,7 +44,7 @@ const createPages = (permissions: {
     pages.push({
       label: 'Gerências',
       value: 'gerencias',
-      icon: <RouteOutlined />,
+      icon: <BusinessOutlined />,
       description: 'Configure estrutura organizacional',
       component: GerenciaSection
     });
@@ -54,7 +54,7 @@ const createPages = (permissions: {
     pages.push({
       label: 'Convites',
       value: 'invites',
-      icon: <PersonAddOutlined />,
+      icon: <MailOutlineOutlined />,
       description: 'Gerencie convites pendentes',
       component: InvitesSection
     });
@@ -64,7 +64,7 @@ const createPages = (permissions: {
     pages.push({
       label: 'Roles',
       value: 'roles',
-      icon: <ShieldOutlined />,
+      icon: <AdminPanelSettingsOutlined />,
       description: 'Configure roles e permissões',
       component: RolesSection
     });
@@ -252,8 +252,8 @@ const AdminPage = () => {
           backgroundColor: 'background.paper',
           borderBottom: 1,
           borderColor: 'divider',
-          px: { xs: 2, md: 3 },
-          py: 2
+          px: { xs: 3, md: 4 },
+          py: 3
         }}
       >
         <Box
@@ -262,27 +262,37 @@ const AdminPage = () => {
             alignItems: 'center',
             justifyContent: 'space-between',
             flexDirection: { xs: 'column', sm: 'row' },
-            gap: 2
+            gap: 3,
+            mb: 3
           }}
         >
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 2,
+              gap: 3,
               textAlign: { xs: 'center', sm: 'left' }
             }}
           >
             <Box>
               <Typography
-                variant={isMobile ? 'h5' : 'h4'}
-                sx={{ fontWeight: 700, lineHeight: 1.2 }}
+                variant={isMobile ? 'h4' : 'h3'}
+                sx={{ 
+                  fontWeight: 700, 
+                  lineHeight: 1.2,
+                  color: 'text.primary',
+                  mb: 1
+                }}
               >
                 Administração
               </Typography>
               <Typography
-                variant='body2'
-                sx={{ color: 'text.secondary', mt: 0.5 }}
+                variant='body1'
+                sx={{ 
+                  color: 'text.secondary',
+                  fontWeight: 500,
+                  fontSize: '1rem'
+                }}
               >
                 {currentPage.description}
               </Typography>
@@ -291,27 +301,22 @@ const AdminPage = () => {
           <Box>
             <Chip
               label={isPlatformAdmin ? 'Admin da Plataforma' : 'Admin da Organização'}
-              color={isPlatformAdmin ? 'primary' : 'default'}
-              variant={isPlatformAdmin ? 'filled' : 'outlined'}
-              size='small'
-              sx={{ fontWeight: 600 }}
+              color={isPlatformAdmin ? 'primary' : 'secondary'}
+              variant='filled'
+              size='medium'
+              sx={{ 
+                fontWeight: 600,
+                fontSize: '0.875rem',
+                px: 2,
+                py: 1,
+                borderRadius: 2
+              }}
             />
           </Box>
         </Box>
-      </Box>
 
-      {/* Content Section */}
-      <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
         {/* Navigation Tabs */}
-        <Box
-          sx={{
-            px: { xs: 1, md: 3 },
-            pt: 2,
-            backgroundColor: 'background.paper',
-            borderBottom: 1,
-            borderColor: 'divider'
-          }}
-        >
+        <Box>
           <Tabs
             value={activeTabValue}
             onChange={handleTabChange}
@@ -323,11 +328,32 @@ const AdminPage = () => {
               '& .MuiTab-root': {
                 textTransform: 'none',
                 fontWeight: 600,
-                minWidth: { xs: 'auto', md: 120 },
+                minWidth: { xs: 'auto', md: 140 },
                 color: 'text.secondary',
-                '&.Mui-selected': {
+                fontSize: '0.875rem',
+                px: 3,
+                py: 2,
+                borderRadius: 2,
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: 'rgba(24, 119, 242, 0.04)',
                   color: 'primary.main'
+                },
+                '&.Mui-selected': {
+                  color: 'primary.main',
+                  backgroundColor: 'rgba(24, 119, 242, 0.08)'
+                },
+                '& .MuiTab-iconWrapper': {
+                  marginRight: 1,
+                  '& svg': {
+                    fontSize: '1.25rem'
+                  }
                 }
+              },
+              '& .MuiTabs-indicator': {
+                backgroundColor: 'primary.main',
+                height: 3,
+                borderRadius: '2px 2px 0 0'
               }
             }}
           >
@@ -343,18 +369,17 @@ const AdminPage = () => {
             ))}
           </Tabs>
         </Box>
+      </Box>
 
-        {/* Tab Content */}
-        <Box
-          sx={{
-            flex: 1,
-            p: { xs: 2, md: 3 },
-            overflow: 'auto',
-            backgroundColor: 'grey.50'
-          }}
-        >
-          {renderTabContent()}
-        </Box>
+      {/* Tab Content */}
+      <Box
+        sx={{
+          flex: 1,
+          overflow: 'auto',
+          backgroundColor: 'grey.50'
+        }}
+      >
+        {renderTabContent()}
       </Box>
     </Box>
   );

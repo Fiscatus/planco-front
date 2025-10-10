@@ -422,11 +422,23 @@ const GerenciaSection = () => {
   }, [membersOfSelected, membersPagination.page, membersPagination.limit]);
 
   return (
-    <Box>
-      <Grid
-        container
-        spacing={2}
+    <Box sx={{ height: '100%', p: 2 }}>
+      <Card
+        sx={{
+          borderRadius: 0,
+          boxShadow: 'none',
+          border: 'none',
+          overflow: 'hidden',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
       >
+        <CardContent sx={{ p: 4, flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <Grid
+            container
+            spacing={2}
+          >
         <Grid size={{ xs: 12, md: 4 }}>
           <Card>
             <CardHeader
@@ -1161,6 +1173,8 @@ const GerenciaSection = () => {
           </Button>
         </DialogActions>
       </Dialog>
+        </CardContent>
+      </Card>
     </Box>
   );
 };
