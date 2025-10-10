@@ -231,7 +231,7 @@ const UserSection = () => {
       >
         <CardContent sx={{ p: 4, flex: 1, display: 'flex', flexDirection: 'column' }}>
           {/* Filtros e Botão Atualizar */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 4 }}>
             <Grid
               container
               spacing={3}
@@ -663,9 +663,9 @@ const UserSection = () => {
                             size='small'
                             variant='filled'
                             sx={{
-                              backgroundColor: '#fef3c7',
-                              color: '#92400e',
-                              fontWeight: 500,
+                              backgroundColor: 'warning.main',
+                              color: 'white',
+                              fontWeight: 600,
                               borderRadius: 2,
                               '& .MuiChip-label': {
                                 px: 1.5
@@ -692,9 +692,9 @@ const UserSection = () => {
                                 size='small'
                                 variant='filled'
                                 sx={{
-                                  backgroundColor: '#dcfce7',
-                                  color: '#166534',
-                                  fontWeight: 500,
+                                  backgroundColor: 'success.main',
+                                  color: 'white',
+                                  fontWeight: 600,
                                   borderRadius: 2,
                                   '& .MuiChip-label': {
                                     px: 1.5
