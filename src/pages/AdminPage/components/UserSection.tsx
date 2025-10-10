@@ -32,7 +32,6 @@ import {
 import {
   Edit as EditIcon,
   FilterListOff as FilterListOffIcon,
-  MoreHoriz as MoreHorizIcon,
   Refresh as RefreshIcon,
   Search as SearchIcon
 } from '@mui/icons-material';
@@ -218,19 +217,18 @@ const UserSection = () => {
   }, [filters, fetchUsers]);
 
   return (
-    <Box sx={{ height: '100%', p: 2 }}>
+    <Box sx={{ p: 2 }}>
       <Card
         sx={{
           borderRadius: 0,
           boxShadow: 'none',
           border: 'none',
           overflow: 'hidden',
-          height: '100%',
           display: 'flex',
           flexDirection: 'column'
         }}
       >
-        <CardContent sx={{ p: 4, flex: 1, display: 'flex', flexDirection: 'column' }}>
+        <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column' }}>
           {/* Filtros e Botão Atualizar */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 4 }}>
             <Grid
@@ -537,16 +535,27 @@ const UserSection = () => {
               boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
               border: '1px solid #e5e7eb',
               overflow: 'hidden',
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column'
+              display: 'block', // Remove flex para não expandir
+              maxHeight: 'calc(100vh - 300px)', // Altura máxima baseada na viewport
+              minHeight: 'auto' // Altura baseada no conteúdo
             }}
           >
-            <Table sx={{ flex: 1 }}>
+            <Table sx={{ 
+              '& .MuiTableRow-root': {
+                height: '64px', // Altura fixa para todas as linhas
+                '&:hover': {
+                  backgroundColor: '#f8fafc',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                  transition: 'all 0.2s ease-in-out'
+                }
+              }
+            }}>
               <TableHead>
                 <TableRow
                   sx={{
                     backgroundColor: '#f8fafc',
+                    height: '64px', // Mesma altura das linhas de dados
                     '& .MuiTableCell-head': {
                       backgroundColor: '#f8fafc',
                       color: '#374151',
@@ -555,7 +564,8 @@ const UserSection = () => {
                       textTransform: 'uppercase',
                       letterSpacing: '0.05em',
                       borderBottom: '2px solid #e5e7eb',
-                      py: 2
+                      py: 2,
+                      verticalAlign: 'middle'
                     }
                   }}
                 >
@@ -633,16 +643,11 @@ const UserSection = () => {
                       key={user._id}
                       hover
                       sx={{
-                        '&:hover': {
-                          backgroundColor: '#f8fafc',
-                          transform: 'translateY(-1px)',
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                          transition: 'all 0.2s ease-in-out'
-                        },
                         '& .MuiTableCell-root': {
                           borderBottom: '1px solid #f1f5f9',
                           py: 2,
-                          transition: 'all 0.2s ease-in-out'
+                          transition: 'all 0.2s ease-in-out',
+                          verticalAlign: 'middle' // Centraliza o conteúdo verticalmente
                         }
                       }}
                     >
@@ -742,7 +747,7 @@ const UserSection = () => {
                             }
                           }}
                         >
-                          <MoreHorizIcon sx={{ fontSize: '1.25rem' }} />
+                          <EditIcon sx={{ fontSize: '1.25rem' }} />
                         </IconButton>
                       </TableCell>
                     </TableRow>
