@@ -3,16 +3,52 @@ import { createTheme, type ThemeOptions } from '@mui/material';
 const themeOptions: ThemeOptions = {
   palette: {
     mode: 'light',
+    // Azul padrão do Facebook
     primary: {
-      main: 'rgb(124, 59, 237)',
-      light: 'rgb(96, 126, 200)',
-      dark: 'rgb(6, 40, 99)'
+      main: 'rgb(24, 119, 242)',      // #1877F2 - Azul principal Facebook
+      light: 'rgb(100, 164, 247)',    // Hover mais claro
+      dark: 'rgb(16, 91, 186)'        // Foco/ativo
     },
+    // Verde suave (para confirmações e ações positivas)
     secondary: {
-      dark: 'rgb(122, 98, 21)',
-      main: 'rgb(160, 129, 29)',
-      light: 'rgb(212, 175, 55)'
-    }
+      main: 'rgb(56, 203, 120)',      // #38CB78
+      light: 'rgb(103, 220, 157)',    // Hover mais claro
+      dark: 'rgb(33, 156, 91)'        // Foco
+    },
+    success: {
+      main: 'rgb(56, 203, 120)',      // verde Facebook (confirmações)
+      light: 'rgb(103, 220, 157)',
+      dark: 'rgb(33, 156, 91)',
+      contrastText: '#fff'
+    },
+    info: {
+      main: 'rgb(24, 119, 242)',      // mesmo azul para consistência
+      light: 'rgb(100, 164, 247)',
+      dark: 'rgb(16, 91, 186)',
+      contrastText: '#fff'
+    },
+    warning: {
+      main: 'rgb(247, 188, 35)',      // #F7BC23 - amarelo alerta
+      light: 'rgb(255, 214, 102)',
+      dark: 'rgb(179, 136, 0)',
+      contrastText: 'rgb(27, 31, 42)'
+    },
+    error: {
+      main: 'rgb(235, 67, 53)',       // #EB4335 - vermelho usado em avisos
+      light: 'rgb(245, 113, 104)',
+      dark: 'rgb(170, 41, 32)',
+      contrastText: '#fff'
+    },
+    background: {
+      default: 'rgb(245, 246, 247)',  // fundo neutro e leve, inspirado no layout do Facebook
+      paper: 'rgb(255, 255, 255)'     // cartões, painéis e modais
+    },
+    text: {
+      primary: 'rgb(28, 30, 33)',     // texto principal (quase preto)
+      secondary: 'rgb(101, 103, 107)',// texto secundário
+      disabled: 'rgb(160, 164, 168)'  // texto desabilitado
+    },
+    divider: 'rgb(223, 225, 229)'     // linhas sutis e limpas
   },
   typography: {
     fontFamily: '"Source Sans Pro", sans-serif',
@@ -62,14 +98,14 @@ const themeOptions: ThemeOptions = {
       styleOverrides: {
         html: {
           scrollbarWidth: 'thin',
-          scrollbarColor: 'rgb(136, 136, 136) rgb(40, 40, 40)'
+          scrollbarColor: 'rgb(160, 164, 168) rgb(238, 240, 244)'
         },
         body: {
           margin: 0,
           padding: 0,
           display: 'flex',
           placeItems: 'center',
-          backgroundColor: 'rgb(255, 255, 255)',
+          backgroundColor: 'rgb(245, 246, 247)',
           width: '100%'
         },
         '#root': {
@@ -80,14 +116,14 @@ const themeOptions: ThemeOptions = {
           width: '8px'
         },
         '::-webkit-scrollbar-track': {
-          background: 'rgba(245, 245, 245, 0.25)'
+          background: 'rgba(240, 242, 245, 0.6)'
         },
         '::-webkit-scrollbar-thumb': {
-          background: 'rgb(119, 119, 119)',
+          background: 'rgb(160, 164, 168)',
           borderRadius: '6px'
         },
         '::-webkit-scrollbar-thumb:hover': {
-          background: 'rgb(85, 85, 85)'
+          background: 'rgb(120, 125, 130)'
         }
       }
     },
