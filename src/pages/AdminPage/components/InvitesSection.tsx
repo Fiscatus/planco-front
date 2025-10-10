@@ -823,113 +823,299 @@ const InvitesSection = () => {
         onClose={() => setCreateModalOpen(false)}
         maxWidth='sm'
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle>Criar Novo Convite</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-            <TextField
-              label='Email'
-              type='email'
-              value={createForm.email}
-              onChange={(e) => setCreateForm((prev) => ({ ...prev, email: e.target.value }))}
-              fullWidth
-              required
-              helperText='O email deve estar cadastrado no sistema'
-            />
-
-            <FormControl
-              fullWidth
-              required
+        <DialogContent sx={{ p: 0 }}>
+          {/* Header */}
+          <Box sx={{ 
+            p: 3, 
+            borderBottom: '1px solid #CED0D4'
+          }}>
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: 700,
+                color: '#050505',
+                fontSize: '1.25rem'
+              }}
             >
-              <InputLabel>Role</InputLabel>
-              <Select
-                value={createForm.roleId}
-                label='Role'
-                onChange={(e) => {
-                  setCreateForm((prev) => ({
-                    ...prev,
-                    roleId: e.target.value
-                  }));
-                }}
-                onOpen={handleRolesDropdownOpen}
-                disabled={loading}
-              >
-                {roles.length === 0 ? (
-                  <MenuItem disabled>
-                    <CircularProgress
-                      size={20}
-                      sx={{ mr: 1 }}
-                    />
-                    Carregando roles...
-                  </MenuItem>
-                ) : (
-                  roles.map((role) => (
-                    <MenuItem
-                      key={role._id}
-                      value={role._id}
-                    >
-                      {role.name}
-                    </MenuItem>
-                  ))
-                )}
-              </Select>
-            </FormControl>
+              Criar Novo Convite
+            </Typography>
+          </Box>
 
-            <FormControl fullWidth>
-              <InputLabel>Gerências (opcional)</InputLabel>
-              <Select
-                multiple
-                value={createForm.departmentIds || []}
-                label='Gerências (opcional)'
-                onChange={(e) => {
-                  const value = typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value;
-                  setCreateForm((prev) => ({
-                    ...prev,
-                    departmentIds: value
-                  }));
-                  // Fechar o dropdown após a seleção
-                  setDepartmentsDropdownOpen(false);
-                }}
-                onOpen={handleDepartmentsDropdownOpen}
-                onClose={() => setDepartmentsDropdownOpen(false)}
-                open={departmentsDropdownOpen}
-                disabled={loading}
-                renderValue={(selected) => {
-                  if (!selected || selected.length === 0) return '';
-                  return selected.map((id) => departments.find((dept) => dept._id === id)?.department_name).join(', ');
+          {/* Form Content */}
+          <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Email Field */}
+            <Box>
+              <Typography
+                variant='body2'
+                sx={{
+                  fontWeight: 500,
+                  color: '#65676B',
+                  mb: 1,
+                  fontSize: '0.875rem'
                 }}
               >
-                {departments.length === 0 ? (
-                  <MenuItem disabled>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CircularProgress size={20} />
-                      Carregando gerências...
-                    </Box>
-                  </MenuItem>
-                ) : (
-                  departments.map((dept) => (
-                    <MenuItem
-                      key={dept._id}
-                      value={dept._id}
-                    >
-                      {dept.department_name}
+                Email *
+              </Typography>
+              <TextField
+                fullWidth
+                type='email'
+                placeholder='exemplo@email.com'
+                value={createForm.email}
+                onChange={(e) => setCreateForm((prev) => ({ ...prev, email: e.target.value }))}
+                required
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#F0F2F5',
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: '1px solid #CED0D4',
+                      transition: 'all 0.2s ease-in-out'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#B0B3B8'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1877F2',
+                      boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                    }
+                  },
+                  '& .MuiInputBase-input::placeholder': {
+                    color: '#65676B',
+                    opacity: 1
+                  }
+                }}
+              />
+              <Typography
+                variant='caption'
+                sx={{
+                  color: '#65676B',
+                  fontSize: '0.75rem',
+                  mt: 0.5,
+                  display: 'block'
+                }}
+              >
+                O email deve estar cadastrado no sistema
+              </Typography>
+            </Box>
+
+            {/* Role Field */}
+            <Box>
+              <Typography
+                variant='body2'
+                sx={{
+                  fontWeight: 500,
+                  color: '#65676B',
+                  mb: 1,
+                  fontSize: '0.875rem'
+                }}
+              >
+                Role *
+              </Typography>
+              <FormControl fullWidth>
+                <Select
+                  value={createForm.roleId}
+                  onChange={(e) => {
+                    setCreateForm((prev) => ({
+                      ...prev,
+                      roleId: e.target.value
+                    }));
+                  }}
+                  onOpen={handleRolesDropdownOpen}
+                  disabled={loading}
+                  displayEmpty
+                  sx={{
+                    backgroundColor: '#F0F2F5',
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: '1px solid #CED0D4',
+                      transition: 'all 0.2s ease-in-out'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#B0B3B8'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1877F2',
+                      boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                    },
+                    '& .MuiSelect-select': {
+                      color: createForm.roleId ? '#050505' : '#65676B'
+                    }
+                  }}
+                  renderValue={(value) => {
+                    if (!value) {
+                      return <span style={{ color: '#65676B' }}>Selecione um role</span>;
+                    }
+                    const role = roles.find(r => r._id === value);
+                    return role ? role.name : value;
+                  }}
+                >
+                  {roles.length === 0 ? (
+                    <MenuItem disabled>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CircularProgress size={20} />
+                        Carregando roles...
+                      </Box>
                     </MenuItem>
-                  ))
-                )}
-              </Select>
-            </FormControl>
+                  ) : (
+                    roles.map((role) => (
+                      <MenuItem
+                        key={role._id}
+                        value={role._id}
+                      >
+                        {role.name}
+                      </MenuItem>
+                    ))
+                  )}
+                </Select>
+              </FormControl>
+            </Box>
+
+            {/* Departments Field */}
+            <Box>
+              <Typography
+                variant='body2'
+                sx={{
+                  fontWeight: 500,
+                  color: '#65676B',
+                  mb: 1,
+                  fontSize: '0.875rem'
+                }}
+              >
+                Gerências (opcional)
+              </Typography>
+              <FormControl fullWidth>
+                <Select
+                  multiple
+                  value={createForm.departmentIds || []}
+                  onChange={(e) => {
+                    const value = typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value;
+                    setCreateForm((prev) => ({
+                      ...prev,
+                      departmentIds: value
+                    }));
+                    setDepartmentsDropdownOpen(false);
+                  }}
+                  onOpen={handleDepartmentsDropdownOpen}
+                  onClose={() => setDepartmentsDropdownOpen(false)}
+                  open={departmentsDropdownOpen}
+                  disabled={loading}
+                  displayEmpty
+                  sx={{
+                    backgroundColor: '#F0F2F5',
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: '1px solid #CED0D4',
+                      transition: 'all 0.2s ease-in-out'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#B0B3B8'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1877F2',
+                      boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                    },
+                    '& .MuiSelect-select': {
+                      color: (createForm.departmentIds?.length || 0) > 0 ? '#050505' : '#65676B'
+                    }
+                  }}
+                  renderValue={(selected) => {
+                    if (!selected || selected.length === 0) {
+                      return <span style={{ color: '#65676B' }}>Selecione uma gerência</span>;
+                    }
+                    return selected.map((id) => departments.find((dept) => dept._id === id)?.department_name).join(', ');
+                  }}
+                >
+                  {departments.length === 0 ? (
+                    <MenuItem disabled>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CircularProgress size={20} />
+                        Carregando gerências...
+                      </Box>
+                    </MenuItem>
+                  ) : (
+                    departments.map((dept) => (
+                      <MenuItem
+                        key={dept._id}
+                        value={dept._id}
+                      >
+                        {dept.department_name}
+                      </MenuItem>
+                    ))
+                  )}
+                </Select>
+              </FormControl>
+            </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCreateModalOpen(false)}>Cancelar</Button>
+        
+        {/* Footer com botões */}
+        <Box sx={{ 
+          p: 3, 
+          backgroundColor: '#f9fafb',
+          borderTop: '1px solid #CED0D4',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: 2
+        }}>
+          <Button
+            onClick={() => setCreateModalOpen(false)}
+            sx={{
+              px: 3,
+              py: 1.25,
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              color: '#1877F2',
+              textTransform: 'uppercase',
+              borderRadius: 2,
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: 'rgba(24, 119, 242, 0.1)',
+                color: '#1877F2'
+              }
+            }}
+          >
+            Cancelar
+          </Button>
           <Button
             onClick={handleCreateInvite}
             variant='contained'
             disabled={loading || !createForm.email || !createForm.roleId}
+            sx={{
+              px: 3,
+              py: 1.25,
+              fontSize: '0.875rem',
+              fontWeight: 500,
+              backgroundColor: '#1877F2',
+              textTransform: 'uppercase',
+              borderRadius: 2,
+              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: '#166fe5',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              },
+              '&:focus': {
+                outline: 'none',
+                boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+              },
+              '&:disabled': {
+                backgroundColor: '#d1d5db',
+                color: '#9ca3af',
+                boxShadow: 'none'
+              }
+            }}
           >
             Criar Convite
           </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
 
       {/* Modal de confirmação de exclusão */}

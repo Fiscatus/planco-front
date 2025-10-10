@@ -4,7 +4,11 @@ import {
   Edit as EditIcon,
   GroupAdd as GroupAddIcon,
   Refresh as RefreshIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  KeyboardDoubleArrowLeft as KeyboardDoubleArrowLeftIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  KeyboardDoubleArrowRight as KeyboardDoubleArrowRightIcon
 } from '@mui/icons-material';
 import {
   Alert,
@@ -955,171 +959,477 @@ const GerenciaSection = () => {
         onClose={handleCloseDialogs}
         fullWidth
         maxWidth='md'
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle>{editDialogOpen ? 'Editar Gerência' : 'Nova Gerência'}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
-            <Grid
-              container
-              spacing={3}
-            >
-              <Grid size={{ xs: 12, md: 8 }}>
-                <TextField
-                  fullWidth
-                  label='Departamento'
-                  placeholder='Ex: Departamento de Projetos'
-                  value={departmentForm.department_name || ''}
-                  onChange={(e) => setDepartmentForm((prev) => ({ ...prev, department_name: e.target.value }))}
-                  required
-                  variant='outlined'
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  label='Sigla'
-                  placeholder='GSP'
-                  value={departmentForm.department_acronym || ''}
-                  onChange={(e) =>
-                    setDepartmentForm((prev) => ({ ...prev, department_acronym: e.target.value.toUpperCase() }))
-                  }
-                  inputProps={{ maxLength: 5 }}
-                  variant='outlined'
-                />
-              </Grid>
+        <DialogContent sx={{ p: 0 }}>
+          {/* Header */}
+          <Box sx={{ 
+            p: 3, 
+            borderBottom: '1px solid #e2e8f0',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+            <Box>
+              <Typography
+                variant='h5'
+                sx={{
+                  fontWeight: 700,
+                  color: '#0f172a',
+                  fontSize: '1.5rem'
+                }}
+              >
+                {editDialogOpen ? 'Editar Gerência' : 'Nova Gerência'}
+              </Typography>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: '#64748b',
+                  fontSize: '0.875rem',
+                  mt: 0.5
+                }}
+              >
+                {editDialogOpen ? 'Atualize os dados da gerência.' : 'Preencha os dados para criar uma nova gerência.'}
+              </Typography>
+            </Box>
+          </Box>
 
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  fullWidth
-                  label='Telefone'
-                  placeholder='(61) 99999-9999'
-                  value={departmentForm.department_phone || ''}
-                  onChange={(e) => {
-                    let value = e.target.value.replace(/\D/g, '');
-
-                    if (value.length <= 2) {
-                      // do nothing
-                    } else if (value.length <= 7) {
-                      value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
-                    } else {
-                      value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7, 11)}`;
-                    }
-
-                    setDepartmentForm((prev) => ({ ...prev, department_phone: value }));
-                  }}
-                  inputProps={{
-                    maxLength: 15
-                  }}
-                  variant='outlined'
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  fullWidth
-                  label='E-mail do Departamento'
-                  type='email'
-                  placeholder='gsp@org.gov.br'
-                  value={departmentForm.deparment_email || ''}
-                  onChange={(e) =>
-                    setDepartmentForm((prev) => ({ ...prev, deparment_email: e.target.value.toLowerCase() }))
-                  }
-                  required
-                  variant='outlined'
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 6 }}>
-                <FormControl
-                  fullWidth
-                  variant='outlined'
-                >
-                  <InputLabel>Responsável</InputLabel>
-                  <Select
-                    value={
-                      responsavelUsers.find((u) => u._id === departmentForm.responsavelUserId)
-                        ? departmentForm.responsavelUserId || ''
-                        : ''
-                    }
-                    label='Responsável'
-                    onChange={(e) => {
-                      const userId = e.target.value;
-                      const selectedUser = responsavelUsers.find((u) => u._id === userId);
-                      setDepartmentForm((prev) => ({
-                        ...prev,
-                        responsavelUserId: userId || null,
-                        email_owner: selectedUser?.email || ''
-                      }));
-                    }}
-                    MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300,
-                          overflow: 'auto'
+          {/* Form Content */}
+          <Box sx={{ p: 4 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {/* Primeira linha - Departamento e Sigla */}
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, md: 8 }}>
+                  <Box>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                        color: '#64748b',
+                        mb: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      Departamento *
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      placeholder='Nome do Departamento'
+                      value={departmentForm.department_name || ''}
+                      onChange={(e) => setDepartmentForm((prev) => ({ ...prev, department_name: e.target.value }))}
+                      required
+                      variant='outlined'
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#ffffff',
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0',
+                            transition: 'all 0.2s ease-in-out'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#cbd5e1'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1877F2',
+                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          }
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: '#9ca3af',
+                          opacity: 1
                         }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <Box>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                        color: '#64748b',
+                        mb: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      Sigla
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      placeholder='Ex: DFIN'
+                      value={departmentForm.department_acronym || ''}
+                      onChange={(e) =>
+                        setDepartmentForm((prev) => ({ ...prev, department_acronym: e.target.value.toUpperCase() }))
                       }
-                    }}
-                  >
-                    <MenuItem value=''>
-                      <em>Nenhum</em>
-                    </MenuItem>
-                    {responsavelUsers.map((user) => (
-                      <MenuItem
-                        key={user._id}
-                        value={user._id}
-                      >
-                        <Box>
-                          <Typography
-                            variant='body2'
-                            fontWeight={600}
-                          >
-                            {user.firstName} {user.lastName}
-                          </Typography>
-                          <Typography
-                            variant='body2'
-                            color='text.secondary'
-                          >
-                            {user.email}
-                          </Typography>
-                        </Box>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  fullWidth
-                  label='E-mail do Responsável'
-                  type='email'
-                  placeholder='Selecione um responsável'
-                  value={departmentForm.email_owner || ''}
-                  InputProps={{
-                    readOnly: true
-                  }}
-                  variant='outlined'
-                  helperText='Preenchido automaticamente com o email do responsável selecionado'
-                />
+                      inputProps={{ maxLength: 5 }}
+                      variant='outlined'
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#ffffff',
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0',
+                            transition: 'all 0.2s ease-in-out'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#cbd5e1'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1877F2',
+                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          }
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: '#9ca3af',
+                          opacity: 1
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
               </Grid>
 
-              <Grid size={{ xs: 12 }}>
+              {/* Segunda linha - Telefone e Email do Departamento */}
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Box>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                        color: '#64748b',
+                        mb: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      Telefone
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      placeholder='(00) 00000-0000'
+                      value={departmentForm.department_phone || ''}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/\D/g, '');
+
+                        if (value.length <= 2) {
+                          // do nothing
+                        } else if (value.length <= 7) {
+                          value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
+                        } else {
+                          value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7, 11)}`;
+                        }
+
+                        setDepartmentForm((prev) => ({ ...prev, department_phone: value }));
+                      }}
+                      inputProps={{
+                        maxLength: 15
+                      }}
+                      variant='outlined'
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#ffffff',
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0',
+                            transition: 'all 0.2s ease-in-out'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#cbd5e1'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1877F2',
+                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          }
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: '#9ca3af',
+                          opacity: 1
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Box>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                        color: '#64748b',
+                        mb: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      E-mail do Departamento *
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      type='email'
+                      placeholder='contato@departamento.com'
+                      value={departmentForm.deparment_email || ''}
+                      onChange={(e) =>
+                        setDepartmentForm((prev) => ({ ...prev, deparment_email: e.target.value.toLowerCase() }))
+                      }
+                      required
+                      variant='outlined'
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#ffffff',
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0',
+                            transition: 'all 0.2s ease-in-out'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#cbd5e1'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1877F2',
+                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          }
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: '#9ca3af',
+                          opacity: 1
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+              </Grid>
+
+              {/* Terceira linha - Responsável e Email do Responsável */}
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Box>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                        color: '#64748b',
+                        mb: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      Responsável
+                    </Typography>
+                    <FormControl fullWidth variant='outlined'>
+                      <Select
+                        value={
+                          responsavelUsers.find((u) => u._id === departmentForm.responsavelUserId)
+                            ? departmentForm.responsavelUserId || ''
+                            : ''
+                        }
+                        onChange={(e) => {
+                          const userId = e.target.value;
+                          const selectedUser = responsavelUsers.find((u) => u._id === userId);
+                          setDepartmentForm((prev) => ({
+                            ...prev,
+                            responsavelUserId: userId || null,
+                            email_owner: selectedUser?.email || ''
+                          }));
+                        }}
+                        displayEmpty
+                        sx={{
+                          backgroundColor: '#ffffff',
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0',
+                            transition: 'all 0.2s ease-in-out'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#cbd5e1'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1877F2',
+                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          },
+                          '& .MuiSelect-select': {
+                            color: departmentForm.responsavelUserId ? '#0f172a' : '#9ca3af'
+                          }
+                        }}
+                        renderValue={(value) => {
+                          if (!value) {
+                            return <span style={{ color: '#9ca3af' }}>Selecione um responsável</span>;
+                          }
+                          const user = responsavelUsers.find((u) => u._id === value);
+                          return user ? `${user.firstName} ${user.lastName}` : '';
+                        }}
+                        MenuProps={{
+                          PaperProps: {
+                            style: {
+                              maxHeight: 300,
+                              overflow: 'auto'
+                            }
+                          }
+                        }}
+                      >
+                        <MenuItem value=''>
+                          <em>Nenhum</em>
+                        </MenuItem>
+                        {responsavelUsers.map((user) => (
+                          <MenuItem
+                            key={user._id}
+                            value={user._id}
+                          >
+                            <Box>
+                              <Typography
+                                variant='body2'
+                                fontWeight={600}
+                              >
+                                {user.firstName} {user.lastName}
+                              </Typography>
+                              <Typography
+                                variant='body2'
+                                color='text.secondary'
+                              >
+                                {user.email}
+                              </Typography>
+                            </Box>
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Box>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                        color: '#64748b',
+                        mb: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      E-mail do Responsável
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      type='email'
+                      placeholder='fulano@empresa.com'
+                      value={departmentForm.email_owner || ''}
+                      InputProps={{
+                        readOnly: true
+                      }}
+                      variant='outlined'
+                      disabled
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#f1f5f9',
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0'
+                          }
+                        },
+                        '& .MuiInputBase-input': {
+                          color: '#64748b',
+                          cursor: 'not-allowed'
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: '#9ca3af',
+                          opacity: 1
+                        }
+                      }}
+                    />
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: '#64748b',
+                        fontSize: '0.75rem',
+                        mt: 0.5,
+                        display: 'block'
+                      }}
+                    >
+                      Preenchido automaticamente com o e-mail do responsável.
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+
+              {/* Descrição */}
+              <Box>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    fontWeight: 500,
+                    color: '#64748b',
+                    mb: 1,
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  Descrição
+                </Typography>
                 <TextField
                   fullWidth
-                  label='Descrição'
                   multiline
-                  rows={3}
-                  placeholder='Descreva as responsabilidades e objetivos desta gerência...'
+                  rows={4}
+                  placeholder='Descreva as atividades e responsabilidades da gerência...'
                   value={departmentForm.description || ''}
                   onChange={(e) => setDepartmentForm((prev) => ({ ...prev, description: e.target.value }))}
                   variant='outlined'
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: '#ffffff',
+                      borderRadius: 2,
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        border: '2px solid #e2e8f0',
+                        transition: 'all 0.2s ease-in-out'
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#cbd5e1'
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#1877F2',
+                        boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                      }
+                    },
+                    '& .MuiInputBase-input::placeholder': {
+                      color: '#9ca3af',
+                      opacity: 1
+                    }
+                  }}
                 />
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
+        
+        {/* Footer com botões */}
+        <Box sx={{ 
+          p: 3, 
+          backgroundColor: '#f8fafc',
+          borderTop: '1px solid #e2e8f0',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          gap: 1
+        }}>
           <Button
             onClick={handleCloseDialogs}
-            variant='outlined'
+            sx={{
+              px: 3,
+              py: 1.25,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: '#64748b',
+              textTransform: 'uppercase',
+              borderRadius: 2,
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: '#f1f5f9',
+                color: '#0f172a'
+              }
+            }}
           >
             Cancelar
           </Button>
@@ -1127,10 +1437,34 @@ const GerenciaSection = () => {
             onClick={handleSaveDepartment}
             variant='contained'
             disabled={savingDepartment}
+            sx={{
+              px: 4,
+              py: 1.25,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              backgroundColor: '#1877F2',
+              textTransform: 'uppercase',
+              borderRadius: 2,
+              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: '#166fe5',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              },
+              '&:focus': {
+                outline: 'none',
+                boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+              },
+              '&:disabled': {
+                backgroundColor: '#e5e7eb',
+                color: '#9ca3af',
+                boxShadow: 'none'
+              }
+            }}
           >
-            {savingDepartment ? 'Salvando...' : editDialogOpen ? 'Atualizar' : 'Criar'}
+            {savingDepartment ? 'Salvando...' : editDialogOpen ? 'Atualizar' : 'Criar Gerência'}
           </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
 
       <Dialog
@@ -1189,40 +1523,129 @@ const GerenciaSection = () => {
         open={membersDialogOpen}
         onClose={() => setMembersDialogOpen(false)}
         fullWidth
-        maxWidth='md'
+        maxWidth='lg'
         PaperProps={{
           sx: {
-            height: '650px',
-            maxHeight: '650px'
+            borderRadius: 2,
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            overflow: 'hidden',
+            height: 'auto',
+            maxHeight: '90vh'
           }
         }}
       >
-        <DialogTitle>Gerenciar membros {selectedDept ? `- ${selectedDept.department_name}` : ''}</DialogTitle>
-        <DialogContent sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 0 }}>
-          <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-            <TextField
-              fullWidth
-              placeholder='Buscar usuários por nome ou email...'
-              value={userSearch}
-              onChange={(e) => handleUserSearch(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                )
+        <DialogContent sx={{ p: 0 }}>
+          {/* Header */}
+          <Box sx={{ p: 4, mb: 2 }}>
+            <Typography
+              variant='h5'
+              sx={{
+                fontWeight: 700,
+                color: '#1f2937',
+                fontSize: '1.5rem',
+                mb: 0.5
               }}
-            />
+            >
+              Adicionar Membro
+            </Typography>
+            <Typography
+              variant='body2'
+              sx={{
+                color: '#6b7280',
+                fontSize: '0.875rem'
+              }}
+            >
+              Gerencie os membros da equipe de {selectedDept?.department_name || 'Gerência'}.
+            </Typography>
           </Box>
 
-          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <TableContainer sx={{ flex: 1, overflow: 'auto' }}>
-              <Table stickyHeader>
+          {/* Search Bar */}
+          <Box sx={{ px: 4, mb: 3 }}>
+            <Box sx={{ position: 'relative' }}>
+              <SearchIcon
+                sx={{
+                  position: 'absolute',
+                  left: 16,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#6b7280',
+                  fontSize: 20,
+                  zIndex: 1
+                }}
+              />
+              <TextField
+                fullWidth
+                placeholder='Buscar usuários por nome ou email...'
+                value={userSearch}
+                onChange={(e) => handleUserSearch(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    pl: 5,
+                    pr: 3,
+                    py: 1.5,
+                    backgroundColor: '#f5f7f8',
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: '1px solid #e5e7eb',
+                      transition: 'all 0.2s ease-in-out'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#d1d5db'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1877F2',
+                      boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                    }
+                  },
+                  '& .MuiInputBase-input::placeholder': {
+                    color: '#6b7280',
+                    opacity: 1
+                  }
+                }}
+              />
+            </Box>
+          </Box>
+
+          {/* Table Content */}
+          <Box sx={{ px: 4, mb: 4 }}>
+            <TableContainer sx={{ overflow: 'auto' }}>
+              <Table>
                 <TableHead>
-                  <TableRow>
-                    <TableCell>Usuário</TableCell>
-                    <TableCell>E-mail</TableCell>
-                    <TableCell align='center'>Ação</TableCell>
+                  <TableRow sx={{ borderBottom: '1px solid #e5e7eb' }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        color: '#6b7280',
+                        fontSize: '0.875rem',
+                        py: 2,
+                        borderBottom: '1px solid #e5e7eb'
+                      }}
+                    >
+                      Usuário
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        color: '#6b7280',
+                        fontSize: '0.875rem',
+                        py: 2,
+                        borderBottom: '1px solid #e5e7eb'
+                      }}
+                    >
+                      E-mail
+                    </TableCell>
+                    <TableCell
+                      align='right'
+                      sx={{
+                        fontWeight: 600,
+                        color: '#6b7280',
+                        fontSize: '0.875rem',
+                        py: 2,
+                        borderBottom: '1px solid #e5e7eb'
+                      }}
+                    >
+                      Ação
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -1231,15 +1654,17 @@ const GerenciaSection = () => {
                       <TableCell
                         colSpan={3}
                         align='center'
-                        sx={{ py: 4 }}
+                        sx={{ py: 6 }}
                       >
-                        <CircularProgress />
-                        <Typography
-                          variant='body2'
-                          sx={{ mt: 1 }}
-                        >
-                          Carregando usuários...
-                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                          <CircularProgress size={32} sx={{ color: '#1877F2' }} />
+                          <Typography
+                            variant='body2'
+                            sx={{ color: '#6b7280', fontWeight: 500 }}
+                          >
+                            Carregando usuários...
+                          </Typography>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ) : paginatedUsers.length === 0 ? (
@@ -1247,11 +1672,11 @@ const GerenciaSection = () => {
                       <TableCell
                         colSpan={3}
                         align='center'
-                        sx={{ py: 4 }}
+                        sx={{ py: 6 }}
                       >
                         <Typography
                           variant='body2'
-                          color='text.secondary'
+                          sx={{ color: '#6b7280' }}
                         >
                           {userSearch ? 'Nenhum usuário encontrado' : 'Digite para buscar usuários'}
                         </Typography>
@@ -1259,12 +1684,23 @@ const GerenciaSection = () => {
                     </TableRow>
                   ) : (
                     paginatedUsers.map((u) => (
-                      <TableRow key={u._id}>
-                        <TableCell>
+                      <TableRow 
+                        key={u._id}
+                        sx={{
+                          borderBottom: '1px solid #e5e7eb',
+                          '&:last-child': {
+                            borderBottom: 'none'
+                          }
+                        }}
+                      >
+                        <TableCell sx={{ py: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Typography
                               variant='body2'
-                              fontWeight={600}
+                              sx={{
+                                fontWeight: 500,
+                                color: '#1f2937'
+                              }}
                             >
                               {u.firstName} {u.lastName}
                             </Typography>
@@ -1272,27 +1708,65 @@ const GerenciaSection = () => {
                               <Chip
                                 label='Já é membro'
                                 size='small'
-                                color='success'
-                                variant='outlined'
+                                sx={{
+                                  fontSize: '0.75rem',
+                                  fontWeight: 500,
+                                  backgroundColor: '#dcfce7',
+                                  color: '#166534',
+                                  borderRadius: '9999px',
+                                  height: 20,
+                                  '& .MuiChip-label': {
+                                    px: 1.5
+                                  }
+                                }}
                               />
                             )}
                           </Box>
                         </TableCell>
-                        <TableCell>
+                        <TableCell sx={{ py: 2 }}>
                           <Typography
                             variant='body2'
-                            color='text.secondary'
+                            sx={{ color: '#6b7280' }}
                           >
                             {u.email}
                           </Typography>
                         </TableCell>
-                        <TableCell align='center'>
+                        <TableCell align='right' sx={{ py: 2 }}>
                           <Button
                             size='small'
-                            variant={selectedUserIds.includes(u._id || '') ? 'contained' : 'outlined'}
+                            variant={(u as any).isMember ? 'text' : selectedUserIds.includes(u._id || '') ? 'contained' : 'outlined'}
                             onClick={() => u._id && toggleUserSelection(u._id)}
                             disabled={(u as any).isMember}
-                            color={(u as any).isMember ? 'warning' : 'primary'}
+                            sx={{
+                              px: 2,
+                              py: 1,
+                              fontSize: '0.875rem',
+                              fontWeight: 500,
+                              borderRadius: 2,
+                              textTransform: 'none',
+                              minWidth: 100,
+                              ...((u as any).isMember ? {
+                                backgroundColor: '#f3f4f6',
+                                color: '#6b7280',
+                                cursor: 'not-allowed',
+                                '&:hover': {
+                                  backgroundColor: '#f3f4f6'
+                                }
+                              } : selectedUserIds.includes(u._id || '') ? {
+                                backgroundColor: '#1877F2',
+                                color: 'white',
+                                '&:hover': {
+                                  backgroundColor: '#166fe5'
+                                }
+                              } : {
+                                borderColor: '#1877F2',
+                                color: '#1877F2',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(24, 119, 242, 0.04)',
+                                  borderColor: '#1877F2'
+                                }
+                              })
+                            }}
                           >
                             {(u as any).isMember
                               ? 'Já é membro'
@@ -1307,42 +1781,156 @@ const GerenciaSection = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+          </Box>
 
-            {!loadingUsers && userPagination.total > 0 && (
-              <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
-                <TablePagination
-                  component='div'
-                  count={userPagination.total}
-                  page={userPagination.page}
-                  onPageChange={handleUserPageChange}
-                  rowsPerPage={userPagination.limit}
-                  rowsPerPageOptions={[]}
-                  labelRowsPerPage='Itens por página: 5'
-                  labelDisplayedRows={({ from, to, count }) =>
-                    `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
+          {/* Footer */}
+          <Box sx={{ 
+            p: 4, 
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 2
+          }}>
+            {/* Pagination Info */}
+            <Typography
+              variant='body2'
+              sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+            >
+              {userPagination.page * userPagination.limit + 1}-{Math.min((userPagination.page + 1) * userPagination.limit, userPagination.total)} de {userPagination.total}
+            </Typography>
+            
+            {/* Pagination Controls */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Button
+                size='small'
+                disabled={userPagination.page === 0}
+                onClick={() => handleUserPageChange(null, 0)}
+                sx={{
+                  p: 1,
+                  borderRadius: 2,
+                  color: '#6b7280',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6'
+                  },
+                  '&:disabled': {
+                    opacity: 0.5
                   }
-                  showFirstButton
-                  showLastButton
-                />
-              </Box>
-            )}
+                }}
+              >
+                <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.25rem' }} />
+              </Button>
+              <Button
+                size='small'
+                disabled={userPagination.page === 0}
+                onClick={() => handleUserPageChange(null, userPagination.page - 1)}
+                sx={{
+                  p: 1,
+                  borderRadius: 2,
+                  color: '#6b7280',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6'
+                  },
+                  '&:disabled': {
+                    opacity: 0.5
+                  }
+                }}
+              >
+                <ChevronLeftIcon sx={{ fontSize: '1.25rem' }} />
+              </Button>
+              <Button
+                size='small'
+                disabled={(userPagination.page + 1) * userPagination.limit >= userPagination.total}
+                onClick={() => handleUserPageChange(null, userPagination.page + 1)}
+                sx={{
+                  p: 1,
+                  borderRadius: 2,
+                  color: '#6b7280',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6'
+                  },
+                  '&:disabled': {
+                    opacity: 0.5
+                  }
+                }}
+              >
+                <ChevronRightIcon sx={{ fontSize: '1.25rem' }} />
+              </Button>
+              <Button
+                size='small'
+                disabled={(userPagination.page + 1) * userPagination.limit >= userPagination.total}
+                onClick={() => handleUserPageChange(null, Math.ceil(userPagination.total / userPagination.limit) - 1)}
+                sx={{
+                  p: 1,
+                  borderRadius: 2,
+                  color: '#6b7280',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6'
+                  },
+                  '&:disabled': {
+                    opacity: 0.5
+                  }
+                }}
+              >
+                <KeyboardDoubleArrowRightIcon sx={{ fontSize: '1.25rem' }} />
+              </Button>
+            </Box>
+
+            {/* Action Buttons */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Button
+                onClick={() => setMembersDialogOpen(false)}
+                sx={{
+                  px: 3,
+                  py: 1.5,
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#6b7280',
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6',
+                    color: '#1f2937'
+                  }
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSaveMembers}
+                variant='contained'
+                disabled={savingMembers || !selectedDept || selectedUserIds.length === 0}
+                sx={{
+                  px: 3,
+                  py: 1.5,
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  backgroundColor: '#1877F2',
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: '#166fe5',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  },
+                  '&:focus': {
+                    outline: 'none',
+                    boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                  },
+                  '&:disabled': {
+                    backgroundColor: '#e5e7eb',
+                    color: '#9ca3af',
+                    boxShadow: 'none'
+                  }
+                }}
+              >
+                {savingMembers ? 'Adicionando...' : `Adicionar ${selectedUserIds.length} membro(s)`}
+              </Button>
+            </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setMembersDialogOpen(false)}
-            variant='outlined'
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSaveMembers}
-            variant='contained'
-            disabled={savingMembers || !selectedDept}
-          >
-            {savingMembers ? 'Adicionando...' : `Adicionar ${selectedUserIds.length} membro(s)`}
-          </Button>
-        </DialogActions>
       </Dialog>
     </Box>
   );

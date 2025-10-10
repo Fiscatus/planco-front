@@ -30,6 +30,7 @@ import {
   Typography
 } from '@mui/material';
 import {
+  Edit as EditIcon,
   FilterListOff as FilterListOffIcon,
   MoreHoriz as MoreHorizIcon,
   Refresh as RefreshIcon,
@@ -794,103 +795,284 @@ const UserSection = () => {
         onClose={() => setEditModalOpen(false)}
         maxWidth='sm'
         fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle>Editar Usuário</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-            <Typography
-              variant='body2'
-              color='text.secondary'
-              sx={{ mb: 1 }}
-            >
-              Editando:{' '}
-              <strong>
-                {selectedUser?.firstName} {selectedUser?.lastName}
-              </strong>
-            </Typography>
-
-            <Autocomplete
-              options={roles}
-              getOptionLabel={(option) => (typeof option === 'string' ? option : option.name)}
-              value={roles.find((role) => role._id === editForm.role) || null}
-              onChange={(_, newValue) => {
-                setEditForm((prev) => ({
-                  ...prev,
-                  role: typeof newValue === 'string' ? newValue : newValue?._id || ''
-                }));
-              }}
-              onOpen={handleEditRolesDropdownOpen}
-              onClose={() => setEditRolesDropdownOpen(false)}
-              open={editRolesDropdownOpen}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label='Role'
-                  placeholder='Digite ou clique para buscar roles'
-                  InputProps={{
-                    ...params.InputProps
-                  }}
-                />
-              )}
-              freeSolo
-              clearOnBlur
-              selectOnFocus
-              handleHomeEndKeys
-              loading={roles.length === 0 && editRolesDropdownOpen}
-              loadingText={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CircularProgress size={20} />
-                  Carregando roles...
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ p: 4 }}>
+            {/* Header com ícone e título */}
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              textAlign: 'center', 
+              mb: 4 
+            }}>
+              <Box sx={{
+                backgroundColor: 'rgba(24, 119, 242, 0.1)',
+                p: 1.5,
+                borderRadius: '50%',
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <EditIcon sx={{ 
+                  fontSize: 32, 
+                  color: '#1877F2' 
+                }} />
+              </Box>
+              
+              <Typography
+                variant='h5'
+                sx={{
+                  fontWeight: 700,
+                  color: '#1f2937',
+                  mb: 0.5
+                }}
+              >
+                Editar Usuário
+              </Typography>
+              
+              <Typography
+                variant='body2'
+                sx={{
+                  color: '#6b7280',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Atualize as informações de{' '}
+                <Box component='span' sx={{ fontWeight: 600, color: '#1f2937' }}>
+                  {selectedUser?.firstName} {selectedUser?.lastName}
                 </Box>
-              }
-            />
+                .
+              </Typography>
+            </Box>
 
-            <Autocomplete
-              multiple
-              options={departments}
-              getOptionLabel={(option) => (typeof option === 'string' ? option : option.department_name)}
-              value={departments.filter((dept) => editForm.departments?.includes(dept._id)) || []}
-              onChange={(_, newValue) => {
-                setEditForm((prev) => ({
-                  ...prev,
-                  departments: newValue.map((dept) => (typeof dept === 'string' ? dept : dept._id))
-                }));
-              }}
-              onOpen={handleEditDepartmentsDropdownOpen}
-              onClose={() => setEditDepartmentsDropdownOpen(false)}
-              open={editDepartmentsDropdownOpen}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label='Gerências'
-                  placeholder='Digite ou clique para buscar gerências'
-                  InputProps={{
-                    ...params.InputProps
-                  }}
-                />
-              )}
-              freeSolo
-              clearOnBlur
-              selectOnFocus
-              handleHomeEndKeys
-              loading={departments.length === 0 && editDepartmentsDropdownOpen}
-              loadingText={
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CircularProgress size={20} />
-                  Carregando gerências...
+            {/* Seção de Permissões */}
+            <Box sx={{
+              backgroundColor: '#f9fafb',
+              p: 3,
+              borderRadius: 2,
+              border: '1px solid #e5e7eb',
+              mb: 4
+            }}>
+              <Typography
+                variant='h6'
+                sx={{
+                  fontWeight: 600,
+                  color: '#1f2937',
+                  mb: 2,
+                  fontSize: '1.125rem'
+                }}
+              >
+                Permissões
+              </Typography>
+              
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      fontWeight: 500,
+                      color: '#6b7280',
+                      mb: 0.5,
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Role
+                  </Typography>
+                  <Autocomplete
+                    options={roles}
+                    getOptionLabel={(option) => (typeof option === 'string' ? option : option.name)}
+                    value={roles.find((role) => role._id === editForm.role) || null}
+                    onChange={(_, newValue) => {
+                      setEditForm((prev) => ({
+                        ...prev,
+                        role: typeof newValue === 'string' ? newValue : newValue?._id || ''
+                      }));
+                    }}
+                    onOpen={handleEditRolesDropdownOpen}
+                    onClose={() => setEditRolesDropdownOpen(false)}
+                    open={editRolesDropdownOpen}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder='Selecione uma role'
+                        InputProps={{
+                          ...params.InputProps,
+                          sx: {
+                            backgroundColor: '#ffffff',
+                            borderRadius: 2,
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              border: '1px solid #e5e7eb',
+                              transition: 'all 0.2s ease-in-out'
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#d1d5db'
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#1877F2',
+                              boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                            }
+                          }
+                        }}
+                        sx={{
+                          '& .MuiInputBase-input::placeholder': {
+                            color: '#9ca3af',
+                            opacity: 1
+                          }
+                        }}
+                      />
+                    )}
+                    freeSolo
+                    clearOnBlur
+                    selectOnFocus
+                    handleHomeEndKeys
+                    loading={roles.length === 0 && editRolesDropdownOpen}
+                    loadingText={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CircularProgress size={20} />
+                        Carregando roles...
+                      </Box>
+                    }
+                  />
                 </Box>
-              }
-            />
+
+                <Box>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      fontWeight: 500,
+                      color: '#6b7280',
+                      mb: 0.5,
+                      fontSize: '0.875rem'
+                    }}
+                  >
+                    Gerências
+                  </Typography>
+                  <Autocomplete
+                    multiple
+                    options={departments}
+                    getOptionLabel={(option) => (typeof option === 'string' ? option : option.department_name)}
+                    value={departments.filter((dept) => editForm.departments?.includes(dept._id)) || []}
+                    onChange={(_, newValue) => {
+                      setEditForm((prev) => ({
+                        ...prev,
+                        departments: newValue.map((dept) => (typeof dept === 'string' ? dept : dept._id))
+                      }));
+                    }}
+                    onOpen={handleEditDepartmentsDropdownOpen}
+                    onClose={() => setEditDepartmentsDropdownOpen(false)}
+                    open={editDepartmentsDropdownOpen}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder='Selecione as gerências'
+                        InputProps={{
+                          ...params.InputProps,
+                          sx: {
+                            backgroundColor: '#ffffff',
+                            borderRadius: 2,
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              border: '1px solid #e5e7eb',
+                              transition: 'all 0.2s ease-in-out'
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#d1d5db'
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#1877F2',
+                              boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                            }
+                          }
+                        }}
+                        sx={{
+                          '& .MuiInputBase-input::placeholder': {
+                            color: '#9ca3af',
+                            opacity: 1
+                          }
+                        }}
+                      />
+                    )}
+                    freeSolo
+                    clearOnBlur
+                    selectOnFocus
+                    handleHomeEndKeys
+                    loading={departments.length === 0 && editDepartmentsDropdownOpen}
+                    loadingText={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CircularProgress size={20} />
+                        Carregando gerências...
+                      </Box>
+                    }
+                  />
+                </Box>
+              </Box>
+            </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditModalOpen(false)}>Cancelar</Button>
+        
+        <DialogActions sx={{ 
+          p: 3, 
+          pt: 0,
+          justifyContent: 'flex-end',
+          gap: 1
+        }}>
+          <Button 
+            onClick={() => setEditModalOpen(false)}
+            sx={{
+              px: 3,
+              py: 1.25,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: '#6b7280',
+              textTransform: 'none',
+              borderRadius: 2,
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: '#f3f4f6',
+                color: '#374151'
+              }
+            }}
+          >
+            Cancelar
+          </Button>
           <Button
             onClick={handleSaveEdit}
             variant='contained'
             disabled={loading}
+            sx={{
+              px: 3,
+              py: 1.25,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              backgroundColor: '#1877F2',
+              textTransform: 'none',
+              borderRadius: 2,
+              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: '#166fe5',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              },
+              '&:focus': {
+                outline: 'none',
+                boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+              },
+              '&:disabled': {
+                backgroundColor: '#e5e7eb',
+                color: '#9ca3af',
+                boxShadow: 'none'
+              }
+            }}
           >
-            Salvar
+            Salvar Alterações
           </Button>
         </DialogActions>
       </Dialog>

@@ -1,4 +1,4 @@
-import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, Refresh as RefreshIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Add as AddIcon, Close as CloseIcon, Delete as DeleteIcon, Edit as EditIcon, Refresh as RefreshIcon, Search as SearchIcon } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -567,92 +567,228 @@ const RolesSection = () => {
         open={createModalOpen}
         onClose={handleCloseModals}
         fullWidth
-        maxWidth='sm'
+        maxWidth='md'
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle>Criar Nova Role</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <TextField
-              label='Nome da Role'
-              value={roleName}
-              onChange={(e) => setRoleName(e.target.value)}
-              fullWidth
-              required
-            />
+        <DialogContent sx={{ p: 0 }}>
+          {/* Header */}
+          <Box sx={{ 
+            p: 3, 
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2
+          }}>
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: 700,
+                color: '#050505',
+                fontSize: '1.25rem'
+              }}
+            >
+              Criar Nova Role
+            </Typography>
+            <IconButton
+              onClick={handleCloseModals}
+              sx={{
+                color: '#65676B',
+                '&:hover': {
+                  backgroundColor: '#f3f4f6'
+                }
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          {/* Form Content */}
+          <Box sx={{ px: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Role Name Field */}
             <Box>
               <Typography
-                variant='subtitle2'
-                sx={{ mb: 1, color: 'text.secondary' }}
+                variant='body2'
+                sx={{
+                  fontWeight: 500,
+                  color: '#65676B',
+                  mb: 1,
+                  fontSize: '0.875rem'
+                }}
+              >
+                Nome da Role *
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder='Digite o nome da role'
+                value={roleName}
+                onChange={(e) => setRoleName(e.target.value)}
+                required
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: '#F0F2F5',
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: '1px solid #DADDE1',
+                      transition: 'all 0.2s ease-in-out'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#B0B3B8'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1877F2',
+                      boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                    }
+                  },
+                  '& .MuiInputBase-input::placeholder': {
+                    color: '#65676B',
+                    opacity: 1
+                  }
+                }}
+              />
+            </Box>
+
+            {/* Permissions Section */}
+            <Box>
+              <Typography
+                variant='body2'
+                sx={{
+                  fontWeight: 600,
+                  color: '#050505',
+                  mb: 2,
+                  fontSize: '1rem'
+                }}
               >
                 Permissões
               </Typography>
               <Box
                 sx={{
-                  maxHeight: '300px',
+                  border: '1px solid #DADDE1',
+                  borderRadius: 2,
+                  maxHeight: '40vh',
                   overflowY: 'auto',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: 1,
-                  p: 1,
-                  backgroundColor: '#fafafa'
+                  backgroundColor: '#FFFFFF'
                 }}
               >
-                {permissionsLoading ? (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      py: 2
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CircularProgress size={20} />
-                      <Typography
-                        variant='body2'
-                        component='span'
-                      >
-                        Carregando permissões...
-                      </Typography>
-                    </Box>
-                  </Box>
-                ) : (
-                  Object.entries(groupedPermissions).map(([group, perms]) => (
+                <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {permissionsLoading ? (
                     <Box
-                      key={group}
-                      sx={{ mb: 1.5 }}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        py: 4
+                      }}
                     >
-                      <Typography
-                        variant='caption'
-                        sx={{ fontWeight: 600, color: 'text.secondary' }}
-                      >
-                        {group}:
-                      </Typography>
-                      <FormGroup row>
-                        {perms.map((permission) => (
-                          <FormControlLabel
-                            key={permission.key}
-                            control={
-                              <Checkbox
-                                checked={permissions.includes(permission.key)}
-                                onChange={() => togglePermission(permission.key)}
-                              />
-                            }
-                            label={permission.label}
-                          />
-                        ))}
-                      </FormGroup>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CircularProgress size={20} sx={{ color: '#1877F2' }} />
+                        <Typography
+                          variant='body2'
+                          sx={{ color: '#65676B' }}
+                        >
+                          Carregando permissões...
+                        </Typography>
+                      </Box>
                     </Box>
-                  ))
-                )}
+                  ) : (
+                    Object.entries(groupedPermissions).map(([group, perms]) => (
+                      <Box
+                        key={group}
+                        sx={{
+                          p: 2,
+                          borderRadius: 2,
+                          backgroundColor: '#f9fafb'
+                        }}
+                      >
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            fontWeight: 600,
+                            color: '#050505',
+                            mb: 2,
+                            fontSize: '0.875rem'
+                          }}
+                        >
+                          {group}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                          {perms.map((permission) => (
+                            <FormControlLabel
+                              key={permission.key}
+                              control={
+                                <Checkbox
+                                  checked={permissions.includes(permission.key)}
+                                  onChange={() => togglePermission(permission.key)}
+                                  sx={{
+                                    color: '#1877F2',
+                                    '&.Mui-checked': {
+                                      color: '#1877F2'
+                                    },
+                                    '& .MuiSvgIcon-root': {
+                                      fontSize: 20
+                                    }
+                                  }}
+                                />
+                              }
+                              label={
+                                <Typography
+                                  variant='body2'
+                                  sx={{
+                                    color: '#65676B',
+                                    fontSize: '0.875rem'
+                                  }}
+                                >
+                                  {permission.label}
+                                </Typography>
+                              }
+                              sx={{
+                                margin: 0,
+                                '& .MuiFormControlLabel-label': {
+                                  marginLeft: 1
+                                }
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    ))
+                  )}
+                </Box>
               </Box>
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
+        
+        {/* Footer com botões */}
+        <Box sx={{ 
+          p: 3, 
+          borderTop: '1px solid #DADDE1',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: 2
+        }}>
           <Button
-            variant='outlined'
             onClick={handleCloseModals}
-            sx={{ textTransform: 'none' }}
+            sx={{
+              px: 3,
+              py: 1,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: '#65676B',
+              textTransform: 'none',
+              backgroundColor: '#e5e7eb',
+              borderRadius: 2,
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: '#d1d5db',
+                color: '#374151'
+              }
+            }}
           >
             Cancelar
           </Button>
@@ -660,107 +796,287 @@ const RolesSection = () => {
             onClick={handleCreateRole}
             variant='contained'
             disabled={loading || !roleName.trim()}
-            sx={{ textTransform: 'none' }}
+            sx={{
+              px: 3,
+              py: 1,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              backgroundColor: '#1877F2',
+              textTransform: 'none',
+              borderRadius: 2,
+              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: '#166fe5',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              },
+              '&:focus': {
+                outline: 'none',
+                boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+              },
+              '&:disabled': {
+                backgroundColor: '#d1d5db',
+                color: '#9ca3af',
+                boxShadow: 'none'
+              }
+            }}
           >
             Criar Role
           </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
 
       <Dialog
         open={editModalOpen}
         onClose={handleCloseModals}
         fullWidth
-        maxWidth='sm'
+        maxWidth='md'
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle>Editar Role</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <TextField
-              label='Nome da Role'
-              value={roleName}
-              onChange={(e) => setRoleName(e.target.value)}
-              fullWidth
-              required
-              disabled={selectedRole?.name === 'Administrador'}
-            />
-            {selectedRole?.name === 'Administrador' && (
-              <Alert severity='info'>O nome da role "Administrador" não pode ser alterado</Alert>
-            )}
+        <DialogContent sx={{ p: 0 }}>
+          {/* Header */}
+          <Box sx={{ 
+            p: 3, 
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mb: 2
+          }}>
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: 700,
+                color: '#050505',
+                fontSize: '1.25rem'
+              }}
+            >
+              Editar Role
+            </Typography>
+            <IconButton
+              onClick={handleCloseModals}
+              sx={{
+                color: '#65676B',
+                '&:hover': {
+                  backgroundColor: '#f3f4f6'
+                }
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          {/* Form Content */}
+          <Box sx={{ px: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+            {/* Role Name Field */}
             <Box>
               <Typography
-                variant='subtitle2'
-                sx={{ mb: 1, color: 'text.secondary' }}
+                variant='body2'
+                sx={{
+                  fontWeight: 500,
+                  color: '#65676B',
+                  mb: 1,
+                  fontSize: '0.875rem'
+                }}
+              >
+                Nome da Role *
+              </Typography>
+              <TextField
+                fullWidth
+                placeholder='Digite o nome da role'
+                value={roleName}
+                onChange={(e) => setRoleName(e.target.value)}
+                required
+                disabled={selectedRole?.name === 'Administrador'}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    backgroundColor: selectedRole?.name === 'Administrador' ? '#f3f4f6' : '#F0F2F5',
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: '1px solid #DADDE1',
+                      transition: 'all 0.2s ease-in-out'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#B0B3B8'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1877F2',
+                      boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                    },
+                    '&.Mui-disabled': {
+                      backgroundColor: '#f3f4f6',
+                      color: '#9ca3af'
+                    }
+                  },
+                  '& .MuiInputBase-input::placeholder': {
+                    color: '#65676B',
+                    opacity: 1
+                  }
+                }}
+              />
+              {selectedRole?.name === 'Administrador' && (
+                <Alert 
+                  severity='info'
+                  sx={{
+                    mt: 1,
+                    borderRadius: 2,
+                    backgroundColor: '#eff6ff',
+                    border: '1px solid #bfdbfe',
+                    '& .MuiAlert-icon': {
+                      color: '#1877F2'
+                    },
+                    '& .MuiAlert-message': {
+                      color: '#1e40af',
+                      fontWeight: 500
+                    }
+                  }}
+                >
+                  O nome da role "Administrador" não pode ser alterado
+                </Alert>
+              )}
+            </Box>
+
+            {/* Permissions Section */}
+            <Box>
+              <Typography
+                variant='body2'
+                sx={{
+                  fontWeight: 600,
+                  color: '#050505',
+                  mb: 2,
+                  fontSize: '1rem'
+                }}
               >
                 Permissões
               </Typography>
               <Box
                 sx={{
-                  maxHeight: '400px',
+                  border: '1px solid #DADDE1',
+                  borderRadius: 2,
+                  maxHeight: '40vh',
                   overflowY: 'auto',
-                  border: '1px solid #e0e0e0',
-                  borderRadius: 1,
-                  p: 1,
-                  backgroundColor: '#fafafa'
+                  backgroundColor: '#FFFFFF'
                 }}
               >
-                {permissionsLoading ? (
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      py: 2
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CircularProgress size={20} />
-                      <Typography
-                        variant='body2'
-                        component='span'
-                      >
-                        Carregando permissões...
-                      </Typography>
-                    </Box>
-                  </Box>
-                ) : (
-                  Object.entries(groupedPermissions).map(([group, perms]) => (
+                <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {permissionsLoading ? (
                     <Box
-                      key={group}
-                      sx={{ mb: 1.5 }}
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        py: 4
+                      }}
                     >
-                      <Typography
-                        variant='caption'
-                        sx={{ fontWeight: 600, color: 'text.secondary' }}
-                      >
-                        {group}:
-                      </Typography>
-                      <FormGroup row>
-                        {perms.map((permission) => (
-                          <FormControlLabel
-                            key={permission.key}
-                            control={
-                              <Checkbox
-                                checked={permissions.includes(permission.key)}
-                                onChange={() => togglePermission(permission.key)}
-                              />
-                            }
-                            label={permission.label}
-                          />
-                        ))}
-                      </FormGroup>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CircularProgress size={20} sx={{ color: '#1877F2' }} />
+                        <Typography
+                          variant='body2'
+                          sx={{ color: '#65676B' }}
+                        >
+                          Carregando permissões...
+                        </Typography>
+                      </Box>
                     </Box>
-                  ))
-                )}
+                  ) : (
+                    Object.entries(groupedPermissions).map(([group, perms]) => (
+                      <Box
+                        key={group}
+                        sx={{
+                          p: 2,
+                          borderRadius: 2,
+                          backgroundColor: '#f9fafb'
+                        }}
+                      >
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            fontWeight: 600,
+                            color: '#050505',
+                            mb: 2,
+                            fontSize: '0.875rem'
+                          }}
+                        >
+                          {group}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                          {perms.map((permission) => (
+                            <FormControlLabel
+                              key={permission.key}
+                              control={
+                                <Checkbox
+                                  checked={permissions.includes(permission.key)}
+                                  onChange={() => togglePermission(permission.key)}
+                                  sx={{
+                                    color: '#1877F2',
+                                    '&.Mui-checked': {
+                                      color: '#1877F2'
+                                    },
+                                    '& .MuiSvgIcon-root': {
+                                      fontSize: 20
+                                    }
+                                  }}
+                                />
+                              }
+                              label={
+                                <Typography
+                                  variant='body2'
+                                  sx={{
+                                    color: '#65676B',
+                                    fontSize: '0.875rem'
+                                  }}
+                                >
+                                  {permission.label}
+                                </Typography>
+                              }
+                              sx={{
+                                margin: 0,
+                                '& .MuiFormControlLabel-label': {
+                                  marginLeft: 1
+                                }
+                              }}
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    ))
+                  )}
+                </Box>
               </Box>
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
+        
+        {/* Footer com botões */}
+        <Box sx={{ 
+          p: 3, 
+          borderTop: '1px solid #DADDE1',
+          display: 'flex',
+          justifyContent: 'flex-end',
+          gap: 2
+        }}>
           <Button
-            variant='outlined'
             onClick={handleCloseModals}
-            sx={{ textTransform: 'none' }}
+            sx={{
+              px: 3,
+              py: 1,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: '#65676B',
+              textTransform: 'none',
+              backgroundColor: '#e5e7eb',
+              borderRadius: 2,
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: '#d1d5db',
+                color: '#374151'
+              }
+            }}
           >
             Cancelar
           </Button>
@@ -768,11 +1084,34 @@ const RolesSection = () => {
             onClick={handleUpdateRole}
             variant='contained'
             disabled={loading || !roleName.trim()}
-            sx={{ textTransform: 'none' }}
+            sx={{
+              px: 3,
+              py: 1,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              backgroundColor: '#1877F2',
+              textTransform: 'none',
+              borderRadius: 2,
+              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: '#166fe5',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              },
+              '&:focus': {
+                outline: 'none',
+                boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+              },
+              '&:disabled': {
+                backgroundColor: '#d1d5db',
+                color: '#9ca3af',
+                boxShadow: 'none'
+              }
+            }}
           >
             Salvar Alterações
           </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
 
       <Dialog
