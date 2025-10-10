@@ -395,11 +395,11 @@ const RolesSection = () => {
                                     fontSize: '0.75rem',
                                     fontWeight: 600,
                                     height: 20,
-                                    bgcolor: isSelected ? 'white' : 'warning.main',
-                                    color: isSelected ? 'warning.main' : 'white',
+                                    bgcolor: isSelected ? 'white' : 'grey.300',
+                                    color: isSelected ? 'grey.700' : 'grey.700',
                                     borderRadius: 3,
                                     border: isSelected ? '1px solid' : 'none',
-                                    borderColor: isSelected ? 'warning.main' : 'transparent'
+                                    borderColor: isSelected ? 'grey.300' : 'transparent'
                                   }}
                                 />
                               )}
@@ -527,18 +527,6 @@ const RolesSection = () => {
 
                 {selectedRole ? (
                   <Box>
-                    <Typography variant='body2' fontWeight={500} color='text.secondary' sx={{ mb: 1 }}>
-                      Descrição
-                    </Typography>
-                    <Typography variant='body2' sx={{ mb: 3 }}>
-                      {selectedRole.name === 'Administrador' 
-                        ? 'Acesso total a todas as funcionalidades do sistema.'
-                        : selectedRole.permissions.length > 0 
-                          ? 'Role com permissões específicas definidas.'
-                          : 'Role sem permissões definidas.'
-                      }
-                    </Typography>
-                    
                     <Typography variant='body2' fontWeight={500} color='text.secondary' sx={{ mb: 1 }}>
                       Permissões ({selectedRole.permissions.length})
                     </Typography>
