@@ -692,12 +692,15 @@ const UserSection = () => {
                                 size='small'
                                 variant='filled'
                                 sx={{
-                                  backgroundColor: 'success.main',
+                                  backgroundColor: '#15803d', // Verde escuro para gerências
                                   color: 'white',
                                   fontWeight: 600,
                                   borderRadius: 2,
                                   '& .MuiChip-label': {
                                     px: 1.5
+                                  },
+                                  '&:hover': {
+                                    backgroundColor: '#166534'
                                   }
                                 }}
                               />

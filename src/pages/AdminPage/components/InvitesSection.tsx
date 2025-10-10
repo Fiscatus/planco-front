@@ -1,4 +1,4 @@
-import { Add as AddIcon, Clear as ClearIcon, Delete as DeleteIcon, Refresh as RefreshIcon } from '@mui/icons-material';
+import { Add as AddIcon, FilterListOff as FilterListOffIcon, Delete as DeleteIcon, Refresh as RefreshIcon, Search as SearchIcon } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -206,6 +206,24 @@ const InvitesSection = () => {
     }
   };
 
+  const getStatusChipProps = (status: InviteStatus) => {
+    switch (status) {
+      case 'aceito':
+        return {
+          sx: {
+            backgroundColor: 'success.main', // Verde claro das gerências para aceito
+            color: 'white',
+            fontWeight: 600,
+            '&:hover': {
+              backgroundColor: '#059669'
+            }
+          }
+        };
+      default:
+        return {};
+    }
+  };
+
   const getStatusText = (status: InviteStatus) => {
     switch (status) {
       case 'pendente':
@@ -234,32 +252,18 @@ const InvitesSection = () => {
           flexDirection: 'column'
         }}
       >
-        <CardHeader
-          title={<Typography variant='h6'>Convites</Typography>}
-          subheader='Gerencie os convites para novos usuários'
-          action={
-            <Button
-              startIcon={<RefreshIcon />}
-              onClick={handleRefresh}
-              disabled={loading}
-              variant='outlined'
-              size='small'
-            >
-              Atualizar
-            </Button>
-          }
-        />
         <CardContent sx={{ p: 4, flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <Grid
-            container
-            spacing={2}
-            sx={{ mb: 3 }}
-          >
-            <Grid size={{ xs: 12, md: 4 }}>
+          {/* Filtros e Botão Atualizar */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+            <Grid
+              container
+              spacing={2}
+              sx={{ flex: 1 }}
+            >
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <TextField
                 fullWidth
-                label='Buscar por email'
-                placeholder='Digite o email do convite'
+                placeholder='Buscar por email'
                 value={filters.email || ''}
                 onChange={(e) => {
                   setFilters((prev) => ({
@@ -267,14 +271,37 @@ const InvitesSection = () => {
                     email: e.target.value
                   }));
                 }}
+                InputProps={{
+                  startAdornment: <SearchIcon sx={{ mr: 1, color: '#9ca3af', fontSize: '1.25rem' }} />
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    height: '56px',
+                    borderRadius: 3,
+                    backgroundColor: '#ffffff',
+                    border: '2px solid #e5e7eb',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      borderColor: '#d1d5db'
+                    },
+                    '&.Mui-focused': {
+                      borderColor: '#1e40af',
+                      boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
+                    }
+                  },
+                  '& .MuiInputBase-input::placeholder': {
+                    color: '#9ca3af',
+                    opacity: 1,
+                    fontWeight: 400
+                  }
+                }}
               />
             </Grid>
-            <Grid size={{ xs: 12, md: 2 }}>
+            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
               <FormControl fullWidth>
-                <InputLabel>Status</InputLabel>
                 <Select
                   value={filters.status || 'todos'}
-                  label='Status'
+                  displayEmpty
                   onChange={(e) => {
                     const value = e.target.value;
                     setFilters((prev) => ({
@@ -282,21 +309,51 @@ const InvitesSection = () => {
                       status: value === 'todos' ? undefined : (value as InviteStatus)
                     }));
                   }}
+                  sx={{
+                    height: '56px',
+                    borderRadius: 3,
+                    backgroundColor: '#ffffff',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: '2px solid #e5e7eb',
+                      transition: 'all 0.2s ease-in-out'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#d1d5db'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1e40af',
+                      boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
+                    },
+                    '& .MuiSelect-select': {
+                      color: filters.status === undefined ? '#9ca3af' : '#374151',
+                      height: '56px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }
+                  }}
+                  renderValue={(value) => {
+                    if (value === 'todos' || value === undefined) {
+                      return <span style={{ color: '#9ca3af' }}>Status</span>;
+                    }
+                    return value === 'pendente' ? 'Pendente' : 
+                           value === 'aceito' ? 'Aceito' : 
+                           value === 'recusado' ? 'Recusado' : 
+                           value === 'expirado' ? 'Expirado' : value;
+                  }}
                 >
                   <MenuItem value='todos'>Todos</MenuItem>
-                  <MenuItem value='pendente'>pendente</MenuItem>
-                  <MenuItem value='aceito'>aceito</MenuItem>
-                  <MenuItem value='recusado'>recusado</MenuItem>
-                  <MenuItem value='expirado'>expirado</MenuItem>
+                  <MenuItem value='pendente'>Pendente</MenuItem>
+                  <MenuItem value='aceito'>Aceito</MenuItem>
+                  <MenuItem value='recusado'>Recusado</MenuItem>
+                  <MenuItem value='expirado'>Expirado</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
-            <Grid size={{ xs: 12, md: 2 }}>
+            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
               <FormControl fullWidth>
-                <InputLabel>Role</InputLabel>
                 <Select
                   value={filters.role || ''}
-                  label='Role'
+                  displayEmpty
                   onChange={(e) => {
                     setFilters((prev) => ({
                       ...prev,
@@ -305,6 +362,35 @@ const InvitesSection = () => {
                   }}
                   onOpen={handleRolesDropdownOpen}
                   disabled={loading}
+                  sx={{
+                    height: '56px',
+                    borderRadius: 3,
+                    backgroundColor: '#ffffff',
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: '2px solid #e5e7eb',
+                      transition: 'all 0.2s ease-in-out'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#d1d5db'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1e40af',
+                      boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
+                    },
+                    '& .MuiSelect-select': {
+                      color: filters.role === '' ? '#9ca3af' : '#374151',
+                      height: '56px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }
+                  }}
+                  renderValue={(value) => {
+                    if (!value) {
+                      return <span style={{ color: '#9ca3af' }}>Role</span>;
+                    }
+                    const role = roles.find(r => r._id === value);
+                    return role ? role.name : value;
+                  }}
                 >
                   <MenuItem value=''>
                     <em>Todas as roles</em>
@@ -329,35 +415,125 @@ const InvitesSection = () => {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid size={{ xs: 12, md: 1 }}>
-              <Box sx={{ display: 'flex', gap: 1, height: '100%', alignItems: 'center' }}>
+            <Grid size={{ xs: 6, sm: 3, md: 1 }}>
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '56px'
+              }}>
                 <IconButton
                   onClick={handleClearFilters}
                   disabled={loading}
-                  color='secondary'
                   title='Limpar filtros'
+                  sx={{
+                    backgroundColor: '#f3f4f6',
+                    color: '#6b7280',
+                    borderRadius: 3,
+                    width: '56px',
+                    height: '56px',
+                    transition: 'all 0.2s ease-in-out',
+                    '&:hover': {
+                      backgroundColor: '#fee2e2',
+                      color: '#dc2626',
+                      transform: 'scale(1.05)'
+                    },
+                    '&:disabled': {
+                      backgroundColor: '#f9fafb',
+                      color: '#d1d5db'
+                    }
+                  }}
                 >
-                  <ClearIcon />
+                  <FilterListOffIcon sx={{ fontSize: '1.25rem' }} />
                 </IconButton>
               </Box>
             </Grid>
-            <Grid size={{ xs: 12, md: 3 }}>
+            </Grid>
+            
+            {/* Botões de Ação - Agrupados à direita */}
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
               <Button
                 startIcon={<AddIcon />}
                 onClick={handleOpenCreate}
                 variant='contained'
-                fullWidth
-                sx={{ textTransform: 'none' }}
+                sx={{
+                  height: '56px',
+                  borderRadius: 3,
+                  textTransform: 'uppercase',
+                  fontWeight: 600,
+                  letterSpacing: '0.05em',
+                  px: 4,
+                  backgroundColor: '#10b981',
+                  color: '#ffffff',
+                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)',
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: '#059669',
+                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                    transform: 'translateY(-1px)'
+                  },
+                  '&:active': {
+                    transform: 'translateY(0)',
+                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)'
+                  }
+                }}
               >
                 Novo Convite
               </Button>
-            </Grid>
-          </Grid>
+              <Button
+                startIcon={<RefreshIcon sx={{ fontSize: '1.25rem' }} />}
+                onClick={handleRefresh}
+                disabled={loading}
+                variant='contained'
+                sx={{
+                  height: '56px',
+                  borderRadius: 3,
+                  textTransform: 'uppercase',
+                  fontWeight: 600,
+                  letterSpacing: '0.05em',
+                  px: 4,
+                  backgroundColor: '#1976d2',
+                  color: '#ffffff',
+                  boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)',
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: '#1565c0',
+                    boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                    transform: 'translateY(-1px)'
+                  },
+                  '&:active': {
+                    transform: 'translateY(0)',
+                    boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)'
+                  },
+                  '&:disabled': {
+                    backgroundColor: '#e3f2fd',
+                    color: '#90caf9',
+                    boxShadow: 'none',
+                    transform: 'none'
+                  }
+                }}
+              >
+                Atualizar
+              </Button>
+            </Box>
+          </Box>
 
           {error && (
             <Alert
               severity='error'
-              sx={{ mb: 2 }}
+              sx={{ 
+                mb: 3,
+                borderRadius: 3,
+                border: '1px solid #fecaca',
+                backgroundColor: '#fef2f2',
+                '& .MuiAlert-icon': {
+                  color: '#dc2626'
+                },
+                '& .MuiAlert-message': {
+                  color: '#991b1b',
+                  fontWeight: 500
+                }
+              }}
               onClose={clearError}
             >
               {error}
@@ -367,10 +543,33 @@ const InvitesSection = () => {
           <TableContainer
             component={Paper}
             variant='outlined'
+            sx={{
+              borderRadius: 2,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+              border: '1px solid #e5e7eb',
+              overflow: 'hidden',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column'
+            }}
           >
-            <Table>
+            <Table sx={{ flex: 1 }}>
               <TableHead>
-                <TableRow>
+                <TableRow
+                  sx={{
+                    backgroundColor: '#f8fafc',
+                    '& .MuiTableCell-head': {
+                      backgroundColor: '#f8fafc',
+                      color: '#374151',
+                      fontWeight: 600,
+                      fontSize: '0.875rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                      borderBottom: '2px solid #e5e7eb',
+                      py: 2
+                    }
+                  }}
+                >
                   <TableCell>Email</TableCell>
                   <TableCell>Role</TableCell>
                   <TableCell>Gerências</TableCell>
@@ -387,15 +586,26 @@ const InvitesSection = () => {
                     <TableCell
                       colSpan={8}
                       align='center'
-                      sx={{ py: 4 }}
+                      sx={{ 
+                        py: 6,
+                        backgroundColor: '#fafafa'
+                      }}
                     >
-                      <CircularProgress />
-                      <Typography
-                        variant='body2'
-                        sx={{ mt: 1 }}
-                      >
-                        Carregando convites...
-                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                        <CircularProgress 
+                          size={32}
+                          sx={{ color: '#1e40af' }}
+                        />
+                        <Typography
+                          variant='body2'
+                          sx={{ 
+                            color: '#6b7280',
+                            fontWeight: 500
+                          }}
+                        >
+                          Carregando convites...
+                        </Typography>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ) : invites.length === 0 ? (
@@ -403,9 +613,31 @@ const InvitesSection = () => {
                     <TableCell
                       colSpan={8}
                       align='center'
-                      sx={{ py: 4 }}
+                      sx={{ 
+                        py: 6,
+                        backgroundColor: '#fafafa'
+                      }}
                     >
-                      <Typography color='text.secondary'>Nenhum convite encontrado</Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+                        <Typography 
+                          variant='h6'
+                          sx={{ 
+                            color: '#6b7280',
+                            fontWeight: 500
+                          }}
+                        >
+                          Nenhum convite encontrado
+                        </Typography>
+                        <Typography 
+                          variant='body2'
+                          sx={{ 
+                            color: '#9ca3af',
+                            fontStyle: 'italic'
+                          }}
+                        >
+                          Tente ajustar os filtros de busca
+                        </Typography>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -413,16 +645,42 @@ const InvitesSection = () => {
                     <TableRow
                       key={invite._id}
                       hover
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc',
+                          transform: 'translateY(-1px)',
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                          transition: 'all 0.2s ease-in-out'
+                        },
+                        '& .MuiTableCell-root': {
+                          borderBottom: '1px solid #f1f5f9',
+                          py: 2,
+                          transition: 'all 0.2s ease-in-out'
+                        }
+                      }}
                     >
                       <TableCell>
-                        <Typography variant='body2'>{invite.email}</Typography>
+                        <Typography
+                          variant='body2'
+                          fontWeight={500}
+                        >
+                          {invite.email}
+                        </Typography>
                       </TableCell>
                       <TableCell>
                         <Chip
                           label={invite.role.name}
                           size='small'
-                          variant='outlined'
-                          color='primary'
+                          variant='filled'
+                          sx={{
+                            backgroundColor: 'warning.main',
+                            color: 'white',
+                            fontWeight: 600,
+                            borderRadius: 2,
+                            '& .MuiChip-label': {
+                              px: 1.5
+                            }
+                          }}
                         />
                       </TableCell>
                       <TableCell>
@@ -435,8 +693,19 @@ const InvitesSection = () => {
                                     key={dept._id}
                                     label={dept.department_name}
                                     size='small'
-                                    variant='outlined'
-                                    color='secondary'
+                                    variant='filled'
+                                    sx={{
+                                      backgroundColor: '#15803d', // Verde escuro para gerências
+                                      color: 'white',
+                                      fontWeight: 600,
+                                      borderRadius: 2,
+                                      '& .MuiChip-label': {
+                                        px: 1.5
+                                      },
+                                      '&:hover': {
+                                        backgroundColor: '#166534'
+                                      }
+                                    }}
                                   />
                                 ))}
                               </Box>
@@ -447,6 +716,7 @@ const InvitesSection = () => {
                             <Typography
                               variant='body2'
                               color='text.secondary'
+                              sx={{ fontStyle: 'italic' }}
                             >
                               Sem gerências
                             </Typography>
@@ -458,6 +728,7 @@ const InvitesSection = () => {
                           label={getStatusText(invite.status)}
                           size='small'
                           color={getStatusColor(invite.status)}
+                          {...getStatusChipProps(invite.status)}
                         />
                       </TableCell>
                       <TableCell>
@@ -485,10 +756,21 @@ const InvitesSection = () => {
                         <IconButton
                           size='small'
                           onClick={() => handleOpenDeleteConfirm(invite)}
-                          color='error'
+                          sx={{
+                            color: '#dc2626',
+                            backgroundColor: 'transparent',
+                            borderRadius: 2,
+                            p: 1,
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              backgroundColor: '#fef2f2',
+                              color: '#b91c1c',
+                              transform: 'scale(1.1)'
+                            }
+                          }}
                           title='Excluir convite'
                         >
-                          <DeleteIcon />
+                          <DeleteIcon sx={{ fontSize: '1.25rem' }} />
                         </IconButton>
                       </TableCell>
                     </TableRow>
@@ -508,6 +790,30 @@ const InvitesSection = () => {
             rowsPerPageOptions={[5, 10, 25, 50]}
             labelRowsPerPage='Itens por página:'
             labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`}
+            sx={{
+              backgroundColor: '#f8fafc',
+              borderTop: '1px solid #e5e7eb',
+              '& .MuiTablePagination-toolbar': {
+                paddingLeft: 2,
+                paddingRight: 2,
+                minHeight: 56
+              },
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                color: '#374151',
+                fontWeight: 500
+              },
+              '& .MuiTablePagination-select': {
+                color: '#1e40af',
+                fontWeight: 600
+              },
+              '& .MuiIconButton-root': {
+                color: '#6b7280',
+                '&:hover': {
+                  backgroundColor: '#f3f4f6',
+                  color: '#1e40af'
+                }
+              }
+            }}
           />
         </CardContent>
       </Card>
