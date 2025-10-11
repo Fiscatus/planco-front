@@ -1,4 +1,15 @@
-import { Add as AddIcon, FilterListOff as FilterListOffIcon, Delete as DeleteIcon, Refresh as RefreshIcon, Search as SearchIcon, Warning as WarningIcon } from '@mui/icons-material';
+import { 
+  Add as AddIcon, 
+  FilterListOff as FilterListOffIcon, 
+  Delete as DeleteIcon, 
+  Refresh as RefreshIcon, 
+  Search as SearchIcon, 
+  Warning as WarningIcon,
+  MailOutline as MailOutlineIcon,
+  Replay as ReplayIcon,
+  ContentCopy as ContentCopyIcon,
+  Cancel as CancelIcon
+} from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -19,6 +30,8 @@ import {
   MenuItem,
   Paper,
   Select,
+  Skeleton,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -27,7 +40,10 @@ import {
   TablePagination,
   TableRow,
   TextField,
-  Typography
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import type { CreateInviteDto, FilterInvitesDto, Invite, InviteStatus } from '@/globals/types';
 import { useCallback, useEffect, useState } from 'react';
@@ -36,6 +52,9 @@ import { useDepartments, useInvites, useRoles } from '@/hooks';
 import { useNotification } from '@/components';
 
 const InvitesSection = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
   const { showNotification } = useNotification();
   const { invites, loading, error, pagination, fetchInvites, createInvite, deleteInvite, clearError } = useInvites();
 
@@ -252,269 +271,310 @@ const InvitesSection = () => {
         }}
       >
         <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column' }}>
-          {/* Filtros e Botão Atualizar */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
-            <Grid
-              container
-              spacing={2}
-              sx={{ flex: 1 }}
-            >
-            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-              <TextField
-                fullWidth
-                placeholder='Buscar por email'
-                value={filters.email || ''}
-                onChange={(e) => {
-                  setFilters((prev) => ({
-                    ...prev,
-                    email: e.target.value
-                  }));
-                }}
-                InputProps={{
-                  startAdornment: <SearchIcon sx={{ mr: 1, color: '#9ca3af', fontSize: '1.25rem' }} />
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    height: '56px',
-                    borderRadius: 3,
-                    backgroundColor: '#ffffff',
-                    border: '2px solid #e5e7eb',
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      borderColor: '#d1d5db'
-                    },
-                    '&.Mui-focused': {
-                      borderColor: '#1e40af',
-                      boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
-                    }
-                  },
-                  '& .MuiInputBase-input::placeholder': {
-                    color: '#9ca3af',
-                    opacity: 1,
-                    fontWeight: 400
-                  }
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-              <FormControl fullWidth>
-                <Select
-                  value={filters.status || 'todos'}
-                  displayEmpty
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setFilters((prev) => ({
-                      ...prev,
-                      status: value === 'todos' ? undefined : (value as InviteStatus)
-                    }));
-                  }}
-                  sx={{
-                    height: '56px',
-                    borderRadius: 3,
-                    backgroundColor: '#ffffff',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      border: '2px solid #e5e7eb',
-                      transition: 'all 0.2s ease-in-out'
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#d1d5db'
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1e40af',
-                      boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
-                    },
-                    '& .MuiSelect-select': {
-                      color: filters.status === undefined ? '#9ca3af' : '#374151',
-                      height: '56px',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }
-                  }}
-                  renderValue={(value) => {
-                    if (value === 'todos' || value === undefined) {
-                      return <span style={{ color: '#9ca3af' }}>Status</span>;
-                    }
-                    return value === 'pendente' ? 'Pendente' : 
-                           value === 'aceito' ? 'Aceito' : 
-                           value === 'recusado' ? 'Recusado' : 
-                           value === 'expirado' ? 'Expirado' : value;
-                  }}
-                >
-                  <MenuItem value='todos'>Todos</MenuItem>
-                  <MenuItem value='pendente'>Pendente</MenuItem>
-                  <MenuItem value='aceito'>Aceito</MenuItem>
-                  <MenuItem value='recusado'>Recusado</MenuItem>
-                  <MenuItem value='expirado'>Expirado</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-              <FormControl fullWidth>
-                <Select
-                  value={filters.role || ''}
-                  displayEmpty
+          {/* Filtros e Ações Responsivos */}
+          <Box sx={{ mb: 4 }}>
+            <Grid container spacing={2}>
+              {/* Campo de busca - sempre full width */}
+              <Grid size={{ xs: 12 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder='Buscar por email'
+                  value={filters.email || ''}
                   onChange={(e) => {
                     setFilters((prev) => ({
                       ...prev,
-                      role: e.target.value
+                      email: e.target.value
                     }));
                   }}
-                  onOpen={handleRolesDropdownOpen}
-                  disabled={loading}
+                  InputProps={{
+                    startAdornment: <SearchIcon sx={{ mr: 1, color: '#9ca3af', fontSize: '1.25rem' }} />,
+                    sx: { height: 40 }
+                  }}
                   sx={{
-                    height: '56px',
-                    borderRadius: 3,
-                    backgroundColor: '#ffffff',
-                    '& .MuiOutlinedInput-notchedOutline': {
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 3,
+                      backgroundColor: '#ffffff',
                       border: '2px solid #e5e7eb',
-                      transition: 'all 0.2s ease-in-out'
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        borderColor: '#d1d5db'
+                      },
+                      '&.Mui-focused': {
+                        borderColor: theme.palette.primary.main,
+                        boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
+                      }
                     },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#d1d5db'
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1e40af',
-                      boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
-                    },
-                    '& .MuiSelect-select': {
-                      color: filters.role === '' ? '#9ca3af' : '#374151',
-                      height: '56px',
-                      display: 'flex',
-                      alignItems: 'center'
+                    '& .MuiInputBase-input::placeholder': {
+                      color: '#9ca3af',
+                      opacity: 1,
+                      fontWeight: 400
                     }
                   }}
-                  renderValue={(value) => {
-                    if (!value) {
-                      return <span style={{ color: '#9ca3af' }}>Role</span>;
-                    }
-                    const role = roles.find(r => r._id === value);
-                    return role ? role.name : value;
-                  }}
-                >
-                  <MenuItem value=''>
-                    <em>Todas as roles</em>
-                  </MenuItem>
-                  {roles.length === 0 ? (
-                    <MenuItem disabled>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CircularProgress size={20} />
-                        Carregando roles...
-                      </Box>
+                />
+              </Grid>
+
+              {/* Filtros em linha única no desktop, lado a lado no mobile */}
+              <Grid size={{ xs: 6, sm: 3, md: 2 }}>
+                <FormControl fullWidth size="small">
+                  <Select
+                    value={filters.status || 'todos'}
+                    displayEmpty
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setFilters((prev) => ({
+                        ...prev,
+                        status: value === 'todos' ? undefined : (value as InviteStatus)
+                      }));
+                    }}
+                    sx={{
+                      height: 40,
+                      borderRadius: 3,
+                      backgroundColor: '#ffffff',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        border: '2px solid #e5e7eb',
+                        transition: 'all 0.2s ease-in-out'
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#d1d5db'
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.primary.main,
+                        boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
+                      },
+                      '& .MuiSelect-select': {
+                        color: filters.status === undefined ? '#9ca3af' : '#374151'
+                      }
+                    }}
+                    renderValue={(value) => {
+                      if (value === 'todos' || value === undefined) {
+                        return <span style={{ color: '#9ca3af' }}>Status</span>;
+                      }
+                      return value === 'pendente' ? 'Pendente' : 
+                             value === 'aceito' ? 'Aceito' : 
+                             value === 'recusado' ? 'Recusado' : 
+                             value === 'expirado' ? 'Expirado' : value;
+                    }}
+                  >
+                    <MenuItem value='todos'>Todos</MenuItem>
+                    <MenuItem value='pendente'>Pendente</MenuItem>
+                    <MenuItem value='aceito'>Aceito</MenuItem>
+                    <MenuItem value='recusado'>Recusado</MenuItem>
+                    <MenuItem value='expirado'>Expirado</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid size={{ xs: 6, sm: 3, md: 2 }}>
+                <FormControl fullWidth size="small">
+                  <Select
+                    value={filters.role || ''}
+                    displayEmpty
+                    onChange={(e) => {
+                      setFilters((prev) => ({
+                        ...prev,
+                        role: e.target.value
+                      }));
+                    }}
+                    onOpen={handleRolesDropdownOpen}
+                    disabled={loading}
+                    sx={{
+                      height: 40,
+                      borderRadius: 3,
+                      backgroundColor: '#ffffff',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        border: '2px solid #e5e7eb',
+                        transition: 'all 0.2s ease-in-out'
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#d1d5db'
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.primary.main,
+                        boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
+                      },
+                      '& .MuiSelect-select': {
+                        color: filters.role === '' ? '#9ca3af' : '#374151'
+                      }
+                    }}
+                    renderValue={(value) => {
+                      if (!value) {
+                        return <span style={{ color: '#9ca3af' }}>Role</span>;
+                      }
+                      const role = roles.find(r => r._id === value);
+                      return role ? role.name : value;
+                    }}
+                  >
+                    <MenuItem value=''>
+                      <em>Todas as roles</em>
                     </MenuItem>
-                  ) : (
-                    roles.map((role) => (
-                      <MenuItem
-                        key={role._id}
-                        value={role._id}
-                      >
-                        {role.name}
+                    {roles.length === 0 ? (
+                      <MenuItem disabled>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CircularProgress size={20} />
+                          Carregando roles...
+                        </Box>
                       </MenuItem>
-                    ))
+                    ) : (
+                      roles.map((role) => (
+                        <MenuItem
+                          key={role._id}
+                          value={role._id}
+                        >
+                          {role.name}
+                        </MenuItem>
+                      ))
+                    )}
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              {/* Botão limpar filtros - só aparece no desktop */}
+              {!isMobile && (
+                <Grid size={{ xs: 12, sm: 3, md: 1 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '40px'
+                  }}>
+                    <IconButton
+                      onClick={handleClearFilters}
+                      disabled={loading}
+                      title='Limpar filtros'
+                      sx={{
+                        backgroundColor: '#f3f4f6',
+                        color: '#6b7280',
+                        borderRadius: 3,
+                        width: '40px',
+                        height: '40px',
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                          backgroundColor: '#fee2e2',
+                          color: '#dc2626',
+                          transform: 'scale(1.05)'
+                        },
+                        '&:disabled': {
+                          backgroundColor: '#f9fafb',
+                          color: '#d1d5db'
+                        }
+                      }}
+                    >
+                      <FilterListOffIcon sx={{ fontSize: '1.25rem' }} />
+                    </IconButton>
+                  </Box>
+                </Grid>
+              )}
+
+              {/* Botões de ação - responsivos e bem posicionados */}
+              <Grid size={{ xs: 12, sm: 12, md: 6 }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: 1,
+                  alignItems: 'center',
+                  justifyContent: { xs: 'stretch', sm: 'flex-end', md: 'flex-end' },
+                  flexDirection: { xs: 'column', sm: 'row' }
+                }}>
+                  {/* Botão limpar filtros - só aparece no mobile */}
+                  {isMobile && (
+                    <IconButton
+                      onClick={handleClearFilters}
+                      disabled={loading}
+                      title='Limpar filtros'
+                      sx={{
+                        backgroundColor: '#f3f4f6',
+                        color: '#6b7280',
+                        borderRadius: 3,
+                        width: '40px',
+                        height: '40px',
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                          backgroundColor: '#fee2e2',
+                          color: '#dc2626',
+                          transform: 'scale(1.05)'
+                        },
+                        '&:disabled': {
+                          backgroundColor: '#f9fafb',
+                          color: '#d1d5db'
+                        }
+                      }}
+                    >
+                      <FilterListOffIcon sx={{ fontSize: '1.25rem' }} />
+                    </IconButton>
                   )}
-                </Select>
-              </FormControl>
+
+                  {/* Botão Novo Convite */}
+                  <Button
+                    startIcon={<AddIcon />}
+                    onClick={handleOpenCreate}
+                    variant='contained'
+                    color='success'
+                    fullWidth={isMobile}
+                    size={isMobile ? 'medium' : 'small'}
+                    sx={{
+                      height: isMobile ? '48px' : '40px',
+                      borderRadius: 3,
+                      textTransform: 'uppercase',
+                      fontWeight: 600,
+                      letterSpacing: '0.05em',
+                      px: isMobile ? 4 : 3,
+                      backgroundColor: '#10b981',
+                      color: '#ffffff',
+                      boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        backgroundColor: '#059669',
+                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                        transform: 'translateY(-1px)'
+                      },
+                      '&:active': {
+                        transform: 'translateY(0)',
+                        boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)'
+                      }
+                    }}
+                  >
+                    Novo Convite
+                  </Button>
+                  
+                  {/* Botão Atualizar */}
+                  <Button
+                    startIcon={<RefreshIcon sx={{ fontSize: '1.25rem' }} />}
+                    onClick={handleRefresh}
+                    disabled={loading}
+                    variant='contained'
+                    color='primary'
+                    fullWidth={isMobile}
+                    size={isMobile ? 'medium' : 'small'}
+                    sx={{
+                      height: isMobile ? '48px' : '40px',
+                      borderRadius: 3,
+                      textTransform: 'uppercase',
+                      fontWeight: 600,
+                      letterSpacing: '0.05em',
+                      px: isMobile ? 4 : 3,
+                      boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                        transform: 'translateY(-1px)'
+                      },
+                      '&:active': {
+                        transform: 'translateY(0)',
+                        boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)'
+                      },
+                      '&:disabled': {
+                        backgroundColor: '#e3f2fd',
+                        color: '#90caf9',
+                        boxShadow: 'none',
+                        transform: 'none'
+                      }
+                    }}
+                  >
+                    Atualizar
+                  </Button>
+                </Box>
+              </Grid>
             </Grid>
-            <Grid size={{ xs: 6, sm: 3, md: 1 }}>
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '56px'
-              }}>
-                <IconButton
-                  onClick={handleClearFilters}
-                  disabled={loading}
-                  title='Limpar filtros'
-                  sx={{
-                    backgroundColor: '#f3f4f6',
-                    color: '#6b7280',
-                    borderRadius: 3,
-                    width: '56px',
-                    height: '56px',
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      backgroundColor: '#fee2e2',
-                      color: '#dc2626',
-                      transform: 'scale(1.05)'
-                    },
-                    '&:disabled': {
-                      backgroundColor: '#f9fafb',
-                      color: '#d1d5db'
-                    }
-                  }}
-                >
-                  <FilterListOffIcon sx={{ fontSize: '1.25rem' }} />
-                </IconButton>
-              </Box>
-            </Grid>
-            </Grid>
-            
-            {/* Botões de Ação - Agrupados à direita */}
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <Button
-                startIcon={<AddIcon />}
-                onClick={handleOpenCreate}
-                variant='contained'
-                sx={{
-                  height: '56px',
-                  borderRadius: 3,
-                  textTransform: 'uppercase',
-                  fontWeight: 600,
-                  letterSpacing: '0.05em',
-                  px: 4,
-                  backgroundColor: '#10b981',
-                  color: '#ffffff',
-                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)',
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    backgroundColor: '#059669',
-                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-                    transform: 'translateY(-1px)'
-                  },
-                  '&:active': {
-                    transform: 'translateY(0)',
-                    boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)'
-                  }
-                }}
-              >
-                Novo Convite
-              </Button>
-              <Button
-                startIcon={<RefreshIcon sx={{ fontSize: '1.25rem' }} />}
-                onClick={handleRefresh}
-                disabled={loading}
-                variant='contained'
-                sx={{
-                  height: '56px',
-                  borderRadius: 3,
-                  textTransform: 'uppercase',
-                  fontWeight: 600,
-                  letterSpacing: '0.05em',
-                  px: 4,
-                  backgroundColor: '#1976d2',
-                  color: '#ffffff',
-                  boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)',
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    backgroundColor: '#1565c0',
-                    boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
-                    transform: 'translateY(-1px)'
-                  },
-                  '&:active': {
-                    transform: 'translateY(0)',
-                    boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)'
-                  },
-                  '&:disabled': {
-                    backgroundColor: '#e3f2fd',
-                    color: '#90caf9',
-                    boxShadow: 'none',
-                    transform: 'none'
-                  }
-                }}
-              >
-                Atualizar
-              </Button>
-            </Box>
           </Box>
 
           {error && (
@@ -539,141 +599,361 @@ const InvitesSection = () => {
             </Alert>
           )}
 
-          <TableContainer
-            component={Paper}
-            variant='outlined'
-            sx={{
-              borderRadius: 2,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              border: '1px solid #e5e7eb',
-              overflow: 'hidden',
-              display: 'block', // Remove flex para não expandir
-              maxHeight: 'calc(100vh - 300px)', // Altura máxima baseada na viewport
-              minHeight: 'auto' // Altura baseada no conteúdo
-            }}
-          >
-            <Table sx={{ 
-              '& .MuiTableRow-root': {
-                height: '64px', // Altura fixa para todas as linhas
-                '&:hover': {
-                  backgroundColor: '#f8fafc',
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                  transition: 'all 0.2s ease-in-out'
-                }
-              }
-            }}>
-              <TableHead>
-                <TableRow
-                  sx={{
+          {/* Desktop Table View */}
+          {!isMobile && (
+            <TableContainer
+              component={Paper}
+              variant='outlined'
+              sx={{
+                borderRadius: 2,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                border: '1px solid #e5e7eb',
+                overflow: 'hidden',
+                display: 'block',
+                maxHeight: 'calc(100vh - 300px)',
+                minHeight: 'auto'
+              }}
+            >
+              <Table stickyHeader sx={{ 
+                '& .MuiTableRow-root': {
+                  height: 64,
+                  '&:hover': {
                     backgroundColor: '#f8fafc',
-                    height: '64px', // Mesma altura das linhas de dados
-                    '& .MuiTableCell-head': {
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                    transition: 'all 0.2s ease-in-out'
+                  }
+                }
+              }}>
+                <TableHead>
+                  <TableRow
+                    sx={{
                       backgroundColor: '#f8fafc',
-                      color: '#374151',
-                      fontWeight: 600,
-                      fontSize: '0.875rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      borderBottom: '2px solid #e5e7eb',
-                      py: 2,
-                      verticalAlign: 'middle'
-                    }
+                      height: 64,
+                      '& .MuiTableCell-head': {
+                        backgroundColor: '#f8fafc',
+                        color: '#374151',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        borderBottom: '2px solid #e5e7eb',
+                        py: 2,
+                        verticalAlign: 'middle'
+                      }
+                    }}
+                  >
+                    <TableCell>Email</TableCell>
+                    <TableCell>Role</TableCell>
+                    <TableCell>Gerências</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Convidado por</TableCell>
+                    <TableCell>Criado em</TableCell>
+                    <TableCell>Expira em</TableCell>
+                    <TableCell align='center'>Ações</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={8}
+                        align='center'
+                        sx={{ 
+                          py: 6,
+                          backgroundColor: '#fafafa'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                          <CircularProgress 
+                            size={32}
+                            sx={{ color: theme.palette.primary.main }}
+                          />
+                          <Typography
+                            variant='body2'
+                            sx={{ 
+                              color: '#6b7280',
+                              fontWeight: 500
+                            }}
+                          >
+                            Carregando convites...
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ) : invites.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={8}
+                        align='center'
+                        sx={{ 
+                          py: 6,
+                          backgroundColor: '#fafafa'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                          <MailOutlineIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
+                          <Typography 
+                            variant='h6'
+                            sx={{ 
+                              color: '#6b7280',
+                              fontWeight: 500
+                            }}
+                          >
+                            Nenhum convite encontrado
+                          </Typography>
+                          <Typography 
+                            variant='body2'
+                            sx={{ 
+                              color: '#9ca3af',
+                              fontStyle: 'italic'
+                            }}
+                          >
+                            Tente ajustar os filtros de busca
+                          </Typography>
+                          <Button
+                            onClick={handleOpenCreate}
+                            variant="outlined"
+                            size="small"
+                            sx={{ mt: 1 }}
+                          >
+                            Novo Convite
+                          </Button>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    invites.map((invite) => (
+                      <TableRow
+                        key={invite._id}
+                        hover
+                        sx={{
+                          '& .MuiTableCell-root': {
+                            borderBottom: '1px solid #f1f5f9',
+                            py: 2,
+                            transition: 'all 0.2s ease-in-out',
+                            verticalAlign: 'middle'
+                          }
+                        }}
+                      >
+                        <TableCell>
+                          <Typography
+                            variant='body2'
+                            fontWeight={500}
+                          >
+                            {invite.email}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={invite.role.name}
+                            size='small'
+                            variant='filled'
+                            sx={{
+                              backgroundColor: 'warning.main',
+                              color: 'white',
+                              fontWeight: 600,
+                              borderRadius: 2,
+                              '& .MuiChip-label': {
+                                px: 1.5
+                              }
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          {(() => {
+                            if (invite.departments && invite.departments.length > 0) {
+                              return (
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                  {invite.departments.map((dept) => (
+                                    <Chip
+                                      key={dept._id}
+                                      label={dept.department_name}
+                                      size='small'
+                                      variant='filled'
+                                      sx={{
+                                        backgroundColor: '#15803d',
+                                        color: 'white',
+                                        fontWeight: 600,
+                                        borderRadius: 2,
+                                        '& .MuiChip-label': {
+                                          px: 1.5
+                                        },
+                                        '&:hover': {
+                                          backgroundColor: '#166534'
+                                        }
+                                      }}
+                                    />
+                                  ))}
+                                </Box>
+                              );
+                            }
+                            
+                            return (
+                              <Typography
+                                variant='body2'
+                                color='text.secondary'
+                                sx={{ fontStyle: 'italic' }}
+                              >
+                                Sem gerências
+                              </Typography>
+                            );
+                          })()}
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={getStatusText(invite.status)}
+                            size='small'
+                            color={getStatusColor(invite.status)}
+                            {...getStatusChipProps(invite.status)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant='body2'>
+                            {invite.invitedBy.firstName} {invite.invitedBy.lastName}
+                          </Typography>
+                          <Typography
+                            variant='caption'
+                            color='text.secondary'
+                          >
+                            {invite.invitedBy.email}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant='body2'>
+                            {new Date(invite.createdAt).toLocaleDateString('pt-BR')}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant='body2'>
+                            {new Date(invite.expiresAt).toLocaleDateString('pt-BR')}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align='center'>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleOpenDeleteConfirm(invite)}
+                            aria-label="Excluir convite"
+                            sx={{
+                              color: '#dc2626',
+                              backgroundColor: 'transparent',
+                              borderRadius: 2,
+                              p: 1,
+                              transition: 'all 0.2s ease-in-out',
+                              '&:hover': {
+                                backgroundColor: '#fef2f2',
+                                color: '#b91c1c',
+                                transform: 'scale(1.1)'
+                              }
+                            }}
+                          >
+                            <DeleteIcon sx={{ fontSize: '1.25rem' }} />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+
+          {/* Mobile Cards View */}
+          {isMobile && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              {loading ? (
+                // Loading skeletons for mobile
+                Array.from({ length: 3 }).map((_, index) => (
+                  <Paper
+                    key={index}
+                    variant="outlined"
+                    sx={{
+                      p: 2,
+                      borderRadius: 2,
+                      border: '1px solid #e5e7eb'
+                    }}
+                  >
+                    <Skeleton variant="rectangular" height={84} />
+                  </Paper>
+                ))
+              ) : invites.length === 0 ? (
+                // Empty state for mobile
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    p: 4,
+                    borderRadius: 2,
+                    border: '1px solid #e5e7eb',
+                    textAlign: 'center',
+                    backgroundColor: '#fafafa'
                   }}
                 >
-                  <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
-                  <TableCell>Gerências</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Convidado por</TableCell>
-                  <TableCell>Criado em</TableCell>
-                  <TableCell>Expira em</TableCell>
-                  <TableCell align='center'>Ações</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      align='center'
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <MailOutlineIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
+                    <Typography 
+                      variant='h6'
                       sx={{ 
-                        py: 6,
-                        backgroundColor: '#fafafa'
+                        color: '#6b7280',
+                        fontWeight: 500
                       }}
                     >
-                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                        <CircularProgress 
-                          size={32}
-                          sx={{ color: '#1e40af' }}
-                        />
-                        <Typography
-                          variant='body2'
-                          sx={{ 
-                            color: '#6b7280',
-                            fontWeight: 500
-                          }}
-                        >
-                          Carregando convites...
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ) : invites.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={8}
-                      align='center'
+                      Nenhum convite encontrado
+                    </Typography>
+                    <Typography 
+                      variant='body2'
                       sx={{ 
-                        py: 6,
-                        backgroundColor: '#fafafa'
+                        color: '#9ca3af',
+                        fontStyle: 'italic'
                       }}
                     >
-                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                        <Typography 
-                          variant='h6'
-                          sx={{ 
-                            color: '#6b7280',
-                            fontWeight: 500
-                          }}
-                        >
-                          Nenhum convite encontrado
-                        </Typography>
-                        <Typography 
-                          variant='body2'
-                          sx={{ 
-                            color: '#9ca3af',
-                            fontStyle: 'italic'
-                          }}
-                        >
-                          Tente ajustar os filtros de busca
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  invites.map((invite) => (
-                    <TableRow
-                      key={invite._id}
-                      hover
-                      sx={{
-                        '& .MuiTableCell-root': {
-                          borderBottom: '1px solid #f1f5f9',
-                          py: 2,
-                          transition: 'all 0.2s ease-in-out',
-                          verticalAlign: 'middle' // Centraliza o conteúdo verticalmente
-                        }
-                      }}
+                      Tente ajustar os filtros de busca
+                    </Typography>
+                    <Button
+                      onClick={handleOpenCreate}
+                      variant="outlined"
+                      size="small"
+                      sx={{ mt: 1 }}
                     >
-                      <TableCell>
+                      Novo Convite
+                    </Button>
+                  </Box>
+                </Paper>
+              ) : (
+                // Invite cards for mobile
+                invites.map((invite) => (
+                  <Paper
+                    key={invite._id}
+                    variant="outlined"
+                    sx={{
+                      p: 2,
+                      borderRadius: 2,
+                      border: '1px solid #e5e7eb',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                        transform: 'translateY(-1px)'
+                      }
+                    }}
+                  >
+                    <Stack spacing={1.5}>
+                      {/* Top: Email */}
+                      <Tooltip title={invite.email} arrow>
                         <Typography
-                          variant='body2'
-                          fontWeight={500}
+                          variant="subtitle1"
+                          fontWeight={600}
+                          noWrap
+                          sx={{
+                            color: '#1f2937',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
                         >
                           {invite.email}
                         </Typography>
-                      </TableCell>
-                      <TableCell>
+                      </Tooltip>
+
+                      {/* Middle: Role and Status chips */}
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
                         <Chip
                           label={invite.role.name}
                           size='small'
@@ -688,85 +968,27 @@ const InvitesSection = () => {
                             }
                           }}
                         />
-                      </TableCell>
-                      <TableCell>
-                        {(() => {
-                          if (invite.departments && invite.departments.length > 0) {
-                            return (
-                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                                {invite.departments.map((dept) => (
-                                  <Chip
-                                    key={dept._id}
-                                    label={dept.department_name}
-                                    size='small'
-                                    variant='filled'
-                                    sx={{
-                                      backgroundColor: '#15803d', // Verde escuro para gerências
-                                      color: 'white',
-                                      fontWeight: 600,
-                                      borderRadius: 2,
-                                      '& .MuiChip-label': {
-                                        px: 1.5
-                                      },
-                                      '&:hover': {
-                                        backgroundColor: '#166534'
-                                      }
-                                    }}
-                                  />
-                                ))}
-                              </Box>
-                            );
-                          }
-                          
-                          return (
-                            <Typography
-                              variant='body2'
-                              color='text.secondary'
-                              sx={{ fontStyle: 'italic' }}
-                            >
-                              Sem gerências
-                            </Typography>
-                          );
-                        })()}
-                      </TableCell>
-                      <TableCell>
                         <Chip
                           label={getStatusText(invite.status)}
                           size='small'
+                          variant='outlined'
                           color={getStatusColor(invite.status)}
                           {...getStatusChipProps(invite.status)}
                         />
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant='body2'>
-                          {invite.invitedBy.firstName} {invite.invitedBy.lastName}
-                        </Typography>
-                        <Typography
-                          variant='caption'
-                          color='text.secondary'
-                        >
-                          {invite.invitedBy.email}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant='body2'>
-                          {new Date(invite.createdAt).toLocaleDateString('pt-BR')}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant='body2'>
-                          {new Date(invite.expiresAt).toLocaleDateString('pt-BR')}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align='center'>
+                      </Stack>
+
+                      {/* Bottom: Actions */}
+                      <Stack direction="row" spacing={1} justifyContent="flex-end">
                         <IconButton
-                          size='small'
+                          size="large"
                           onClick={() => handleOpenDeleteConfirm(invite)}
+                          aria-label="Excluir convite"
                           sx={{
                             color: '#dc2626',
                             backgroundColor: 'transparent',
                             borderRadius: 2,
-                            p: 1,
+                            minWidth: 44,
+                            minHeight: 44,
                             transition: 'all 0.2s ease-in-out',
                             '&:hover': {
                               backgroundColor: '#fef2f2',
@@ -774,17 +996,16 @@ const InvitesSection = () => {
                               transform: 'scale(1.1)'
                             }
                           }}
-                          title='Excluir convite'
                         >
                           <DeleteIcon sx={{ fontSize: '1.25rem' }} />
                         </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                      </Stack>
+                    </Stack>
+                  </Paper>
+                ))
+              )}
+            </Box>
+          )}
 
           <TablePagination
             component='div'
@@ -793,31 +1014,41 @@ const InvitesSection = () => {
             onPageChange={handlePageChange}
             rowsPerPage={pagination.limit}
             onRowsPerPageChange={handleRowsPerPageChange}
-            rowsPerPageOptions={[5, 10, 25, 50]}
+            rowsPerPageOptions={isMobile ? [5, 10] : [5, 10, 25, 50]}
             labelRowsPerPage='Itens por página:'
             labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`}
+            showFirstButton={!isMobile}
+            showLastButton={!isMobile}
             sx={{
               backgroundColor: '#f8fafc',
               borderTop: '1px solid #e5e7eb',
               '& .MuiTablePagination-toolbar': {
-                paddingLeft: 2,
-                paddingRight: 2,
-                minHeight: 56
+                paddingLeft: isMobile ? 1 : 2,
+                paddingRight: isMobile ? 1 : 2,
+                minHeight: isMobile ? 48 : 56,
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? 1 : 0
               },
               '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
                 color: '#374151',
-                fontWeight: 500
+                fontWeight: 500,
+                fontSize: isMobile ? '0.75rem' : '0.875rem'
               },
               '& .MuiTablePagination-select': {
-                color: '#1e40af',
+                color: theme.palette.primary.main,
                 fontWeight: 600
               },
               '& .MuiIconButton-root': {
                 color: '#6b7280',
+                minWidth: 44,
+                minHeight: 44,
                 '&:hover': {
                   backgroundColor: '#f3f4f6',
-                  color: '#1e40af'
+                  color: theme.palette.primary.main
                 }
+              },
+              '& .MuiTablePagination-actions': {
+                marginLeft: isMobile ? 0 : 'auto'
               }
             }}
           />

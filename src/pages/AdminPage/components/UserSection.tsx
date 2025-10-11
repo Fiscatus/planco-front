@@ -13,12 +13,15 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  FormControlLabel,
   Grid,
   IconButton,
   InputLabel,
   MenuItem,
   Paper,
   Select,
+  Skeleton,
+  Stack,
   Switch,
   Table,
   TableBody,
@@ -28,11 +31,15 @@ import {
   TablePagination,
   TableRow,
   TextField,
-  Typography
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import {
   Edit as EditIcon,
   FilterListOff as FilterListOffIcon,
+  GroupsOutlined as GroupsOutlinedIcon,
   Refresh as RefreshIcon,
   Search as SearchIcon
 } from '@mui/icons-material';
@@ -43,6 +50,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { useNotification } from '@/components';
 
 const UserSection = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
   const { showNotification } = useNotification();
   const {
     users,
@@ -231,279 +241,325 @@ const UserSection = () => {
       >
         <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column' }}>
           {/* Filtros e Botão Atualizar */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 4 }}>
-            <Grid
-              container
-              spacing={3}
-              sx={{ flex: 1 }}
-            >
-            <Grid size={{ xs: 12, sm: 6, md: 5 }}>
-              <TextField
-                fullWidth
-                placeholder='Buscar por nome ou email'
-                value={searchValue}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setSearchValue(value);
-                  setFilters((prev) => ({
-                    ...prev,
-                    name: value,
-                    email: value
-                  }));
-                }}
-                InputProps={{
-                  startAdornment: <SearchIcon sx={{ mr: 1, color: '#9ca3af', fontSize: '1.25rem' }} />
-                }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 3,
-                    backgroundColor: '#ffffff',
-                    border: '2px solid #e5e7eb',
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      borderColor: '#d1d5db'
-                    },
-                    '&.Mui-focused': {
-                      borderColor: '#1e40af',
-                      boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
-                    }
-                  },
-                  '& .MuiInputBase-input::placeholder': {
-                    color: '#9ca3af',
-                    opacity: 1,
-                    fontWeight: 400
-                  }
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-              <FormControl fullWidth>
-                <Select
-                  value={filters.isActive === undefined ? 'todos' : filters.isActive}
-                  displayEmpty
+          <Box sx={{ mb: 4 }}>
+            <Grid container spacing={2}>
+              {/* Campo de busca - sempre full width */}
+              <Grid size={{ xs: 12 }}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder='Buscar por nome ou email'
+                  value={searchValue}
                   onChange={(e) => {
                     const value = e.target.value;
+                    setSearchValue(value);
                     setFilters((prev) => ({
                       ...prev,
-                      isActive: value === 'todos' ? undefined : value === 'true'
+                      name: value,
+                      email: value
                     }));
                   }}
+                  InputProps={{
+                    startAdornment: <SearchIcon sx={{ mr: 1, color: '#9ca3af', fontSize: '1.25rem' }} />,
+                    sx: { height: 40 }
+                  }}
                   sx={{
-                    borderRadius: 3,
-                    backgroundColor: '#ffffff',
-                    '& .MuiOutlinedInput-notchedOutline': {
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 3,
+                      backgroundColor: '#ffffff',
                       border: '2px solid #e5e7eb',
-                      transition: 'all 0.2s ease-in-out'
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        borderColor: '#d1d5db'
+                      },
+                      '&.Mui-focused': {
+                        borderColor: theme.palette.primary.main,
+                        boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
+                      }
                     },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#d1d5db'
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1e40af',
-                      boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
-                    },
-                    '& .MuiSelect-select': {
-                      color: filters.isActive === undefined ? '#9ca3af' : '#374151'
+                    '& .MuiInputBase-input::placeholder': {
+                      color: '#9ca3af',
+                      opacity: 1,
+                      fontWeight: 400
                     }
                   }}
-                  renderValue={(value) => {
-                    if (value === 'todos' || value === undefined) {
-                      return <span style={{ color: '#9ca3af' }}>Status</span>;
-                    }
-                    return value === true ? 'Ativos' : 'Inativos';
-                  }}
-                >
-                  <MenuItem value='todos'>Todos</MenuItem>
-                  <MenuItem value='true'>Ativos</MenuItem>
-                  <MenuItem value='false'>Inativos</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-              <Autocomplete
-                options={roles}
-                getOptionLabel={(option) => (typeof option === 'string' ? option : option.name)}
-                value={roles.find((role) => role._id === filters.role) || null}
-                onChange={(_, newValue) => {
-                  setFilters((prev) => ({
-                    ...prev,
-                    role: typeof newValue === 'string' ? newValue : newValue?._id || ''
-                  }));
-                }}
-                onOpen={handleRolesDropdownOpen}
-                onClose={() => setRolesDropdownOpen(false)}
-                open={rolesDropdownOpen}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder='Role'
-                    InputProps={{
-                      ...params.InputProps
+                />
+              </Grid>
+
+              {/* Filtros em linha única no desktop, empilhados no mobile */}
+              <Grid size={{ xs: 4, sm: 3, md: 2 }}>
+                <FormControl fullWidth size="small">
+                  <Select
+                    value={filters.isActive === undefined ? 'todos' : filters.isActive}
+                    displayEmpty
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setFilters((prev) => ({
+                        ...prev,
+                        isActive: value === 'todos' ? undefined : value === 'true'
+                      }));
                     }}
                     sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 3,
-                        backgroundColor: '#ffffff',
+                      height: 40,
+                      borderRadius: 3,
+                      backgroundColor: '#ffffff',
+                      '& .MuiOutlinedInput-notchedOutline': {
                         border: '2px solid #e5e7eb',
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                          borderColor: '#d1d5db'
-                        },
-                        '&.Mui-focused': {
-                          borderColor: '#1e40af',
-                          boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
-                        }
+                        transition: 'all 0.2s ease-in-out'
                       },
-                      '& .MuiInputBase-input::placeholder': {
-                        color: '#9ca3af',
-                        opacity: 1,
-                        fontWeight: 400
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#d1d5db'
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.primary.main,
+                        boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
+                      },
+                      '& .MuiSelect-select': {
+                        color: filters.isActive === undefined ? '#9ca3af' : '#374151'
                       }
                     }}
-                  />
-                )}
-                freeSolo
-                clearOnBlur
-                selectOnFocus
-                handleHomeEndKeys
-                loading={roles.length === 0 && rolesDropdownOpen}
-                loadingText={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CircularProgress size={20} />
-                    Carregando roles...
-                  </Box>
-                }
-              />
-            </Grid>
-            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-              <Autocomplete
-                multiple
-                options={departments}
-                getOptionLabel={(option) => (typeof option === 'string' ? option : option.department_name)}
-                value={departments.filter((dept) => filters.departments?.includes(dept._id)) || []}
-                onChange={(_, newValue) => {
-                  setFilters((prev) => ({
-                    ...prev,
-                    departments: newValue.map((dept) => (typeof dept === 'string' ? dept : dept._id))
-                  }));
-                }}
-                onOpen={handleDepartmentsDropdownOpen}
-                onClose={() => setDepartmentsDropdownOpen(false)}
-                open={departmentsDropdownOpen}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    placeholder='Gerências'
-                    InputProps={{
-                      ...params.InputProps
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 3,
-                        backgroundColor: '#ffffff',
-                        border: '2px solid #e5e7eb',
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                          borderColor: '#d1d5db'
-                        },
-                        '&.Mui-focused': {
-                          borderColor: '#1e40af',
-                          boxShadow: '0 0 0 3px rgba(30, 64, 175, 0.1)'
-                        }
-                      },
-                      '& .MuiInputBase-input::placeholder': {
-                        color: '#9ca3af',
-                        opacity: 1,
-                        fontWeight: 400
+                    renderValue={(value) => {
+                      if (value === 'todos' || value === undefined) {
+                        return <span style={{ color: '#9ca3af' }}>Status</span>;
                       }
+                      return value === true ? 'Ativos' : 'Inativos';
                     }}
-                  />
-                )}
-                freeSolo
-                clearOnBlur
-                selectOnFocus
-                handleHomeEndKeys
-                loading={departments.length === 0 && departmentsDropdownOpen}
-                loadingText={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CircularProgress size={20} />
-                    Carregando gerências...
-                  </Box>
-                }
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 12, md: 1 }}>
-              <Box sx={{ 
-                display: 'flex', 
-                justifyContent: { xs: 'center', md: 'flex-start' },
-                alignItems: 'center',
-                height: '100%',
-                minHeight: '56px'
-              }}>
-                <IconButton
-                  onClick={handleClearFilters}
-                  disabled={loading}
-                  title='Limpar filtros'
-                  sx={{
-                    backgroundColor: '#f3f4f6',
-                    color: '#6b7280',
-                    borderRadius: 3,
-                    p: 1.5,
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      backgroundColor: '#fee2e2',
-                      color: '#dc2626',
-                      transform: 'scale(1.05)'
-                    },
-                    '&:disabled': {
-                      backgroundColor: '#f9fafb',
-                      color: '#d1d5db'
-                    }
+                  >
+                    <MenuItem value='todos'>Todos</MenuItem>
+                    <MenuItem value='true'>Ativos</MenuItem>
+                    <MenuItem value='false'>Inativos</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+
+              <Grid size={{ xs: 4, sm: 3, md: 2 }}>
+                <Autocomplete
+                  size="small"
+                  options={roles}
+                  getOptionLabel={(option) => (typeof option === 'string' ? option : option.name)}
+                  value={roles.find((role) => role._id === filters.role) || null}
+                  onChange={(_, newValue) => {
+                    setFilters((prev) => ({
+                      ...prev,
+                      role: typeof newValue === 'string' ? newValue : newValue?._id || ''
+                    }));
                   }}
-                >
-                  <FilterListOffIcon sx={{ fontSize: '1.25rem' }} />
-                </IconButton>
-              </Box>
+                  onOpen={handleRolesDropdownOpen}
+                  onClose={() => setRolesDropdownOpen(false)}
+                  open={rolesDropdownOpen}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder='Role'
+                      InputProps={{
+                        ...params.InputProps,
+                        sx: { height: 40 }
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 3,
+                          backgroundColor: '#ffffff',
+                          border: '2px solid #e5e7eb',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            borderColor: '#d1d5db'
+                          },
+                          '&.Mui-focused': {
+                            borderColor: theme.palette.primary.main,
+                            boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
+                          }
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: '#9ca3af',
+                          opacity: 1,
+                          fontWeight: 400
+                        }
+                      }}
+                    />
+                  )}
+                  freeSolo
+                  clearOnBlur
+                  selectOnFocus
+                  handleHomeEndKeys
+                  loading={roles.length === 0 && rolesDropdownOpen}
+                  loadingText={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CircularProgress size={20} />
+                      Carregando roles...
+                    </Box>
+                  }
+                />
+              </Grid>
+
+              <Grid size={{ xs: 4, sm: 3, md: 2 }}>
+                <Autocomplete
+                  size="small"
+                  multiple
+                  options={departments}
+                  getOptionLabel={(option) => (typeof option === 'string' ? option : option.department_name)}
+                  value={departments.filter((dept) => filters.departments?.includes(dept._id)) || []}
+                  onChange={(_, newValue) => {
+                    setFilters((prev) => ({
+                      ...prev,
+                      departments: newValue.map((dept) => (typeof dept === 'string' ? dept : dept._id))
+                    }));
+                  }}
+                  onOpen={handleDepartmentsDropdownOpen}
+                  onClose={() => setDepartmentsDropdownOpen(false)}
+                  open={departmentsDropdownOpen}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder='Gerências'
+                      InputProps={{
+                        ...params.InputProps,
+                        sx: { height: 40 }
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 3,
+                          backgroundColor: '#ffffff',
+                          border: '2px solid #e5e7eb',
+                          transition: 'all 0.2s ease-in-out',
+                          '&:hover': {
+                            borderColor: '#d1d5db'
+                          },
+                          '&.Mui-focused': {
+                            borderColor: theme.palette.primary.main,
+                            boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
+                          }
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: '#9ca3af',
+                          opacity: 1,
+                          fontWeight: 400
+                        }
+                      }}
+                    />
+                  )}
+                  freeSolo
+                  clearOnBlur
+                  selectOnFocus
+                  handleHomeEndKeys
+                  loading={departments.length === 0 && departmentsDropdownOpen}
+                  loadingText={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CircularProgress size={20} />
+                      Carregando gerências...
+                    </Box>
+                  }
+                />
+              </Grid>
+
+              {/* Botão limpar filtros - só aparece no desktop */}
+              {!isMobile && (
+                <Grid size={{ xs: 12, sm: 12, md: 1 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'flex-start',
+                    alignItems: 'center',
+                    height: '100%',
+                    minHeight: '40px'
+                  }}>
+                    <IconButton
+                      onClick={handleClearFilters}
+                      disabled={loading}
+                      title='Limpar filtros'
+                      sx={{
+                        backgroundColor: '#f3f4f6',
+                        color: '#6b7280',
+                        borderRadius: 3,
+                        p: 1.5,
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                          backgroundColor: '#fee2e2',
+                          color: '#dc2626',
+                          transform: 'scale(1.05)'
+                        },
+                        '&:disabled': {
+                          backgroundColor: '#f9fafb',
+                          color: '#d1d5db'
+                        }
+                      }}
+                    >
+                      <FilterListOffIcon sx={{ fontSize: '1.25rem' }} />
+                    </IconButton>
+                  </Box>
+                </Grid>
+              )}
+
+              {/* Botão Atualizar - full width no mobile, inline no desktop */}
+              <Grid size={{ xs: 12, sm: 12, md: 3 }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: 1,
+                  alignItems: 'center',
+                  justifyContent: { xs: 'space-between', sm: 'flex-end' }
+                }}>
+                  {isMobile && (
+                    <IconButton
+                      onClick={handleClearFilters}
+                      disabled={loading}
+                      title='Limpar filtros'
+                      sx={{
+                        backgroundColor: '#f3f4f6',
+                        color: '#6b7280',
+                        borderRadius: 3,
+                        p: 1.5,
+                        transition: 'all 0.2s ease-in-out',
+                        '&:hover': {
+                          backgroundColor: '#fee2e2',
+                          color: '#dc2626',
+                          transform: 'scale(1.05)'
+                        },
+                        '&:disabled': {
+                          backgroundColor: '#f9fafb',
+                          color: '#d1d5db'
+                        }
+                      }}
+                    >
+                      <FilterListOffIcon sx={{ fontSize: '1.25rem' }} />
+                    </IconButton>
+                  )}
+                  
+                  <Button
+                    startIcon={<RefreshIcon sx={{ fontSize: '1.25rem' }} />}
+                    onClick={handleRefresh}
+                    disabled={loading}
+                    variant='contained'
+                    color='primary'
+                    size={isMobile ? 'medium' : 'small'}
+                    fullWidth={isMobile}
+                    sx={{
+                      borderRadius: 3,
+                      textTransform: 'uppercase',
+                      fontWeight: 600,
+                      letterSpacing: '0.05em',
+                      px: isMobile ? 4 : 3,
+                      py: isMobile ? 1.5 : 1,
+                      boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
+                        transform: 'translateY(-1px)'
+                      },
+                      '&:active': {
+                        transform: 'translateY(0)',
+                        boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)'
+                      },
+                      '&:disabled': {
+                        backgroundColor: '#e3f2fd',
+                        color: '#90caf9',
+                        boxShadow: 'none',
+                        transform: 'none'
+                      }
+                    }}
+                  >
+                    Atualizar
+                  </Button>
+                </Box>
+              </Grid>
             </Grid>
-            </Grid>
-            
-            {/* Botão Atualizar */}
-            <Button
-              startIcon={<RefreshIcon sx={{ fontSize: '1.25rem' }} />}
-              onClick={handleRefresh}
-              disabled={loading}
-              variant='contained'
-              size='medium'
-              sx={{
-                borderRadius: 3,
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                letterSpacing: '0.05em',
-                px: 4,
-                py: 1.5,
-                backgroundColor: '#1976d2',
-                color: '#ffffff',
-                boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)',
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  backgroundColor: '#1565c0',
-                  boxShadow: '0 4px 12px rgba(25, 118, 210, 0.3)',
-                  transform: 'translateY(-1px)'
-                },
-                '&:active': {
-                  transform: 'translateY(0)',
-                  boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)'
-                },
-                '&:disabled': {
-                  backgroundColor: '#e3f2fd',
-                  color: '#90caf9',
-                  boxShadow: 'none',
-                  transform: 'none'
-                }
-              }}
-            >
-              Atualizar
-            </Button>
           </Box>
 
           {error && (
@@ -528,142 +584,398 @@ const UserSection = () => {
             </Alert>
           )}
 
-          <TableContainer
-            component={Paper}
-            variant='outlined'
-            sx={{
-              borderRadius: 2,
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              border: '1px solid #e5e7eb',
-              overflow: 'hidden',
-              display: 'block', // Remove flex para não expandir
-              maxHeight: 'calc(100vh - 300px)', // Altura máxima baseada na viewport
-              minHeight: 'auto' // Altura baseada no conteúdo
-            }}
-          >
-            <Table sx={{ 
-              '& .MuiTableRow-root': {
-                height: '64px', // Altura fixa para todas as linhas
-                '&:hover': {
-                  backgroundColor: '#f8fafc',
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                  transition: 'all 0.2s ease-in-out'
-                }
-              }
-            }}>
-              <TableHead>
-                <TableRow
-                  sx={{
+          {/* Desktop Table View */}
+          {!isMobile && (
+            <TableContainer
+              component={Paper}
+              variant='outlined'
+              sx={{
+                borderRadius: 2,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                border: '1px solid #e5e7eb',
+                overflow: 'hidden',
+                display: 'block',
+                maxHeight: 'calc(100vh - 300px)',
+                minHeight: 'auto'
+              }}
+            >
+              <Table stickyHeader size="medium" sx={{ 
+                '& .MuiTableRow-root': {
+                  height: 64,
+                  '&:hover': {
                     backgroundColor: '#f8fafc',
-                    height: '64px', // Mesma altura das linhas de dados
-                    '& .MuiTableCell-head': {
+                    transform: 'translateY(-1px)',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                    transition: 'all 0.2s ease-in-out'
+                  }
+                }
+              }}>
+                <TableHead>
+                  <TableRow
+                    sx={{
                       backgroundColor: '#f8fafc',
-                      color: '#374151',
-                      fontWeight: 600,
-                      fontSize: '0.875rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.05em',
-                      borderBottom: '2px solid #e5e7eb',
-                      py: 2,
-                      verticalAlign: 'middle'
-                    }
+                      height: 64,
+                      '& .MuiTableCell-head': {
+                        backgroundColor: '#f8fafc',
+                        color: '#374151',
+                        fontWeight: 600,
+                        fontSize: '0.875rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                        borderBottom: '2px solid #e5e7eb',
+                        py: 2,
+                        verticalAlign: 'middle'
+                      }
+                    }}
+                  >
+                    <TableCell>Nome</TableCell>
+                    <TableCell>Email</TableCell>
+                    <TableCell>Role</TableCell>
+                    <TableCell>Gerências</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell align='center'>Ações</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        align='center'
+                        sx={{ 
+                          py: 6,
+                          backgroundColor: '#fafafa'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                          <CircularProgress 
+                            size={32}
+                            sx={{ color: theme.palette.primary.main }}
+                          />
+                          <Typography
+                            variant='body2'
+                            sx={{ 
+                              color: '#6b7280',
+                              fontWeight: 500
+                            }}
+                          >
+                            Carregando usuários...
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ) : users.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        align='center'
+                        sx={{ 
+                          py: 6,
+                          backgroundColor: '#fafafa'
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                          <GroupsOutlinedIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
+                          <Typography 
+                            variant='h6'
+                            sx={{ 
+                              color: '#6b7280',
+                              fontWeight: 500
+                            }}
+                          >
+                            Nenhum usuário encontrado
+                          </Typography>
+                          <Typography 
+                            variant='body2'
+                            sx={{ 
+                              color: '#9ca3af',
+                              fontStyle: 'italic'
+                            }}
+                          >
+                            Tente ajustar os filtros de busca
+                          </Typography>
+                          <Button
+                            onClick={handleClearFilters}
+                            variant="outlined"
+                            size="small"
+                            sx={{ mt: 1 }}
+                          >
+                            Limpar filtros
+                          </Button>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    users.map((user) => (
+                      <TableRow
+                        key={user._id}
+                        hover
+                        sx={{
+                          '& .MuiTableCell-root': {
+                            borderBottom: '1px solid #f1f5f9',
+                            py: 2,
+                            transition: 'all 0.2s ease-in-out',
+                            verticalAlign: 'middle'
+                          }
+                        }}
+                      >
+                        <TableCell>
+                          <Typography
+                            variant='body2'
+                            fontWeight={500}
+                          >
+                            {user.firstName} {user.lastName}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant='body2'>{user.email}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          {user.role ? (
+                            <Chip
+                              label={user.role.name}
+                              size='small'
+                              variant='filled'
+                              sx={{
+                                backgroundColor: 'warning.main',
+                                color: 'white',
+                                fontWeight: 600,
+                                borderRadius: 2,
+                                '& .MuiChip-label': {
+                                  px: 1.5
+                                }
+                              }}
+                            />
+                          ) : (
+                            <Typography
+                              variant='body2'
+                              color='text.secondary'
+                              sx={{ fontStyle: 'italic' }}
+                            >
+                              Sem role
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {user.departments && user.departments.length > 0 ? (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {user.departments.map((dept) => (
+                                <Chip
+                                  key={dept._id}
+                                  label={dept.department_name}
+                                  size='small'
+                                  variant='filled'
+                                  sx={{
+                                    backgroundColor: '#15803d',
+                                    color: 'white',
+                                    fontWeight: 600,
+                                    borderRadius: 2,
+                                    '& .MuiChip-label': {
+                                      px: 1.5
+                                    },
+                                    '&:hover': {
+                                      backgroundColor: '#166534'
+                                    }
+                                  }}
+                                />
+                              ))}
+                            </Box>
+                          ) : (
+                            <Typography
+                              variant='body2'
+                              color='text.secondary'
+                              sx={{ fontStyle: 'italic' }}
+                            >
+                              Sem gerências
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Switch
+                              checked={user.isActive ?? true}
+                              onChange={() => handleToggleStatus(user)}
+                              disabled={loading || (currentUser?._id === user._id && user.isActive)}
+                              sx={{
+                                '& .MuiSwitch-switchBase.Mui-checked': {
+                                  color: theme.palette.primary.main,
+                                  '& + .MuiSwitch-track': {
+                                    backgroundColor: theme.palette.primary.main,
+                                  },
+                                },
+                                '& .MuiSwitch-track': {
+                                  backgroundColor: '#ccc',
+                                },
+                              }}
+                            />
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                color: user.isActive ? 'primary.main' : 'text.secondary',
+                                fontWeight: user.isActive ? 600 : 400,
+                                transition: 'color 0.2s ease-in-out'
+                              }}
+                            >
+                              {user.isActive ? 'Ativo' : 'Inativo'}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell align='center'>
+                          <IconButton
+                            size='small'
+                            onClick={() => handleEditUser(user)}
+                            aria-label="Editar usuário"
+                            sx={{
+                              color: '#6b7280',
+                              backgroundColor: 'transparent',
+                              borderRadius: 2,
+                              p: 1,
+                              transition: 'all 0.2s ease-in-out',
+                              '&:hover': {
+                                backgroundColor: '#f3f4f6',
+                                color: theme.palette.primary.main,
+                                transform: 'scale(1.1)'
+                              }
+                            }}
+                          >
+                            <EditIcon sx={{ fontSize: '1.25rem' }} />
+                          </IconButton>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+
+          {/* Mobile Cards View */}
+          {isMobile && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {loading ? (
+                // Loading skeletons for mobile
+                Array.from({ length: 3 }).map((_, index) => (
+                  <Paper
+                    key={index}
+                    variant="outlined"
+                    sx={{
+                      p: 2,
+                      borderRadius: 2,
+                      border: '1px solid #e5e7eb'
+                    }}
+                  >
+                    <Skeleton variant="rectangular" height={84} />
+                  </Paper>
+                ))
+              ) : users.length === 0 ? (
+                // Empty state for mobile
+                <Paper
+                  variant="outlined"
+                  sx={{
+                    p: 4,
+                    borderRadius: 2,
+                    border: '1px solid #e5e7eb',
+                    textAlign: 'center',
+                    backgroundColor: '#fafafa'
                   }}
                 >
-                  <TableCell>Nome</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Role</TableCell>
-                  <TableCell>Gerências</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell align='center'>Ações</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      align='center'
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                    <GroupsOutlinedIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
+                    <Typography 
+                      variant='h6'
                       sx={{ 
-                        py: 6,
-                        backgroundColor: '#fafafa'
+                        color: '#6b7280',
+                        fontWeight: 500
                       }}
                     >
-                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                        <CircularProgress 
-                          size={32}
-                          sx={{ color: '#1e40af' }}
-                        />
-                        <Typography
-                          variant='body2'
-                          sx={{ 
-                            color: '#6b7280',
-                            fontWeight: 500
-                          }}
-                        >
-                          Carregando usuários...
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ) : users.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      align='center'
+                      Nenhum usuário encontrado
+                    </Typography>
+                    <Typography 
+                      variant='body2'
                       sx={{ 
-                        py: 6,
-                        backgroundColor: '#fafafa'
+                        color: '#9ca3af',
+                        fontStyle: 'italic'
                       }}
                     >
-                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
-                        <Typography 
-                          variant='h6'
-                          sx={{ 
-                            color: '#6b7280',
-                            fontWeight: 500
-                          }}
-                        >
-                          Nenhum usuário encontrado
-                        </Typography>
-                        <Typography 
-                          variant='body2'
-                          sx={{ 
-                            color: '#9ca3af',
-                            fontStyle: 'italic'
-                          }}
-                        >
-                          Tente ajustar os filtros de busca
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  users.map((user) => (
-                    <TableRow
-                      key={user._id}
-                      hover
-                      sx={{
-                        '& .MuiTableCell-root': {
-                          borderBottom: '1px solid #f1f5f9',
-                          py: 2,
-                          transition: 'all 0.2s ease-in-out',
-                          verticalAlign: 'middle' // Centraliza o conteúdo verticalmente
-                        }
-                      }}
+                      Tente ajustar os filtros de busca
+                    </Typography>
+                    <Button
+                      onClick={handleClearFilters}
+                      variant="outlined"
+                      size="small"
+                      sx={{ mt: 1 }}
                     >
-                      <TableCell>
+                      Limpar filtros
+                    </Button>
+                  </Box>
+                </Paper>
+              ) : (
+                // User cards for mobile
+                users.map((user) => (
+                  <Paper
+                    key={user._id}
+                    variant="outlined"
+                    sx={{
+                      p: 2,
+                      borderRadius: 2,
+                      border: '1px solid #e5e7eb',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                        transform: 'translateY(-1px)'
+                      }
+                    }}
+                  >
+                    <Stack spacing={1.5}>
+                      {/* Linha 1: Nome + Botão Editar */}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography
-                          variant='body2'
-                          fontWeight={500}
+                          variant="subtitle1"
+                          fontWeight={600}
+                          sx={{ color: '#1f2937' }}
                         >
                           {user.firstName} {user.lastName}
                         </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography variant='body2'>{user.email}</Typography>
-                      </TableCell>
-                      <TableCell>
+                        <IconButton
+                          size="small"
+                          onClick={() => handleEditUser(user)}
+                          aria-label="Editar usuário"
+                          sx={{
+                            color: '#6b7280',
+                            backgroundColor: 'transparent',
+                            borderRadius: 2,
+                            p: 1,
+                            minWidth: 44,
+                            minHeight: 44,
+                            transition: 'all 0.2s ease-in-out',
+                            '&:hover': {
+                              backgroundColor: '#f3f4f6',
+                              color: theme.palette.primary.main,
+                              transform: 'scale(1.1)'
+                            }
+                          }}
+                        >
+                          <EditIcon sx={{ fontSize: '1.25rem' }} />
+                        </IconButton>
+                      </Box>
+
+                      {/* Linha 2: Email com truncamento */}
+                      <Tooltip title={user.email} arrow>
+                        <Typography
+                          variant="body2"
+                          noWrap
+                          sx={{
+                            color: '#6b7280',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}
+                        >
+                          {user.email}
+                        </Typography>
+                      </Tooltip>
+
+                      {/* Linha 3: Chips para Role e Gerências */}
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
                         {user.role ? (
                           <Chip
                             label={user.role.name}
@@ -683,57 +995,68 @@ const UserSection = () => {
                           <Typography
                             variant='body2'
                             color='text.secondary'
-                            sx={{ fontStyle: 'italic' }}
+                            sx={{ fontStyle: 'italic', fontSize: '0.75rem' }}
                           >
                             Sem role
                           </Typography>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        {user.departments && user.departments.length > 0 ? (
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                            {user.departments.map((dept) => (
+                        
+                        {user.departments && user.departments.length > 0 && (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, maxWidth: '100%' }}>
+                            {user.departments.slice(0, 2).map((dept) => (
+                              <Tooltip key={dept._id} title={dept.department_name} arrow>
+                                <Chip
+                                  label={dept.department_name}
+                                  size='small'
+                                  variant='outlined'
+                                  sx={{
+                                    color: '#15803d',
+                                    borderColor: '#15803d',
+                                    fontWeight: 600,
+                                    borderRadius: 2,
+                                    maxWidth: 120,
+                                    '& .MuiChip-label': {
+                                      px: 1.5,
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      whiteSpace: 'nowrap'
+                                    }
+                                  }}
+                                />
+                              </Tooltip>
+                            ))}
+                            {user.departments.length > 2 && (
                               <Chip
-                                key={dept._id}
-                                label={dept.department_name}
+                                label={`+${user.departments.length - 2}`}
                                 size='small'
-                                variant='filled'
+                                variant='outlined'
                                 sx={{
-                                  backgroundColor: '#15803d', // Verde escuro para gerências
-                                  color: 'white',
+                                  color: '#6b7280',
+                                  borderColor: '#d1d5db',
                                   fontWeight: 600,
                                   borderRadius: 2,
                                   '& .MuiChip-label': {
                                     px: 1.5
-                                  },
-                                  '&:hover': {
-                                    backgroundColor: '#166534'
                                   }
                                 }}
                               />
-                            ))}
+                            )}
                           </Box>
-                        ) : (
-                          <Typography
-                            variant='body2'
-                            color='text.secondary'
-                            sx={{ fontStyle: 'italic' }}
-                          >
-                            Sem gerências
-                          </Typography>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      </Box>
+
+                      {/* Linha 4: Status com Switch */}
+                      <FormControlLabel
+                        control={
                           <Switch
                             checked={user.isActive ?? true}
                             onChange={() => handleToggleStatus(user)}
                             disabled={loading || (currentUser?._id === user._id && user.isActive)}
                             sx={{
                               '& .MuiSwitch-switchBase.Mui-checked': {
-                                color: '#1976d2',
+                                color: theme.palette.primary.main,
                                 '& + .MuiSwitch-track': {
-                                  backgroundColor: '#1976d2',
+                                  backgroundColor: theme.palette.primary.main,
                                 },
                               },
                               '& .MuiSwitch-track': {
@@ -741,6 +1064,8 @@ const UserSection = () => {
                               },
                             }}
                           />
+                        }
+                        label={
                           <Typography
                             variant="body2"
                             sx={{
@@ -751,34 +1076,20 @@ const UserSection = () => {
                           >
                             {user.isActive ? 'Ativo' : 'Inativo'}
                           </Typography>
-                        </Box>
-                      </TableCell>
-                      <TableCell align='center'>
-                        <IconButton
-                          size='small'
-                          onClick={() => handleEditUser(user)}
-                          sx={{
-                            color: '#6b7280',
-                            backgroundColor: 'transparent',
-                            borderRadius: 2,
-                            p: 1,
-                            transition: 'all 0.2s ease-in-out',
-                            '&:hover': {
-                              backgroundColor: '#f3f4f6',
-                              color: '#1e40af',
-                              transform: 'scale(1.1)'
-                            }
-                          }}
-                        >
-                          <EditIcon sx={{ fontSize: '1.25rem' }} />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                        }
+                        sx={{
+                          margin: 0,
+                          '& .MuiFormControlLabel-label': {
+                            marginLeft: 1
+                          }
+                        }}
+                      />
+                    </Stack>
+                  </Paper>
+                ))
+              )}
+            </Box>
+          )}
 
           <TablePagination
             component='div'
@@ -787,31 +1098,41 @@ const UserSection = () => {
             onPageChange={handlePageChange}
             rowsPerPage={pagination.limit}
             onRowsPerPageChange={handleRowsPerPageChange}
-            rowsPerPageOptions={[5, 10, 25, 50]}
+            rowsPerPageOptions={isMobile ? [5, 10] : [5, 10, 25, 50]}
             labelRowsPerPage='Itens por página:'
             labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`}
+            showFirstButton={!isMobile}
+            showLastButton={!isMobile}
             sx={{
               backgroundColor: '#f8fafc',
               borderTop: '1px solid #e5e7eb',
               '& .MuiTablePagination-toolbar': {
-                paddingLeft: 2,
-                paddingRight: 2,
-                minHeight: 56
+                paddingLeft: isMobile ? 1 : 2,
+                paddingRight: isMobile ? 1 : 2,
+                minHeight: isMobile ? 48 : 56,
+                flexDirection: isMobile ? 'column' : 'row',
+                gap: isMobile ? 1 : 0
               },
               '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
                 color: '#374151',
-                fontWeight: 500
+                fontWeight: 500,
+                fontSize: isMobile ? '0.75rem' : '0.875rem'
               },
               '& .MuiTablePagination-select': {
-                color: '#1e40af',
+                color: theme.palette.primary.main,
                 fontWeight: 600
               },
               '& .MuiIconButton-root': {
                 color: '#6b7280',
+                minWidth: 44,
+                minHeight: 44,
                 '&:hover': {
                   backgroundColor: '#f3f4f6',
-                  color: '#1e40af'
+                  color: theme.palette.primary.main
                 }
+              },
+              '& .MuiTablePagination-actions': {
+                marginLeft: isMobile ? 0 : 'auto'
               }
             }}
           />

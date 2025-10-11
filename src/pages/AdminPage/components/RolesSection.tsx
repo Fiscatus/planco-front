@@ -393,13 +393,13 @@ const RolesSection = () => {
                                   label={role.permissions.length}
                                   sx={{
                                     fontSize: '0.75rem',
-                                    fontWeight: 600,
+                                    fontWeight: 700,
                                     height: 20,
-                                    bgcolor: isSelected ? 'white' : 'grey.300',
-                                    color: isSelected ? 'grey.700' : 'grey.700',
+                                    bgcolor: isSelected ? 'white' : 'primary.main',
+                                    color: isSelected ? 'primary.main' : 'white',
                                     borderRadius: 3,
                                     border: isSelected ? '1px solid' : 'none',
-                                    borderColor: isSelected ? 'grey.300' : 'transparent'
+                                    borderColor: isSelected ? 'primary.main' : 'transparent'
                                   }}
                                 />
                               )}
