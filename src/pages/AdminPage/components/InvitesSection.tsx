@@ -53,7 +53,7 @@ import { useNotification } from '@/components';
 
 const InvitesSection = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { isMobile } = useScreen();
   
   const { showNotification } = useNotification();
   const { invites, loading, error, pagination, fetchInvites, createInvite, deleteInvite, clearError } = useInvites();
