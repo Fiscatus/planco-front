@@ -102,8 +102,8 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
         lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
-        cpf: formData.cpf,
-        phone: formData.phone
+        cpf: formData.cpf, // Mantém formatação: 552.607.380-71
+        phone: formData.phone.replace(/\D/g, '') // Remove formatação: 11999999999
       };
 
       await signUp(registerData);
