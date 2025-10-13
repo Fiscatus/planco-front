@@ -19,19 +19,19 @@ const Auth = () => {
         padding: { xs: 2, sm: 3 }
       }}
     >
-      <Box
-        sx={{
-          maxWidth: '1200px',
-          width: '100%',
-          minHeight: { lg: '80vh' },
-          borderRadius: { xs: 2, sm: 3 },
-          overflow: 'hidden',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-          backgroundColor: 'white',
-          display: 'flex',
-          flexDirection: { xs: 'column', lg: 'row' }
-        }}
-      >
+        <Box
+          sx={{
+            maxWidth: '1200px',
+            width: '100%',
+            minHeight: { lg: '90vh' },
+            borderRadius: { xs: 2, sm: 3 },
+            overflow: 'hidden',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+            backgroundColor: 'white',
+            display: 'flex',
+            flexDirection: { xs: 'column', lg: 'row' }
+          }}
+        >
         {/* Seção do Formulário */}
         <Box
           sx={{
@@ -39,7 +39,7 @@ const Auth = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-            padding: { xs: 4, sm: 6, lg: 8 },
+            padding: { xs: 3, sm: 4, lg: 6 },
             backgroundColor: 'white'
         }}
       >

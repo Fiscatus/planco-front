@@ -3,7 +3,7 @@ import { Box, Button, Checkbox, FormControlLabel, Grid, Paper, TextField, Typogr
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { PrivacyPolicyModal, useNotification } from '@/components';
+import { PrivacyPolicyModal, TermsOfUseModal, useNotification } from '@/components';
 import type { RegisterDto } from '@/globals/types/User';
 import { useAuth } from '@/hooks';
 import PersonIcon from '@mui/icons-material/Person';
@@ -94,6 +94,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
+  const [termsModalOpen, setTermsModalOpen] = useState(false);
 
   const onSubmit = async (formData: z.infer<typeof authSchema>) => {
     try {
@@ -141,12 +142,12 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
     <Box>
       <form onSubmit={handleSubmit(onSubmit)}>
         {/* Cabeçalho */}
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
+        <Box sx={{ mb: 2, textAlign: 'center' }}>
           <VerifiedUserIcon
             sx={{
-              fontSize: '4rem',
+              fontSize: '2.5rem',
               color: '#1877F2',
-              mb: 2,
+              mb: 1,
               display: 'block',
               mx: 'auto'
             }}
@@ -157,8 +158,8 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
             fontWeight={700}
             sx={{ 
               color: '#212529',
-              mb: 1,
-              fontSize: { xs: '1.75rem', sm: '2rem' }
+              mb: 0.5,
+              fontSize: { xs: '1.5rem', sm: '1.75rem' }
             }}
           >
             Crie sua Conta
@@ -166,21 +167,21 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
           <Typography 
             sx={{ 
               color: '#6C757D',
-              fontSize: '1rem'
+              fontSize: '0.875rem'
             }}
           >
             Preencha os campos abaixo para se cadastrar.
           </Typography>
         </Box>
         {/* Seção de Informações Pessoais */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 2.5 }}>
           <Typography
             variant="h6"
             sx={{
-              fontSize: '1.125rem',
+              fontSize: '1rem',
               fontWeight: 600,
               color: '#212529',
-              mb: 2
+              mb: 1.5
             }}
           >
             Informações Pessoais
@@ -325,19 +326,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
         </Box>
         
         {/* Seção de Informações de Contato */}
-        <Box sx={{ mb: 4 }}>
-          <Typography
-            variant="h6"
-            sx={{
-              fontSize: '1.125rem',
-              fontWeight: 600,
-              color: '#212529',
-              mb: 2
-            }}
-          >
-            Informações de Contato
-          </Typography>
-          
+        <Box sx={{ mb: 2.5 }}>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <Typography
@@ -491,20 +480,20 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
         </Box>
         
         {/* Seção de Informações de Acesso */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 2.5 }}>
           <Typography
             variant="h6"
             sx={{
-              fontSize: '1.125rem',
+              fontSize: '1rem',
               fontWeight: 600,
               color: '#212529',
-              mb: 2
+              mb: 1.5
             }}
           >
             Informações de Acesso
           </Typography>
           
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 2 }}>
             <Typography
               variant='body2'
               sx={{ 
@@ -572,7 +561,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
             />
           </Box>
           {/* Campos de Senha */}
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 2 }}>
             <Typography
               variant='body2'
               sx={{ 
@@ -653,7 +642,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
             />
           </Box>
           
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 2 }}>
             <Typography
               variant='body2'
               sx={{ 
@@ -735,7 +724,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
           </Box>
         </Box>
         {/* Seção de Termos e Condições */}
-        <Box sx={{ mb: 4 }}>
+        <Box sx={{ mb: 2.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
             <Checkbox
               checked={acceptedTerms}
@@ -774,6 +763,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
               {' '}e os{' '}
               <Typography
                 component='span'
+                onClick={() => setTermsModalOpen(true)}
                 sx={{
                   color: '#1877F2',
                   textDecoration: 'underline',
@@ -804,7 +794,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
             fontSize: '1rem',
             fontWeight: 600,
             textTransform: 'none',
-            mb: 3,
+            mb: 2,
             '&:hover': {
               backgroundColor: '#166FE5'
             },
@@ -850,6 +840,10 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
       <PrivacyPolicyModal
         open={privacyModalOpen}
         onClose={() => setPrivacyModalOpen(false)}
+      />
+      <TermsOfUseModal
+        open={termsModalOpen}
+        onClose={() => setTermsModalOpen(false)}
       />
     </Box>
   );

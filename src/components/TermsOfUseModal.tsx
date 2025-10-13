@@ -1,13 +1,13 @@
-import { Box, Button, Dialog, DialogContent, DialogTitle, Typography, IconButton, Divider } from '@mui/material';
+import { Box, Button, Dialog, DialogContent, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import SecurityIcon from '@mui/icons-material/Security';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 type Props = {
   open: boolean;
   onClose: () => void;
 };
 
-const PrivacyPolicyModal = ({ open, onClose }: Props) => {
+const TermsOfUseModal = ({ open, onClose }: Props) => {
   return (
     <Dialog
       open={open}
@@ -66,7 +66,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                 border: '2px solid rgba(255, 255, 255, 0.2)'
               }}
             >
-              <SecurityIcon sx={{ fontSize: '2rem', color: 'white' }} />
+              <DescriptionIcon sx={{ fontSize: '2rem', color: 'white' }} />
             </Box>
             <Box>
               <Typography
@@ -79,7 +79,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                   textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
                 }}
               >
-                Política de Privacidade
+                Termos de Uso
               </Typography>
               <Typography
                 variant='body1'
@@ -89,7 +89,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                   textShadow: '0 1px 4px rgba(0, 0, 0, 0.2)'
                 }}
               >
-                Protegendo seus dados com transparência
+                Condições para uso da plataforma Planco
               </Typography>
             </Box>
           </Box>
@@ -117,7 +117,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                 textAlign: 'center'
               }}
             >
-              Sua privacidade é importante para nós. Esta política explica como tratamos suas informações pessoais.
+              Bem-vindo à Planco! Estes termos de uso regem o uso da nossa plataforma de licitações públicas.
             </Typography>
           </Box>
 
@@ -161,7 +161,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                 >
                   1
                 </Box>
-                Informações que Coletamos
+                Aceitação dos Termos
               </Typography>
               <Typography
                 variant='body2'
@@ -171,8 +171,8 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                   fontSize: '0.875rem'
                 }}
               >
-                Coletamos informações que você nos fornece diretamente, como nome, sobrenome, endereço de e-mail e senha
-                quando você cria uma conta.
+                Ao acessar e usar a plataforma Planco, você concorda em cumprir e estar vinculado a estes termos de uso.
+                Se você não concordar com qualquer parte destes termos, não deve usar nossa plataforma.
               </Typography>
             </Box>
 
@@ -214,7 +214,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                 >
                   2
                 </Box>
-                Como Usamos suas Informações
+                Descrição do Serviço
               </Typography>
               <Typography
                 variant='body2'
@@ -224,8 +224,8 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                   fontSize: '0.875rem'
                 }}
               >
-                Utilizamos suas informações para fornecer, manter e melhorar nossos serviços, processar transações e
-                comunicar com você.
+                A Planco é uma plataforma inteligente que conecta todas as fases da licitação pública, oferecendo
+                ferramentas para gestão, acompanhamento e otimização de processos licitatórios.
               </Typography>
             </Box>
 
@@ -267,7 +267,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                 >
                   3
                 </Box>
-                Compartilhamento de Informações
+                Conta de Usuário
               </Typography>
               <Typography
                 variant='body2'
@@ -277,8 +277,9 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                   fontSize: '0.875rem'
                 }}
               >
-                Não vendemos, alugamos ou compartilhamos suas informações pessoais com terceiros, exceto conforme descrito
-                nesta política.
+                Para usar nossa plataforma, você deve criar uma conta fornecendo informações precisas e atualizadas.
+                Você é responsável por manter a confidencialidade de sua senha e por todas as atividades que
+                ocorrem em sua conta.
               </Typography>
             </Box>
 
@@ -320,7 +321,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                 >
                   4
                 </Box>
-                Segurança
+                Uso Aceitável
               </Typography>
               <Typography
                 variant='body2'
@@ -330,8 +331,8 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                   fontSize: '0.875rem'
                 }}
               >
-                Implementamos medidas de segurança adequadas para proteger suas informações contra acesso não autorizado,
-                alteração, divulgação ou destruição.
+                Você concorda em usar a plataforma apenas para fins legais e de acordo com estes termos. É proibido
+                usar a plataforma para atividades ilegais, fraudulentas ou que violem os direitos de terceiros.
               </Typography>
             </Box>
 
@@ -373,7 +374,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                 >
                   5
                 </Box>
-                Seus Direitos
+                Propriedade Intelectual
               </Typography>
               <Typography
                 variant='body2'
@@ -383,8 +384,8 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                   fontSize: '0.875rem'
                 }}
               >
-                Você tem o direito de acessar, atualizar ou excluir suas informações pessoais. Entre em contato conosco para
-                exercer esses direitos.
+                Todo o conteúdo da plataforma, incluindo textos, gráficos, logotipos, ícones e software, é propriedade
+                da Planco e está protegido por leis de direitos autorais e outras leis de propriedade intelectual.
               </Typography>
             </Box>
 
@@ -426,7 +427,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                 >
                   6
                 </Box>
-                Alterações nesta Política
+                Limitação de Responsabilidade
               </Typography>
               <Typography
                 variant='body2'
@@ -436,8 +437,8 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                   fontSize: '0.875rem'
                 }}
               >
-                Podemos atualizar esta política de privacidade periodicamente. Notificaremos sobre mudanças significativas
-                por e-mail ou através de nossos serviços.
+                A Planco não será responsável por danos diretos, indiretos, incidentais ou consequenciais resultantes
+                do uso ou incapacidade de usar a plataforma, incluindo perda de dados ou lucros.
               </Typography>
             </Box>
 
@@ -479,6 +480,59 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                 >
                   7
                 </Box>
+                Modificações dos Termos
+              </Typography>
+              <Typography
+                variant='body2'
+                sx={{ 
+                  color: '#495057',
+                  lineHeight: 1.6,
+                  fontSize: '0.875rem'
+                }}
+              >
+                Reservamo-nos o direito de modificar estes termos a qualquer momento. As alterações entrarão em vigor
+                imediatamente após a publicação. O uso continuado da plataforma constitui aceitação dos novos termos.
+              </Typography>
+            </Box>
+
+            {/* Seção 8 */}
+            <Box
+              sx={{
+                backgroundColor: 'white',
+                borderRadius: '12px',
+                p: 3,
+                border: '1px solid #E9ECEF',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
+              }}
+            >
+              <Typography
+                variant='h6'
+                sx={{ 
+                  mb: 2, 
+                  fontWeight: 600,
+                  color: '#1877F2',
+                  fontSize: '1.125rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1
+                }}
+              >
+                <Box
+                  sx={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    backgroundColor: '#1877F2',
+                    color: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.875rem',
+                    fontWeight: 600
+                  }}
+                >
+                  8
+                </Box>
                 Contato
               </Typography>
               <Typography
@@ -489,7 +543,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                   fontSize: '0.875rem'
                 }}
               >
-                Se você tiver dúvidas sobre esta política de privacidade, entre em contato conosco através dos canais
+                Se você tiver dúvidas sobre estes termos de uso, entre em contato conosco através dos canais
                 disponíveis em nossa plataforma.
               </Typography>
             </Box>
@@ -532,4 +586,4 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
   );
 };
 
-export { PrivacyPolicyModal };
+export { TermsOfUseModal };
