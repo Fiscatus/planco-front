@@ -99,7 +99,7 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat }: Props) => {
                 <Box
                   component='img'
                   src='/assets/isologo.svg'
-                  alt='Logo Fiscatus'
+                  alt='Logo Planco'
                   sx={{ width: 48, height: 48, flexShrink: 0 }}
                 />
                 <Box>
@@ -125,7 +125,7 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat }: Props) => {
                 sx={{ mb: 3 }}
               >
                 <Typography sx={{ color: '#111827', lineHeight: 1.7 }}>
-                  O Fiscatus foi criado para apoiar gestores públicos na condução das contratações, reunindo em uma
+                  O Planco foi criado para apoiar gestores públicos na condução das contratações, reunindo em uma
                   única plataforma todas as etapas do processo, do planejamento à execução contratual. Nasceu da prática
                   e do olhar atento de profissionais que conhecem de perto os desafios da administração, oferecendo uma
                   ferramenta que alia simplicidade, inovação e segurança para tornar cada etapa mais clara e acessível.
@@ -133,7 +133,7 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat }: Props) => {
                 <Typography sx={{ color: '#111827', lineHeight: 1.7 }}>
                   Com dashboards intuitivos, fluxos flexíveis e recursos de automação, o sistema ajuda a reduzir a
                   burocracia e a dar mais agilidade às rotinas, permitindo que as equipes foquem no que realmente
-                  importa: resultados. O Fiscatus inspira confiança, fortalece a transparência e se apresenta como um
+                  importa: resultados. O Planco inspira confiança, fortalece a transparência e se apresenta como um
                   parceiro de trabalho diário, trazendo tranquilidade e eficiência para quem lida com as contratações
                   públicas.
                 </Typography>
@@ -344,7 +344,7 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat }: Props) => {
                       }}
                     >
                       <MailOutlineIcon sx={{ fontSize: 18, color: '#4f46e5', flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: 15 }}>suporte@fiscatus.gov.br</Typography>
+                      <Typography sx={{ fontSize: 15 }}>suporte@planco.com</Typography>
                     </Box>
                     <Box
                       sx={{

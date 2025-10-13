@@ -26,7 +26,7 @@ const TutorialsSection = ({ sectionRef }: Props) => {
   const PLAYLIST_URL_TUTORIALS = 'https://www.youtube.com/watch?v=RP63r2esgb0&list=PLktMu4vFX2FADZjgsdscuhO7ISO_AZiR1';
   const videos = useMemo(
     () => [
-      { titulo: 'Introdução ao Fiscatus', youtubeId: 'ZR_6Z1IDD8s' },
+      { titulo: 'Introdução ao Planco', youtubeId: 'ZR_6Z1IDD8s' },
       { titulo: 'Modelando Fluxos', youtubeId: 'ZR_6Z1IDD8s' },
       { titulo: 'Relatórios Inteligentes', youtubeId: 'ZR_6Z1IDD8s' }
     ],

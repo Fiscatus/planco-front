@@ -132,7 +132,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <img
             src={logo}
-            alt='Logo Fiscatus'
+            alt='Logo Planco'
             style={{ width: 32, height: 32 }}
           />
           <Typography
@@ -143,7 +143,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
               color: '#111827'
             }}
           >
-            Fiscatus
+            Planco
           </Typography>
         </Box>
         <IconButton
@@ -418,7 +418,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
               display: 'block'
             }}
           >
-            Fiscatus V{version}
+            Planco V{version}
           </Typography>
           <Typography
             variant='caption'

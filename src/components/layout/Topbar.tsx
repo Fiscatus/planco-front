@@ -150,7 +150,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
           >
             <img
               src={logo}
-              alt='Logo Fiscatus'
+              alt='Logo Planco'
               style={{
                 width: 32,
                 height: 32
@@ -168,7 +168,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
                 display: { xs: 'none', sm: 'block' }
               }}
             >
-              Fiscatus
+              Planco
             </Typography>
           </Box>
         </Box>
