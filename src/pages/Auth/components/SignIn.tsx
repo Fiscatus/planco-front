@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Link, Paper, TextField, Typography } from '@mui/material';
+import { Box, Button, Grid, Link, Paper, TextField, Typography, InputAdornment, IconButton } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +7,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { LoginDto } from '@/globals/types/User';
 import { useNotification } from '@/components';
 import { useAuth } from '@/hooks';
+import PersonIcon from '@mui/icons-material/Person';
+import LockIcon from '@mui/icons-material/Lock';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 
 type Props = {
   setIsSignIn: (value: boolean) => void;
@@ -65,198 +70,268 @@ const SignIn = ({ setIsSignIn }: Props) => {
   });
 
   return (
-    <Paper
-      sx={{
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08)',
-        borderRadius: '12px'
-      }}
-    >
+    <Box>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid
-          container
-          sx={{
-            borderRadius: '0.5rem'
-          }}
-        >
-          <Grid
-            size={12}
-            sx={{ p: 4 }}
+        <Box sx={{ mb: 4, textAlign: 'center' }}>
+          <VerifiedUserIcon
+            sx={{
+              fontSize: '4rem',
+              color: '#1877F2',
+              mb: 2,
+              display: 'block',
+              mx: 'auto'
+            }}
+          />
+          <Typography
+            variant='h4'
+            component='h1'
+            fontWeight={700}
+            sx={{ 
+              color: '#212529',
+              mb: 1,
+              fontSize: { xs: '1.75rem', sm: '2rem' }
+            }}
           >
-            <Grid
-              container
-              direction='column'
-              spacing={4}
-            >
-              <Grid>
-                <Typography
-                  variant='h5'
-                  component='h2'
-                  fontWeight={600}
-                >
-                  Bem-vindo de volta!
-                </Typography>
-                <Typography sx={{ color: 'text.secondary' }}>Entre na sua conta para continuar.</Typography>
-              </Grid>
-              <Grid>
-                <Typography
-                  variant='body2'
-                  sx={{ mb: 1, fontWeight: 'bold' }}
-                >
-                  Email <span style={{ color: 'red' }}>*</span>
-                </Typography>
-                <Controller
-                  name='email'
-                  control={control}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <Box>
-                      <TextField
-                        {...field}
-                        type='email'
-                        placeholder='Digite seu email'
-                        onFocus={() => clearErrors('email')}
-                        sx={{
-                          width: '100%',
-                          height: '40px',
-                          p: 0,
-                          '& .MuiInputBase-input': {
-                            height: '40px',
-                            boxSizing: 'border-box',
-                            padding: '10px'
-                          },
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: errors.password ? 'red' : '#ccc'
-                          }
-                        }}
-                      />
-                      {errors.email && <span style={{ color: 'red', fontSize: '12px' }}>{errors.email.message}</span>}
-                    </Box>
-                  )}
-                />
-              </Grid>
-              <Grid
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px'
-                }}
-              >
-                <Typography
-                  variant='body2'
-                  sx={{ mb: 1, fontWeight: 'bold' }}
-                >
-                  Senha <span style={{ color: 'red' }}>*</span>
-                </Typography>
-                <Controller
-                  name='password'
-                  control={control}
-                  defaultValue=''
-                  render={({ field }) => (
-                    <Box>
-                      <TextField
-                        {...field}
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder='Digite sua senha'
-                        onFocus={() => clearErrors('password')}
-                        slotProps={{
-                          input: {
-                            onFocus: () => clearErrors('password'),
-                            endAdornment: (
-                              <Button
-                                onClick={() => setShowPassword(!showPassword)}
-                                sx={{ textTransform: 'none', fontSize: '12px' }}
-                              >
-                                {showPassword ? 'Esconder' : 'Mostrar'}
-                              </Button>
-                            )
-                          }
-                        }}
-                        sx={{
-                          width: '100%',
-                          height: '40px',
-                          p: 0,
-                          '& .MuiInputBase-input': {
-                            height: '40px',
-                            boxSizing: 'border-box',
-                            padding: '10px'
-                          },
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: errors.password ? 'red' : '#ccc'
-                          }
-                        }}
-                      />
-                      {errors.password && (
-                        <span style={{ color: 'red', fontSize: '12px' }}>{errors.password.message}</span>
-                      )}
-                    </Box>
-                  )}
-                />
-                <Link
-                  href='/auth/forgot-password'
+            Acesso ao Sistema
+          </Typography>
+          <Typography 
+            sx={{ 
+              color: '#6C757D',
+              fontSize: '1rem'
+            }}
+          >
+            Entre na sua conta para continuar
+          </Typography>
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            variant='body2'
+            sx={{ 
+              mb: 1, 
+              fontWeight: 500,
+              color: '#495057',
+              fontSize: '0.875rem'
+            }}
+          >
+            E-mail
+          </Typography>
+          <Controller
+            name='email'
+            control={control}
+            defaultValue=''
+            render={({ field }) => (
+              <Box>
+                <TextField
+                  {...field}
+                  type='email'
+                  placeholder='seuemail@exemplo.com'
+                  onFocus={() => clearErrors('email')}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonIcon sx={{ color: '#6C757D' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                   sx={{
-                    fontSize: '12px',
-                    color: 'primary.main',
-                    textDecoration: 'none',
-                    textAlign: 'right',
-                    alignSelf: 'flex-end',
-                    '&:hover': {
-                      textDecoration: 'underline'
+                    width: '100%',
+                    '& .MuiOutlinedInput-root': {
+                      height: '48px',
+                      borderRadius: '8px',
+                      backgroundColor: 'white',
+                      '& fieldset': {
+                        borderColor: errors.email ? '#DC3545' : '#CED4DA',
+                        borderWidth: '1px'
+                      },
+                      '&:hover fieldset': {
+                        borderColor: errors.email ? '#DC3545' : '#ADB5BD'
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#1877F2',
+                        borderWidth: '2px'
+                      }
+                    },
+                    '& .MuiInputBase-input': {
+                      padding: '12px 14px',
+                      fontSize: '0.875rem',
+                      '&::placeholder': {
+                        color: '#6C757D',
+                        opacity: 1
+                      }
                     }
                   }}
-                >
-                  Esqueceu sua senha?
-                </Link>
-              </Grid>
-              <Grid>
-                <Button
-                  disabled={!isDirty}
-                  type='submit'
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    borderRadius: '4px',
-                    border: 'none',
-                    background: 'linear-gradient(135deg, hsl(262 83% 58%), hsl(224 71% 59%))',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    opacity: !isDirty ? 0.5 : 1
-                  }}
-                >
-                  Entrar
-                </Button>
-              </Grid>
-              <Grid>
-                <Typography
-                  sx={{
-                    fontSize: '14px',
-                    color: 'text.secondary',
-                    textAlign: 'center'
-                  }}
-                >
-                  Não tem uma conta?{' '}
-                  <Typography
-                    component='a'
-                    onClick={() => {
-                      setIsSignIn(false);
-                    }}
-                    sx={{
-                      fontSize: '14px',
-                      color: 'primary.main',
-                      textDecoration: 'none',
-                      '&:hover': {
-                        textDecoration: 'underline'
-                      }
+                />
+                {errors.email && (
+                  <Typography 
+                    sx={{ 
+                      color: '#DC3545', 
+                      fontSize: '0.75rem',
+                      mt: 0.5,
+                      ml: 1
                     }}
                   >
-                    Cadastre-se
+                    {errors.email.message}
                   </Typography>
-                </Typography>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
+                )}
+              </Box>
+            )}
+          />
+        </Box>
+        <Box sx={{ mb: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Typography
+              variant='body2'
+              sx={{ 
+                fontWeight: 500,
+                color: '#495057',
+                fontSize: '0.875rem'
+              }}
+            >
+              Senha
+            </Typography>
+            <Link
+              href='/auth/forgot-password'
+              sx={{
+                fontSize: '0.875rem',
+                color: '#1877F2',
+                textDecoration: 'none',
+                fontWeight: 500,
+                '&:hover': {
+                  textDecoration: 'underline'
+                }
+              }}
+            >
+              Esqueceu sua senha?
+            </Link>
+          </Box>
+          <Controller
+            name='password'
+            control={control}
+            defaultValue=''
+            render={({ field }) => (
+              <Box>
+                <TextField
+                  {...field}
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder='Digite sua senha'
+                  onFocus={() => clearErrors('password')}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <LockIcon sx={{ color: '#6C757D' }} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                          sx={{ color: '#6C757D' }}
+                        >
+                          {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    width: '100%',
+                    '& .MuiOutlinedInput-root': {
+                      height: '48px',
+                      borderRadius: '8px',
+                      backgroundColor: 'white',
+                      '& fieldset': {
+                        borderColor: errors.password ? '#DC3545' : '#CED4DA',
+                        borderWidth: '1px'
+                      },
+                      '&:hover fieldset': {
+                        borderColor: errors.password ? '#DC3545' : '#ADB5BD'
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#1877F2',
+                        borderWidth: '2px'
+                      }
+                    },
+                    '& .MuiInputBase-input': {
+                      padding: '12px 14px',
+                      fontSize: '0.875rem',
+                      '&::placeholder': {
+                        color: '#6C757D',
+                        opacity: 1
+                      }
+                    }
+                  }}
+                />
+                {errors.password && (
+                  <Typography 
+                    sx={{ 
+                      color: '#DC3545', 
+                      fontSize: '0.75rem',
+                      mt: 0.5,
+                      ml: 1
+                    }}
+                  >
+                    {errors.password.message}
+                  </Typography>
+                )}
+              </Box>
+            )}
+          />
+        </Box>
+        <Button
+          disabled={!isDirty}
+          type='submit'
+          fullWidth
+          sx={{
+            height: '48px',
+            borderRadius: '8px',
+            backgroundColor: '#1877F2',
+            color: 'white',
+            fontSize: '1rem',
+            fontWeight: 600,
+            textTransform: 'none',
+            mb: 3,
+            '&:hover': {
+              backgroundColor: '#166FE5'
+            },
+            '&:disabled': {
+              backgroundColor: '#E9ECEF',
+              color: '#6C757D'
+            },
+            transition: 'all 0.2s ease-in-out'
+          }}
+        >
+          Entrar
+        </Button>
+
+        <Typography
+          sx={{
+            fontSize: '0.875rem',
+            color: '#6C757D',
+            textAlign: 'center'
+          }}
+        >
+          Não tem uma conta?{' '}
+          <Typography
+            component='span'
+            onClick={() => {
+              setIsSignIn(false);
+            }}
+            sx={{
+              fontSize: '0.875rem',
+              color: '#1877F2',
+              textDecoration: 'none',
+              fontWeight: 500,
+              cursor: 'pointer',
+              '&:hover': {
+                textDecoration: 'underline'
+              }
+            }}
+          >
+            Cadastre-se
+          </Typography>
+        </Typography>
       </form>
-    </Paper>
+    </Box>
   );
 };
 
