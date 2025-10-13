@@ -309,8 +309,8 @@ const InvitesSection = () => {
                 />
               </Grid>
 
-              {/* Filtros em linha única no desktop, lado a lado no mobile */}
-              <Grid size={{ xs: 6, sm: 3, md: 2 }}>
+              {/* Filtros - xs: empilhados, sm: duas colunas, md+: linha única */}
+              <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                 <FormControl
                   fullWidth
                   size='small'
@@ -368,7 +368,7 @@ const InvitesSection = () => {
                 </FormControl>
               </Grid>
 
-              <Grid size={{ xs: 6, sm: 3, md: 2 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                 <FormControl
                   fullWidth
                   size='small'
@@ -437,13 +437,14 @@ const InvitesSection = () => {
 
               {/* Botão limpar filtros - só aparece no desktop */}
               {!isMobile && (
-                <Grid size={{ xs: 12, sm: 3, md: 1 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 1 }}>
                   <Box
                     sx={{
                       display: 'flex',
-                      justifyContent: 'center',
+                      justifyContent: 'flex-start',
                       alignItems: 'center',
-                      height: '40px'
+                      height: '100%',
+                      minHeight: '40px'
                     }}
                   >
                     <IconButton
@@ -454,8 +455,7 @@ const InvitesSection = () => {
                         backgroundColor: '#f3f4f6',
                         color: '#6b7280',
                         borderRadius: 3,
-                        width: '40px',
-                        height: '40px',
+                        p: 1.5,
                         transition: 'all 0.2s ease-in-out',
                         '&:hover': {
                           backgroundColor: '#fee2e2',
@@ -474,15 +474,16 @@ const InvitesSection = () => {
                 </Grid>
               )}
 
-              {/* Botões de ação - responsivos e bem posicionados */}
-              <Grid size={{ xs: 12, sm: 12, md: 6 }}>
+              {/* Botões de ação - xs-sm: full width abaixo dos filtros, md+: alinhado à direita */}
+              <Grid size={{ xs: 12, sm: 12, md: true }}>
                 <Box
                   sx={{
                     display: 'flex',
                     gap: 1,
                     alignItems: 'center',
-                    justifyContent: { xs: 'stretch', sm: 'flex-end', md: 'flex-end' },
-                    flexDirection: { xs: 'column', sm: 'row' }
+                    justifyContent: { xs: 'space-between', sm: 'space-between', md: 'flex-end' },
+                    width: { xs: '100%', sm: '100%', md: '100%' },
+                    height: { md: '40px' }
                   }}
                 >
                   {/* Botão limpar filtros - só aparece no mobile */}
@@ -495,8 +496,7 @@ const InvitesSection = () => {
                         backgroundColor: '#f3f4f6',
                         color: '#6b7280',
                         borderRadius: 3,
-                        width: '40px',
-                        height: '40px',
+                        p: 1.5,
                         transition: 'all 0.2s ease-in-out',
                         '&:hover': {
                           backgroundColor: '#fee2e2',

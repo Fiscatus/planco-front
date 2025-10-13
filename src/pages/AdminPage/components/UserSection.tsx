@@ -283,8 +283,8 @@ const UserSection = () => {
                 />
               </Grid>
 
-              {/* Filtros em linha única no desktop, empilhados no mobile */}
-              <Grid size={{ xs: 4, sm: 3, md: 2 }}>
+              {/* Filtros - xs: empilhados, sm: duas colunas, md+: linha única */}
+              <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                 <FormControl fullWidth size="small">
                   <Select
                     value={filters.isActive === undefined ? 'todos' : filters.isActive}
@@ -329,7 +329,7 @@ const UserSection = () => {
                 </FormControl>
               </Grid>
 
-              <Grid size={{ xs: 4, sm: 3, md: 2 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                 <Autocomplete
                   size="small"
                   options={roles}
@@ -388,7 +388,7 @@ const UserSection = () => {
                 />
               </Grid>
 
-              <Grid size={{ xs: 4, sm: 3, md: 2 }}>
+              <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                 <Autocomplete
                   size="small"
                   multiple
@@ -450,7 +450,7 @@ const UserSection = () => {
 
               {/* Botão limpar filtros - só aparece no desktop */}
               {!isMobile && (
-                <Grid size={{ xs: 12, sm: 12, md: 1 }}>
+                <Grid size={{ xs: 12, sm: 6, md: 1 }}>
                   <Box sx={{ 
                     display: 'flex', 
                     justifyContent: 'flex-start',
@@ -485,13 +485,15 @@ const UserSection = () => {
                 </Grid>
               )}
 
-              {/* Botão Atualizar - full width no mobile, inline no desktop */}
-              <Grid size={{ xs: 12, sm: 12, md: 3 }}>
+              {/* Botão Atualizar - xs-sm: full width abaixo dos filtros, md+: alinhado à direita */}
+              <Grid size={{ xs: 12, sm: 12, md: true }}>
                 <Box sx={{ 
                   display: 'flex', 
                   gap: 1,
                   alignItems: 'center',
-                  justifyContent: { xs: 'space-between', sm: 'flex-end' }
+                  justifyContent: { xs: 'space-between', sm: 'space-between', md: 'flex-end' },
+                  width: { xs: '100%', sm: '100%', md: '100%' },
+                  height: { md: '40px' }
                 }}>
                   {isMobile && (
                     <IconButton
