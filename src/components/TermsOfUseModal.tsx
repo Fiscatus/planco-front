@@ -73,7 +73,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 variant='h4'
                 component='h2'
                 fontWeight={700}
-                sx={{ 
+                sx={{
                   color: 'white',
                   fontSize: { xs: '1.75rem', sm: '2rem' },
                   textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
@@ -83,7 +83,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body1'
-                sx={{ 
+                sx={{
                   color: 'rgba(255, 255, 255, 0.9)',
                   fontSize: '1rem',
                   textShadow: '0 1px 4px rgba(0, 0, 0, 0.2)'
@@ -110,7 +110,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
           >
             <Typography
               variant='body1'
-              sx={{ 
+              sx={{
                 color: '#495057',
                 fontSize: '1rem',
                 lineHeight: 1.6,
@@ -135,8 +135,8 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -165,7 +165,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
@@ -188,8 +188,8 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -218,7 +218,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
@@ -241,8 +241,8 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -271,15 +271,15 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
               >
                 Para usar nossa plataforma, você deve criar uma conta fornecendo informações precisas e atualizadas.
-                Você é responsável por manter a confidencialidade de sua senha e por todas as atividades que
-                ocorrem em sua conta.
+                Você é responsável por manter a confidencialidade de sua senha e por todas as atividades que ocorrem em
+                sua conta.
               </Typography>
             </Box>
 
@@ -295,8 +295,8 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -325,14 +325,14 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
               >
-                Você concorda em usar a plataforma apenas para fins legais e de acordo com estes termos. É proibido
-                usar a plataforma para atividades ilegais, fraudulentas ou que violem os direitos de terceiros.
+                Você concorda em usar a plataforma apenas para fins legais e de acordo com estes termos. É proibido usar
+                a plataforma para atividades ilegais, fraudulentas ou que violem os direitos de terceiros.
               </Typography>
             </Box>
 
@@ -348,8 +348,8 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -378,7 +378,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
@@ -401,8 +401,8 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -431,14 +431,14 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
               >
-                A Planco não será responsável por danos diretos, indiretos, incidentais ou consequenciais resultantes
-                do uso ou incapacidade de usar a plataforma, incluindo perda de dados ou lucros.
+                A Planco não será responsável por danos diretos, indiretos, incidentais ou consequenciais resultantes do
+                uso ou incapacidade de usar a plataforma, incluindo perda de dados ou lucros.
               </Typography>
             </Box>
 
@@ -454,8 +454,8 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -484,7 +484,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
@@ -507,8 +507,8 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -537,14 +537,14 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
               >
-                Se você tiver dúvidas sobre estes termos de uso, entre em contato conosco através dos canais
-                disponíveis em nossa plataforma.
+                Se você tiver dúvidas sobre estes termos de uso, entre em contato conosco através dos canais disponíveis
+                em nossa plataforma.
               </Typography>
             </Box>
           </Box>

@@ -1,72 +1,67 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Box, Button, Checkbox, FormControlLabel, Grid, Paper, TextField, Typography, InputAdornment, IconButton } from '@mui/material';
-import { useState } from 'react';
+import { Box, Button, Checkbox, Grid, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { PrivacyPolicyModal, TermsOfUseModal, useNotification } from '@/components';
+
 import type { RegisterDto } from '@/globals/types/User';
-import { useAuth } from '@/hooks';
-import PersonIcon from '@mui/icons-material/Person';
-import LockIcon from '@mui/icons-material/Lock';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import { useAuth } from '@/hooks';
+import { useState } from 'react';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 type Props = {
   setIsSignIn: (value: boolean) => void;
 };
 
-// Funções de máscara
 const formatCPF = (value: string) => {
-  // Remove tudo que não é dígito
   const numbers = value.replace(/\D/g, '');
-  
-  // Aplica a máscara XXX.XXX.XXX-XX
+
   if (numbers.length <= 3) {
     return numbers;
-  } else if (numbers.length <= 6) {
-    return `${numbers.slice(0, 3)}.${numbers.slice(3)}`;
-  } else if (numbers.length <= 9) {
-    return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6)}`;
-  } else {
-    return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6, 9)}-${numbers.slice(9, 11)}`;
   }
+  if (numbers.length <= 6) {
+    return `${numbers.slice(0, 3)}.${numbers.slice(3)}`;
+  }
+  if (numbers.length <= 9) {
+    return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6)}`;
+  }
+  return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6, 9)}-${numbers.slice(9, 11)}`;
 };
 
 const formatPhone = (value: string) => {
-  // Remove tudo que não é dígito
   const numbers = value.replace(/\D/g, '');
-  
-  // Aplica a máscara (XX) XXXXX-XXXX
+
   if (numbers.length <= 2) {
     return numbers;
-  } else if (numbers.length <= 7) {
-    return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
-  } else {
-    return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
   }
+  if (numbers.length <= 7) {
+    return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+  }
+  return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
 };
 
 const authSchema = z
   .object({
     name: z
       .string()
-      .min(2, 'O nome deve ter pelo menos 2 caracteres')
-      .max(100, 'O nome deve ter no máximo 100 caracteres'),
+      .min(2, 'Mínimo de 2 caracteres')
+      .max(100, 'Máximo 100 caracteres'),
     lastName: z
       .string()
-      .min(2, 'O sobrenome deve ter pelo menos 2 caracteres')
-      .max(100, 'O sobrenome deve ter no máximo 100 caracteres'),
+      .min(2, 'Mínimo de 2 caracteres')
+      .max(100, 'Máximo 100 caracteres'),
     email: z.email('Email não é válido'),
     cpf: z
       .string()
-      .min(14, 'CPF deve ter 14 caracteres')
-      .max(14, 'CPF deve ter 14 caracteres')
+      .min(14, 'CPF deve ter 11 caracteres')
+      .max(14, 'CPF deve ter 11 caracteres')
       .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF deve estar no formato 000.000.000-00'),
     phone: z
       .string()
-      .min(15, 'Telefone deve ter 15 caracteres')
-      .max(15, 'Telefone deve ter 15 caracteres')
+      .min(15, 'Telefone deve ter 11 caracteres')
+      .max(15, 'Telefone deve ter 11 caracteres')
       .regex(/^\(\d{2}\)\s\d{5}-\d{4}$/, 'Telefone deve estar no formato (XX) XXXXX-XXXX'),
     password: z
       .string()
@@ -156,7 +151,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
             variant='h4'
             component='h1'
             fontWeight={700}
-            sx={{ 
+            sx={{
               color: '#212529',
               mb: 0.5,
               fontSize: { xs: '1.5rem', sm: '1.75rem' }
@@ -164,8 +159,8 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
           >
             Crie sua Conta
           </Typography>
-          <Typography 
-            sx={{ 
+          <Typography
+            sx={{
               color: '#6C757D',
               fontSize: '0.875rem'
             }}
@@ -176,7 +171,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
         {/* Seção de Informações Pessoais */}
         <Box sx={{ mb: 2.5 }}>
           <Typography
-            variant="h6"
+            variant='h6'
             sx={{
               fontSize: '1rem',
               fontWeight: 600,
@@ -186,13 +181,20 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
           >
             Informações Pessoais
           </Typography>
-          
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+
+          <Grid
+            container
+            spacing={2}
+          >
+            <Grid
+              item
+              xs={12}
+              sm={6}
+            >
               <Typography
                 variant='body2'
-                sx={{ 
-                  mb: 1, 
+                sx={{
+                  mb: 1,
                   fontWeight: 500,
                   color: '#495057',
                   fontSize: '0.875rem'
@@ -240,9 +242,9 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                       }}
                     />
                     {errors.name && (
-                      <Typography 
-                        sx={{ 
-                          color: '#DC3545', 
+                      <Typography
+                        sx={{
+                          color: '#DC3545',
                           fontSize: '0.75rem',
                           mt: 0.5,
                           ml: 1
@@ -255,11 +257,15 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 )}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid
+              item
+              xs={12}
+              sm={6}
+            >
               <Typography
                 variant='body2'
-                sx={{ 
-                  mb: 1, 
+                sx={{
+                  mb: 1,
                   fontWeight: 500,
                   color: '#495057',
                   fontSize: '0.875rem'
@@ -307,9 +313,9 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                       }}
                     />
                     {errors.lastName && (
-                      <Typography 
-                        sx={{ 
-                          color: '#DC3545', 
+                      <Typography
+                        sx={{
+                          color: '#DC3545',
                           fontSize: '0.75rem',
                           mt: 0.5,
                           ml: 1
@@ -324,15 +330,21 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
             </Grid>
           </Grid>
         </Box>
-        
+
         {/* Seção de Informações de Contato */}
         <Box sx={{ mb: 2.5 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
+          <Grid
+            container
+            spacing={2}
+          >
+            <Grid
+              item
+              xs={12}
+            >
               <Typography
                 variant='body2'
-                sx={{ 
-                  mb: 1, 
+                sx={{
+                  mb: 1,
                   fontWeight: 500,
                   color: '#495057',
                   fontSize: '0.875rem'
@@ -387,9 +399,9 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                       }}
                     />
                     {errors.cpf && (
-                      <Typography 
-                        sx={{ 
-                          color: '#DC3545', 
+                      <Typography
+                        sx={{
+                          color: '#DC3545',
                           fontSize: '0.75rem',
                           mt: 0.5,
                           ml: 1
@@ -402,11 +414,14 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 )}
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid
+              item
+              xs={12}
+            >
               <Typography
                 variant='body2'
-                sx={{ 
-                  mb: 1, 
+                sx={{
+                  mb: 1,
                   fontWeight: 500,
                   color: '#495057',
                   fontSize: '0.875rem'
@@ -461,9 +476,9 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                       }}
                     />
                     {errors.phone && (
-                      <Typography 
-                        sx={{ 
-                          color: '#DC3545', 
+                      <Typography
+                        sx={{
+                          color: '#DC3545',
                           fontSize: '0.75rem',
                           mt: 0.5,
                           ml: 1
@@ -478,11 +493,11 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
             </Grid>
           </Grid>
         </Box>
-        
+
         {/* Seção de Informações de Acesso */}
         <Box sx={{ mb: 2.5 }}>
           <Typography
-            variant="h6"
+            variant='h6'
             sx={{
               fontSize: '1rem',
               fontWeight: 600,
@@ -492,12 +507,12 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
           >
             Informações de Acesso
           </Typography>
-          
+
           <Box sx={{ mb: 2 }}>
             <Typography
               variant='body2'
-              sx={{ 
-                mb: 1, 
+              sx={{
+                mb: 1,
                 fontWeight: 500,
                 color: '#495057',
                 fontSize: '0.875rem'
@@ -545,9 +560,9 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                     }}
                   />
                   {errors.email && (
-                    <Typography 
-                      sx={{ 
-                        color: '#DC3545', 
+                    <Typography
+                      sx={{
+                        color: '#DC3545',
                         fontSize: '0.75rem',
                         mt: 0.5,
                         ml: 1
@@ -564,8 +579,8 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
           <Box sx={{ mb: 2 }}>
             <Typography
               variant='body2'
-              sx={{ 
-                mb: 1, 
+              sx={{
+                mb: 1,
                 fontWeight: 500,
                 color: '#495057',
                 fontSize: '0.875rem'
@@ -586,16 +601,16 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                     onFocus={() => clearErrors('password')}
                     InputProps={{
                       endAdornment: (
-                        <InputAdornment position="end">
+                        <InputAdornment position='end'>
                           <IconButton
                             onClick={() => setShowPassword(!showPassword)}
-                            edge="end"
+                            edge='end'
                             sx={{ color: '#6C757D' }}
                           >
                             {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                           </IconButton>
                         </InputAdornment>
-                      ),
+                      )
                     }}
                     sx={{
                       width: '100%',
@@ -626,9 +641,9 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                     }}
                   />
                   {errors.password && (
-                    <Typography 
-                      sx={{ 
-                        color: '#DC3545', 
+                    <Typography
+                      sx={{
+                        color: '#DC3545',
                         fontSize: '0.75rem',
                         mt: 0.5,
                         ml: 1
@@ -641,12 +656,12 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
               )}
             />
           </Box>
-          
+
           <Box sx={{ mb: 2 }}>
             <Typography
               variant='body2'
-              sx={{ 
-                mb: 1, 
+              sx={{
+                mb: 1,
                 fontWeight: 500,
                 color: '#495057',
                 fontSize: '0.875rem'
@@ -667,16 +682,16 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                     onFocus={() => clearErrors('confirmPassword')}
                     InputProps={{
                       endAdornment: (
-                        <InputAdornment position="end">
+                        <InputAdornment position='end'>
                           <IconButton
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                            edge="end"
+                            edge='end'
                             sx={{ color: '#6C757D' }}
                           >
                             {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                           </IconButton>
                         </InputAdornment>
-                      ),
+                      )
                     }}
                     sx={{
                       width: '100%',
@@ -707,9 +722,9 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                     }}
                   />
                   {errors.confirmPassword && (
-                    <Typography 
-                      sx={{ 
-                        color: '#DC3545', 
+                    <Typography
+                      sx={{
+                        color: '#DC3545',
                         fontSize: '0.75rem',
                         mt: 0.5,
                         ml: 1
@@ -738,7 +753,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
             />
             <Typography
               variant='body2'
-              sx={{ 
+              sx={{
                 fontSize: '0.875rem',
                 color: '#6C757D',
                 lineHeight: 1.5
@@ -759,8 +774,8 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 }}
               >
                 política de privacidade
-              </Typography>
-              {' '}e os{' '}
+              </Typography>{' '}
+              e os{' '}
               <Typography
                 component='span'
                 onClick={() => setTermsModalOpen(true)}
@@ -775,8 +790,8 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                 }}
               >
                 termos de uso
-              </Typography>
-              {' '}do sistema.
+              </Typography>{' '}
+              do sistema.
             </Typography>
           </Box>
         </Box>

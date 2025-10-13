@@ -1,4 +1,4 @@
-import { Box, Button, Grid, Link, Paper, TextField, Typography, InputAdornment, IconButton } from '@mui/material';
+import { Box, Button, Link, TextField, Typography, InputAdornment, IconButton } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -86,7 +86,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
             variant='h4'
             component='h1'
             fontWeight={700}
-            sx={{ 
+            sx={{
               color: '#212529',
               mb: 1,
               fontSize: { xs: '1.75rem', sm: '2rem' }
@@ -94,8 +94,8 @@ const SignIn = ({ setIsSignIn }: Props) => {
           >
             Acesso ao Sistema
           </Typography>
-          <Typography 
-            sx={{ 
+          <Typography
+            sx={{
               color: '#6C757D',
               fontSize: '1rem'
             }}
@@ -106,8 +106,8 @@ const SignIn = ({ setIsSignIn }: Props) => {
         <Box sx={{ mb: 3 }}>
           <Typography
             variant='body2'
-            sx={{ 
-              mb: 1, 
+            sx={{
+              mb: 1,
               fontWeight: 500,
               color: '#495057',
               fontSize: '0.875rem'
@@ -128,10 +128,10 @@ const SignIn = ({ setIsSignIn }: Props) => {
                   onFocus={() => clearErrors('email')}
                   InputProps={{
                     startAdornment: (
-                      <InputAdornment position="start">
+                      <InputAdornment position='start'>
                         <PersonIcon sx={{ color: '#6C757D' }} />
                       </InputAdornment>
-                    ),
+                    )
                   }}
                   sx={{
                     width: '100%',
@@ -162,9 +162,9 @@ const SignIn = ({ setIsSignIn }: Props) => {
                   }}
                 />
                 {errors.email && (
-                  <Typography 
-                    sx={{ 
-                      color: '#DC3545', 
+                  <Typography
+                    sx={{
+                      color: '#DC3545',
                       fontSize: '0.75rem',
                       mt: 0.5,
                       ml: 1
@@ -181,7 +181,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
             <Typography
               variant='body2'
-              sx={{ 
+              sx={{
                 fontWeight: 500,
                 color: '#495057',
                 fontSize: '0.875rem'
@@ -217,21 +217,21 @@ const SignIn = ({ setIsSignIn }: Props) => {
                   onFocus={() => clearErrors('password')}
                   InputProps={{
                     startAdornment: (
-                      <InputAdornment position="start">
+                      <InputAdornment position='start'>
                         <LockIcon sx={{ color: '#6C757D' }} />
                       </InputAdornment>
                     ),
                     endAdornment: (
-                      <InputAdornment position="end">
+                      <InputAdornment position='end'>
                         <IconButton
                           onClick={() => setShowPassword(!showPassword)}
-                          edge="end"
+                          edge='end'
                           sx={{ color: '#6C757D' }}
                         >
                           {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                         </IconButton>
                       </InputAdornment>
-                    ),
+                    )
                   }}
                   sx={{
                     width: '100%',
@@ -262,9 +262,9 @@ const SignIn = ({ setIsSignIn }: Props) => {
                   }}
                 />
                 {errors.password && (
-                  <Typography 
-                    sx={{ 
-                      color: '#DC3545', 
+                  <Typography
+                    sx={{
+                      color: '#DC3545',
                       fontSize: '0.75rem',
                       mt: 0.5,
                       ml: 1

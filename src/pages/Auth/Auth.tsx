@@ -19,32 +19,32 @@ const Auth = () => {
         padding: { xs: 2, sm: 3 }
       }}
     >
-        <Box
-          sx={{
-            maxWidth: '1200px',
-            width: '100%',
-            minHeight: { lg: '90vh' },
-            borderRadius: { xs: 2, sm: 3 },
-            overflow: 'hidden',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-            backgroundColor: 'white',
-            display: 'flex',
-            flexDirection: { xs: 'column', lg: 'row' }
-          }}
-        >
+      <Box
+        sx={{
+          maxWidth: '1200px',
+          width: '100%',
+          minHeight: { lg: '90vh' },
+          borderRadius: { xs: 2, sm: 3 },
+          overflow: 'hidden',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
+          backgroundColor: 'white',
+          display: 'flex',
+          flexDirection: { xs: 'column', lg: 'row' }
+        }}
+      >
         {/* Seção do Formulário */}
         <Box
           sx={{
             flex: 1,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             padding: { xs: 3, sm: 4, lg: 6 },
             backgroundColor: 'white'
-        }}
-      >
+          }}
+        >
           <Box sx={{ width: '100%', maxWidth: '400px' }}>
-          {isSignIn ? <SignIn setIsSignIn={setIsSignIn} /> : <CreateAccount setIsSignIn={setIsSignIn} />}
+            {isSignIn ? <SignIn setIsSignIn={setIsSignIn} /> : <CreateAccount setIsSignIn={setIsSignIn} />}
           </Box>
         </Box>
 
@@ -60,92 +60,91 @@ const Auth = () => {
             overflow: 'hidden'
           }}
         >
-           {/* Conteúdo principal centralizado */}
-           <Box
-          sx={{
-               display: 'flex',
-               flexDirection: 'column',
-               alignItems: 'center',
-               justifyContent: 'center',
-               height: '100%',
-            width: '100%',
-               padding: 4,
-               gap: 4,
-               position: 'relative',
-               zIndex: 2
-          }}
-        >
-             {/* Logo centralizada */}
+          {/* Conteúdo principal centralizado */}
           <Box
             sx={{
-                 display: 'flex',
-                 alignItems: 'center',
-                 justifyContent: 'center',
-                 width: '140px',
-                 height: '140px',
-                 borderRadius: '50%',
-                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                 backdropFilter: 'blur(15px)',
-                 border: '3px solid rgba(255, 255, 255, 0.3)',
-                 boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                 animation: 'logoFloat 4s ease-in-out infinite',
-                 position: 'relative',
-                 '&::before': {
-                   content: '""',
-                   position: 'absolute',
-                   inset: '-4px',
-                   borderRadius: '50%',
-                   background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
-                   zIndex: -1,
-                   animation: 'logoGlow 3s ease-in-out infinite alternate'
-                 }
-               }}
-             >
-               <GavelIcon
-                 sx={{
-                   fontSize: '4rem',
-                   color: 'white',
-                   textShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                   filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))',
-                   animation: 'iconPulse 2s ease-in-out infinite'
-                 }}
-               />
-             </Box>
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              width: '100%',
+              padding: 4,
+              gap: 4,
+              position: 'relative',
+              zIndex: 2
+            }}
+          >
+            {/* Logo centralizada */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '140px',
+                height: '140px',
+                borderRadius: '50%',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(15px)',
+                border: '3px solid rgba(255, 255, 255, 0.3)',
+                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+                animation: 'logoFloat 4s ease-in-out infinite',
+                position: 'relative',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  inset: '-4px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
+                  zIndex: -1,
+                  animation: 'logoGlow 3s ease-in-out infinite alternate'
+                }
+              }}
+            >
+              <GavelIcon
+                sx={{
+                  fontSize: '4rem',
+                  color: 'white',
+                  textShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                  filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))',
+                  animation: 'iconPulse 2s ease-in-out infinite'
+                }}
+              />
+            </Box>
 
-             {/* Título */}
-             <Typography
-               variant="h2"
-               sx={{
-                 fontWeight: 700,
-                 color: 'white',
-                 textAlign: 'center',
-                 lineHeight: 1.1,
-                 fontSize: { lg: '3rem', xl: '3.5rem' },
-                 maxWidth: '500px',
-                 textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-                 marginBottom: 2
-               }}
-             >
-               Planco
-             </Typography>
+            {/* Título */}
+            <Typography
+              variant='h2'
+              sx={{
+                fontWeight: 700,
+                color: 'white',
+                textAlign: 'center',
+                lineHeight: 1.1,
+                fontSize: { lg: '3rem', xl: '3.5rem' },
+                maxWidth: '500px',
+                textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                marginBottom: 2
+              }}
+            >
+              Planco
+            </Typography>
 
-             {/* Descrição */}
-             <Typography
-               variant="h5"
-               sx={{
-                 color: 'rgba(255, 255, 255, 0.9)',
-                 textAlign: 'center',
-                 lineHeight: 1.5,
-                 fontSize: { lg: '1.25rem', xl: '1.375rem' },
-                 maxWidth: '520px',
-                 fontWeight: 400,
-                 textShadow: '0 1px 4px rgba(0, 0, 0, 0.2)'
-               }}
-             >
-               A plataforma inteligente que conecta todas as fases da licitação pública.
-             </Typography>
-           </Box>
-
+            {/* Descrição */}
+            <Typography
+              variant='h5'
+              sx={{
+                color: 'rgba(255, 255, 255, 0.9)',
+                textAlign: 'center',
+                lineHeight: 1.5,
+                fontSize: { lg: '1.25rem', xl: '1.375rem' },
+                maxWidth: '520px',
+                fontWeight: 400,
+                textShadow: '0 1px 4px rgba(0, 0, 0, 0.2)'
+              }}
+            >
+              A plataforma inteligente que conecta todas as fases da licitação pública.
+            </Typography>
+          </Box>
 
           {/* Keyframes para animação */}
           <style>

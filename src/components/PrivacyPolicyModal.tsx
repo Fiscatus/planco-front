@@ -73,7 +73,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
                 variant='h4'
                 component='h2'
                 fontWeight={700}
-                sx={{ 
+                sx={{
                   color: 'white',
                   fontSize: { xs: '1.75rem', sm: '2rem' },
                   textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
@@ -83,7 +83,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body1'
-                sx={{ 
+                sx={{
                   color: 'rgba(255, 255, 255, 0.9)',
                   fontSize: '1rem',
                   textShadow: '0 1px 4px rgba(0, 0, 0, 0.2)'
@@ -110,7 +110,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
           >
             <Typography
               variant='body1'
-              sx={{ 
+              sx={{
                 color: '#495057',
                 fontSize: '1rem',
                 lineHeight: 1.6,
@@ -135,8 +135,8 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -165,7 +165,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
@@ -188,8 +188,8 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -218,7 +218,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
@@ -241,8 +241,8 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -271,14 +271,14 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
               >
-                Não vendemos, alugamos ou compartilhamos suas informações pessoais com terceiros, exceto conforme descrito
-                nesta política.
+                Não vendemos, alugamos ou compartilhamos suas informações pessoais com terceiros, exceto conforme
+                descrito nesta política.
               </Typography>
             </Box>
 
@@ -294,8 +294,8 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -324,14 +324,14 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
               >
-                Implementamos medidas de segurança adequadas para proteger suas informações contra acesso não autorizado,
-                alteração, divulgação ou destruição.
+                Implementamos medidas de segurança adequadas para proteger suas informações contra acesso não
+                autorizado, alteração, divulgação ou destruição.
               </Typography>
             </Box>
 
@@ -347,8 +347,8 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -377,14 +377,14 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
               >
-                Você tem o direito de acessar, atualizar ou excluir suas informações pessoais. Entre em contato conosco para
-                exercer esses direitos.
+                Você tem o direito de acessar, atualizar ou excluir suas informações pessoais. Entre em contato conosco
+                para exercer esses direitos.
               </Typography>
             </Box>
 
@@ -400,8 +400,8 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -430,14 +430,14 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
               >
-                Podemos atualizar esta política de privacidade periodicamente. Notificaremos sobre mudanças significativas
-                por e-mail ou através de nossos serviços.
+                Podemos atualizar esta política de privacidade periodicamente. Notificaremos sobre mudanças
+                significativas por e-mail ou através de nossos serviços.
               </Typography>
             </Box>
 
@@ -453,8 +453,8 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
             >
               <Typography
                 variant='h6'
-                sx={{ 
-                  mb: 2, 
+                sx={{
+                  mb: 2,
                   fontWeight: 600,
                   color: '#1877F2',
                   fontSize: '1.125rem',
@@ -483,7 +483,7 @@ const PrivacyPolicyModal = ({ open, onClose }: Props) => {
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ 
+                sx={{
                   color: '#495057',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
