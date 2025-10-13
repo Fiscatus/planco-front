@@ -5,18 +5,15 @@ import {
   Button,
   Card,
   CardContent,
-  CardHeader,
   Chip,
   CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
   FormControl,
   FormControlLabel,
   Grid,
   IconButton,
-  InputLabel,
   MenuItem,
   Paper,
   Select,
@@ -853,20 +850,22 @@ const UserSection = () => {
           {isMobile && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               {loading ? (
-                // Loading skeletons for mobile
-                Array.from({ length: 3 }).map((_, index) => (
-                  <Paper
-                    key={index}
-                    variant="outlined"
-                    sx={{
-                      p: 2,
-                      borderRadius: 2,
-                      border: '1px solid #e5e7eb'
-                    }}
-                  >
-                    <Skeleton variant="rectangular" height={84} />
-                  </Paper>
-                ))
+                Array.from({ length: 3 }).map(() => {
+                  const uniqueKey = `loading-skeleton-${Math.random().toString(36).substr(2, 9)}`;
+                  return (
+                    <Paper
+                      key={uniqueKey}
+                      variant="outlined"
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        border: '1px solid #e5e7eb'
+                      }}
+                    >
+                      <Skeleton variant="rectangular" height={84} />
+                    </Paper>
+                  );
+                })
               ) : users.length === 0 ? (
                 // Empty state for mobile
                 <Paper

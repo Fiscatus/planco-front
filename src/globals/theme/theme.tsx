@@ -5,50 +5,50 @@ const themeOptions: ThemeOptions = {
     mode: 'light',
     // Azul padrão do Facebook
     primary: {
-      main: 'rgb(24, 119, 242)',      // #1877F2 - Azul principal Facebook
-      light: 'rgb(100, 164, 247)',    // Hover mais claro
-      dark: 'rgb(16, 91, 186)'        // Foco/ativo
+      main: 'rgb(24, 119, 242)', // #1877F2 - Azul principal Facebook
+      light: 'rgb(100, 164, 247)', // Hover mais claro
+      dark: 'rgb(16, 91, 186)' // Foco/ativo
     },
     // Verde suave (para confirmações e ações positivas)
     secondary: {
-      main: 'rgb(56, 203, 120)',      // #38CB78
-      light: 'rgb(103, 220, 157)',    // Hover mais claro
-      dark: 'rgb(33, 156, 91)'        // Foco
+      main: 'rgb(56, 203, 120)', // #38CB78
+      light: 'rgb(103, 220, 157)', // Hover mais claro
+      dark: 'rgb(33, 156, 91)' // Foco
     },
     success: {
-      main: 'rgb(56, 203, 120)',      // verde Facebook (confirmações)
+      main: 'rgb(56, 203, 120)', // verde Facebook (confirmações)
       light: 'rgb(103, 220, 157)',
       dark: 'rgb(33, 156, 91)',
       contrastText: '#fff'
     },
     info: {
-      main: 'rgb(24, 119, 242)',      // mesmo azul para consistência
+      main: 'rgb(24, 119, 242)', // mesmo azul para consistência
       light: 'rgb(100, 164, 247)',
       dark: 'rgb(16, 91, 186)',
       contrastText: '#fff'
     },
     warning: {
-      main: 'rgb(247, 188, 35)',      // #F7BC23 - amarelo alerta
+      main: 'rgb(247, 188, 35)', // #F7BC23 - amarelo alerta
       light: 'rgb(255, 214, 102)',
       dark: 'rgb(179, 136, 0)',
       contrastText: 'rgb(27, 31, 42)'
     },
     error: {
-      main: 'rgb(235, 67, 53)',       // #EB4335 - vermelho usado em avisos
+      main: 'rgb(235, 67, 53)', // #EB4335 - vermelho usado em avisos
       light: 'rgb(245, 113, 104)',
       dark: 'rgb(170, 41, 32)',
       contrastText: '#fff'
     },
     background: {
-      default: 'rgb(245, 246, 247)',  // fundo neutro e leve, inspirado no layout do Facebook
-      paper: 'rgb(255, 255, 255)'     // cartões, painéis e modais
+      default: 'rgb(245, 246, 247)', // fundo neutro e leve, inspirado no layout do Facebook
+      paper: 'rgb(255, 255, 255)' // cartões, painéis e modais
     },
     text: {
-      primary: 'rgb(28, 30, 33)',     // texto principal (quase preto)
-      secondary: 'rgb(101, 103, 107)',// texto secundário
-      disabled: 'rgb(160, 164, 168)'  // texto desabilitado
+      primary: 'rgb(28, 30, 33)', // texto principal (quase preto)
+      secondary: 'rgb(101, 103, 107)', // texto secundário
+      disabled: 'rgb(160, 164, 168)' // texto desabilitado
     },
-    divider: 'rgb(223, 225, 229)'     // linhas sutis e limpas
+    divider: 'rgb(223, 225, 229)' // linhas sutis e limpas
   },
   typography: {
     fontFamily: '"Source Sans Pro", sans-serif',

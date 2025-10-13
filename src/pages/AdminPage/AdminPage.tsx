@@ -1,7 +1,12 @@
 import { Alert, Box, Chip, Skeleton, Tab, Tabs, Typography } from '@mui/material';
 import { Component, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
-import { PeopleAltOutlined, BusinessOutlined, MailOutlineOutlined, AdminPanelSettingsOutlined } from '@mui/icons-material';
+import {
+  PeopleAltOutlined,
+  BusinessOutlined,
+  MailOutlineOutlined,
+  AdminPanelSettingsOutlined
+} from '@mui/icons-material';
 import { useAccessControl, useAuth, useScreen } from '@/hooks';
 
 import { GerenciaSection } from './components/GerenciaSection';
@@ -152,13 +157,17 @@ const AdminPage = () => {
   const { isPlatformAdmin } = useAuth();
   const { isMobile } = useScreen();
   const { canAccessUsers, canAccessDepartments, canAccessInvites, canAccessRoles } = useAccessControl();
-  
-  const pages = useMemo(() => createPages({
-    canAccessUsers,
-    canAccessDepartments,
-    canAccessInvites,
-    canAccessRoles
-  }), [canAccessUsers, canAccessDepartments, canAccessInvites, canAccessRoles]);
+
+  const pages = useMemo(
+    () =>
+      createPages({
+        canAccessUsers,
+        canAccessDepartments,
+        canAccessInvites,
+        canAccessRoles
+      }),
+    [canAccessUsers, canAccessDepartments, canAccessInvites, canAccessRoles]
+  );
 
   const [activeTabValue, setActiveTabValue] = useState<TabValue>('users');
 
@@ -277,8 +286,8 @@ const AdminPage = () => {
             <Box>
               <Typography
                 variant={isMobile ? 'h4' : 'h3'}
-                sx={{ 
-                  fontWeight: 700, 
+                sx={{
+                  fontWeight: 700,
                   lineHeight: 1.2,
                   color: 'text.primary',
                   mb: 1
@@ -288,7 +297,7 @@ const AdminPage = () => {
               </Typography>
               <Typography
                 variant='body1'
-                sx={{ 
+                sx={{
                   color: 'text.secondary',
                   fontWeight: 500,
                   fontSize: '1rem'
@@ -304,7 +313,7 @@ const AdminPage = () => {
               color={isPlatformAdmin ? 'primary' : 'secondary'}
               variant='filled'
               size='medium'
-              sx={{ 
+              sx={{
                 fontWeight: 600,
                 fontSize: '0.875rem',
                 px: 2,

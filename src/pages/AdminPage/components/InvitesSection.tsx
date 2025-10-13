@@ -1,14 +1,11 @@
-import { 
-  Add as AddIcon, 
-  FilterListOff as FilterListOffIcon, 
-  Delete as DeleteIcon, 
-  Refresh as RefreshIcon, 
-  Search as SearchIcon, 
+import {
+  Add as AddIcon,
+  FilterListOff as FilterListOffIcon,
+  Delete as DeleteIcon,
+  Refresh as RefreshIcon,
+  Search as SearchIcon,
   Warning as WarningIcon,
   MailOutline as MailOutlineIcon,
-  Replay as ReplayIcon,
-  ContentCopy as ContentCopyIcon,
-  Cancel as CancelIcon
 } from '@mui/icons-material';
 import {
   Alert,
@@ -16,17 +13,13 @@ import {
   Button,
   Card,
   CardContent,
-  CardHeader,
   Chip,
   CircularProgress,
   Dialog,
-  DialogActions,
   DialogContent,
-  DialogTitle,
   FormControl,
   Grid,
   IconButton,
-  InputLabel,
   MenuItem,
   Paper,
   Select,
@@ -42,19 +35,18 @@ import {
   TextField,
   Tooltip,
   Typography,
-  useMediaQuery,
   useTheme
 } from '@mui/material';
 import type { CreateInviteDto, FilterInvitesDto, Invite, InviteStatus } from '@/globals/types';
 import { useCallback, useEffect, useState } from 'react';
-import { useDepartments, useInvites, useRoles } from '@/hooks';
+import { useDepartments, useInvites, useRoles, useScreen } from '@/hooks';
 
 import { useNotification } from '@/components';
 
 const InvitesSection = () => {
   const theme = useTheme();
   const { isMobile } = useScreen();
-  
+
   const { showNotification } = useNotification();
   const { invites, loading, error, pagination, fetchInvites, createInvite, deleteInvite, clearError } = useInvites();
 
@@ -155,7 +147,7 @@ const InvitesSection = () => {
       showNotification('Convite criado com sucesso!', 'success');
       setCreateModalOpen(false);
       setCreateForm({ email: '', roleId: '', departmentIds: [] });
-      
+
       fetchInvites(filters);
     } catch (err) {
       let errorMessage = 'Erro ao criar convite';
@@ -273,12 +265,15 @@ const InvitesSection = () => {
         <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column' }}>
           {/* Filtros e Ações Responsivos */}
           <Box sx={{ mb: 4 }}>
-            <Grid container spacing={2}>
+            <Grid
+              container
+              spacing={2}
+            >
               {/* Campo de busca - sempre full width */}
               <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
-                  size="small"
+                  size='small'
                   placeholder='Buscar por email'
                   value={filters.email || ''}
                   onChange={(e) => {
@@ -316,7 +311,10 @@ const InvitesSection = () => {
 
               {/* Filtros em linha única no desktop, lado a lado no mobile */}
               <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-                <FormControl fullWidth size="small">
+                <FormControl
+                  fullWidth
+                  size='small'
+                >
                   <Select
                     value={filters.status || 'todos'}
                     displayEmpty
@@ -350,10 +348,15 @@ const InvitesSection = () => {
                       if (value === 'todos' || value === undefined) {
                         return <span style={{ color: '#9ca3af' }}>Status</span>;
                       }
-                      return value === 'pendente' ? 'Pendente' : 
-                             value === 'aceito' ? 'Aceito' : 
-                             value === 'recusado' ? 'Recusado' : 
-                             value === 'expirado' ? 'Expirado' : value;
+                      return value === 'pendente'
+                        ? 'Pendente'
+                        : value === 'aceito'
+                          ? 'Aceito'
+                          : value === 'recusado'
+                            ? 'Recusado'
+                            : value === 'expirado'
+                              ? 'Expirado'
+                              : value;
                     }}
                   >
                     <MenuItem value='todos'>Todos</MenuItem>
@@ -366,7 +369,10 @@ const InvitesSection = () => {
               </Grid>
 
               <Grid size={{ xs: 6, sm: 3, md: 2 }}>
-                <FormControl fullWidth size="small">
+                <FormControl
+                  fullWidth
+                  size='small'
+                >
                   <Select
                     value={filters.role || ''}
                     displayEmpty
@@ -401,7 +407,7 @@ const InvitesSection = () => {
                       if (!value) {
                         return <span style={{ color: '#9ca3af' }}>Role</span>;
                       }
-                      const role = roles.find(r => r._id === value);
+                      const role = roles.find((r) => r._id === value);
                       return role ? role.name : value;
                     }}
                   >
@@ -432,12 +438,14 @@ const InvitesSection = () => {
               {/* Botão limpar filtros - só aparece no desktop */}
               {!isMobile && (
                 <Grid size={{ xs: 12, sm: 3, md: 1 }}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    height: '40px'
-                  }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      height: '40px'
+                    }}
+                  >
                     <IconButton
                       onClick={handleClearFilters}
                       disabled={loading}
@@ -468,13 +476,15 @@ const InvitesSection = () => {
 
               {/* Botões de ação - responsivos e bem posicionados */}
               <Grid size={{ xs: 12, sm: 12, md: 6 }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  gap: 1,
-                  alignItems: 'center',
-                  justifyContent: { xs: 'stretch', sm: 'flex-end', md: 'flex-end' },
-                  flexDirection: { xs: 'column', sm: 'row' }
-                }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    alignItems: 'center',
+                    justifyContent: { xs: 'stretch', sm: 'flex-end', md: 'flex-end' },
+                    flexDirection: { xs: 'column', sm: 'row' }
+                  }}
+                >
                   {/* Botão limpar filtros - só aparece no mobile */}
                   {isMobile && (
                     <IconButton
@@ -535,7 +545,7 @@ const InvitesSection = () => {
                   >
                     Novo Convite
                   </Button>
-                  
+
                   {/* Botão Atualizar */}
                   <Button
                     startIcon={<RefreshIcon sx={{ fontSize: '1.25rem' }} />}
@@ -580,7 +590,7 @@ const InvitesSection = () => {
           {error && (
             <Alert
               severity='error'
-              sx={{ 
+              sx={{
                 mb: 3,
                 borderRadius: 3,
                 border: '1px solid #fecaca',
@@ -614,17 +624,20 @@ const InvitesSection = () => {
                 minHeight: 'auto'
               }}
             >
-              <Table stickyHeader sx={{ 
-                '& .MuiTableRow-root': {
-                  height: 64,
-                  '&:hover': {
-                    backgroundColor: '#f8fafc',
-                    transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                    transition: 'all 0.2s ease-in-out'
+              <Table
+                stickyHeader
+                sx={{
+                  '& .MuiTableRow-root': {
+                    height: 64,
+                    '&:hover': {
+                      backgroundColor: '#f8fafc',
+                      transform: 'translateY(-1px)',
+                      boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                      transition: 'all 0.2s ease-in-out'
+                    }
                   }
-                }
-              }}>
+                }}
+              >
                 <TableHead>
                   <TableRow
                     sx={{
@@ -659,19 +672,19 @@ const InvitesSection = () => {
                       <TableCell
                         colSpan={8}
                         align='center'
-                        sx={{ 
+                        sx={{
                           py: 6,
                           backgroundColor: '#fafafa'
                         }}
                       >
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                          <CircularProgress 
+                          <CircularProgress
                             size={32}
                             sx={{ color: theme.palette.primary.main }}
                           />
                           <Typography
                             variant='body2'
-                            sx={{ 
+                            sx={{
                               color: '#6b7280',
                               fontWeight: 500
                             }}
@@ -686,25 +699,25 @@ const InvitesSection = () => {
                       <TableCell
                         colSpan={8}
                         align='center'
-                        sx={{ 
+                        sx={{
                           py: 6,
                           backgroundColor: '#fafafa'
                         }}
                       >
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                           <MailOutlineIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
-                          <Typography 
+                          <Typography
                             variant='h6'
-                            sx={{ 
+                            sx={{
                               color: '#6b7280',
                               fontWeight: 500
                             }}
                           >
                             Nenhum convite encontrado
                           </Typography>
-                          <Typography 
+                          <Typography
                             variant='body2'
-                            sx={{ 
+                            sx={{
                               color: '#9ca3af',
                               fontStyle: 'italic'
                             }}
@@ -713,8 +726,8 @@ const InvitesSection = () => {
                           </Typography>
                           <Button
                             onClick={handleOpenCreate}
-                            variant="outlined"
-                            size="small"
+                            variant='outlined'
+                            size='small'
                             sx={{ mt: 1 }}
                           >
                             Novo Convite
@@ -788,7 +801,7 @@ const InvitesSection = () => {
                                 </Box>
                               );
                             }
-                            
+
                             return (
                               <Typography
                                 variant='body2'
@@ -833,7 +846,7 @@ const InvitesSection = () => {
                           <IconButton
                             size='small'
                             onClick={() => handleOpenDeleteConfirm(invite)}
-                            aria-label="Excluir convite"
+                            aria-label='Excluir convite'
                             sx={{
                               color: '#dc2626',
                               backgroundColor: 'transparent',
@@ -863,23 +876,29 @@ const InvitesSection = () => {
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               {loading ? (
                 // Loading skeletons for mobile
-                Array.from({ length: 3 }).map((_, index) => (
-                  <Paper
-                    key={index}
-                    variant="outlined"
-                    sx={{
-                      p: 2,
-                      borderRadius: 2,
-                      border: '1px solid #e5e7eb'
-                    }}
-                  >
-                    <Skeleton variant="rectangular" height={84} />
-                  </Paper>
-                ))
+                Array.from({ length: 3 }).map(() => {
+                  const uniqueKey = crypto.randomUUID();
+                  return (
+                    <Paper
+                      key={`skeleton-${uniqueKey}`}
+                      variant='outlined'
+                      sx={{
+                        p: 2,
+                        borderRadius: 2,
+                        border: '1px solid #e5e7eb'
+                      }}
+                    >
+                      <Skeleton
+                        variant='rectangular'
+                        height={84}
+                      />
+                    </Paper>
+                  );
+                })
               ) : invites.length === 0 ? (
                 // Empty state for mobile
                 <Paper
-                  variant="outlined"
+                  variant='outlined'
                   sx={{
                     p: 4,
                     borderRadius: 2,
@@ -890,18 +909,18 @@ const InvitesSection = () => {
                 >
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                     <MailOutlineIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
-                    <Typography 
+                    <Typography
                       variant='h6'
-                      sx={{ 
+                      sx={{
                         color: '#6b7280',
                         fontWeight: 500
                       }}
                     >
                       Nenhum convite encontrado
                     </Typography>
-                    <Typography 
+                    <Typography
                       variant='body2'
-                      sx={{ 
+                      sx={{
                         color: '#9ca3af',
                         fontStyle: 'italic'
                       }}
@@ -910,8 +929,8 @@ const InvitesSection = () => {
                     </Typography>
                     <Button
                       onClick={handleOpenCreate}
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                       sx={{ mt: 1 }}
                     >
                       Novo Convite
@@ -923,7 +942,7 @@ const InvitesSection = () => {
                 invites.map((invite) => (
                   <Paper
                     key={invite._id}
-                    variant="outlined"
+                    variant='outlined'
                     sx={{
                       p: 2,
                       borderRadius: 2,
@@ -937,9 +956,12 @@ const InvitesSection = () => {
                   >
                     <Stack spacing={1.5}>
                       {/* Top: Email */}
-                      <Tooltip title={invite.email} arrow>
+                      <Tooltip
+                        title={invite.email}
+                        arrow
+                      >
                         <Typography
-                          variant="subtitle1"
+                          variant='subtitle1'
                           fontWeight={600}
                           noWrap
                           sx={{
@@ -953,7 +975,12 @@ const InvitesSection = () => {
                       </Tooltip>
 
                       {/* Middle: Role and Status chips */}
-                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                      <Stack
+                        direction='row'
+                        spacing={1}
+                        flexWrap='wrap'
+                        useFlexGap
+                      >
                         <Chip
                           label={invite.role.name}
                           size='small'
@@ -978,11 +1005,15 @@ const InvitesSection = () => {
                       </Stack>
 
                       {/* Bottom: Actions */}
-                      <Stack direction="row" spacing={1} justifyContent="flex-end">
+                      <Stack
+                        direction='row'
+                        spacing={1}
+                        justifyContent='flex-end'
+                      >
                         <IconButton
-                          size="large"
+                          size='large'
                           onClick={() => handleOpenDeleteConfirm(invite)}
-                          aria-label="Excluir convite"
+                          aria-label='Excluir convite'
                           sx={{
                             color: '#dc2626',
                             backgroundColor: 'transparent',
@@ -1070,10 +1101,12 @@ const InvitesSection = () => {
       >
         <DialogContent sx={{ p: 0 }}>
           {/* Header */}
-          <Box sx={{ 
-            p: 3, 
-            borderBottom: '1px solid #CED0D4'
-          }}>
+          <Box
+            sx={{
+              p: 3,
+              borderBottom: '1px solid #CED0D4'
+            }}
+          >
             <Typography
               variant='h6'
               sx={{
@@ -1190,7 +1223,7 @@ const InvitesSection = () => {
                     if (!value) {
                       return <span style={{ color: '#65676B' }}>Selecione um role</span>;
                     }
-                    const role = roles.find(r => r._id === value);
+                    const role = roles.find((r) => r._id === value);
                     return role ? role.name : value;
                   }}
                 >
@@ -1267,7 +1300,9 @@ const InvitesSection = () => {
                     if (!selected || selected.length === 0) {
                       return <span style={{ color: '#65676B' }}>Selecione uma gerência</span>;
                     }
-                    return selected.map((id) => departments.find((dept) => dept._id === id)?.department_name).join(', ');
+                    return selected
+                      .map((id) => departments.find((dept) => dept._id === id)?.department_name)
+                      .join(', ');
                   }}
                 >
                   {departments.length === 0 ? (
@@ -1292,16 +1327,18 @@ const InvitesSection = () => {
             </Box>
           </Box>
         </DialogContent>
-        
+
         {/* Footer com botões */}
-        <Box sx={{ 
-          p: 3, 
-          backgroundColor: '#f9fafb',
-          borderTop: '1px solid #CED0D4',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          gap: 2
-        }}>
+        <Box
+          sx={{
+            p: 3,
+            backgroundColor: '#f9fafb',
+            borderTop: '1px solid #CED0D4',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 2
+          }}
+        >
           <Button
             onClick={() => setCreateModalOpen(false)}
             sx={{
@@ -1371,26 +1408,32 @@ const InvitesSection = () => {
       >
         <DialogContent sx={{ p: 4 }}>
           {/* Header com ícone */}
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            textAlign: 'center', 
-            mb: 3 
-          }}>
-            <Box sx={{
-              backgroundColor: '#fef2f2',
-              borderRadius: '50%',
-              p: 1.5,
-              mb: 2,
+          <Box
+            sx={{
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <DeleteIcon sx={{
-                fontSize: 32,
-                color: '#DC2626'
-              }} />
+              textAlign: 'center',
+              mb: 3
+            }}
+          >
+            <Box
+              sx={{
+                backgroundColor: '#fef2f2',
+                borderRadius: '50%',
+                p: 1.5,
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <DeleteIcon
+                sx={{
+                  fontSize: 32,
+                  color: '#DC2626'
+                }}
+              />
             </Box>
             <Typography
               variant='h5'
@@ -1414,17 +1457,20 @@ const InvitesSection = () => {
               fontSize: '1rem'
             }}
           >
-            Tem certeza que deseja excluir o convite para <strong style={{ color: '#1F2937' }}>{inviteToDelete?.email}</strong>?
+            Tem certeza que deseja excluir o convite para{' '}
+            <strong style={{ color: '#1F2937' }}>{inviteToDelete?.email}</strong>?
           </Typography>
 
           {/* Detalhes do convite */}
           {inviteToDelete && (
-            <Box sx={{ 
-              backgroundColor: '#f9fafb',
-              borderRadius: 2,
-              p: 2,
-              mb: 3
-            }}>
+            <Box
+              sx={{
+                backgroundColor: '#f9fafb',
+                borderRadius: 2,
+                p: 2,
+                mb: 3
+              }}
+            >
               <Typography
                 variant='body2'
                 sx={{
@@ -1437,38 +1483,55 @@ const InvitesSection = () => {
                 Detalhes do convite:
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                <Typography
+                  variant='body2'
+                  sx={{ fontSize: '0.875rem' }}
+                >
                   <strong style={{ fontWeight: 500 }}>Email:</strong> {inviteToDelete.email}
                 </Typography>
-                <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                <Typography
+                  variant='body2'
+                  sx={{ fontSize: '0.875rem' }}
+                >
                   <strong style={{ fontWeight: 500 }}>Role:</strong> {inviteToDelete.role.name}
                 </Typography>
-                <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                <Typography
+                  variant='body2'
+                  sx={{ fontSize: '0.875rem' }}
+                >
                   <strong style={{ fontWeight: 500 }}>Status:</strong> {getStatusText(inviteToDelete.status)}
                 </Typography>
-                <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
-                  <strong style={{ fontWeight: 500 }}>Criado em:</strong> {new Date(inviteToDelete.createdAt).toLocaleDateString('pt-BR')}
+                <Typography
+                  variant='body2'
+                  sx={{ fontSize: '0.875rem' }}
+                >
+                  <strong style={{ fontWeight: 500 }}>Criado em:</strong>{' '}
+                  {new Date(inviteToDelete.createdAt).toLocaleDateString('pt-BR')}
                 </Typography>
               </Box>
             </Box>
           )}
 
           {/* Alert de aviso */}
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            p: 2,
-            borderRadius: 2,
-            backgroundColor: '#FEF3C7',
-            border: '1px solid #FCD34D',
-            mb: 3
-          }}>
-            <WarningIcon sx={{
-              color: '#92400E',
-              fontSize: 20,
-              mr: 1.5,
-              mt: 0.25
-            }} />
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              p: 2,
+              borderRadius: 2,
+              backgroundColor: '#FEF3C7',
+              border: '1px solid #FCD34D',
+              mb: 3
+            }}
+          >
+            <WarningIcon
+              sx={{
+                color: '#92400E',
+                fontSize: 20,
+                mr: 1.5,
+                mt: 0.25
+              }}
+            />
             <Typography
               variant='body2'
               sx={{
@@ -1482,11 +1545,13 @@ const InvitesSection = () => {
           </Box>
 
           {/* Botões de ação */}
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'flex-end', 
-            gap: 2 
-          }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 2
+            }}
+          >
             <Button
               onClick={handleCancelDelete}
               sx={{

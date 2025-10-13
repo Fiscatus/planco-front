@@ -16,18 +16,12 @@ import {
   Box,
   Button,
   Card,
-  CardContent,
-  CardHeader,
   Chip,
   CircularProgress,
   Dialog,
-  DialogActions,
   DialogContent,
-  DialogTitle,
   FormControl,
   Grid,
-  InputAdornment,
-  InputLabel,
   List,
   ListItem,
   ListItemButton,
@@ -136,10 +130,12 @@ const GerenciaSection = () => {
     setMembersDialogOpen(true);
   }, []);
 
+  type UserWithMembership = User & { isMember?: boolean };
+
   const toggleUserSelection = useCallback(
     (userId: string) => {
-      const user = allUsers.find((u) => u._id === userId);
-      if (user && (user as any).isMember) {
+      const user = allUsers.find((u) => u._id === userId) as UserWithMembership | undefined;
+      if (user?.isMember) {
         showNotification('Este usuário já é membro do departamento', 'warning');
         return;
       }
@@ -215,11 +211,11 @@ const GerenciaSection = () => {
 
   const handleOpenEdit = useCallback(
     async (dept: Department) => {
-      
-      const responsavelId = typeof dept.responsavelUserId === 'string' 
-        ? dept.responsavelUserId 
-        : dept.responsavelUserId?._id || dept.responsavelUserId_details?._id;
-      
+      const responsavelId =
+        typeof dept.responsavelUserId === 'string'
+          ? dept.responsavelUserId
+          : dept.responsavelUserId?._id || dept.responsavelUserId_details?._id;
+
       setDepartmentForm({
         department_name: dept.department_name,
         department_acronym: dept.department_acronym,
@@ -429,7 +425,11 @@ const GerenciaSection = () => {
 
   return (
     <Box sx={{ minHeight: '100%', p: 3, bgcolor: 'background.default' }}>
-      <Grid container spacing={3} sx={{ alignItems: 'flex-start' }}>
+      <Grid
+        container
+        spacing={3}
+        sx={{ alignItems: 'flex-start' }}
+      >
         {/* Coluna da esquerda - Lista de Gerências */}
         <Grid size={{ xs: 12, lg: 4 }}>
           <Card
@@ -446,7 +446,10 @@ const GerenciaSection = () => {
           >
             <Box sx={{ p: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant='h6' sx={{ fontWeight: 500, px: 1 }}>
+                <Typography
+                  variant='h6'
+                  sx={{ fontWeight: 500, px: 1 }}
+                >
                   Gerências
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -482,7 +485,7 @@ const GerenciaSection = () => {
                   </Button>
                 </Box>
               </Box>
-              
+
               {error && (
                 <Alert
                   severity='error'
@@ -492,7 +495,7 @@ const GerenciaSection = () => {
                   {error}
                 </Alert>
               )}
-              
+
               <Box sx={{ position: 'relative' }}>
                 <SearchIcon
                   sx={{
@@ -560,7 +563,11 @@ const GerenciaSection = () => {
                         ).length;
                         const isSelected = selected?._id === dept._id;
                         return (
-                          <ListItem key={dept._id} disableGutters sx={{ mb: 0.5 }}>
+                          <ListItem
+                            key={dept._id}
+                            disableGutters
+                            sx={{ mb: 0.5 }}
+                          >
                             <ListItemButton
                               selected={isSelected}
                               onClick={() => setSelectedDept(dept)}
@@ -624,7 +631,10 @@ const GerenciaSection = () => {
                       })}
                       {paginatedDepartments.length === 0 && (
                         <Box sx={{ p: 2, textAlign: 'center' }}>
-                          <Typography variant='body2' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            color='text.secondary'
+                          >
                             Nenhuma gerência encontrada
                           </Typography>
                         </Box>
@@ -661,7 +671,10 @@ const GerenciaSection = () => {
 
         {/* Coluna da direita - Detalhes e Membros */}
         <Grid size={{ xs: 12, lg: 8 }}>
-          <Stack spacing={3} sx={{ alignItems: 'stretch' }}>
+          <Stack
+            spacing={3}
+            sx={{ alignItems: 'stretch' }}
+          >
             {/* Card de Detalhes da Gerência */}
             <Card
               sx={{
@@ -701,7 +714,10 @@ const GerenciaSection = () => {
                         />
                       )}
                     </Typography>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                    >
                       {selected ? 'Detalhes da gerência selecionada' : 'Selecione uma gerência à esquerda'}
                     </Typography>
                   </Box>
@@ -754,28 +770,51 @@ const GerenciaSection = () => {
                 </Box>
 
                 {selected ? (
-                  <Grid container spacing={3}>
+                  <Grid
+                    container
+                    spacing={3}
+                  >
                     <Grid size={{ xs: 12, md: 6 }}>
-                      <Typography variant='body2' fontWeight={500} color='text.secondary' sx={{ mb: 0.5 }}>
+                      <Typography
+                        variant='body2'
+                        fontWeight={500}
+                        color='text.secondary'
+                        sx={{ mb: 0.5 }}
+                      >
                         E-mail do departamento
                       </Typography>
                       <Typography variant='body2'>{selected.deparment_email}</Typography>
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
-                      <Typography variant='body2' fontWeight={500} color='text.secondary' sx={{ mb: 0.5 }}>
+                      <Typography
+                        variant='body2'
+                        fontWeight={500}
+                        color='text.secondary'
+                        sx={{ mb: 0.5 }}
+                      >
                         Responsável gerência
                       </Typography>
                       <Typography variant='body2'>{selected.email_owner}</Typography>
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
-                      <Typography variant='body2' fontWeight={500} color='text.secondary' sx={{ mb: 0.5 }}>
+                      <Typography
+                        variant='body2'
+                        fontWeight={500}
+                        color='text.secondary'
+                        sx={{ mb: 0.5 }}
+                      >
                         Telefone
                       </Typography>
                       <Typography variant='body2'>{selected.department_phone}</Typography>
                     </Grid>
                     {selected.description && (
                       <Grid size={{ xs: 12, md: 6 }}>
-                        <Typography variant='body2' fontWeight={500} color='text.secondary' sx={{ mb: 0.5 }}>
+                        <Typography
+                          variant='body2'
+                          fontWeight={500}
+                          color='text.secondary'
+                          sx={{ mb: 0.5 }}
+                        >
                           Descrição
                         </Typography>
                         <Typography variant='body2'>{selected.description}</Typography>
@@ -804,11 +843,18 @@ const GerenciaSection = () => {
               <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Box>
-                    <Typography variant='h5' sx={{ fontSize: '1.25rem', fontWeight: 500, mb: 0.5 }}>
+                    <Typography
+                      variant='h5'
+                      sx={{ fontSize: '1.25rem', fontWeight: 500, mb: 0.5 }}
+                    >
                       Membros
                     </Typography>
-                    <Typography variant='body2' color='text.secondary'>
-                      {membersOfSelected.length} usuário{membersOfSelected.length !== 1 ? 's' : ''} associado{membersOfSelected.length !== 1 ? 's' : ''}
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                    >
+                      {membersOfSelected.length} usuário{membersOfSelected.length !== 1 ? 's' : ''} associado
+                      {membersOfSelected.length !== 1 ? 's' : ''}
                     </Typography>
                   </Box>
                   <Button
@@ -846,16 +892,13 @@ const GerenciaSection = () => {
                       <Table stickyHeader>
                         <TableHead>
                           <TableRow>
-                            <TableCell sx={{ fontWeight: 500, color: 'text.secondary', py: 2 }}>
-                              Usuário
-                            </TableCell>
-                            <TableCell sx={{ fontWeight: 500, color: 'text.secondary', py: 2 }}>
-                              E-mail
-                            </TableCell>
-                            <TableCell sx={{ fontWeight: 500, color: 'text.secondary', py: 2 }}>
-                              Função
-                            </TableCell>
-                            <TableCell align='right' sx={{ fontWeight: 500, color: 'text.secondary', py: 2 }}>
+                            <TableCell sx={{ fontWeight: 500, color: 'text.secondary', py: 2 }}>Usuário</TableCell>
+                            <TableCell sx={{ fontWeight: 500, color: 'text.secondary', py: 2 }}>E-mail</TableCell>
+                            <TableCell sx={{ fontWeight: 500, color: 'text.secondary', py: 2 }}>Função</TableCell>
+                            <TableCell
+                              align='right'
+                              sx={{ fontWeight: 500, color: 'text.secondary', py: 2 }}
+                            >
                               Ações
                             </TableCell>
                           </TableRow>
@@ -866,7 +909,10 @@ const GerenciaSection = () => {
                             const isOnlyMember = membersOfSelected.length === 1;
                             const canRemove = !isResponsavel && !(isOnlyMember && isResponsavel);
                             return (
-                              <TableRow key={u._id} sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
+                              <TableRow
+                                key={u._id}
+                                sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
+                              >
                                 <TableCell sx={{ py: 2 }}>
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <Typography variant='body2'>
@@ -891,7 +937,10 @@ const GerenciaSection = () => {
                                 <TableCell sx={{ py: 2, textTransform: 'capitalize' }}>
                                   {isResponsavel ? 'Responsável' : 'Membro'}
                                 </TableCell>
-                                <TableCell align='right' sx={{ py: 2 }}>
+                                <TableCell
+                                  align='right'
+                                  sx={{ py: 2 }}
+                                >
                                   <Button
                                     size='small'
                                     variant='text'
@@ -973,13 +1022,15 @@ const GerenciaSection = () => {
       >
         <DialogContent sx={{ p: 0 }}>
           {/* Header */}
-          <Box sx={{ 
-            p: 3, 
-            borderBottom: '1px solid #e2e8f0',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
+          <Box
+            sx={{
+              p: 3,
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
             <Box>
               <Typography
                 variant='h5'
@@ -1008,7 +1059,10 @@ const GerenciaSection = () => {
           <Box sx={{ p: 4 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
               {/* Primeira linha - Departamento e Sigla */}
-              <Grid container spacing={3}>
+              <Grid
+                container
+                spacing={3}
+              >
                 <Grid size={{ xs: 12, md: 8 }}>
                   <Box>
                     <Typography
@@ -1102,7 +1156,10 @@ const GerenciaSection = () => {
               </Grid>
 
               {/* Segunda linha - Telefone e Email do Departamento */}
-              <Grid container spacing={3}>
+              <Grid
+                container
+                spacing={3}
+              >
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Box>
                     <Typography
@@ -1211,7 +1268,10 @@ const GerenciaSection = () => {
               </Grid>
 
               {/* Terceira linha - Responsável e Email do Responsável */}
-              <Grid container spacing={3}>
+              <Grid
+                container
+                spacing={3}
+              >
                 <Grid size={{ xs: 12, md: 6 }}>
                   <Box>
                     <Typography
@@ -1225,7 +1285,10 @@ const GerenciaSection = () => {
                     >
                       Responsável
                     </Typography>
-                    <FormControl fullWidth variant='outlined'>
+                    <FormControl
+                      fullWidth
+                      variant='outlined'
+                    >
                       <Select
                         value={
                           responsavelUsers.find((u) => u._id === departmentForm.responsavelUserId)
@@ -1407,17 +1470,19 @@ const GerenciaSection = () => {
             </Box>
           </Box>
         </DialogContent>
-        
+
         {/* Footer com botões */}
-        <Box sx={{ 
-          p: 3, 
-          backgroundColor: '#f8fafc',
-          borderTop: '1px solid #e2e8f0',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          gap: 1
-        }}>
+        <Box
+          sx={{
+            p: 3,
+            backgroundColor: '#f8fafc',
+            borderTop: '1px solid #e2e8f0',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
           <Button
             onClick={handleCloseDialogs}
             sx={{
@@ -1486,26 +1551,32 @@ const GerenciaSection = () => {
       >
         <DialogContent sx={{ p: 4 }}>
           {/* Header com ícone */}
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            textAlign: 'center', 
-            mb: 3 
-          }}>
-            <Box sx={{
-              backgroundColor: '#fef2f2',
-              borderRadius: '50%',
-              p: 1.5,
-              mb: 2,
+          <Box
+            sx={{
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <DeleteIcon sx={{
-                fontSize: 32,
-                color: '#DC2626'
-              }} />
+              textAlign: 'center',
+              mb: 3
+            }}
+          >
+            <Box
+              sx={{
+                backgroundColor: '#fef2f2',
+                borderRadius: '50%',
+                p: 1.5,
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <DeleteIcon
+                sx={{
+                  fontSize: 32,
+                  color: '#DC2626'
+                }}
+              />
             </Box>
             <Typography
               variant='h5'
@@ -1529,17 +1600,20 @@ const GerenciaSection = () => {
               fontSize: '1rem'
             }}
           >
-            Tem certeza que deseja excluir a gerência <strong style={{ color: '#1F2937' }}>{departmentToDelete?.department_name}</strong>?
+            Tem certeza que deseja excluir a gerência{' '}
+            <strong style={{ color: '#1F2937' }}>{departmentToDelete?.department_name}</strong>?
           </Typography>
 
           {/* Detalhes da gerência */}
           {departmentToDelete && (
-            <Box sx={{ 
-              backgroundColor: '#f9fafb',
-              borderRadius: 2,
-              p: 2,
-              mb: 3
-            }}>
+            <Box
+              sx={{
+                backgroundColor: '#f9fafb',
+                borderRadius: 2,
+                p: 2,
+                mb: 3
+              }}
+            >
               <Typography
                 variant='body2'
                 sx={{
@@ -1552,13 +1626,22 @@ const GerenciaSection = () => {
                 Detalhes da gerência:
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                <Typography
+                  variant='body2'
+                  sx={{ fontSize: '0.875rem' }}
+                >
                   <strong style={{ fontWeight: 500 }}>Nome:</strong> {departmentToDelete.department_name}
                 </Typography>
-                <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                <Typography
+                  variant='body2'
+                  sx={{ fontSize: '0.875rem' }}
+                >
                   <strong style={{ fontWeight: 500 }}>Sigla:</strong> {departmentToDelete.department_acronym}
                 </Typography>
-                <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                <Typography
+                  variant='body2'
+                  sx={{ fontSize: '0.875rem' }}
+                >
                   <strong style={{ fontWeight: 500 }}>E-mail:</strong> {departmentToDelete.deparment_email}
                 </Typography>
               </Box>
@@ -1566,21 +1649,25 @@ const GerenciaSection = () => {
           )}
 
           {/* Alert de aviso */}
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            p: 2,
-            borderRadius: 2,
-            backgroundColor: '#FEF3C7',
-            border: '1px solid #FCD34D',
-            mb: 3
-          }}>
-            <WarningIcon sx={{
-              color: '#92400E',
-              fontSize: 20,
-              mr: 1.5,
-              mt: 0.25
-            }} />
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              p: 2,
+              borderRadius: 2,
+              backgroundColor: '#FEF3C7',
+              border: '1px solid #FCD34D',
+              mb: 3
+            }}
+          >
+            <WarningIcon
+              sx={{
+                color: '#92400E',
+                fontSize: 20,
+                mr: 1.5,
+                mt: 0.25
+              }}
+            />
             <Typography
               variant='body2'
               sx={{
@@ -1594,11 +1681,13 @@ const GerenciaSection = () => {
           </Box>
 
           {/* Botões de ação */}
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'flex-end', 
-            gap: 2 
-          }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 2
+            }}
+          >
             <Button
               onClick={handleCloseDialogs}
               sx={{
@@ -1786,7 +1875,10 @@ const GerenciaSection = () => {
                         sx={{ py: 6 }}
                       >
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                          <CircularProgress size={32} sx={{ color: '#1877F2' }} />
+                          <CircularProgress
+                            size={32}
+                            sx={{ color: '#1877F2' }}
+                          />
                           <Typography
                             variant='body2'
                             sx={{ color: '#6b7280', fontWeight: 500 }}
@@ -1813,7 +1905,7 @@ const GerenciaSection = () => {
                     </TableRow>
                   ) : (
                     paginatedUsers.map((u) => (
-                      <TableRow 
+                      <TableRow
                         key={u._id}
                         sx={{
                           borderBottom: '1px solid #e5e7eb',
@@ -1833,7 +1925,7 @@ const GerenciaSection = () => {
                             >
                               {u.firstName} {u.lastName}
                             </Typography>
-                            {(u as any).isMember && (
+                            {(u as UserWithMembership).isMember && (
                               <Chip
                                 label='Já é membro'
                                 size='small'
@@ -1860,12 +1952,21 @@ const GerenciaSection = () => {
                             {u.email}
                           </Typography>
                         </TableCell>
-                        <TableCell align='right' sx={{ py: 2 }}>
+                        <TableCell
+                          align='right'
+                          sx={{ py: 2 }}
+                        >
                           <Button
                             size='small'
-                            variant={(u as any).isMember ? 'text' : selectedUserIds.includes(u._id || '') ? 'contained' : 'outlined'}
+                            variant={
+                              (u as UserWithMembership).isMember
+                                ? 'text'
+                                : selectedUserIds.includes(u._id || '')
+                                  ? 'contained'
+                                  : 'outlined'
+                            }
                             onClick={() => u._id && toggleUserSelection(u._id)}
-                            disabled={(u as any).isMember}
+                            disabled={(u as UserWithMembership).isMember}
                             sx={{
                               px: 2,
                               py: 1,
@@ -1874,30 +1975,34 @@ const GerenciaSection = () => {
                               borderRadius: 2,
                               textTransform: 'none',
                               minWidth: 100,
-                              ...((u as any).isMember ? {
-                                backgroundColor: '#f3f4f6',
-                                color: '#6b7280',
-                                cursor: 'not-allowed',
-                                '&:hover': {
-                                  backgroundColor: '#f3f4f6'
-                                }
-                              } : selectedUserIds.includes(u._id || '') ? {
-                                backgroundColor: '#1877F2',
-                                color: 'white',
-                                '&:hover': {
-                                  backgroundColor: '#166fe5'
-                                }
-                              } : {
-                                borderColor: '#1877F2',
-                                color: '#1877F2',
-                                '&:hover': {
-                                  backgroundColor: 'rgba(24, 119, 242, 0.04)',
-                                  borderColor: '#1877F2'
-                                }
-                              })
+                              ...((u as UserWithMembership).isMember
+                                ? {
+                                    backgroundColor: '#f3f4f6',
+                                    color: '#6b7280',
+                                    cursor: 'not-allowed',
+                                    '&:hover': {
+                                      backgroundColor: '#f3f4f6'
+                                    }
+                                  }
+                                : selectedUserIds.includes(u._id || '')
+                                  ? {
+                                      backgroundColor: '#1877F2',
+                                      color: 'white',
+                                      '&:hover': {
+                                        backgroundColor: '#166fe5'
+                                      }
+                                    }
+                                  : {
+                                      borderColor: '#1877F2',
+                                      color: '#1877F2',
+                                      '&:hover': {
+                                        backgroundColor: 'rgba(24, 119, 242, 0.04)',
+                                        borderColor: '#1877F2'
+                                      }
+                                    })
                             }}
                           >
-                            {(u as any).isMember
+                            {(u as UserWithMembership).isMember
                               ? 'Já é membro'
                               : selectedUserIds.includes(u._id || '')
                                 ? 'Remover'
@@ -1913,22 +2018,26 @@ const GerenciaSection = () => {
           </Box>
 
           {/* Footer */}
-          <Box sx={{ 
-            p: 4, 
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 2
-          }}>
+          <Box
+            sx={{
+              p: 4,
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 2
+            }}
+          >
             {/* Pagination Info */}
             <Typography
               variant='body2'
               sx={{ color: '#6b7280', fontSize: '0.875rem' }}
             >
-              {userPagination.page * userPagination.limit + 1}-{Math.min((userPagination.page + 1) * userPagination.limit, userPagination.total)} de {userPagination.total}
+              {userPagination.page * userPagination.limit + 1}-
+              {Math.min((userPagination.page + 1) * userPagination.limit, userPagination.total)} de{' '}
+              {userPagination.total}
             </Typography>
-            
+
             {/* Pagination Controls */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
               <Button

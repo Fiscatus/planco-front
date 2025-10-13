@@ -1,20 +1,23 @@
-import { Add as AddIcon, Close as CloseIcon, Delete as DeleteIcon, Edit as EditIcon, Refresh as RefreshIcon, Search as SearchIcon, Warning as WarningIcon } from '@mui/icons-material';
+import {
+  Add as AddIcon,
+  Close as CloseIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Refresh as RefreshIcon,
+  Search as SearchIcon,
+  Warning as WarningIcon
+} from '@mui/icons-material';
 import {
   Alert,
   Box,
   Button,
   Card,
-  CardContent,
-  CardHeader,
   Checkbox,
   Chip,
   CircularProgress,
   Dialog,
-  DialogActions,
   DialogContent,
-  DialogTitle,
   FormControlLabel,
-  FormGroup,
   Grid,
   IconButton,
   List,
@@ -22,13 +25,7 @@ import {
   ListItemButton,
   ListItemText,
   Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
   TablePagination,
-  TableRow,
   TextField,
   Typography
 } from '@mui/material';
@@ -184,9 +181,7 @@ const RolesSection = () => {
     setPagination((prev) => ({ ...prev, limit: newLimit, page: 0 }));
   }, []);
 
-  const filteredRoles = roles.filter(role => 
-    role.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredRoles = roles.filter((role) => role.name.toLowerCase().includes(search.toLowerCase()));
 
   const paginatedRoles = filteredRoles.slice(
     pagination.page * pagination.limit,
@@ -208,7 +203,11 @@ const RolesSection = () => {
 
   return (
     <Box sx={{ height: '100%', p: 3, bgcolor: 'background.default' }}>
-      <Grid container spacing={3} sx={{ height: '100%' }}>
+      <Grid
+        container
+        spacing={3}
+        sx={{ height: '100%' }}
+      >
         {/* Coluna da esquerda - Lista de Roles */}
         <Grid size={{ xs: 12, lg: 4 }}>
           <Card
@@ -224,7 +223,10 @@ const RolesSection = () => {
           >
             <Box sx={{ p: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant='h6' sx={{ fontWeight: 500, px: 1 }}>
+                <Typography
+                  variant='h6'
+                  sx={{ fontWeight: 500, px: 1 }}
+                >
                   Roles
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -260,7 +262,7 @@ const RolesSection = () => {
                   </Button>
                 </Box>
               </Box>
-              
+
               {error && (
                 <Alert
                   severity='error'
@@ -280,7 +282,7 @@ const RolesSection = () => {
                   {permissionsError}
                 </Alert>
               )}
-              
+
               <Box sx={{ position: 'relative' }}>
                 <SearchIcon
                   sx={{
@@ -345,7 +347,11 @@ const RolesSection = () => {
                       {paginatedRoles.map((role) => {
                         const isSelected = selectedRole?._id === role._id;
                         return (
-                          <ListItem key={role._id} disableGutters sx={{ mb: 0.5 }}>
+                          <ListItem
+                            key={role._id}
+                            disableGutters
+                            sx={{ mb: 0.5 }}
+                          >
                             <ListItemButton
                               selected={isSelected}
                               onClick={() => setSelectedRole(role)}
@@ -409,7 +415,10 @@ const RolesSection = () => {
                       })}
                       {paginatedRoles.length === 0 && (
                         <Box sx={{ p: 2, textAlign: 'center' }}>
-                          <Typography variant='body2' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            color='text.secondary'
+                          >
                             Nenhuma role encontrada
                           </Typography>
                         </Box>
@@ -446,7 +455,10 @@ const RolesSection = () => {
 
         {/* Coluna da direita - Detalhes da Role */}
         <Grid size={{ xs: 12, lg: 8 }}>
-          <Stack spacing={3} sx={{ height: '100%' }}>
+          <Stack
+            spacing={3}
+            sx={{ height: '100%' }}
+          >
             {/* Card de Detalhes da Role */}
             <Card
               sx={{
@@ -472,7 +484,10 @@ const RolesSection = () => {
                     >
                       {selectedRole ? selectedRole.name : 'Role selecionada'}
                     </Typography>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                    >
                       {selectedRole ? 'Detalhes da role selecionada' : 'Selecione uma role à esquerda'}
                     </Typography>
                   </Box>
@@ -527,29 +542,38 @@ const RolesSection = () => {
 
                 {selectedRole ? (
                   <Box>
-                    <Typography variant='body2' fontWeight={500} color='text.secondary' sx={{ mb: 1 }}>
+                    <Typography
+                      variant='body2'
+                      fontWeight={500}
+                      color='text.secondary'
+                      sx={{ mb: 1 }}
+                    >
                       Permissões ({selectedRole.permissions.length})
                     </Typography>
                     {selectedRole.permissions.length > 0 ? (
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                         {selectedRole.permissions.map((permission) => (
-                           <Chip
-                             key={permission}
-                             label={permission}
-                             size='small'
-                             sx={{
-                               fontSize: '0.75rem',
-                               fontWeight: 600,
-                               bgcolor: 'warning.main',
-                               color: 'white',
-                               border: 'none',
-                               borderRadius: 2
-                             }}
-                           />
-                         ))}
+                        {selectedRole.permissions.map((permission) => (
+                          <Chip
+                            key={permission}
+                            label={permission}
+                            size='small'
+                            sx={{
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              bgcolor: 'warning.main',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: 2
+                            }}
+                          />
+                        ))}
                       </Box>
                     ) : (
-                      <Typography variant='body2' color='text.secondary' sx={{ fontStyle: 'italic' }}>
+                      <Typography
+                        variant='body2'
+                        color='text.secondary'
+                        sx={{ fontStyle: 'italic' }}
+                      >
                         Nenhuma permissão definida
                       </Typography>
                     )}
@@ -578,13 +602,15 @@ const RolesSection = () => {
       >
         <DialogContent sx={{ p: 0 }}>
           {/* Header */}
-          <Box sx={{ 
-            p: 3, 
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2
-          }}>
+          <Box
+            sx={{
+              p: 3,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2
+            }}
+          >
             <Typography
               variant='h6'
               sx={{
@@ -686,7 +712,10 @@ const RolesSection = () => {
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CircularProgress size={20} sx={{ color: '#1877F2' }} />
+                        <CircularProgress
+                          size={20}
+                          sx={{ color: '#1877F2' }}
+                        />
                         <Typography
                           variant='body2'
                           sx={{ color: '#65676B' }}
@@ -763,15 +792,17 @@ const RolesSection = () => {
             </Box>
           </Box>
         </DialogContent>
-        
+
         {/* Footer com botões */}
-        <Box sx={{ 
-          p: 3, 
-          borderTop: '1px solid #DADDE1',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          gap: 2
-        }}>
+        <Box
+          sx={{
+            p: 3,
+            borderTop: '1px solid #DADDE1',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 2
+          }}
+        >
           <Button
             onClick={handleCloseModals}
             sx={{
@@ -841,13 +872,15 @@ const RolesSection = () => {
       >
         <DialogContent sx={{ p: 0 }}>
           {/* Header */}
-          <Box sx={{ 
-            p: 3, 
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            mb: 2
-          }}>
+          <Box
+            sx={{
+              p: 3,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 2
+            }}
+          >
             <Typography
               variant='h6'
               sx={{
@@ -920,7 +953,7 @@ const RolesSection = () => {
                 }}
               />
               {selectedRole?.name === 'Administrador' && (
-                <Alert 
+                <Alert
                   severity='info'
                   sx={{
                     mt: 1,
@@ -974,7 +1007,10 @@ const RolesSection = () => {
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CircularProgress size={20} sx={{ color: '#1877F2' }} />
+                        <CircularProgress
+                          size={20}
+                          sx={{ color: '#1877F2' }}
+                        />
                         <Typography
                           variant='body2'
                           sx={{ color: '#65676B' }}
@@ -1051,15 +1087,17 @@ const RolesSection = () => {
             </Box>
           </Box>
         </DialogContent>
-        
+
         {/* Footer com botões */}
-        <Box sx={{ 
-          p: 3, 
-          borderTop: '1px solid #DADDE1',
-          display: 'flex',
-          justifyContent: 'flex-end',
-          gap: 2
-        }}>
+        <Box
+          sx={{
+            p: 3,
+            borderTop: '1px solid #DADDE1',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 2
+          }}
+        >
           <Button
             onClick={handleCloseModals}
             sx={{
@@ -1129,26 +1167,32 @@ const RolesSection = () => {
       >
         <DialogContent sx={{ p: 4 }}>
           {/* Header com ícone */}
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center', 
-            textAlign: 'center', 
-            mb: 3 
-          }}>
-            <Box sx={{
-              backgroundColor: '#fef2f2',
-              borderRadius: '50%',
-              p: 1.5,
-              mb: 2,
+          <Box
+            sx={{
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <DeleteIcon sx={{
-                fontSize: 32,
-                color: '#DC2626'
-              }} />
+              textAlign: 'center',
+              mb: 3
+            }}
+          >
+            <Box
+              sx={{
+                backgroundColor: '#fef2f2',
+                borderRadius: '50%',
+                p: 1.5,
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <DeleteIcon
+                sx={{
+                  fontSize: 32,
+                  color: '#DC2626'
+                }}
+              />
             </Box>
             <Typography
               variant='h5'
@@ -1174,16 +1218,19 @@ const RolesSection = () => {
                   fontSize: '1rem'
                 }}
               >
-                Tem certeza que deseja excluir a role <strong style={{ color: '#1F2937' }}>{deleteImpact.roleName}</strong>?
+                Tem certeza que deseja excluir a role{' '}
+                <strong style={{ color: '#1F2937' }}>{deleteImpact.roleName}</strong>?
               </Typography>
 
               {/* Detalhes da role */}
-              <Box sx={{ 
-                backgroundColor: '#f9fafb',
-                borderRadius: 2,
-                p: 2,
-                mb: 3
-              }}>
+              <Box
+                sx={{
+                  backgroundColor: '#f9fafb',
+                  borderRadius: 2,
+                  p: 2,
+                  mb: 3
+                }}
+              >
                 <Typography
                   variant='body2'
                   sx={{
@@ -1196,31 +1243,41 @@ const RolesSection = () => {
                   Detalhes da role:
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                  <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                  <Typography
+                    variant='body2'
+                    sx={{ fontSize: '0.875rem' }}
+                  >
                     <strong style={{ fontWeight: 500 }}>Role:</strong> {deleteImpact.roleName}
                   </Typography>
-                  <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                  <Typography
+                    variant='body2'
+                    sx={{ fontSize: '0.875rem' }}
+                  >
                     <strong style={{ fontWeight: 500 }}>Usuários afetados:</strong> {deleteImpact.affectedUsers}
                   </Typography>
                 </Box>
               </Box>
 
               {/* Alert de impacto */}
-              <Box sx={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                p: 2,
-                borderRadius: 2,
-                backgroundColor: deleteImpact.canDelete ? '#FEF3C7' : '#FEF2F2',
-                border: `1px solid ${deleteImpact.canDelete ? '#FCD34D' : '#FECACA'}`,
-                mb: 3
-              }}>
-                <WarningIcon sx={{
-                  color: deleteImpact.canDelete ? '#92400E' : '#DC2626',
-                  fontSize: 20,
-                  mr: 1.5,
-                  mt: 0.25
-                }} />
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  p: 2,
+                  borderRadius: 2,
+                  backgroundColor: deleteImpact.canDelete ? '#FEF3C7' : '#FEF2F2',
+                  border: `1px solid ${deleteImpact.canDelete ? '#FCD34D' : '#FECACA'}`,
+                  mb: 3
+                }}
+              >
+                <WarningIcon
+                  sx={{
+                    color: deleteImpact.canDelete ? '#92400E' : '#DC2626',
+                    fontSize: 20,
+                    mr: 1.5,
+                    mt: 0.25
+                  }}
+                />
                 <Typography
                   variant='body2'
                   sx={{
@@ -1235,21 +1292,25 @@ const RolesSection = () => {
 
               {/* Alert adicional para usuários afetados */}
               {deleteImpact.affectedUsers > 0 && (
-                <Box sx={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  p: 2,
-                  borderRadius: 2,
-                  backgroundColor: '#EFF6FF',
-                  border: '1px solid #BFDBFE',
-                  mb: 3
-                }}>
-                  <WarningIcon sx={{
-                    color: '#1877F2',
-                    fontSize: 20,
-                    mr: 1.5,
-                    mt: 0.25
-                  }} />
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    p: 2,
+                    borderRadius: 2,
+                    backgroundColor: '#EFF6FF',
+                    border: '1px solid #BFDBFE',
+                    mb: 3
+                  }}
+                >
+                  <WarningIcon
+                    sx={{
+                      color: '#1877F2',
+                      fontSize: 20,
+                      mr: 1.5,
+                      mt: 0.25
+                    }}
+                  />
                   <Typography
                     variant='body2'
                     sx={{
@@ -1266,11 +1327,13 @@ const RolesSection = () => {
           )}
 
           {/* Botões de ação */}
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'flex-end', 
-            gap: 2 
-          }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 2
+            }}
+          >
             <Button
               onClick={handleCloseModals}
               sx={{
