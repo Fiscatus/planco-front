@@ -1,27 +1,27 @@
 import {
   Add as AddIcon,
+  Delete as DeleteIcon,
   Edit as EditIcon,
   GroupAdd as GroupAddIcon,
   Refresh as RefreshIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  KeyboardDoubleArrowLeft as KeyboardDoubleArrowLeftIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  KeyboardDoubleArrowRight as KeyboardDoubleArrowRightIcon,
+  Warning as WarningIcon
 } from '@mui/icons-material';
 import {
   Alert,
   Box,
   Button,
   Card,
-  CardContent,
-  CardHeader,
   Chip,
   CircularProgress,
   Dialog,
-  DialogActions,
   DialogContent,
-  DialogTitle,
   FormControl,
   Grid,
-  InputAdornment,
-  InputLabel,
   List,
   ListItem,
   ListItemButton,
@@ -130,10 +130,12 @@ const GerenciaSection = () => {
     setMembersDialogOpen(true);
   }, []);
 
+  type UserWithMembership = User & { isMember?: boolean };
+
   const toggleUserSelection = useCallback(
     (userId: string) => {
-      const user = allUsers.find((u) => u._id === userId);
-      if (user && (user as any).isMember) {
+      const user = allUsers.find((u) => u._id === userId) as UserWithMembership | undefined;
+      if (user?.isMember) {
         showNotification('Este usuário já é membro do departamento', 'warning');
         return;
       }
@@ -209,11 +211,11 @@ const GerenciaSection = () => {
 
   const handleOpenEdit = useCallback(
     async (dept: Department) => {
-      
-      const responsavelId = typeof dept.responsavelUserId === 'string' 
-        ? dept.responsavelUserId 
-        : dept.responsavelUserId?._id || dept.responsavelUserId_details?._id;
-      
+      const responsavelId =
+        typeof dept.responsavelUserId === 'string'
+          ? dept.responsavelUserId
+          : dept.responsavelUserId?._id || dept.responsavelUserId_details?._id;
+
       setDepartmentForm({
         department_name: dept.department_name,
         department_acronym: dept.department_acronym,
@@ -422,43 +424,68 @@ const GerenciaSection = () => {
   }, [membersOfSelected, membersPagination.page, membersPagination.limit]);
 
   return (
-    <Box>
+    <Box sx={{ minHeight: '100%', p: 3, bgcolor: 'background.default' }}>
       <Grid
         container
-        spacing={2}
+        spacing={3}
+        sx={{ alignItems: 'flex-start' }}
       >
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Card>
-            <CardHeader
-              title={<Typography variant='h6'>Gerências</Typography>}
-              subheader={`${departments.length} unidades`}
-              action={
-                <Stack
-                  direction='row'
-                  spacing={1}
+        {/* Coluna da esquerda - Lista de Gerências */}
+        <Grid size={{ xs: 12, lg: 4 }}>
+          <Card
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              borderRadius: 3,
+              boxShadow: 1,
+              border: '1px solid',
+              borderColor: 'divider',
+              height: 'fit-content',
+              maxHeight: '80vh'
+            }}
+          >
+            <Box sx={{ p: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography
+                  variant='h6'
+                  sx={{ fontWeight: 500, px: 1 }}
                 >
+                  Gerências
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Button
-                    startIcon={<RefreshIcon />}
                     onClick={handleRefresh}
                     disabled={loading}
-                    variant='outlined'
-                    size='small'
+                    sx={{
+                      minWidth: 'auto',
+                      p: 1,
+                      borderRadius: '50%',
+                      color: 'text.secondary',
+                      '&:hover': { bgcolor: 'grey.100' }
+                    }}
                   >
-                    Atualizar
+                    <RefreshIcon />
                   </Button>
                   <Button
                     startIcon={<AddIcon />}
                     variant='contained'
                     size='small'
-                    sx={{ textTransform: 'none' }}
                     onClick={handleOpenCreate}
+                    sx={{
+                      textTransform: 'none',
+                      borderRadius: 6,
+                      px: 2,
+                      py: 1,
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      boxShadow: 1
+                    }}
                   >
                     Nova Gerência
                   </Button>
-                </Stack>
-              }
-            />
-            <CardContent>
+                </Box>
+              </Box>
+
               {error && (
                 <Alert
                   severity='error'
@@ -468,84 +495,152 @@ const GerenciaSection = () => {
                   {error}
                 </Alert>
               )}
-              <TextField
-                fullWidth
-                placeholder='Buscar gerência...'
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <SearchIcon />
-                    </InputAdornment>
-                  )
-                }}
-                sx={{ mb: 2 }}
-              />
 
+              <Box sx={{ position: 'relative' }}>
+                <SearchIcon
+                  sx={{
+                    position: 'absolute',
+                    left: 14,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: 'text.secondary',
+                    fontSize: 22,
+                    zIndex: 1
+                  }}
+                />
+                <TextField
+                  fullWidth
+                  placeholder='Buscar gerências...'
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      pl: 6,
+                      pr: 3,
+                      py: 2,
+                      borderRadius: 8,
+                      fontSize: '0.95rem',
+                      height: 48,
+                      '& fieldset': {
+                        borderColor: 'divider',
+                        borderWidth: 1.5
+                      },
+                      '&:hover fieldset': {
+                        borderColor: 'primary.main',
+                        borderWidth: 1.5
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: 'primary.main',
+                        borderWidth: 2
+                      }
+                    },
+                    '& .MuiInputBase-input': {
+                      fontSize: '0.95rem',
+                      fontWeight: 400,
+                      '&::placeholder': {
+                        color: 'text.secondary',
+                        opacity: 0.8,
+                        fontSize: '0.95rem'
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               {loading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
                   <CircularProgress />
                 </Box>
               ) : (
                 <>
-                  <List disablePadding>
-                    {paginatedDepartments.map((dept) => {
-                      const memberCount = effectiveUsersForCounts.filter((u) =>
-                        (u.departments || []).some((d) => d._id === dept._id)
-                      ).length;
-                      const isSelected = selected?._id === dept._id;
-                      return (
-                        <ListItem
-                          key={dept._id}
-                          disableGutters
-                          sx={{ mb: 1 }}
-                        >
-                          <ListItemButton
-                            selected={isSelected}
-                            onClick={() => setSelectedDept(dept)}
-                            sx={{ borderRadius: 1 }}
+                  <Box sx={{ overflow: 'auto', px: 1, pb: 1, maxHeight: '50vh' }}>
+                    <List disablePadding>
+                      {paginatedDepartments.map((dept) => {
+                        const memberCount = effectiveUsersForCounts.filter((u) =>
+                          (u.departments || []).some((d) => d._id === dept._id)
+                        ).length;
+                        const isSelected = selected?._id === dept._id;
+                        return (
+                          <ListItem
+                            key={dept._id}
+                            disableGutters
+                            sx={{ mb: 0.5 }}
                           >
-                            <ListItemText
-                              primary={
-                                <Stack
-                                  direction='row'
-                                  spacing={1}
-                                  alignItems='center'
-                                >
+                            <ListItemButton
+                              selected={isSelected}
+                              onClick={() => setSelectedDept(dept)}
+                              sx={{
+                                borderRadius: 2,
+                                py: 1.5,
+                                px: 2,
+                                border: isSelected ? '2px solid' : '1px solid',
+                                borderColor: isSelected ? 'primary.main' : 'divider',
+                                bgcolor: isSelected ? 'primary.main' : 'background.paper',
+                                color: isSelected ? 'white' : 'text.primary',
+                                boxShadow: isSelected ? 1 : 0,
+                                transition: 'all 0.2s ease-in-out',
+                                '&:hover': {
+                                  bgcolor: isSelected ? 'primary.dark' : 'grey.50',
+                                  borderColor: isSelected ? 'primary.dark' : 'primary.main',
+                                  boxShadow: 1
+                                },
+                                '&.Mui-selected': {
+                                  bgcolor: 'primary.main',
+                                  color: 'white',
+                                  borderColor: 'primary.main',
+                                  boxShadow: 1,
+                                  '&:hover': {
+                                    bgcolor: 'primary.dark',
+                                    borderColor: 'primary.dark'
+                                  }
+                                }
+                              }}
+                            >
+                              <ListItemText
+                                primary={
                                   <Typography
-                                    variant='body1'
-                                    fontWeight={600}
+                                    variant='body2'
+                                    fontWeight={500}
+                                    sx={{ fontSize: '0.875rem' }}
                                   >
                                     {dept.department_name}
                                   </Typography>
-                                  <Chip
-                                    size='small'
-                                    label={dept.department_acronym}
-                                    variant='outlined'
-                                  />
-                                </Stack>
-                              }
-                            />
-                            {memberCount > 0 && (
-                              <Chip
-                                size='small'
-                                label={`${memberCount}`}
+                                }
                               />
-                            )}
-                          </ListItemButton>
-                        </ListItem>
-                      );
-                    })}
-                    {paginatedDepartments.length === 0 && (
-                      <Typography
-                        variant='body2'
-                        color='text.secondary'
-                      >
-                        Nenhuma gerência encontrada
-                      </Typography>
-                    )}
-                  </List>
+                              {memberCount > 0 && (
+                                <Chip
+                                  size='small'
+                                  label={memberCount}
+                                  sx={{
+                                    fontSize: '0.75rem',
+                                    fontWeight: 700,
+                                    height: 20,
+                                    bgcolor: isSelected ? 'white' : 'primary.main',
+                                    color: isSelected ? 'primary.main' : 'white',
+                                    borderRadius: 3,
+                                    border: isSelected ? '1px solid' : 'none',
+                                    borderColor: isSelected ? 'primary.main' : 'transparent'
+                                  }}
+                                />
+                              )}
+                            </ListItemButton>
+                          </ListItem>
+                        );
+                      })}
+                      {paginatedDepartments.length === 0 && (
+                        <Box sx={{ p: 2, textAlign: 'center' }}>
+                          <Typography
+                            variant='body2'
+                            color='text.secondary'
+                          >
+                            Nenhuma gerência encontrada
+                          </Typography>
+                        </Box>
+                      )}
+                    </List>
+                  </Box>
 
                   <TablePagination
                     component='div'
@@ -559,44 +654,93 @@ const GerenciaSection = () => {
                     labelDisplayedRows={({ from, to, count }) =>
                       `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
                     }
+                    sx={{
+                      borderTop: '1px solid',
+                      borderColor: 'divider',
+                      '& .MuiTablePagination-toolbar': {
+                        minHeight: 48,
+                        px: 2
+                      }
+                    }}
                   />
                 </>
               )}
-            </CardContent>
+            </Box>
           </Card>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Stack spacing={2}>
-            <Card>
-              <CardHeader
-                title={
-                  <Stack
-                    direction='row'
-                    spacing={1}
-                    alignItems='center'
-                  >
-                    <Typography variant='h6'>{selected ? selected.department_name : 'Gerência selecionada'}</Typography>
-                    {selected && (
-                      <Chip
-                        size='small'
-                        label={selected.department_acronym}
-                        variant='outlined'
-                      />
-                    )}
-                  </Stack>
-                }
-                subheader={selected ? 'Gerência selecionada' : 'Selecione uma gerência à esquerda'}
-                action={
-                  <Stack
-                    direction='row'
-                    spacing={1}
-                  >
+        {/* Coluna da direita - Detalhes e Membros */}
+        <Grid size={{ xs: 12, lg: 8 }}>
+          <Stack
+            spacing={3}
+            sx={{ alignItems: 'stretch' }}
+          >
+            {/* Card de Detalhes da Gerência */}
+            <Card
+              sx={{
+                borderRadius: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 1,
+                height: 'fit-content'
+              }}
+            >
+              <Box sx={{ p: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+                  <Box>
+                    <Typography
+                      variant='h4'
+                      sx={{
+                        fontSize: '1.5rem',
+                        fontWeight: 400,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        mb: 0.5
+                      }}
+                    >
+                      {selected ? selected.department_name : 'Gerência selecionada'}
+                      {selected && (
+                        <Chip
+                          size='small'
+                          label={selected.department_acronym}
+                          sx={{
+                            fontSize: '0.75rem',
+                            fontFamily: 'monospace',
+                            bgcolor: 'grey.200',
+                            color: 'text.secondary',
+                            borderRadius: 1
+                          }}
+                        />
+                      )}
+                    </Typography>
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                    >
+                      {selected ? 'Detalhes da gerência selecionada' : 'Selecione uma gerência à esquerda'}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Button
                       variant='outlined'
                       size='small'
                       startIcon={<EditIcon />}
                       onClick={() => selected && handleOpenEdit(selected)}
+                      sx={{
+                        textTransform: 'none',
+                        borderRadius: 6,
+                        px: 2,
+                        py: 1,
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        borderColor: 'primary.main',
+                        color: 'primary.main',
+                        '&:hover': {
+                          bgcolor: 'primary.main',
+                          color: 'white'
+                        }
+                      }}
                     >
                       Editar
                     </Button>
@@ -605,31 +749,48 @@ const GerenciaSection = () => {
                       size='small'
                       color='error'
                       onClick={() => selected && handleOpenDelete(selected)}
+                      sx={{
+                        textTransform: 'none',
+                        borderRadius: 6,
+                        px: 2,
+                        py: 1,
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        borderColor: 'error.main',
+                        color: 'error.main',
+                        '&:hover': {
+                          bgcolor: 'error.main',
+                          color: 'white'
+                        }
+                      }}
                     >
                       Excluir
                     </Button>
-                  </Stack>
-                }
-              />
-              <CardContent>
+                  </Box>
+                </Box>
+
                 {selected ? (
                   <Grid
                     container
-                    spacing={2}
+                    spacing={3}
                   >
                     <Grid size={{ xs: 12, md: 6 }}>
                       <Typography
-                        variant='subtitle2'
+                        variant='body2'
+                        fontWeight={500}
                         color='text.secondary'
+                        sx={{ mb: 0.5 }}
                       >
-                        E-mail do Departamento
+                        E-mail do departamento
                       </Typography>
                       <Typography variant='body2'>{selected.deparment_email}</Typography>
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
                       <Typography
-                        variant='subtitle2'
+                        variant='body2'
+                        fontWeight={500}
                         color='text.secondary'
+                        sx={{ mb: 0.5 }}
                       >
                         Responsável gerência
                       </Typography>
@@ -637,18 +798,22 @@ const GerenciaSection = () => {
                     </Grid>
                     <Grid size={{ xs: 12, md: 6 }}>
                       <Typography
-                        variant='subtitle2'
+                        variant='body2'
+                        fontWeight={500}
                         color='text.secondary'
+                        sx={{ mb: 0.5 }}
                       >
                         Telefone
                       </Typography>
                       <Typography variant='body2'>{selected.department_phone}</Typography>
                     </Grid>
                     {selected.description && (
-                      <Grid size={{ xs: 12 }}>
+                      <Grid size={{ xs: 12, md: 6 }}>
                         <Typography
-                          variant='subtitle2'
+                          variant='body2'
+                          fontWeight={500}
                           color='text.secondary'
+                          sx={{ mb: 0.5 }}
                         >
                           Descrição
                         </Typography>
@@ -659,39 +824,83 @@ const GerenciaSection = () => {
                 ) : (
                   <Alert severity='info'>Nenhuma gerência selecionada</Alert>
                 )}
-              </CardContent>
+              </Box>
             </Card>
 
-            <Card>
-              <CardHeader
-                title={<Typography variant='h6'>Membros</Typography>}
-                subheader='Usuários associados à gerência'
-                action={
+            {/* Card de Membros */}
+            <Card
+              sx={{
+                borderRadius: 3,
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                height: 'fit-content',
+                maxHeight: '70vh'
+              }}
+            >
+              <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box>
+                    <Typography
+                      variant='h5'
+                      sx={{ fontSize: '1.25rem', fontWeight: 500, mb: 0.5 }}
+                    >
+                      Membros
+                    </Typography>
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                    >
+                      {membersOfSelected.length} usuário{membersOfSelected.length !== 1 ? 's' : ''} associado
+                      {membersOfSelected.length !== 1 ? 's' : ''}
+                    </Typography>
+                  </Box>
                   <Button
                     startIcon={<GroupAddIcon />}
                     onClick={() => selected && openMembersDialog(selected)}
                     variant='contained'
                     disabled={!selected}
+                    sx={{
+                      textTransform: 'none',
+                      borderRadius: 6,
+                      px: 2,
+                      py: 1,
+                      fontSize: '0.875rem',
+                      fontWeight: 500,
+                      boxShadow: 1
+                    }}
                   >
                     Adicionar Membro
                   </Button>
-                }
-              />
-              <CardContent>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 {!selected ? (
-                  <Alert severity='info'>Selecione uma gerência para ver os membros</Alert>
+                  <Box sx={{ p: 3 }}>
+                    <Alert severity='info'>Selecione uma gerência para ver os membros</Alert>
+                  </Box>
                 ) : membersOfSelected.length === 0 ? (
-                  <Alert severity='info'>Nenhum membro. Clique em "Adicionar Membro".</Alert>
+                  <Box sx={{ p: 3 }}>
+                    <Alert severity='info'>Nenhum membro. Clique em "Adicionar Membro".</Alert>
+                  </Box>
                 ) : (
                   <>
-                    <TableContainer>
-                      <Table>
+                    <TableContainer sx={{ overflow: 'auto', maxHeight: '50vh' }}>
+                      <Table stickyHeader>
                         <TableHead>
                           <TableRow>
-                            <TableCell>Usuário</TableCell>
-                            <TableCell>E-mail</TableCell>
-                            <TableCell>Função</TableCell>
-                            <TableCell>Ações</TableCell>
+                            <TableCell sx={{ fontWeight: 500, color: 'text.secondary', py: 2 }}>Usuário</TableCell>
+                            <TableCell sx={{ fontWeight: 500, color: 'text.secondary', py: 2 }}>E-mail</TableCell>
+                            <TableCell sx={{ fontWeight: 500, color: 'text.secondary', py: 2 }}>Função</TableCell>
+                            <TableCell
+                              align='right'
+                              sx={{ fontWeight: 500, color: 'text.secondary', py: 2 }}
+                            >
+                              Ações
+                            </TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
@@ -700,8 +909,11 @@ const GerenciaSection = () => {
                             const isOnlyMember = membersOfSelected.length === 1;
                             const canRemove = !isResponsavel && !(isOnlyMember && isResponsavel);
                             return (
-                              <TableRow key={u._id}>
-                                <TableCell>
+                              <TableRow
+                                key={u._id}
+                                sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
+                              >
+                                <TableCell sx={{ py: 2 }}>
                                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                     <Typography variant='body2'>
                                       {u.firstName} {u.lastName}
@@ -710,18 +922,28 @@ const GerenciaSection = () => {
                                       <Chip
                                         label='Responsável'
                                         size='small'
-                                        color='primary'
-                                        variant='outlined'
+                                        sx={{
+                                          fontSize: '0.75rem',
+                                          fontWeight: 600,
+                                          bgcolor: 'warning.main',
+                                          color: 'white',
+                                          borderRadius: 1
+                                        }}
                                       />
                                     )}
                                   </Box>
                                 </TableCell>
-                                <TableCell>{u.email}</TableCell>
-                                <TableCell className='capitalize'>{isResponsavel ? 'Responsável' : 'Membro'}</TableCell>
-                                <TableCell>
+                                <TableCell sx={{ py: 2 }}>{u.email}</TableCell>
+                                <TableCell sx={{ py: 2, textTransform: 'capitalize' }}>
+                                  {isResponsavel ? 'Responsável' : 'Membro'}
+                                </TableCell>
+                                <TableCell
+                                  align='right'
+                                  sx={{ py: 2 }}
+                                >
                                   <Button
                                     size='small'
-                                    variant='outlined'
+                                    variant='text'
                                     color='error'
                                     disabled={!canRemove}
                                     onClick={async () => {
@@ -735,8 +957,18 @@ const GerenciaSection = () => {
                                         showNotification('Erro ao remover membro', 'error');
                                       }
                                     }}
+                                    sx={{
+                                      minWidth: 'auto',
+                                      p: 1,
+                                      borderRadius: '50%',
+                                      color: canRemove ? 'error.main' : 'text.disabled',
+                                      '&:hover': {
+                                        bgcolor: canRemove ? 'error.main' : 'transparent',
+                                        color: canRemove ? 'white' : 'text.disabled'
+                                      }
+                                    }}
                                   >
-                                    Remover
+                                    <DeleteIcon />
                                   </Button>
                                 </TableCell>
                               </TableRow>
@@ -746,22 +978,30 @@ const GerenciaSection = () => {
                       </Table>
                     </TableContainer>
 
-                    <TablePagination
-                      component='div'
-                      count={membersOfSelected.length}
-                      page={membersPagination.page}
-                      onPageChange={handleMembersPageChange}
-                      rowsPerPage={membersPagination.limit}
-                      onRowsPerPageChange={handleMembersRowsPerPageChange}
-                      rowsPerPageOptions={[5, 10, 25, 50]}
-                      labelRowsPerPage='Itens por página:'
-                      labelDisplayedRows={({ from, to, count }) =>
-                        `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
-                      }
-                    />
+                    <Box sx={{ borderTop: '1px solid', borderColor: 'divider' }}>
+                      <TablePagination
+                        component='div'
+                        count={membersOfSelected.length}
+                        page={membersPagination.page}
+                        onPageChange={handleMembersPageChange}
+                        rowsPerPage={membersPagination.limit}
+                        onRowsPerPageChange={handleMembersRowsPerPageChange}
+                        rowsPerPageOptions={[5, 10, 25, 50]}
+                        labelRowsPerPage='Itens por página:'
+                        labelDisplayedRows={({ from, to, count }) =>
+                          `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
+                        }
+                        sx={{
+                          '& .MuiTablePagination-toolbar': {
+                            minHeight: 48,
+                            px: 2
+                          }
+                        }}
+                      />
+                    </Box>
                   </>
                 )}
-              </CardContent>
+              </Box>
             </Card>
           </Stack>
         </Grid>
@@ -772,171 +1012,493 @@ const GerenciaSection = () => {
         onClose={handleCloseDialogs}
         fullWidth
         maxWidth='md'
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle>{editDialogOpen ? 'Editar Gerência' : 'Nova Gerência'}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pt: 1 }}>
-            <Grid
-              container
-              spacing={3}
-            >
-              <Grid size={{ xs: 12, md: 8 }}>
-                <TextField
-                  fullWidth
-                  label='Departamento'
-                  placeholder='Ex: Departamento de Projetos'
-                  value={departmentForm.department_name || ''}
-                  onChange={(e) => setDepartmentForm((prev) => ({ ...prev, department_name: e.target.value }))}
-                  required
-                  variant='outlined'
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 4 }}>
-                <TextField
-                  fullWidth
-                  label='Sigla'
-                  placeholder='GSP'
-                  value={departmentForm.department_acronym || ''}
-                  onChange={(e) =>
-                    setDepartmentForm((prev) => ({ ...prev, department_acronym: e.target.value.toUpperCase() }))
-                  }
-                  inputProps={{ maxLength: 5 }}
-                  variant='outlined'
-                />
-              </Grid>
+        <DialogContent sx={{ p: 0 }}>
+          {/* Header */}
+          <Box
+            sx={{
+              p: 3,
+              borderBottom: '1px solid #e2e8f0',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
+            <Box>
+              <Typography
+                variant='h5'
+                sx={{
+                  fontWeight: 700,
+                  color: '#0f172a',
+                  fontSize: '1.5rem'
+                }}
+              >
+                {editDialogOpen ? 'Editar Gerência' : 'Nova Gerência'}
+              </Typography>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: '#64748b',
+                  fontSize: '0.875rem',
+                  mt: 0.5
+                }}
+              >
+                {editDialogOpen ? 'Atualize os dados da gerência.' : 'Preencha os dados para criar uma nova gerência.'}
+              </Typography>
+            </Box>
+          </Box>
 
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  fullWidth
-                  label='Telefone'
-                  placeholder='(61) 99999-9999'
-                  value={departmentForm.department_phone || ''}
-                  onChange={(e) => {
-                    let value = e.target.value.replace(/\D/g, '');
-
-                    if (value.length <= 2) {
-                      // do nothing
-                    } else if (value.length <= 7) {
-                      value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
-                    } else {
-                      value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7, 11)}`;
-                    }
-
-                    setDepartmentForm((prev) => ({ ...prev, department_phone: value }));
-                  }}
-                  inputProps={{
-                    maxLength: 15
-                  }}
-                  variant='outlined'
-                />
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  fullWidth
-                  label='E-mail do Departamento'
-                  type='email'
-                  placeholder='gsp@org.gov.br'
-                  value={departmentForm.deparment_email || ''}
-                  onChange={(e) =>
-                    setDepartmentForm((prev) => ({ ...prev, deparment_email: e.target.value.toLowerCase() }))
-                  }
-                  required
-                  variant='outlined'
-                />
-              </Grid>
-
-              <Grid size={{ xs: 12, md: 6 }}>
-                <FormControl
-                  fullWidth
-                  variant='outlined'
-                >
-                  <InputLabel>Responsável</InputLabel>
-                  <Select
-                    value={
-                      responsavelUsers.find((u) => u._id === departmentForm.responsavelUserId)
-                        ? departmentForm.responsavelUserId || ''
-                        : ''
-                    }
-                    label='Responsável'
-                    onChange={(e) => {
-                      const userId = e.target.value;
-                      const selectedUser = responsavelUsers.find((u) => u._id === userId);
-                      setDepartmentForm((prev) => ({
-                        ...prev,
-                        responsavelUserId: userId || null,
-                        email_owner: selectedUser?.email || ''
-                      }));
-                    }}
-                    MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: 300,
-                          overflow: 'auto'
+          {/* Form Content */}
+          <Box sx={{ p: 4 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {/* Primeira linha - Departamento e Sigla */}
+              <Grid
+                container
+                spacing={3}
+              >
+                <Grid size={{ xs: 12, md: 8 }}>
+                  <Box>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                        color: '#64748b',
+                        mb: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      Departamento *
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      placeholder='Nome do Departamento'
+                      value={departmentForm.department_name || ''}
+                      onChange={(e) => setDepartmentForm((prev) => ({ ...prev, department_name: e.target.value }))}
+                      required
+                      variant='outlined'
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#ffffff',
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0',
+                            transition: 'all 0.2s ease-in-out'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#cbd5e1'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1877F2',
+                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          }
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: '#9ca3af',
+                          opacity: 1
                         }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <Box>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                        color: '#64748b',
+                        mb: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      Sigla
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      placeholder='Ex: DFIN'
+                      value={departmentForm.department_acronym || ''}
+                      onChange={(e) =>
+                        setDepartmentForm((prev) => ({ ...prev, department_acronym: e.target.value.toUpperCase() }))
                       }
-                    }}
-                  >
-                    <MenuItem value=''>
-                      <em>Nenhum</em>
-                    </MenuItem>
-                    {responsavelUsers.map((user) => (
-                      <MenuItem
-                        key={user._id}
-                        value={user._id}
-                      >
-                        <Box>
-                          <Typography
-                            variant='body2'
-                            fontWeight={600}
-                          >
-                            {user.firstName} {user.lastName}
-                          </Typography>
-                          <Typography
-                            variant='body2'
-                            color='text.secondary'
-                          >
-                            {user.email}
-                          </Typography>
-                        </Box>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid size={{ xs: 12, md: 6 }}>
-                <TextField
-                  fullWidth
-                  label='E-mail do Responsável'
-                  type='email'
-                  placeholder='Selecione um responsável'
-                  value={departmentForm.email_owner || ''}
-                  InputProps={{
-                    readOnly: true
-                  }}
-                  variant='outlined'
-                  helperText='Preenchido automaticamente com o email do responsável selecionado'
-                />
+                      inputProps={{ maxLength: 5 }}
+                      variant='outlined'
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#ffffff',
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0',
+                            transition: 'all 0.2s ease-in-out'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#cbd5e1'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1877F2',
+                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          }
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: '#9ca3af',
+                          opacity: 1
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
               </Grid>
 
-              <Grid size={{ xs: 12 }}>
+              {/* Segunda linha - Telefone e Email do Departamento */}
+              <Grid
+                container
+                spacing={3}
+              >
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Box>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                        color: '#64748b',
+                        mb: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      Telefone
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      placeholder='(00) 00000-0000'
+                      value={departmentForm.department_phone || ''}
+                      onChange={(e) => {
+                        let value = e.target.value.replace(/\D/g, '');
+
+                        if (value.length <= 2) {
+                          // do nothing
+                        } else if (value.length <= 7) {
+                          value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
+                        } else {
+                          value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7, 11)}`;
+                        }
+
+                        setDepartmentForm((prev) => ({ ...prev, department_phone: value }));
+                      }}
+                      inputProps={{
+                        maxLength: 15
+                      }}
+                      variant='outlined'
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#ffffff',
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0',
+                            transition: 'all 0.2s ease-in-out'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#cbd5e1'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1877F2',
+                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          }
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: '#9ca3af',
+                          opacity: 1
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Box>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                        color: '#64748b',
+                        mb: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      E-mail do Departamento *
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      type='email'
+                      placeholder='contato@departamento.com'
+                      value={departmentForm.deparment_email || ''}
+                      onChange={(e) =>
+                        setDepartmentForm((prev) => ({ ...prev, deparment_email: e.target.value.toLowerCase() }))
+                      }
+                      required
+                      variant='outlined'
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#ffffff',
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0',
+                            transition: 'all 0.2s ease-in-out'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#cbd5e1'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1877F2',
+                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          }
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: '#9ca3af',
+                          opacity: 1
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+              </Grid>
+
+              {/* Terceira linha - Responsável e Email do Responsável */}
+              <Grid
+                container
+                spacing={3}
+              >
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Box>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                        color: '#64748b',
+                        mb: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      Responsável
+                    </Typography>
+                    <FormControl
+                      fullWidth
+                      variant='outlined'
+                    >
+                      <Select
+                        value={
+                          responsavelUsers.find((u) => u._id === departmentForm.responsavelUserId)
+                            ? departmentForm.responsavelUserId || ''
+                            : ''
+                        }
+                        onChange={(e) => {
+                          const userId = e.target.value;
+                          const selectedUser = responsavelUsers.find((u) => u._id === userId);
+                          setDepartmentForm((prev) => ({
+                            ...prev,
+                            responsavelUserId: userId || null,
+                            email_owner: selectedUser?.email || ''
+                          }));
+                        }}
+                        displayEmpty
+                        sx={{
+                          backgroundColor: '#ffffff',
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0',
+                            transition: 'all 0.2s ease-in-out'
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#cbd5e1'
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1877F2',
+                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          },
+                          '& .MuiSelect-select': {
+                            color: departmentForm.responsavelUserId ? '#0f172a' : '#9ca3af'
+                          }
+                        }}
+                        renderValue={(value) => {
+                          if (!value) {
+                            return <span style={{ color: '#9ca3af' }}>Selecione um responsável</span>;
+                          }
+                          const user = responsavelUsers.find((u) => u._id === value);
+                          return user ? `${user.firstName} ${user.lastName}` : '';
+                        }}
+                        MenuProps={{
+                          PaperProps: {
+                            style: {
+                              maxHeight: 300,
+                              overflow: 'auto'
+                            }
+                          }
+                        }}
+                      >
+                        <MenuItem value=''>
+                          <em>Nenhum</em>
+                        </MenuItem>
+                        {responsavelUsers.map((user) => (
+                          <MenuItem
+                            key={user._id}
+                            value={user._id}
+                          >
+                            <Box>
+                              <Typography
+                                variant='body2'
+                                fontWeight={600}
+                              >
+                                {user.firstName} {user.lastName}
+                              </Typography>
+                              <Typography
+                                variant='body2'
+                                color='text.secondary'
+                              >
+                                {user.email}
+                              </Typography>
+                            </Box>
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Box>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 500,
+                        color: '#64748b',
+                        mb: 1,
+                        fontSize: '0.875rem'
+                      }}
+                    >
+                      E-mail do Responsável
+                    </Typography>
+                    <TextField
+                      fullWidth
+                      type='email'
+                      placeholder='fulano@empresa.com'
+                      value={departmentForm.email_owner || ''}
+                      InputProps={{
+                        readOnly: true
+                      }}
+                      variant='outlined'
+                      disabled
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          backgroundColor: '#f1f5f9',
+                          borderRadius: 2,
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0'
+                          }
+                        },
+                        '& .MuiInputBase-input': {
+                          color: '#64748b',
+                          cursor: 'not-allowed'
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: '#9ca3af',
+                          opacity: 1
+                        }
+                      }}
+                    />
+                    <Typography
+                      variant='caption'
+                      sx={{
+                        color: '#64748b',
+                        fontSize: '0.75rem',
+                        mt: 0.5,
+                        display: 'block'
+                      }}
+                    >
+                      Preenchido automaticamente com o e-mail do responsável.
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+
+              {/* Descrição */}
+              <Box>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    fontWeight: 500,
+                    color: '#64748b',
+                    mb: 1,
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  Descrição
+                </Typography>
                 <TextField
                   fullWidth
-                  label='Descrição'
                   multiline
-                  rows={3}
-                  placeholder='Descreva as responsabilidades e objetivos desta gerência...'
+                  rows={4}
+                  placeholder='Descreva as atividades e responsabilidades da gerência...'
                   value={departmentForm.description || ''}
                   onChange={(e) => setDepartmentForm((prev) => ({ ...prev, description: e.target.value }))}
                   variant='outlined'
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: '#ffffff',
+                      borderRadius: 2,
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        border: '2px solid #e2e8f0',
+                        transition: 'all 0.2s ease-in-out'
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#cbd5e1'
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#1877F2',
+                        boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                      }
+                    },
+                    '& .MuiInputBase-input::placeholder': {
+                      color: '#9ca3af',
+                      opacity: 1
+                    }
+                  }}
                 />
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
+
+        {/* Footer com botões */}
+        <Box
+          sx={{
+            p: 3,
+            backgroundColor: '#f8fafc',
+            borderTop: '1px solid #e2e8f0',
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
           <Button
             onClick={handleCloseDialogs}
-            variant='outlined'
+            sx={{
+              px: 3,
+              py: 1.25,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: '#64748b',
+              textTransform: 'uppercase',
+              borderRadius: 2,
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: '#f1f5f9',
+                color: '#0f172a'
+              }
+            }}
           >
             Cancelar
           </Button>
@@ -944,10 +1506,34 @@ const GerenciaSection = () => {
             onClick={handleSaveDepartment}
             variant='contained'
             disabled={savingDepartment}
+            sx={{
+              px: 4,
+              py: 1.25,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              backgroundColor: '#1877F2',
+              textTransform: 'uppercase',
+              borderRadius: 2,
+              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: '#166fe5',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              },
+              '&:focus': {
+                outline: 'none',
+                boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+              },
+              '&:disabled': {
+                backgroundColor: '#e5e7eb',
+                color: '#9ca3af',
+                boxShadow: 'none'
+              }
+            }}
           >
-            {savingDepartment ? 'Salvando...' : editDialogOpen ? 'Atualizar' : 'Criar'}
+            {savingDepartment ? 'Salvando...' : editDialogOpen ? 'Atualizar' : 'Criar Gerência'}
           </Button>
-        </DialogActions>
+        </Box>
       </Dialog>
 
       <Dialog
@@ -955,91 +1541,329 @@ const GerenciaSection = () => {
         onClose={handleCloseDialogs}
         fullWidth
         maxWidth='sm'
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            overflow: 'hidden'
+          }
+        }}
       >
-        <DialogTitle>Confirmar Exclusão</DialogTitle>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-            <Typography variant='body1'>
-              Tem certeza que deseja excluir a gerência <strong>{departmentToDelete?.department_name}</strong>?
+        <DialogContent sx={{ p: 4 }}>
+          {/* Header com ícone */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              mb: 3
+            }}
+          >
+            <Box
+              sx={{
+                backgroundColor: '#fef2f2',
+                borderRadius: '50%',
+                p: 1.5,
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <DeleteIcon
+                sx={{
+                  fontSize: 32,
+                  color: '#DC2626'
+                }}
+              />
+            </Box>
+            <Typography
+              variant='h5'
+              sx={{
+                fontWeight: 700,
+                color: '#1F2937',
+                fontSize: '1.5rem'
+              }}
+            >
+              Confirmar Exclusão
             </Typography>
-            {departmentToDelete && (
-              <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+          </Box>
+
+          {/* Texto de confirmação */}
+          <Typography
+            variant='body1'
+            sx={{
+              textAlign: 'center',
+              color: '#6B7280',
+              mb: 3,
+              fontSize: '1rem'
+            }}
+          >
+            Tem certeza que deseja excluir a gerência{' '}
+            <strong style={{ color: '#1F2937' }}>{departmentToDelete?.department_name}</strong>?
+          </Typography>
+
+          {/* Detalhes da gerência */}
+          {departmentToDelete && (
+            <Box
+              sx={{
+                backgroundColor: '#f9fafb',
+                borderRadius: 2,
+                p: 2,
+                mb: 3
+              }}
+            >
+              <Typography
+                variant='body2'
+                sx={{
+                  fontWeight: 600,
+                  color: '#1F2937',
+                  mb: 1,
+                  fontSize: '0.875rem'
+                }}
+              >
+                Detalhes da gerência:
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                 <Typography
                   variant='body2'
-                  color='text.secondary'
-                  gutterBottom
+                  sx={{ fontSize: '0.875rem' }}
                 >
-                  Detalhes da gerência:
+                  <strong style={{ fontWeight: 500 }}>Nome:</strong> {departmentToDelete.department_name}
                 </Typography>
-                <Typography variant='body2'>
-                  <strong>Nome:</strong> {departmentToDelete.department_name}
+                <Typography
+                  variant='body2'
+                  sx={{ fontSize: '0.875rem' }}
+                >
+                  <strong style={{ fontWeight: 500 }}>Sigla:</strong> {departmentToDelete.department_acronym}
                 </Typography>
-                <Typography variant='body2'>
-                  <strong>Sigla:</strong> {departmentToDelete.department_acronym}
-                </Typography>
-                <Typography variant='body2'>
-                  <strong>E-mail:</strong> {departmentToDelete.deparment_email}
+                <Typography
+                  variant='body2'
+                  sx={{ fontSize: '0.875rem' }}
+                >
+                  <strong style={{ fontWeight: 500 }}>E-mail:</strong> {departmentToDelete.deparment_email}
                 </Typography>
               </Box>
-            )}
-            <Alert severity='warning'>Esta ação não pode ser desfeita. A gerência será permanentemente removida.</Alert>
+            </Box>
+          )}
+
+          {/* Alert de aviso */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              p: 2,
+              borderRadius: 2,
+              backgroundColor: '#FEF3C7',
+              border: '1px solid #FCD34D',
+              mb: 3
+            }}
+          >
+            <WarningIcon
+              sx={{
+                color: '#92400E',
+                fontSize: 20,
+                mr: 1.5,
+                mt: 0.25
+              }}
+            />
+            <Typography
+              variant='body2'
+              sx={{
+                color: '#92400E',
+                fontSize: '0.875rem',
+                lineHeight: 1.5
+              }}
+            >
+              Esta ação não pode ser desfeita. A gerência será permanentemente removida.
+            </Typography>
+          </Box>
+
+          {/* Botões de ação */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 2
+            }}
+          >
+            <Button
+              onClick={handleCloseDialogs}
+              sx={{
+                px: 3,
+                py: 1.25,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: '#1F2937',
+                textTransform: 'uppercase',
+                borderRadius: 2,
+                border: '1px solid #E5E7EB',
+                backgroundColor: 'transparent',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: '#f3f4f6',
+                  borderColor: '#D1D5DB'
+                }
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleDeleteDepartment}
+              disabled={savingDepartment}
+              sx={{
+                px: 3,
+                py: 1.25,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                backgroundColor: '#DC2626',
+                textTransform: 'uppercase',
+                borderRadius: 2,
+                color: 'white',
+                transition: 'all 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: '#B91C1C'
+                },
+                '&:disabled': {
+                  backgroundColor: '#e5e7eb',
+                  color: '#9ca3af'
+                }
+              }}
+            >
+              {savingDepartment ? 'Excluindo...' : 'Confirmar Exclusão'}
+            </Button>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={handleCloseDialogs}
-            variant='outlined'
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleDeleteDepartment}
-            color='error'
-            variant='contained'
-          >
-            {savingDepartment ? 'Excluindo...' : 'Confirmar Exclusão'}
-          </Button>
-        </DialogActions>
       </Dialog>
 
       <Dialog
         open={membersDialogOpen}
         onClose={() => setMembersDialogOpen(false)}
         fullWidth
-        maxWidth='md'
+        maxWidth='lg'
         PaperProps={{
           sx: {
-            height: '650px',
-            maxHeight: '650px'
+            borderRadius: 2,
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            overflow: 'hidden',
+            height: 'auto',
+            maxHeight: '90vh'
           }
         }}
       >
-        <DialogTitle>Gerenciar membros {selectedDept ? `- ${selectedDept.department_name}` : ''}</DialogTitle>
-        <DialogContent sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 0 }}>
-          <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
-            <TextField
-              fullWidth
-              placeholder='Buscar usuários por nome ou email...'
-              value={userSearch}
-              onChange={(e) => handleUserSearch(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                )
+        <DialogContent sx={{ p: 0 }}>
+          {/* Header */}
+          <Box sx={{ p: 4, mb: 2 }}>
+            <Typography
+              variant='h5'
+              sx={{
+                fontWeight: 700,
+                color: '#1f2937',
+                fontSize: '1.5rem',
+                mb: 0.5
               }}
-            />
+            >
+              Adicionar Membro
+            </Typography>
+            <Typography
+              variant='body2'
+              sx={{
+                color: '#6b7280',
+                fontSize: '0.875rem'
+              }}
+            >
+              Gerencie os membros da equipe de {selectedDept?.department_name || 'Gerência'}.
+            </Typography>
           </Box>
 
-          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            <TableContainer sx={{ flex: 1, overflow: 'auto' }}>
-              <Table stickyHeader>
+          {/* Search Bar */}
+          <Box sx={{ px: 4, mb: 3 }}>
+            <Box sx={{ position: 'relative' }}>
+              <SearchIcon
+                sx={{
+                  position: 'absolute',
+                  left: 16,
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#6b7280',
+                  fontSize: 20,
+                  zIndex: 1
+                }}
+              />
+              <TextField
+                fullWidth
+                placeholder='Buscar usuários por nome ou email...'
+                value={userSearch}
+                onChange={(e) => handleUserSearch(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    pl: 5,
+                    pr: 3,
+                    py: 1.5,
+                    backgroundColor: '#f5f7f8',
+                    borderRadius: 2,
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      border: '1px solid #e5e7eb',
+                      transition: 'all 0.2s ease-in-out'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#d1d5db'
+                    },
+                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#1877F2',
+                      boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                    }
+                  },
+                  '& .MuiInputBase-input::placeholder': {
+                    color: '#6b7280',
+                    opacity: 1
+                  }
+                }}
+              />
+            </Box>
+          </Box>
+
+          {/* Table Content */}
+          <Box sx={{ px: 4, mb: 4 }}>
+            <TableContainer sx={{ overflow: 'auto' }}>
+              <Table>
                 <TableHead>
-                  <TableRow>
-                    <TableCell>Usuário</TableCell>
-                    <TableCell>E-mail</TableCell>
-                    <TableCell align='center'>Ação</TableCell>
+                  <TableRow sx={{ borderBottom: '1px solid #e5e7eb' }}>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        color: '#6b7280',
+                        fontSize: '0.875rem',
+                        py: 2,
+                        borderBottom: '1px solid #e5e7eb'
+                      }}
+                    >
+                      Usuário
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: 600,
+                        color: '#6b7280',
+                        fontSize: '0.875rem',
+                        py: 2,
+                        borderBottom: '1px solid #e5e7eb'
+                      }}
+                    >
+                      E-mail
+                    </TableCell>
+                    <TableCell
+                      align='right'
+                      sx={{
+                        fontWeight: 600,
+                        color: '#6b7280',
+                        fontSize: '0.875rem',
+                        py: 2,
+                        borderBottom: '1px solid #e5e7eb'
+                      }}
+                    >
+                      Ação
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -1048,15 +1872,20 @@ const GerenciaSection = () => {
                       <TableCell
                         colSpan={3}
                         align='center'
-                        sx={{ py: 4 }}
+                        sx={{ py: 6 }}
                       >
-                        <CircularProgress />
-                        <Typography
-                          variant='body2'
-                          sx={{ mt: 1 }}
-                        >
-                          Carregando usuários...
-                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
+                          <CircularProgress
+                            size={32}
+                            sx={{ color: '#1877F2' }}
+                          />
+                          <Typography
+                            variant='body2'
+                            sx={{ color: '#6b7280', fontWeight: 500 }}
+                          >
+                            Carregando usuários...
+                          </Typography>
+                        </Box>
                       </TableCell>
                     </TableRow>
                   ) : paginatedUsers.length === 0 ? (
@@ -1064,11 +1893,11 @@ const GerenciaSection = () => {
                       <TableCell
                         colSpan={3}
                         align='center'
-                        sx={{ py: 4 }}
+                        sx={{ py: 6 }}
                       >
                         <Typography
                           variant='body2'
-                          color='text.secondary'
+                          sx={{ color: '#6b7280' }}
                         >
                           {userSearch ? 'Nenhum usuário encontrado' : 'Digite para buscar usuários'}
                         </Typography>
@@ -1076,42 +1905,104 @@ const GerenciaSection = () => {
                     </TableRow>
                   ) : (
                     paginatedUsers.map((u) => (
-                      <TableRow key={u._id}>
-                        <TableCell>
+                      <TableRow
+                        key={u._id}
+                        sx={{
+                          borderBottom: '1px solid #e5e7eb',
+                          '&:last-child': {
+                            borderBottom: 'none'
+                          }
+                        }}
+                      >
+                        <TableCell sx={{ py: 2 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <Typography
                               variant='body2'
-                              fontWeight={600}
+                              sx={{
+                                fontWeight: 500,
+                                color: '#1f2937'
+                              }}
                             >
                               {u.firstName} {u.lastName}
                             </Typography>
-                            {(u as any).isMember && (
+                            {(u as UserWithMembership).isMember && (
                               <Chip
                                 label='Já é membro'
                                 size='small'
-                                color='success'
-                                variant='outlined'
+                                sx={{
+                                  fontSize: '0.75rem',
+                                  fontWeight: 500,
+                                  backgroundColor: '#dcfce7',
+                                  color: '#166534',
+                                  borderRadius: '9999px',
+                                  height: 20,
+                                  '& .MuiChip-label': {
+                                    px: 1.5
+                                  }
+                                }}
                               />
                             )}
                           </Box>
                         </TableCell>
-                        <TableCell>
+                        <TableCell sx={{ py: 2 }}>
                           <Typography
                             variant='body2'
-                            color='text.secondary'
+                            sx={{ color: '#6b7280' }}
                           >
                             {u.email}
                           </Typography>
                         </TableCell>
-                        <TableCell align='center'>
+                        <TableCell
+                          align='right'
+                          sx={{ py: 2 }}
+                        >
                           <Button
                             size='small'
-                            variant={selectedUserIds.includes(u._id || '') ? 'contained' : 'outlined'}
+                            variant={
+                              (u as UserWithMembership).isMember
+                                ? 'text'
+                                : selectedUserIds.includes(u._id || '')
+                                  ? 'contained'
+                                  : 'outlined'
+                            }
                             onClick={() => u._id && toggleUserSelection(u._id)}
-                            disabled={(u as any).isMember}
-                            color={(u as any).isMember ? 'warning' : 'primary'}
+                            disabled={(u as UserWithMembership).isMember}
+                            sx={{
+                              px: 2,
+                              py: 1,
+                              fontSize: '0.875rem',
+                              fontWeight: 500,
+                              borderRadius: 2,
+                              textTransform: 'none',
+                              minWidth: 100,
+                              ...((u as UserWithMembership).isMember
+                                ? {
+                                    backgroundColor: '#f3f4f6',
+                                    color: '#6b7280',
+                                    cursor: 'not-allowed',
+                                    '&:hover': {
+                                      backgroundColor: '#f3f4f6'
+                                    }
+                                  }
+                                : selectedUserIds.includes(u._id || '')
+                                  ? {
+                                      backgroundColor: '#1877F2',
+                                      color: 'white',
+                                      '&:hover': {
+                                        backgroundColor: '#166fe5'
+                                      }
+                                    }
+                                  : {
+                                      borderColor: '#1877F2',
+                                      color: '#1877F2',
+                                      '&:hover': {
+                                        backgroundColor: 'rgba(24, 119, 242, 0.04)',
+                                        borderColor: '#1877F2'
+                                      }
+                                    })
+                            }}
                           >
-                            {(u as any).isMember
+                            {(u as UserWithMembership).isMember
                               ? 'Já é membro'
                               : selectedUserIds.includes(u._id || '')
                                 ? 'Remover'
@@ -1124,42 +2015,160 @@ const GerenciaSection = () => {
                 </TableBody>
               </Table>
             </TableContainer>
+          </Box>
 
-            {!loadingUsers && userPagination.total > 0 && (
-              <Box sx={{ borderTop: 1, borderColor: 'divider' }}>
-                <TablePagination
-                  component='div'
-                  count={userPagination.total}
-                  page={userPagination.page}
-                  onPageChange={handleUserPageChange}
-                  rowsPerPage={userPagination.limit}
-                  rowsPerPageOptions={[]}
-                  labelRowsPerPage='Itens por página: 5'
-                  labelDisplayedRows={({ from, to, count }) =>
-                    `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
+          {/* Footer */}
+          <Box
+            sx={{
+              p: 4,
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 2
+            }}
+          >
+            {/* Pagination Info */}
+            <Typography
+              variant='body2'
+              sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+            >
+              {userPagination.page * userPagination.limit + 1}-
+              {Math.min((userPagination.page + 1) * userPagination.limit, userPagination.total)} de{' '}
+              {userPagination.total}
+            </Typography>
+
+            {/* Pagination Controls */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Button
+                size='small'
+                disabled={userPagination.page === 0}
+                onClick={() => handleUserPageChange(null, 0)}
+                sx={{
+                  p: 1,
+                  borderRadius: 2,
+                  color: '#6b7280',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6'
+                  },
+                  '&:disabled': {
+                    opacity: 0.5
                   }
-                  showFirstButton
-                  showLastButton
-                />
-              </Box>
-            )}
+                }}
+              >
+                <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.25rem' }} />
+              </Button>
+              <Button
+                size='small'
+                disabled={userPagination.page === 0}
+                onClick={() => handleUserPageChange(null, userPagination.page - 1)}
+                sx={{
+                  p: 1,
+                  borderRadius: 2,
+                  color: '#6b7280',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6'
+                  },
+                  '&:disabled': {
+                    opacity: 0.5
+                  }
+                }}
+              >
+                <ChevronLeftIcon sx={{ fontSize: '1.25rem' }} />
+              </Button>
+              <Button
+                size='small'
+                disabled={(userPagination.page + 1) * userPagination.limit >= userPagination.total}
+                onClick={() => handleUserPageChange(null, userPagination.page + 1)}
+                sx={{
+                  p: 1,
+                  borderRadius: 2,
+                  color: '#6b7280',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6'
+                  },
+                  '&:disabled': {
+                    opacity: 0.5
+                  }
+                }}
+              >
+                <ChevronRightIcon sx={{ fontSize: '1.25rem' }} />
+              </Button>
+              <Button
+                size='small'
+                disabled={(userPagination.page + 1) * userPagination.limit >= userPagination.total}
+                onClick={() => handleUserPageChange(null, Math.ceil(userPagination.total / userPagination.limit) - 1)}
+                sx={{
+                  p: 1,
+                  borderRadius: 2,
+                  color: '#6b7280',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6'
+                  },
+                  '&:disabled': {
+                    opacity: 0.5
+                  }
+                }}
+              >
+                <KeyboardDoubleArrowRightIcon sx={{ fontSize: '1.25rem' }} />
+              </Button>
+            </Box>
+
+            {/* Action Buttons */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Button
+                onClick={() => setMembersDialogOpen(false)}
+                sx={{
+                  px: 3,
+                  py: 1.5,
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#6b7280',
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: '#f3f4f6',
+                    color: '#1f2937'
+                  }
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSaveMembers}
+                variant='contained'
+                disabled={savingMembers || !selectedDept || selectedUserIds.length === 0}
+                sx={{
+                  px: 3,
+                  py: 1.5,
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  backgroundColor: '#1877F2',
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: '#166fe5',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  },
+                  '&:focus': {
+                    outline: 'none',
+                    boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                  },
+                  '&:disabled': {
+                    backgroundColor: '#e5e7eb',
+                    color: '#9ca3af',
+                    boxShadow: 'none'
+                  }
+                }}
+              >
+                {savingMembers ? 'Adicionando...' : `Adicionar ${selectedUserIds.length} membro(s)`}
+              </Button>
+            </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => setMembersDialogOpen(false)}
-            variant='outlined'
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSaveMembers}
-            variant='contained'
-            disabled={savingMembers || !selectedDept}
-          >
-            {savingMembers ? 'Adicionando...' : `Adicionar ${selectedUserIds.length} membro(s)`}
-          </Button>
-        </DialogActions>
       </Dialog>
     </Box>
   );
