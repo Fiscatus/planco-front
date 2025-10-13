@@ -16,6 +16,37 @@ type Props = {
   setIsSignIn: (value: boolean) => void;
 };
 
+// Funções de máscara
+const formatCPF = (value: string) => {
+  // Remove tudo que não é dígito
+  const numbers = value.replace(/\D/g, '');
+  
+  // Aplica a máscara XXX.XXX.XXX-XX
+  if (numbers.length <= 3) {
+    return numbers;
+  } else if (numbers.length <= 6) {
+    return `${numbers.slice(0, 3)}.${numbers.slice(3)}`;
+  } else if (numbers.length <= 9) {
+    return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6)}`;
+  } else {
+    return `${numbers.slice(0, 3)}.${numbers.slice(3, 6)}.${numbers.slice(6, 9)}-${numbers.slice(9, 11)}`;
+  }
+};
+
+const formatPhone = (value: string) => {
+  // Remove tudo que não é dígito
+  const numbers = value.replace(/\D/g, '');
+  
+  // Aplica a máscara (XX) XXXXX-XXXX
+  if (numbers.length <= 2) {
+    return numbers;
+  } else if (numbers.length <= 7) {
+    return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+  } else {
+    return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+  }
+};
+
 const authSchema = z
   .object({
     name: z
@@ -27,6 +58,16 @@ const authSchema = z
       .min(2, 'O sobrenome deve ter pelo menos 2 caracteres')
       .max(100, 'O sobrenome deve ter no máximo 100 caracteres'),
     email: z.email('Email não é válido'),
+    cpf: z
+      .string()
+      .min(14, 'CPF deve ter 14 caracteres')
+      .max(14, 'CPF deve ter 14 caracteres')
+      .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF deve estar no formato 000.000.000-00'),
+    phone: z
+      .string()
+      .min(15, 'Telefone deve ter 15 caracteres')
+      .max(15, 'Telefone deve ter 15 caracteres')
+      .regex(/^\(\d{2}\)\s\d{5}-\d{4}$/, 'Telefone deve estar no formato (XX) XXXXX-XXXX'),
     password: z
       .string()
       .min(8, 'A senha deve ter pelo menos 8 caracteres')
@@ -60,7 +101,9 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
         firstName: formData.name,
         lastName: formData.lastName,
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        cpf: formData.cpf,
+        phone: formData.phone
       };
 
       await signUp(registerData);
@@ -280,6 +323,173 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
             </Grid>
           </Grid>
         </Box>
+        
+        {/* Seção de Informações de Contato */}
+        <Box sx={{ mb: 4 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontSize: '1.125rem',
+              fontWeight: 600,
+              color: '#212529',
+              mb: 2
+            }}
+          >
+            Informações de Contato
+          </Typography>
+          
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <Typography
+                variant='body2'
+                sx={{ 
+                  mb: 1, 
+                  fontWeight: 500,
+                  color: '#495057',
+                  fontSize: '0.875rem'
+                }}
+              >
+                CPF
+              </Typography>
+              <Controller
+                name='cpf'
+                control={control}
+                defaultValue=''
+                render={({ field }) => (
+                  <Box>
+                    <TextField
+                      {...field}
+                      type='text'
+                      placeholder='000.000.000-00'
+                      onFocus={() => clearErrors('cpf')}
+                      onChange={(e) => {
+                        const formattedValue = formatCPF(e.target.value);
+                        field.onChange(formattedValue);
+                      }}
+                      inputProps={{
+                        maxLength: 14
+                      }}
+                      sx={{
+                        width: '100%',
+                        '& .MuiOutlinedInput-root': {
+                          height: '44px',
+                          borderRadius: '8px',
+                          backgroundColor: 'white',
+                          '& fieldset': {
+                            borderColor: errors.cpf ? '#DC3545' : '#CED4DA',
+                            borderWidth: '1px'
+                          },
+                          '&:hover fieldset': {
+                            borderColor: errors.cpf ? '#DC3545' : '#ADB5BD'
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: '#1877F2',
+                            borderWidth: '2px'
+                          }
+                        },
+                        '& .MuiInputBase-input': {
+                          padding: '8px 12px',
+                          fontSize: '0.875rem',
+                          '&::placeholder': {
+                            color: '#6C757D',
+                            opacity: 1
+                          }
+                        }
+                      }}
+                    />
+                    {errors.cpf && (
+                      <Typography 
+                        sx={{ 
+                          color: '#DC3545', 
+                          fontSize: '0.75rem',
+                          mt: 0.5,
+                          ml: 1
+                        }}
+                      >
+                        {errors.cpf.message}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <Typography
+                variant='body2'
+                sx={{ 
+                  mb: 1, 
+                  fontWeight: 500,
+                  color: '#495057',
+                  fontSize: '0.875rem'
+                }}
+              >
+                Telefone
+              </Typography>
+              <Controller
+                name='phone'
+                control={control}
+                defaultValue=''
+                render={({ field }) => (
+                  <Box>
+                    <TextField
+                      {...field}
+                      type='text'
+                      placeholder='(11) 99999-9999'
+                      onFocus={() => clearErrors('phone')}
+                      onChange={(e) => {
+                        const formattedValue = formatPhone(e.target.value);
+                        field.onChange(formattedValue);
+                      }}
+                      inputProps={{
+                        maxLength: 15
+                      }}
+                      sx={{
+                        width: '100%',
+                        '& .MuiOutlinedInput-root': {
+                          height: '44px',
+                          borderRadius: '8px',
+                          backgroundColor: 'white',
+                          '& fieldset': {
+                            borderColor: errors.phone ? '#DC3545' : '#CED4DA',
+                            borderWidth: '1px'
+                          },
+                          '&:hover fieldset': {
+                            borderColor: errors.phone ? '#DC3545' : '#ADB5BD'
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: '#1877F2',
+                            borderWidth: '2px'
+                          }
+                        },
+                        '& .MuiInputBase-input': {
+                          padding: '8px 12px',
+                          fontSize: '0.875rem',
+                          '&::placeholder': {
+                            color: '#6C757D',
+                            opacity: 1
+                          }
+                        }
+                      }}
+                    />
+                    {errors.phone && (
+                      <Typography 
+                        sx={{ 
+                          color: '#DC3545', 
+                          fontSize: '0.75rem',
+                          mt: 0.5,
+                          ml: 1
+                        }}
+                      >
+                        {errors.phone.message}
+                      </Typography>
+                    )}
+                  </Box>
+                )}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+        
         {/* Seção de Informações de Acesso */}
         <Box sx={{ mb: 4 }}>
           <Typography

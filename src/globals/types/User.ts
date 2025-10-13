@@ -4,6 +4,8 @@ export type User = {
   lastName: string;
   email: string;
   password?: string;
+  cpf?: string;
+  phone?: string;
   isPlatformAdmin?: boolean;
   isActive?: boolean;
   org?: {
@@ -32,6 +34,8 @@ export type RegisterDto = {
   lastName: string;
   email: string;
   password: string;
+  cpf: string;
+  phone: string;
 };
 
 export type LoginDto = {
