@@ -2,6 +2,7 @@ import { AddMembersModal, DeleteGerenciaModal, EditGerenciaModal } from '@/compo
 import { AdminPanelSettings, ArrowForward, Business } from '@mui/icons-material';
 import { Box, Button, Card, Chip, Grid, Stack, Typography } from '@mui/material';
 import type { Department, User } from '@/globals/types';
+import { Loading, useNotification } from '@/components';
 import { useAccessControl, useActiveDepartment, useAuth, useDepartments, useUsers } from '@/hooks';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -9,7 +10,6 @@ import { ActiveDepartmentSelector } from '@/components';
 import { InfoSection } from './components/InfoSection';
 import { MembersSection } from './components/MembersSection';
 import { useNavigate } from 'react-router-dom';
-import { useNotification } from '@/components';
 
 type UserWithMembership = User & { isMember?: boolean };
 
@@ -203,7 +203,7 @@ const MinhasGerencias = () => {
   if (departmentsLoading) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
-        <Typography>Carregando suas gerências...</Typography>
+        <Loading isLoading={true} />
       </Box>
     );
   }

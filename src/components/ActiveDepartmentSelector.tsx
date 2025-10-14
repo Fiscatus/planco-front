@@ -11,6 +11,7 @@ import {
 import { Business, ExpandMore } from '@mui/icons-material';
 
 import type { Department } from '@/globals/types';
+import { Loading } from './Loading';
 import { useActiveDepartment } from '@/contexts';
 
 interface ActiveDepartmentSelectorProps {
@@ -41,9 +42,7 @@ export const ActiveDepartmentSelector = ({
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Business sx={{ fontSize: 20, color: 'text.secondary' }} />
-        <Typography variant="body2" color="text.secondary">
-          Carregando gerências...
-        </Typography>
+        <Loading isLoading={true} />
       </Box>
     );
   }

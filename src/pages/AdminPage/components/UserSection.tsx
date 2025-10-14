@@ -41,10 +41,9 @@ import {
   Search as SearchIcon
 } from '@mui/icons-material';
 import type { FilterUsersDto, User } from '@/globals/types';
+import { Loading, useNotification } from '@/components';
 import { useAuth, useDepartments, useRoles, useUsers } from '@/hooks';
 import { useCallback, useEffect, useState } from 'react';
-
-import { useNotification } from '@/components';
 
 const UserSection = () => {
   const theme = useTheme();
@@ -441,8 +440,7 @@ const UserSection = () => {
                   loading={departments.length === 0 && departmentsDropdownOpen}
                   loadingText={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CircularProgress size={20} />
-                      Carregando gerências...
+                      <Loading isLoading={true} />
                     </Box>
                   }
                 />
@@ -486,7 +484,7 @@ const UserSection = () => {
               )}
 
               {/* Botão Atualizar - xs-sm: full width abaixo dos filtros, md+: alinhado à direita */}
-              <Grid size={{ xs: 12, sm: 12, md: true }}>
+              <Grid xs={12} sm={12} md={1}>
                 <Box sx={{ 
                   display: 'flex', 
                   gap: 1,
@@ -1357,8 +1355,7 @@ const UserSection = () => {
                     loading={departments.length === 0 && editDepartmentsDropdownOpen}
                     loadingText={
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CircularProgress size={20} />
-                        Carregando gerências...
+                        <Loading isLoading={true} />
                       </Box>
                     }
                   />
