@@ -173,6 +173,60 @@ export const useDepartments = () => {
     }
   }, []);
 
+  const checkAccess = useCallback(async (userId: string, departmentId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await api.post('/departments/check-access', {
+        userId,
+        departmentId
+      });
+
+      return response.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao verificar acesso ao departamento';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const getDepartmentInfo = useCallback(async (departmentId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await api.get(`/departments/${departmentId}/info`);
+
+      return response.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar informações do departamento';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const getUserDepartments = useCallback(async (userId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await api.get(`/departments/user/${userId}/departments`);
+
+      return response.data;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao buscar departamentos do usuário';
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -189,6 +243,9 @@ export const useDepartments = () => {
     updateDepartmentMembers,
     addMembersBulk,
     removeMember,
+    checkAccess,
+    getDepartmentInfo,
+    getUserDepartments,
     clearError
   };
 };

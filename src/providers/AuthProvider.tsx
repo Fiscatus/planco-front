@@ -6,7 +6,7 @@ import { api } from '@/services';
 import parseJwtToJson from '@/utils/parseJwtToJson';
 
 const authApiPath = '/auth';
-const localStorageUserKey = '@fiscatus:user';
+const localStorageUserKey = '@planco:user';
 
 type Props = {
   children: ReactNode;
@@ -44,7 +44,8 @@ const AuthProvider = ({ children }: Props) => {
           email: decodedJwt.email,
           isPlatformAdmin: decodedJwt.isPlatformAdmin,
           org: decodedJwt.org,
-          role: decodedJwt.role
+          role: decodedJwt.role,
+          departments: decodedJwt.departments
         });
         setHasOrganization(decodedJwt.org !== null);
       }
@@ -96,7 +97,8 @@ const AuthProvider = ({ children }: Props) => {
             email: decodedJwt.email,
             isPlatformAdmin: decodedJwt.isPlatformAdmin,
             org: decodedJwt.org,
-            role: decodedJwt.role
+            role: decodedJwt.role,
+            departments: decodedJwt.departments
           });
           setHasOrganization(decodedJwt.org !== null);
         }

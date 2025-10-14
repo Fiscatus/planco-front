@@ -4,13 +4,9 @@ import {
   Edit as EditIcon,
   GroupAdd as GroupAddIcon,
   Refresh as RefreshIcon,
-  Search as SearchIcon,
-  KeyboardDoubleArrowLeft as KeyboardDoubleArrowLeftIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  KeyboardDoubleArrowRight as KeyboardDoubleArrowRightIcon,
-  Warning as WarningIcon
+  Search as SearchIcon
 } from '@mui/icons-material';
+import { AddMembersModal, DeleteGerenciaModal, EditGerenciaModal } from '@/components/modals';
 import {
   Alert,
   Box,
@@ -18,16 +14,11 @@ import {
   Card,
   Chip,
   CircularProgress,
-  Dialog,
-  DialogContent,
-  FormControl,
   Grid,
   List,
   ListItem,
   ListItemButton,
   ListItemText,
-  MenuItem,
-  Select,
   Stack,
   Table,
   TableBody,
@@ -65,10 +56,7 @@ const GerenciaSection = () => {
   const { users, fetchUsers } = useUsers();
 
   const [search, setSearch] = useState('');
-  const [membersDialogOpen, setMembersDialogOpen] = useState(false);
   const [selectedDept, setSelectedDept] = useState<Department | null>(null);
-  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-  const [savingMembers, setSavingMembers] = useState(false);
   const [membersPagination, setMembersPagination] = useState({
     page: 0,
     limit: 5,
@@ -80,22 +68,18 @@ const GerenciaSection = () => {
     total: 0
   });
 
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [departmentToDelete, setDepartmentToDelete] = useState<Department | null>(null);
-  const [departmentForm, setDepartmentForm] = useState<Partial<CreateDepartmentDto>>({});
-  const [savingDepartment, setSavingDepartment] = useState(false);
+  // Estados dos modais
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [addMembersModalOpen, setAddMembersModalOpen] = useState(false);
+  const [selectedGerencia, setSelectedGerencia] = useState<Department | null>(null);
+  const [savingGerencia, setSavingGerencia] = useState(false);
 
-  const [responsavelSearch, setResponsavelSearch] = useState('');
-  const [responsavelUsers, setResponsavelUsers] = useState<User[]>([]);
-  const [loadingResponsavel, setLoadingResponsavel] = useState(false);
-
-  const [userSearch, setUserSearch] = useState('');
-  const [userPagination, setUserPagination] = useState({ page: 0, limit: 5, total: 0 });
+  // Estados para o modal de adicionar membros
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [userPagination, setUserPagination] = useState({ page: 0, limit: 5, total: 0 });
 
   useEffect(() => {
     fetchDepartments(pagination.page + 1, pagination.limit, search);
@@ -122,59 +106,11 @@ const GerenciaSection = () => {
   }, [fetchDepartments, pagination.page, pagination.limit, search]);
 
   const openMembersDialog = useCallback((dept: Department) => {
-    setSelectedDept(dept);
-    setUserSearch('');
+    setSelectedGerencia(dept);
     setUserPagination({ page: 0, limit: 5, total: 0 });
-    setSelectedUserIds([]);
     setAllUsers([]);
-    setMembersDialogOpen(true);
+    setAddMembersModalOpen(true);
   }, []);
-
-  type UserWithMembership = User & { isMember?: boolean };
-
-  const toggleUserSelection = useCallback(
-    (userId: string) => {
-      const user = allUsers.find((u) => u._id === userId) as UserWithMembership | undefined;
-      if (user?.isMember) {
-        showNotification('Este usuário já é membro do departamento', 'warning');
-        return;
-      }
-
-      setSelectedUserIds((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]));
-    },
-    [allUsers, showNotification]
-  );
-
-  const handleSaveMembers = useCallback(async () => {
-    if (!selectedDept) return;
-    try {
-      setSavingMembers(true);
-
-      const response = await addMembersBulk(selectedDept._id, selectedUserIds);
-
-      showNotification(response.message, 'success');
-      setMembersDialogOpen(false);
-      setSelectedDept(null);
-
-      fetchDepartments(pagination.page + 1, pagination.limit, search);
-      fetchUsers({ page: 1, limit: 100 });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao adicionar membros';
-      showNotification(errorMessage, 'error');
-    } finally {
-      setSavingMembers(false);
-    }
-  }, [
-    selectedDept,
-    selectedUserIds,
-    addMembersBulk,
-    showNotification,
-    fetchDepartments,
-    pagination.page,
-    pagination.limit,
-    search,
-    fetchUsers
-  ]);
 
   const handlePageChange = useCallback((_event: unknown, newPage: number) => {
     setPagination((prev) => ({ ...prev, page: newPage }));
@@ -185,152 +121,98 @@ const GerenciaSection = () => {
     setPagination((prev) => ({ ...prev, limit: newLimit, page: 0 }));
   }, []);
 
-  const searchResponsavel = useCallback(
-    async (query: string) => {
-      setLoadingResponsavel(true);
-      try {
-        const result = await fetchUsers({ page: 1, limit: 50, name: query.trim() || undefined });
-        setResponsavelUsers(result?.users || []);
-      } catch (error) {
-        console.error('Erro ao buscar usuários:', error);
-        setResponsavelUsers([]);
-      } finally {
-        setLoadingResponsavel(false);
-      }
-    },
-    [fetchUsers]
-  );
+  const handleOpenCreate = useCallback(() => {
+    setSelectedGerencia(null);
+    setCreateModalOpen(true);
+  }, []);
 
-  const handleOpenCreate = useCallback(async () => {
-    setDepartmentForm({});
-    setResponsavelSearch('');
-    setResponsavelUsers([]);
-    setCreateDialogOpen(true);
-    await searchResponsavel('');
-  }, [searchResponsavel]);
-
-  const handleOpenEdit = useCallback(
-    async (dept: Department) => {
-      const responsavelId =
-        typeof dept.responsavelUserId === 'string'
-          ? dept.responsavelUserId
-          : dept.responsavelUserId?._id || dept.responsavelUserId_details?._id;
-
-      setDepartmentForm({
-        department_name: dept.department_name,
-        department_acronym: dept.department_acronym,
-        deparment_email: dept.deparment_email,
-        department_phone: dept.department_phone,
-        email_owner: dept.email_owner,
-        description: dept.description,
-        responsavelUserId: responsavelId
-      });
-      setSelectedDept(dept);
-      setResponsavelSearch('');
-      setResponsavelUsers([]);
-      setEditDialogOpen(true);
-      await searchResponsavel('');
-    },
-    [searchResponsavel]
-  );
+  const handleOpenEdit = useCallback((dept: Department) => {
+    setSelectedGerencia(dept);
+    setEditModalOpen(true);
+  }, []);
 
   const handleOpenDelete = useCallback((dept: Department) => {
-    setDepartmentToDelete(dept);
-    setDeleteDialogOpen(true);
+    setSelectedGerencia(dept);
+    setDeleteModalOpen(true);
   }, []);
 
-  const handleCloseDialogs = useCallback(() => {
-    setCreateDialogOpen(false);
-    setEditDialogOpen(false);
-    setDeleteDialogOpen(false);
-    setDepartmentToDelete(null);
-    setSelectedDept(null);
-    setDepartmentForm({});
-    setResponsavelSearch('');
-    setResponsavelUsers([]);
-  }, []);
-
-  const handleSaveDepartment = useCallback(async () => {
-    if (!departmentForm.department_name || !departmentForm.deparment_email || !departmentForm.email_owner) {
-      showNotification('Preencha todos os campos obrigatórios', 'error');
-      return;
-    }
-
+  const handleSaveGerencia = useCallback(async (data: CreateDepartmentDto | UpdateDepartmentDto) => {
     try {
-      setSavingDepartment(true);
+      setSavingGerencia(true);
 
-      if (editDialogOpen && selectedDept) {
-        await updateDepartment(selectedDept._id, departmentForm as UpdateDepartmentDto);
+      if (selectedGerencia) {
+        await updateDepartment(selectedGerencia._id, data as UpdateDepartmentDto);
         showNotification('Gerência atualizada com sucesso!', 'success');
       } else {
-        await createDepartment(departmentForm as CreateDepartmentDto);
+        await createDepartment(data as CreateDepartmentDto);
         showNotification('Gerência criada com sucesso!', 'success');
       }
 
-      handleCloseDialogs();
+      setCreateModalOpen(false);
+      setEditModalOpen(false);
+      setSelectedGerencia(null);
       fetchDepartments(pagination.page + 1, pagination.limit, search);
       fetchUsers({ page: 1, limit: 100 });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao salvar gerência';
       showNotification(errorMessage, 'error');
     } finally {
-      setSavingDepartment(false);
+      setSavingGerencia(false);
     }
   }, [
-    departmentForm,
-    editDialogOpen,
-    selectedDept,
+    selectedGerencia,
     updateDepartment,
     createDepartment,
     showNotification,
-    handleCloseDialogs,
     fetchDepartments,
     pagination.page,
     pagination.limit,
-    search
+    search,
+    fetchUsers
   ]);
 
-  const handleDeleteDepartment = useCallback(async () => {
-    if (!departmentToDelete) return;
+  const handleDeleteGerencia = useCallback(async () => {
+    if (!selectedGerencia) return;
 
     try {
-      setSavingDepartment(true);
-      await deleteDepartment(departmentToDelete._id);
+      setSavingGerencia(true);
+      await deleteDepartment(selectedGerencia._id);
       showNotification('Gerência excluída com sucesso!', 'success');
-      handleCloseDialogs();
+      setDeleteModalOpen(false);
+      setSelectedGerencia(null);
       fetchDepartments(pagination.page + 1, pagination.limit, search);
       fetchUsers({ page: 1, limit: 100 });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir gerência';
       showNotification(errorMessage, 'error');
     } finally {
-      setSavingDepartment(false);
+      setSavingGerencia(false);
     }
   }, [
-    departmentToDelete,
+    selectedGerencia,
     deleteDepartment,
     showNotification,
-    handleCloseDialogs,
     fetchDepartments,
     pagination.page,
     pagination.limit,
-    search
+    search,
+    fetchUsers
   ]);
 
   const searchUsers = useCallback(
     async (query: string, page = 1) => {
-      if (!selectedDept) return;
+      if (!selectedGerencia) return;
 
       try {
         setLoadingUsers(true);
 
         await fetchUsers({
           page,
-          limit: membersPagination.limit,
+          limit: userPagination.limit,
           name: query.trim() || undefined
         });
 
-        const membersResponse = await getDepartmentMembers(selectedDept._id);
+        const membersResponse = await getDepartmentMembers(selectedGerencia._id);
         const memberIds = membersResponse.map((member) => member._id);
 
         const usersWithMembership = users.map((user) => ({
@@ -352,38 +234,28 @@ const GerenciaSection = () => {
         setLoadingUsers(false);
       }
     },
-    [selectedDept, showNotification, membersPagination.limit, fetchUsers, users, getDepartmentMembers]
+    [selectedGerencia, showNotification, userPagination.limit, fetchUsers, users, getDepartmentMembers]
   );
 
-  const paginatedUsers = allUsers;
+  const handleSaveMembers = useCallback(async (userIds: string[]) => {
+    if (!selectedGerencia) return;
 
-  const handleUserSearch = useCallback(
-    (searchTerm: string) => {
-      setUserSearch(searchTerm);
-      setUserPagination((prev) => ({ ...prev, page: 0 }));
+    try {
+      const response = await addMembersBulk(selectedGerencia._id, userIds);
+      showNotification(response.message, 'success');
+      setAddMembersModalOpen(false);
+      setSelectedGerencia(null);
+      fetchDepartments(pagination.page + 1, pagination.limit, search);
+      fetchUsers({ page: 1, limit: 100 });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Erro ao adicionar membros';
+      showNotification(errorMessage, 'error');
+    }
+  }, [selectedGerencia, addMembersBulk, showNotification, fetchDepartments, pagination.page, pagination.limit, search, fetchUsers]);
 
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
-
-      const timeout = setTimeout(() => {
-        if (searchTerm.trim() !== userSearch.trim()) {
-          searchUsers(searchTerm, 1);
-        }
-      }, 300);
-
-      setSearchTimeout(timeout);
-    },
-    [searchUsers, searchTimeout, userSearch]
-  );
-
-  const handleUserPageChange = useCallback(
-    (_event: unknown, newPage: number) => {
-      setUserPagination((prev) => ({ ...prev, page: newPage }));
-      searchUsers(userSearch, newPage + 1);
-    },
-    [searchUsers, userSearch]
-  );
+  const handleUserPageChange = useCallback((page: number) => {
+    setUserPagination((prev) => ({ ...prev, page }));
+  }, []);
 
   const handleMembersPageChange = useCallback((_event: unknown, newPage: number) => {
     setMembersPagination((prev) => ({ ...prev, page: newPage }));
@@ -395,18 +267,10 @@ const GerenciaSection = () => {
   }, []);
 
   useEffect(() => {
-    if (membersDialogOpen && allUsers.length === 0) {
+    if (addMembersModalOpen && allUsers.length === 0) {
       searchUsers('', 1);
     }
-  }, [membersDialogOpen, searchUsers, allUsers.length]);
-
-  useEffect(() => {
-    return () => {
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
-    };
-  }, [searchTimeout]);
+  }, [addMembersModalOpen, searchUsers, allUsers.length]);
 
   const effectiveUsersForCounts: User[] = users;
 
@@ -1007,1169 +871,45 @@ const GerenciaSection = () => {
         </Grid>
       </Grid>
 
-      <Dialog
-        open={createDialogOpen || editDialogOpen}
-        onClose={handleCloseDialogs}
-        fullWidth
-        maxWidth='md'
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            overflow: 'hidden'
-          }
+      {/* Modais */}
+      <EditGerenciaModal
+        open={createModalOpen || editModalOpen}
+        onClose={() => {
+          setCreateModalOpen(false);
+          setEditModalOpen(false);
+          setSelectedGerencia(null);
         }}
-      >
-        <DialogContent sx={{ p: 0 }}>
-          {/* Header */}
-          <Box
-            sx={{
-              p: 3,
-              borderBottom: '1px solid #e2e8f0',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}
-          >
-            <Box>
-              <Typography
-                variant='h5'
-                sx={{
-                  fontWeight: 700,
-                  color: '#0f172a',
-                  fontSize: '1.5rem'
-                }}
-              >
-                {editDialogOpen ? 'Editar Gerência' : 'Nova Gerência'}
-              </Typography>
-              <Typography
-                variant='body2'
-                sx={{
-                  color: '#64748b',
-                  fontSize: '0.875rem',
-                  mt: 0.5
-                }}
-              >
-                {editDialogOpen ? 'Atualize os dados da gerência.' : 'Preencha os dados para criar uma nova gerência.'}
-              </Typography>
-            </Box>
-          </Box>
+        onSave={handleSaveGerencia}
+        gerencia={selectedGerencia}
+        isEdit={editModalOpen}
+        loading={savingGerencia}
+      />
 
-          {/* Form Content */}
-          <Box sx={{ p: 4 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {/* Primeira linha - Departamento e Sigla */}
-              <Grid
-                container
-                spacing={3}
-              >
-                <Grid size={{ xs: 12, md: 8 }}>
-                  <Box>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        fontWeight: 500,
-                        color: '#64748b',
-                        mb: 1,
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      Departamento *
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      placeholder='Nome do Departamento'
-                      value={departmentForm.department_name || ''}
-                      onChange={(e) => setDepartmentForm((prev) => ({ ...prev, department_name: e.target.value }))}
-                      required
-                      variant='outlined'
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          backgroundColor: '#ffffff',
-                          borderRadius: 2,
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            border: '2px solid #e2e8f0',
-                            transition: 'all 0.2s ease-in-out'
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
-                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                          }
-                        },
-                        '& .MuiInputBase-input::placeholder': {
-                          color: '#9ca3af',
-                          opacity: 1
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Box>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        fontWeight: 500,
-                        color: '#64748b',
-                        mb: 1,
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      Sigla
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      placeholder='Ex: DFIN'
-                      value={departmentForm.department_acronym || ''}
-                      onChange={(e) =>
-                        setDepartmentForm((prev) => ({ ...prev, department_acronym: e.target.value.toUpperCase() }))
-                      }
-                      inputProps={{ maxLength: 5 }}
-                      variant='outlined'
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          backgroundColor: '#ffffff',
-                          borderRadius: 2,
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            border: '2px solid #e2e8f0',
-                            transition: 'all 0.2s ease-in-out'
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
-                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                          }
-                        },
-                        '& .MuiInputBase-input::placeholder': {
-                          color: '#9ca3af',
-                          opacity: 1
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-              </Grid>
-
-              {/* Segunda linha - Telefone e Email do Departamento */}
-              <Grid
-                container
-                spacing={3}
-              >
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Box>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        fontWeight: 500,
-                        color: '#64748b',
-                        mb: 1,
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      Telefone
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      placeholder='(00) 00000-0000'
-                      value={departmentForm.department_phone || ''}
-                      onChange={(e) => {
-                        let value = e.target.value.replace(/\D/g, '');
-
-                        if (value.length <= 2) {
-                          // do nothing
-                        } else if (value.length <= 7) {
-                          value = `(${value.slice(0, 2)}) ${value.slice(2)}`;
-                        } else {
-                          value = `(${value.slice(0, 2)}) ${value.slice(2, 7)}-${value.slice(7, 11)}`;
-                        }
-
-                        setDepartmentForm((prev) => ({ ...prev, department_phone: value }));
-                      }}
-                      inputProps={{
-                        maxLength: 15
-                      }}
-                      variant='outlined'
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          backgroundColor: '#ffffff',
-                          borderRadius: 2,
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            border: '2px solid #e2e8f0',
-                            transition: 'all 0.2s ease-in-out'
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
-                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                          }
-                        },
-                        '& .MuiInputBase-input::placeholder': {
-                          color: '#9ca3af',
-                          opacity: 1
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Box>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        fontWeight: 500,
-                        color: '#64748b',
-                        mb: 1,
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      E-mail do Departamento *
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      type='email'
-                      placeholder='contato@departamento.com'
-                      value={departmentForm.deparment_email || ''}
-                      onChange={(e) =>
-                        setDepartmentForm((prev) => ({ ...prev, deparment_email: e.target.value.toLowerCase() }))
-                      }
-                      required
-                      variant='outlined'
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          backgroundColor: '#ffffff',
-                          borderRadius: 2,
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            border: '2px solid #e2e8f0',
-                            transition: 'all 0.2s ease-in-out'
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
-                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                          }
-                        },
-                        '& .MuiInputBase-input::placeholder': {
-                          color: '#9ca3af',
-                          opacity: 1
-                        }
-                      }}
-                    />
-                  </Box>
-                </Grid>
-              </Grid>
-
-              {/* Terceira linha - Responsável e Email do Responsável */}
-              <Grid
-                container
-                spacing={3}
-              >
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Box>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        fontWeight: 500,
-                        color: '#64748b',
-                        mb: 1,
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      Responsável
-                    </Typography>
-                    <FormControl
-                      fullWidth
-                      variant='outlined'
-                    >
-                      <Select
-                        value={
-                          responsavelUsers.find((u) => u._id === departmentForm.responsavelUserId)
-                            ? departmentForm.responsavelUserId || ''
-                            : ''
-                        }
-                        onChange={(e) => {
-                          const userId = e.target.value;
-                          const selectedUser = responsavelUsers.find((u) => u._id === userId);
-                          setDepartmentForm((prev) => ({
-                            ...prev,
-                            responsavelUserId: userId || null,
-                            email_owner: selectedUser?.email || ''
-                          }));
-                        }}
-                        displayEmpty
-                        sx={{
-                          backgroundColor: '#ffffff',
-                          borderRadius: 2,
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            border: '2px solid #e2e8f0',
-                            transition: 'all 0.2s ease-in-out'
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
-                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                          },
-                          '& .MuiSelect-select': {
-                            color: departmentForm.responsavelUserId ? '#0f172a' : '#9ca3af'
-                          }
-                        }}
-                        renderValue={(value) => {
-                          if (!value) {
-                            return <span style={{ color: '#9ca3af' }}>Selecione um responsável</span>;
-                          }
-                          const user = responsavelUsers.find((u) => u._id === value);
-                          return user ? `${user.firstName} ${user.lastName}` : '';
-                        }}
-                        MenuProps={{
-                          PaperProps: {
-                            style: {
-                              maxHeight: 300,
-                              overflow: 'auto'
-                            }
-                          }
-                        }}
-                      >
-                        <MenuItem value=''>
-                          <em>Nenhum</em>
-                        </MenuItem>
-                        {responsavelUsers.map((user) => (
-                          <MenuItem
-                            key={user._id}
-                            value={user._id}
-                          >
-                            <Box>
-                              <Typography
-                                variant='body2'
-                                fontWeight={600}
-                              >
-                                {user.firstName} {user.lastName}
-                              </Typography>
-                              <Typography
-                                variant='body2'
-                                color='text.secondary'
-                              >
-                                {user.email}
-                              </Typography>
-                            </Box>
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Box>
-                </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                  <Box>
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        fontWeight: 500,
-                        color: '#64748b',
-                        mb: 1,
-                        fontSize: '0.875rem'
-                      }}
-                    >
-                      E-mail do Responsável
-                    </Typography>
-                    <TextField
-                      fullWidth
-                      type='email'
-                      placeholder='fulano@empresa.com'
-                      value={departmentForm.email_owner || ''}
-                      InputProps={{
-                        readOnly: true
-                      }}
-                      variant='outlined'
-                      disabled
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          backgroundColor: '#f1f5f9',
-                          borderRadius: 2,
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            border: '2px solid #e2e8f0'
-                          }
-                        },
-                        '& .MuiInputBase-input': {
-                          color: '#64748b',
-                          cursor: 'not-allowed'
-                        },
-                        '& .MuiInputBase-input::placeholder': {
-                          color: '#9ca3af',
-                          opacity: 1
-                        }
-                      }}
-                    />
-                    <Typography
-                      variant='caption'
-                      sx={{
-                        color: '#64748b',
-                        fontSize: '0.75rem',
-                        mt: 0.5,
-                        display: 'block'
-                      }}
-                    >
-                      Preenchido automaticamente com o e-mail do responsável.
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-
-              {/* Descrição */}
-              <Box>
-                <Typography
-                  variant='body2'
-                  sx={{
-                    fontWeight: 500,
-                    color: '#64748b',
-                    mb: 1,
-                    fontSize: '0.875rem'
-                  }}
-                >
-                  Descrição
-                </Typography>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={4}
-                  placeholder='Descreva as atividades e responsabilidades da gerência...'
-                  value={departmentForm.description || ''}
-                  onChange={(e) => setDepartmentForm((prev) => ({ ...prev, description: e.target.value }))}
-                  variant='outlined'
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: '#ffffff',
-                      borderRadius: 2,
-                      '& .MuiOutlinedInput-notchedOutline': {
-                        border: '2px solid #e2e8f0',
-                        transition: 'all 0.2s ease-in-out'
-                      },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#cbd5e1'
-                      },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#1877F2',
-                        boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                      }
-                    },
-                    '& .MuiInputBase-input::placeholder': {
-                      color: '#9ca3af',
-                      opacity: 1
-                    }
-                  }}
-                />
-              </Box>
-            </Box>
-          </Box>
-        </DialogContent>
-
-        {/* Footer com botões */}
-        <Box
-          sx={{
-            p: 3,
-            backgroundColor: '#f8fafc',
-            borderTop: '1px solid #e2e8f0',
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            gap: 1
-          }}
-        >
-          <Button
-            onClick={handleCloseDialogs}
-            sx={{
-              px: 3,
-              py: 1.25,
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              color: '#64748b',
-              textTransform: 'uppercase',
-              borderRadius: 2,
-              transition: 'all 0.2s ease-in-out',
-              '&:hover': {
-                backgroundColor: '#f1f5f9',
-                color: '#0f172a'
-              }
-            }}
-          >
-            Cancelar
-          </Button>
-          <Button
-            onClick={handleSaveDepartment}
-            variant='contained'
-            disabled={savingDepartment}
-            sx={{
-              px: 4,
-              py: 1.25,
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              backgroundColor: '#1877F2',
-              textTransform: 'uppercase',
-              borderRadius: 2,
-              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-              transition: 'all 0.2s ease-in-out',
-              '&:hover': {
-                backgroundColor: '#166fe5',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-              },
-              '&:focus': {
-                outline: 'none',
-                boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-              },
-              '&:disabled': {
-                backgroundColor: '#e5e7eb',
-                color: '#9ca3af',
-                boxShadow: 'none'
-              }
-            }}
-          >
-            {savingDepartment ? 'Salvando...' : editDialogOpen ? 'Atualizar' : 'Criar Gerência'}
-          </Button>
-        </Box>
-      </Dialog>
-
-      <Dialog
-        open={deleteDialogOpen}
-        onClose={handleCloseDialogs}
-        fullWidth
-        maxWidth='sm'
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            overflow: 'hidden'
-          }
+      <DeleteGerenciaModal
+        open={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSelectedGerencia(null);
         }}
-      >
-        <DialogContent sx={{ p: 4 }}>
-          {/* Header com ícone */}
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              mb: 3
-            }}
-          >
-            <Box
-              sx={{
-                backgroundColor: '#fef2f2',
-                borderRadius: '50%',
-                p: 1.5,
-                mb: 2,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              <DeleteIcon
-                sx={{
-                  fontSize: 32,
-                  color: '#DC2626'
-                }}
-              />
-            </Box>
-            <Typography
-              variant='h5'
-              sx={{
-                fontWeight: 700,
-                color: '#1F2937',
-                fontSize: '1.5rem'
-              }}
-            >
-              Confirmar Exclusão
-            </Typography>
-          </Box>
+        onConfirm={handleDeleteGerencia}
+        gerencia={selectedGerencia}
+        loading={savingGerencia}
+      />
 
-          {/* Texto de confirmação */}
-          <Typography
-            variant='body1'
-            sx={{
-              textAlign: 'center',
-              color: '#6B7280',
-              mb: 3,
-              fontSize: '1rem'
-            }}
-          >
-            Tem certeza que deseja excluir a gerência{' '}
-            <strong style={{ color: '#1F2937' }}>{departmentToDelete?.department_name}</strong>?
-          </Typography>
-
-          {/* Detalhes da gerência */}
-          {departmentToDelete && (
-            <Box
-              sx={{
-                backgroundColor: '#f9fafb',
-                borderRadius: 2,
-                p: 2,
-                mb: 3
-              }}
-            >
-              <Typography
-                variant='body2'
-                sx={{
-                  fontWeight: 600,
-                  color: '#1F2937',
-                  mb: 1,
-                  fontSize: '0.875rem'
-                }}
-              >
-                Detalhes da gerência:
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '0.875rem' }}
-                >
-                  <strong style={{ fontWeight: 500 }}>Nome:</strong> {departmentToDelete.department_name}
-                </Typography>
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '0.875rem' }}
-                >
-                  <strong style={{ fontWeight: 500 }}>Sigla:</strong> {departmentToDelete.department_acronym}
-                </Typography>
-                <Typography
-                  variant='body2'
-                  sx={{ fontSize: '0.875rem' }}
-                >
-                  <strong style={{ fontWeight: 500 }}>E-mail:</strong> {departmentToDelete.deparment_email}
-                </Typography>
-              </Box>
-            </Box>
-          )}
-
-          {/* Alert de aviso */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              p: 2,
-              borderRadius: 2,
-              backgroundColor: '#FEF3C7',
-              border: '1px solid #FCD34D',
-              mb: 3
-            }}
-          >
-            <WarningIcon
-              sx={{
-                color: '#92400E',
-                fontSize: 20,
-                mr: 1.5,
-                mt: 0.25
-              }}
-            />
-            <Typography
-              variant='body2'
-              sx={{
-                color: '#92400E',
-                fontSize: '0.875rem',
-                lineHeight: 1.5
-              }}
-            >
-              Esta ação não pode ser desfeita. A gerência será permanentemente removida.
-            </Typography>
-          </Box>
-
-          {/* Botões de ação */}
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: 2
-            }}
-          >
-            <Button
-              onClick={handleCloseDialogs}
-              sx={{
-                px: 3,
-                py: 1.25,
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                color: '#1F2937',
-                textTransform: 'uppercase',
-                borderRadius: 2,
-                border: '1px solid #E5E7EB',
-                backgroundColor: 'transparent',
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  backgroundColor: '#f3f4f6',
-                  borderColor: '#D1D5DB'
-                }
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleDeleteDepartment}
-              disabled={savingDepartment}
-              sx={{
-                px: 3,
-                py: 1.25,
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                backgroundColor: '#DC2626',
-                textTransform: 'uppercase',
-                borderRadius: 2,
-                color: 'white',
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  backgroundColor: '#B91C1C'
-                },
-                '&:disabled': {
-                  backgroundColor: '#e5e7eb',
-                  color: '#9ca3af'
-                }
-              }}
-            >
-              {savingDepartment ? 'Excluindo...' : 'Confirmar Exclusão'}
-            </Button>
-          </Box>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={membersDialogOpen}
-        onClose={() => setMembersDialogOpen(false)}
-        fullWidth
-        maxWidth='lg'
-        PaperProps={{
-          sx: {
-            borderRadius: 2,
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-            overflow: 'hidden',
-            height: 'auto',
-            maxHeight: '90vh'
-          }
+      <AddMembersModal
+        open={addMembersModalOpen}
+        onClose={() => {
+          setAddMembersModalOpen(false);
+          setSelectedGerencia(null);
         }}
-      >
-        <DialogContent sx={{ p: 0 }}>
-          {/* Header */}
-          <Box sx={{ p: 4, mb: 2 }}>
-            <Typography
-              variant='h5'
-              sx={{
-                fontWeight: 700,
-                color: '#1f2937',
-                fontSize: '1.5rem',
-                mb: 0.5
-              }}
-            >
-              Adicionar Membro
-            </Typography>
-            <Typography
-              variant='body2'
-              sx={{
-                color: '#6b7280',
-                fontSize: '0.875rem'
-              }}
-            >
-              Gerencie os membros da equipe de {selectedDept?.department_name || 'Gerência'}.
-            </Typography>
-          </Box>
-
-          {/* Search Bar */}
-          <Box sx={{ px: 4, mb: 3 }}>
-            <Box sx={{ position: 'relative' }}>
-              <SearchIcon
-                sx={{
-                  position: 'absolute',
-                  left: 16,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#6b7280',
-                  fontSize: 20,
-                  zIndex: 1
-                }}
-              />
-              <TextField
-                fullWidth
-                placeholder='Buscar usuários por nome ou email...'
-                value={userSearch}
-                onChange={(e) => handleUserSearch(e.target.value)}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    pl: 5,
-                    pr: 3,
-                    py: 1.5,
-                    backgroundColor: '#f5f7f8',
-                    borderRadius: 2,
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      border: '1px solid #e5e7eb',
-                      transition: 'all 0.2s ease-in-out'
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#d1d5db'
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1877F2',
-                      boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                    }
-                  },
-                  '& .MuiInputBase-input::placeholder': {
-                    color: '#6b7280',
-                    opacity: 1
-                  }
-                }}
-              />
-            </Box>
-          </Box>
-
-          {/* Table Content */}
-          <Box sx={{ px: 4, mb: 4 }}>
-            <TableContainer sx={{ overflow: 'auto' }}>
-              <Table>
-                <TableHead>
-                  <TableRow sx={{ borderBottom: '1px solid #e5e7eb' }}>
-                    <TableCell
-                      sx={{
-                        fontWeight: 600,
-                        color: '#6b7280',
-                        fontSize: '0.875rem',
-                        py: 2,
-                        borderBottom: '1px solid #e5e7eb'
-                      }}
-                    >
-                      Usuário
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        fontWeight: 600,
-                        color: '#6b7280',
-                        fontSize: '0.875rem',
-                        py: 2,
-                        borderBottom: '1px solid #e5e7eb'
-                      }}
-                    >
-                      E-mail
-                    </TableCell>
-                    <TableCell
-                      align='right'
-                      sx={{
-                        fontWeight: 600,
-                        color: '#6b7280',
-                        fontSize: '0.875rem',
-                        py: 2,
-                        borderBottom: '1px solid #e5e7eb'
-                      }}
-                    >
-                      Ação
-                    </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {loadingUsers ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={3}
-                        align='center'
-                        sx={{ py: 6 }}
-                      >
-                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                          <CircularProgress
-                            size={32}
-                            sx={{ color: '#1877F2' }}
-                          />
-                          <Typography
-                            variant='body2'
-                            sx={{ color: '#6b7280', fontWeight: 500 }}
-                          >
-                            Carregando usuários...
-                          </Typography>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ) : paginatedUsers.length === 0 ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={3}
-                        align='center'
-                        sx={{ py: 6 }}
-                      >
-                        <Typography
-                          variant='body2'
-                          sx={{ color: '#6b7280' }}
-                        >
-                          {userSearch ? 'Nenhum usuário encontrado' : 'Digite para buscar usuários'}
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    paginatedUsers.map((u) => (
-                      <TableRow
-                        key={u._id}
-                        sx={{
-                          borderBottom: '1px solid #e5e7eb',
-                          '&:last-child': {
-                            borderBottom: 'none'
-                          }
-                        }}
-                      >
-                        <TableCell sx={{ py: 2 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography
-                              variant='body2'
-                              sx={{
-                                fontWeight: 500,
-                                color: '#1f2937'
-                              }}
-                            >
-                              {u.firstName} {u.lastName}
-                            </Typography>
-                            {(u as UserWithMembership).isMember && (
-                              <Chip
-                                label='Já é membro'
-                                size='small'
-                                sx={{
-                                  fontSize: '0.75rem',
-                                  fontWeight: 500,
-                                  backgroundColor: '#dcfce7',
-                                  color: '#166534',
-                                  borderRadius: '9999px',
-                                  height: 20,
-                                  '& .MuiChip-label': {
-                                    px: 1.5
-                                  }
-                                }}
-                              />
-                            )}
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ py: 2 }}>
-                          <Typography
-                            variant='body2'
-                            sx={{ color: '#6b7280' }}
-                          >
-                            {u.email}
-                          </Typography>
-                        </TableCell>
-                        <TableCell
-                          align='right'
-                          sx={{ py: 2 }}
-                        >
-                          <Button
-                            size='small'
-                            variant={
-                              (u as UserWithMembership).isMember
-                                ? 'text'
-                                : selectedUserIds.includes(u._id || '')
-                                  ? 'contained'
-                                  : 'outlined'
-                            }
-                            onClick={() => u._id && toggleUserSelection(u._id)}
-                            disabled={(u as UserWithMembership).isMember}
-                            sx={{
-                              px: 2,
-                              py: 1,
-                              fontSize: '0.875rem',
-                              fontWeight: 500,
-                              borderRadius: 2,
-                              textTransform: 'none',
-                              minWidth: 100,
-                              ...((u as UserWithMembership).isMember
-                                ? {
-                                    backgroundColor: '#f3f4f6',
-                                    color: '#6b7280',
-                                    cursor: 'not-allowed',
-                                    '&:hover': {
-                                      backgroundColor: '#f3f4f6'
-                                    }
-                                  }
-                                : selectedUserIds.includes(u._id || '')
-                                  ? {
-                                      backgroundColor: '#1877F2',
-                                      color: 'white',
-                                      '&:hover': {
-                                        backgroundColor: '#166fe5'
-                                      }
-                                    }
-                                  : {
-                                      borderColor: '#1877F2',
-                                      color: '#1877F2',
-                                      '&:hover': {
-                                        backgroundColor: 'rgba(24, 119, 242, 0.04)',
-                                        borderColor: '#1877F2'
-                                      }
-                                    })
-                            }}
-                          >
-                            {(u as UserWithMembership).isMember
-                              ? 'Já é membro'
-                              : selectedUserIds.includes(u._id || '')
-                                ? 'Remover'
-                                : 'Adicionar'}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-
-          {/* Footer */}
-          <Box
-            sx={{
-              p: 4,
-              display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              gap: 2
-            }}
-          >
-            {/* Pagination Info */}
-            <Typography
-              variant='body2'
-              sx={{ color: '#6b7280', fontSize: '0.875rem' }}
-            >
-              {userPagination.page * userPagination.limit + 1}-
-              {Math.min((userPagination.page + 1) * userPagination.limit, userPagination.total)} de{' '}
-              {userPagination.total}
-            </Typography>
-
-            {/* Pagination Controls */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Button
-                size='small'
-                disabled={userPagination.page === 0}
-                onClick={() => handleUserPageChange(null, 0)}
-                sx={{
-                  p: 1,
-                  borderRadius: 2,
-                  color: '#6b7280',
-                  '&:hover': {
-                    backgroundColor: '#f3f4f6'
-                  },
-                  '&:disabled': {
-                    opacity: 0.5
-                  }
-                }}
-              >
-                <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.25rem' }} />
-              </Button>
-              <Button
-                size='small'
-                disabled={userPagination.page === 0}
-                onClick={() => handleUserPageChange(null, userPagination.page - 1)}
-                sx={{
-                  p: 1,
-                  borderRadius: 2,
-                  color: '#6b7280',
-                  '&:hover': {
-                    backgroundColor: '#f3f4f6'
-                  },
-                  '&:disabled': {
-                    opacity: 0.5
-                  }
-                }}
-              >
-                <ChevronLeftIcon sx={{ fontSize: '1.25rem' }} />
-              </Button>
-              <Button
-                size='small'
-                disabled={(userPagination.page + 1) * userPagination.limit >= userPagination.total}
-                onClick={() => handleUserPageChange(null, userPagination.page + 1)}
-                sx={{
-                  p: 1,
-                  borderRadius: 2,
-                  color: '#6b7280',
-                  '&:hover': {
-                    backgroundColor: '#f3f4f6'
-                  },
-                  '&:disabled': {
-                    opacity: 0.5
-                  }
-                }}
-              >
-                <ChevronRightIcon sx={{ fontSize: '1.25rem' }} />
-              </Button>
-              <Button
-                size='small'
-                disabled={(userPagination.page + 1) * userPagination.limit >= userPagination.total}
-                onClick={() => handleUserPageChange(null, Math.ceil(userPagination.total / userPagination.limit) - 1)}
-                sx={{
-                  p: 1,
-                  borderRadius: 2,
-                  color: '#6b7280',
-                  '&:hover': {
-                    backgroundColor: '#f3f4f6'
-                  },
-                  '&:disabled': {
-                    opacity: 0.5
-                  }
-                }}
-              >
-                <KeyboardDoubleArrowRightIcon sx={{ fontSize: '1.25rem' }} />
-              </Button>
-            </Box>
-
-            {/* Action Buttons */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Button
-                onClick={() => setMembersDialogOpen(false)}
-                sx={{
-                  px: 3,
-                  py: 1.5,
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  color: '#6b7280',
-                  textTransform: 'none',
-                  borderRadius: 2,
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    backgroundColor: '#f3f4f6',
-                    color: '#1f2937'
-                  }
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={handleSaveMembers}
-                variant='contained'
-                disabled={savingMembers || !selectedDept || selectedUserIds.length === 0}
-                sx={{
-                  px: 3,
-                  py: 1.5,
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  backgroundColor: '#1877F2',
-                  textTransform: 'none',
-                  borderRadius: 2,
-                  boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                  transition: 'all 0.2s ease-in-out',
-                  '&:hover': {
-                    backgroundColor: '#166fe5',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  },
-                  '&:focus': {
-                    outline: 'none',
-                    boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                  },
-                  '&:disabled': {
-                    backgroundColor: '#e5e7eb',
-                    color: '#9ca3af',
-                    boxShadow: 'none'
-                  }
-                }}
-              >
-                {savingMembers ? 'Adicionando...' : `Adicionar ${selectedUserIds.length} membro(s)`}
-              </Button>
-            </Box>
-          </Box>
-        </DialogContent>
-      </Dialog>
+        onSave={handleSaveMembers}
+        gerencia={selectedGerencia}
+        users={allUsers}
+        loading={loadingUsers}
+        onSearchUsers={searchUsers}
+        userPagination={userPagination}
+        onUserPageChange={handleUserPageChange}
+      />
     </Box>
   );
 };

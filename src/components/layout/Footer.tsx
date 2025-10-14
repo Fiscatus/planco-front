@@ -55,14 +55,14 @@ const Footer = () => {
             >
               <img
                 src={logo}
-                alt='Logo Fiscatus'
+                alt='Logo Planco'
                 style={{ width: 32, height: 32 }}
               />
               <Typography
                 variant='subtitle1'
                 sx={{ fontWeight: 'semibold', color: theme.palette.grey[900] }}
               >
-                Fiscatus
+                Planco
               </Typography>
             </Box>
             <Typography
@@ -241,7 +241,7 @@ const Footer = () => {
           variant='caption'
           sx={{ color: theme.palette.grey[600] }}
         >
-          © 2025 Fiscatus — Feito com dedicação para a administração pública brasileira
+          © 2025 Planco — Feito com dedicação para a administração pública brasileira
         </Typography>
       </Box>
     </Box>
