@@ -2,6 +2,7 @@ import { ChunkLoadErrorBoundary, NotificationProvider } from '@/components';
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+import { ActiveDepartmentProvider } from '@/contexts';
 import { AppRouter } from '@/router';
 import { AuthProvider } from '@/providers';
 import { BrowserRouter } from 'react-router-dom';
@@ -17,13 +18,15 @@ const App = () => {
         <CssBaseline />
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <NotificationProvider>
-              <BrowserRouter>
-                <ChunkLoadErrorBoundary>
-                  <AppRouter />
-                </ChunkLoadErrorBoundary>
-              </BrowserRouter>
-            </NotificationProvider>
+            <ActiveDepartmentProvider>
+              <NotificationProvider>
+                <BrowserRouter>
+                  <ChunkLoadErrorBoundary>
+                    <AppRouter />
+                  </ChunkLoadErrorBoundary>
+                </BrowserRouter>
+              </NotificationProvider>
+            </ActiveDepartmentProvider>
           </AuthProvider>
         </QueryClientProvider>
       </ThemeProvider>

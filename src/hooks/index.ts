@@ -1,4 +1,5 @@
 export { useAccessControl } from './useAccessControl';
+export { useActiveDepartment } from './useActiveDepartment';
 export { useAuth } from './useAuth';
 export { useDepartments } from './useDepartments';
 export { useInvites } from './useInvites';

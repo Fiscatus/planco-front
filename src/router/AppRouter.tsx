@@ -15,6 +15,7 @@ const OrganizationHome = lazy(() => import('@/pages/OrganizationHome/Organizatio
 const Invites = lazy(() => import('@/pages/Invites/Invites'));
 const NotAccess = lazy(() => import('@/pages/NotAccessPage/NotAccessPage'));
 const AdminPage = lazy(() => import('@/pages/AdminPage/AdminPage'));
+const MinhasGerencias = lazy(() => import('@/pages/MinhasGerencias/MinhasGerencias'));
 
 const withoutHeaderRoutes = ['/auth', '/privacy-policy'];
 
@@ -81,6 +82,10 @@ const AppRouter = () => {
                <Route
                  path='/admin'
                  element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
+               />
+               <Route
+                 path='/minhas-gerencias'
+                 element={<MinhasGerencias />}
                />
             </>
           )}
