@@ -1,4 +1,4 @@
-import { Assignment, BarChart, Close, FolderOpen, Gavel, Home, People, Settings, Shield } from '@mui/icons-material';
+import { Assignment, AssignmentTurnedIn, BarChart, Close, FolderOpen, Gavel, Home, Layers, Settings, Shield } from '@mui/icons-material';
 import {
   Box,
   Drawer,
@@ -13,7 +13,6 @@ import {
 import { type ReactNode, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { version } from '@/../package.json';
-import logo from '/assets/isologo.svg';
 import { useAccessControl, useAuth } from '@/hooks';
 
 type SidebarProps = {
@@ -39,20 +38,20 @@ const dashboard = {
 const modules: Module[] = [
   {
     label: 'Planejamento da Contratação',
-    icon: <FolderOpen sx={{ fontSize: 20 }} />,
+    icon: <Assignment sx={{ fontSize: 20 }} />,
     path: '/planejamento-da-contratacao',
     description: 'Organize todas as fases da contratação'
   },
   {
     label: 'Gestão Contratual',
-    icon: <People sx={{ fontSize: 20 }} />,
+    icon: <FolderOpen sx={{ fontSize: 20 }} />,
     path: '/gestao-contratual',
     description: 'Gerencie contratos e documentos',
     disabled: true
   },
   {
     label: 'Execução Contratual',
-    icon: <Assignment sx={{ fontSize: 20 }} />,
+    icon: <AssignmentTurnedIn sx={{ fontSize: 20 }} />,
     path: '/execucao-contratual',
     description: 'Monitore a execução do contrato',
     disabled: true
@@ -130,11 +129,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <img
-            src={logo}
-            alt='Logo Planco'
-            style={{ width: 32, height: 32 }}
-          />
+          <Layers sx={{ color: '#1877F2', fontSize: '1.875rem' }} />
           <Typography
             variant='h6'
             sx={{

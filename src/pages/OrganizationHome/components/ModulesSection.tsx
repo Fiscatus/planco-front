@@ -1,11 +1,11 @@
 import {
-  AccountBalance as AccountBalanceIcon,
   ArrowForward as ArrowForwardIcon,
   BarChart as BarChartIcon,
-  Description as DescriptionIcon,
-  FolderShared as FolderSharedIcon,
+  Assignment as AssignmentIcon,
+  FolderOpen as FolderOpenIcon,
   Gavel as GavelIcon,
-  SettingsApplications as SettingsApplicationsIcon
+  AssignmentTurnedIn as AssignmentTurnedInIcon,
+  Settings as SettingsIcon
 } from '@mui/icons-material';
 import { Box, Button, Typography } from '@mui/material';
 import { type RefObject, useMemo } from 'react';
@@ -24,25 +24,25 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
       {
         nome: 'Planejamento da Contratação',
         descricao: 'Organize todas as fases da contratação, da demanda inicial à publicação do edital.',
-        icon: <DescriptionIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
+        icon: <AssignmentIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
         path: '/planejamento-da-contratacao'
       },
       {
         nome: 'Processo Licitatório',
         descricao: 'Acompanhe o processo licitatório desde a abertura até a homologação.',
-        icon: <AccountBalanceIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
+        icon: <GavelIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
         path: '/processo-licitatorio'
       },
       {
         nome: 'Gestão Contratual',
         descricao: 'Gerencie contratos e documentos de forma centralizada.',
-        icon: <FolderSharedIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
+        icon: <FolderOpenIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
         path: '/gestao-contratual'
       },
       {
         nome: 'Execução Contratual',
         descricao: 'Monitore a execução do contrato com controle de entregas, fiscalizações e aditivos.',
-        icon: <GavelIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
+        icon: <AssignmentTurnedInIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
         path: '/execucao-contratual'
       },
       {
@@ -54,7 +54,7 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
       {
         nome: 'Configurações do Fluxo',
         descricao: 'Personalize o fluxo de trabalho e os modelos padrão conforme a instituição.',
-        icon: <SettingsApplicationsIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
+        icon: <SettingsIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
         path: '/configuracoes-fluxo'
       }
     ],

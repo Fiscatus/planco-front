@@ -43,13 +43,13 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
         titulo: 'Modelando Fluxos', 
         youtubeId: 'ZR_6Z1IDD8s',
         descricao: 'Crie seu fluxo de trabalho',
-        image: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=800&h=600&fit=crop&crop=center'
+        image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&h=800&fit=crop&crop=center'
       },
       { 
         titulo: 'Relatórios Inteligentes', 
         youtubeId: 'ZR_6Z1IDD8s',
         descricao: 'Análise de resultados',
-        image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop&crop=center'
+        image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&h=800&fit=crop&crop=center'
       }
     ],
     []
