@@ -1,3 +1,4 @@
+import { Layers as LayersIcon } from '@mui/icons-material';
 import { Box, Button, Chip, Container, Typography, alpha, useTheme } from '@mui/material';
 
 import logo from '/assets/isologo.svg';
@@ -18,87 +19,93 @@ const Footer = () => {
     <Box
       component='footer'
       sx={{
-        backgroundColor: alpha(theme.palette.grey[50], 0.5),
-        borderTop: `1px solid ${alpha(theme.palette.grey[300], 0.7)}`,
-        mt: 'auto',
-        width: '100%',
-        justifyItems: 'center',
-        textAlign: 'center'
+        backgroundColor: '#ffffff',
+        borderTop: '1px solid rgba(229, 231, 235, 1)',
+        mt: 4,
+        width: '100%'
       }}
     >
       <Container
-        maxWidth='lg'
-        sx={{ px: { xs: 1.5, md: 2 }, py: { xs: 1, md: 1.5 } }}
+        maxWidth={false}
+        sx={{ py: 4, px: { xs: 2, sm: 4, md: 6, lg: 8 } }}
       >
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr',
-              sm: 'repeat(2, 1fr)',
-              md: 'repeat(4, 1fr)'
-            },
-            gap: { xs: 1.5, md: 2 },
-            justifyItems: 'center',
-            textAlign: 'center'
-          }}
-        >
+        <Box sx={{ maxWidth: '1400px', mx: 'auto' }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, 1fr)',
+                md: 'repeat(4, 1fr)'
+              },
+              gap: 4,
+              textAlign: { xs: 'center', md: 'left' }
+            }}
+          >
+          {/* Logo e Descrição */}
           <Box>
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                gap: 0.5,
-                mb: 0.5
+                justifyContent: { xs: 'center', md: 'flex-start' },
+                gap: 1,
+                mb: 1
               }}
             >
-              <img
-                src={logo}
-                alt='Logo Fiscatus'
-                style={{ width: 32, height: 32 }}
-              />
+              <LayersIcon sx={{ color: '#1877F2', fontSize: '1.5rem' }} />
               <Typography
-                variant='subtitle1'
-                sx={{ fontWeight: 'semibold', color: theme.palette.grey[900] }}
+                variant='h6'
+                sx={{ 
+                  fontWeight: 700, 
+                  color: '#212121',
+                  fontSize: '1.125rem'
+                }}
               >
                 Fiscatus
               </Typography>
             </Box>
             <Typography
               variant='body2'
-              sx={{ color: theme.palette.grey[600] }}
+              sx={{ 
+                color: '#616161',
+                fontSize: '0.875rem'
+              }}
             >
-              Gestão moderna e integrada para contratações públicas.
+              Gestão moderna e integrada para o setor público.
             </Typography>
           </Box>
 
+          {/* Status do Sistema */}
           <Box>
             <Typography
               variant='caption'
               sx={{
                 textTransform: 'uppercase',
-                color: 'black',
+                color: '#212121',
                 display: 'block',
-                fontWeight: 'bold'
+                fontWeight: 700,
+                mb: 1,
+                fontSize: '0.75rem'
               }}
             >
-              Status do sistema
+              STATUS DO SISTEMA
             </Typography>
             <Chip
               label='Online'
               size='small'
               sx={{
-                backgroundColor: alpha(theme.palette.success.main, 0.1),
-                color: theme.palette.success.main,
-                border: `1px solid ${alpha(theme.palette.success.main, 0.2)}`,
-                fontSize: '12px',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                color: '#047857',
+                border: '1px solid rgba(16, 185, 129, 0.2)',
+                fontSize: '0.75rem',
+                fontWeight: 700,
                 height: 24,
                 '& .MuiChip-icon': {
                   width: 8,
                   height: 8,
                   borderRadius: '50%',
-                  backgroundColor: theme.palette.success.main
+                  backgroundColor: '#10b981'
                 }
               }}
               icon={
@@ -107,31 +114,34 @@ const Footer = () => {
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    backgroundColor: theme.palette.success.main
+                    backgroundColor: '#10b981'
                   }}
                 />
               }
             />
           </Box>
 
+          {/* Links Úteis */}
           <Box>
             <Typography
               variant='caption'
               sx={{
                 textTransform: 'uppercase',
-                color: 'black',
-                mb: 0.5,
+                color: '#212121',
+                mb: 1,
                 display: 'block',
-                fontWeight: 'bold'
+                fontWeight: 700,
+                fontSize: '0.75rem'
               }}
             >
-              Links úteis
+              LINKS ÚTEIS
             </Typography>
             <Box
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center'
+                alignItems: { xs: 'center', md: 'flex-start' },
+                gap: 0.5
               }}
             >
               <Button
@@ -139,110 +149,143 @@ const Footer = () => {
                 size='small'
                 onClick={() => navigate(NAVIGATE_PATHS.PRIVACY_POLICY_PATH)}
                 sx={{
-                  justifyContent: 'center',
-                  color: theme.palette.grey[700],
-                  fontSize: '14px',
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  color: '#616161',
+                  fontSize: '0.875rem',
                   minHeight: 'auto',
                   py: 0.25,
+                  px: 0,
+                  textTransform: 'uppercase',
+                  fontWeight: 500,
                   '&:hover': {
-                    color: theme.palette.primary.main
+                    color: '#1877F2',
+                    backgroundColor: 'transparent'
                   }
                 }}
               >
-                Política de Privacidade
+                POLÍTICA DE PRIVACIDADE
               </Button>
               <Button
                 variant='text'
                 size='small'
                 onClick={() => navigate(NAVIGATE_PATHS.TERMS_OF_USE_PATH)}
                 sx={{
-                  justifyContent: 'center',
-                  color: theme.palette.grey[700],
-                  fontSize: '14px',
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  color: '#616161',
+                  fontSize: '0.875rem',
                   minHeight: 'auto',
                   py: 0.25,
+                  px: 0,
+                  textTransform: 'uppercase',
+                  fontWeight: 500,
                   '&:hover': {
-                    color: theme.palette.primary.main
+                    color: '#1877F2',
+                    backgroundColor: 'transparent'
                   }
                 }}
               >
-                Termos de Uso
+                TERMOS DE USO
               </Button>
               <Button
                 variant='text'
                 size='small'
                 onClick={() => navigate(NAVIGATE_PATHS.SUPPORT_PATH)}
                 sx={{
-                  justifyContent: 'center',
-                  color: theme.palette.grey[700],
-                  fontSize: '14px',
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  color: '#616161',
+                  fontSize: '0.875rem',
                   minHeight: 'auto',
                   py: 0.25,
+                  px: 0,
+                  textTransform: 'uppercase',
+                  fontWeight: 500,
                   '&:hover': {
-                    color: theme.palette.primary.main
+                    color: '#1877F2',
+                    backgroundColor: 'transparent'
                   }
                 }}
               >
-                Suporte
+                SUPORTE
               </Button>
             </Box>
           </Box>
 
+          {/* Informações Técnicas */}
           <Box>
             <Typography
               variant='caption'
               sx={{
                 textTransform: 'uppercase',
-                color: 'black',
-                fontWeight: 'bold',
-                display: 'block'
+                color: '#212121',
+                fontWeight: 700,
+                display: 'block',
+                mb: 1,
+                fontSize: '0.75rem'
               }}
             >
-              Informações técnicas
+              INFORMAÇÕES TÉCNICAS
             </Typography>
             <Box
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                alignItems: 'center'
+                alignItems: { xs: 'center', md: 'flex-start' },
+                gap: 0.25
               }}
             >
               <Typography
                 variant='body2'
-                sx={{ color: theme.palette.grey[700] }}
+                sx={{ 
+                  color: '#616161',
+                  fontSize: '0.875rem'
+                }}
               >
-                Versão: V{version}
+                Versão: v{version}
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ color: theme.palette.grey[700] }}
+                sx={{ 
+                  color: '#616161',
+                  fontSize: '0.875rem'
+                }}
               >
-                Ano: 2025
+                Build: 20240521-A
               </Typography>
               <Typography
                 variant='body2'
-                sx={{ color: theme.palette.grey[700] }}
+                sx={{ 
+                  color: '#616161',
+                  fontSize: '0.875rem'
+                }}
               >
                 Ambiente: Produção
               </Typography>
             </Box>
           </Box>
         </Box>
+        </Box>
       </Container>
 
       <Box
         sx={{
-          py: 0.5,
+          py: 2,
           textAlign: 'center',
-          borderTop: `1px solid ${alpha(theme.palette.grey[300], 0.5)}`
+          borderTop: '1px solid rgba(229, 231, 235, 1)'
         }}
       >
-        <Typography
-          variant='caption'
-          sx={{ color: theme.palette.grey[600] }}
-        >
-          © 2025 Fiscatus — Feito com dedicação para a administração pública brasileira
-        </Typography>
+        <Container maxWidth={false} sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
+          <Box sx={{ maxWidth: '1400px', mx: 'auto' }}>
+            <Typography
+              variant='caption'
+              sx={{ 
+                color: '#616161',
+                fontSize: '0.875rem'
+              }}
+            >
+              ©2024 Fiscatus - Feito com dedicação para a administração pública brasileira.
+            </Typography>
+          </Box>
+        </Container>
       </Box>
     </Box>
   );

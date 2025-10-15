@@ -1,10 +1,12 @@
-import OpenInFullIcon from '@mui/icons-material/OpenInFull';
+import {
+  ArrowForward as ArrowForwardIcon,
+  OpenInFull as OpenInFullIcon
+} from '@mui/icons-material';
 import {
   Box,
   Button,
   Card,
   CardContent,
-  Container,
   Dialog,
   DialogContent,
   IconButton,
@@ -12,23 +14,43 @@ import {
 } from '@mui/material';
 import { type RefObject, useMemo, useState } from 'react';
 
+// ATENÇÃO: Não usar <Container> aqui. Este componente é embutido na OrganizationHome.
+
 type Props = {
   sectionRef?: RefObject<HTMLDivElement>;
+  embedded?: boolean;
 };
 
-const TutorialsSection = ({ sectionRef }: Props) => {
+const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<{
     titulo: string;
     youtubeId: string;
+    descricao: string;
+    image: string;
   } | null>(null);
 
   const PLAYLIST_URL_TUTORIALS = 'https://www.youtube.com/watch?v=RP63r2esgb0&list=PLktMu4vFX2FADZjgsdscuhO7ISO_AZiR1';
   const videos = useMemo(
     () => [
-      { titulo: 'Introdução ao Fiscatus', youtubeId: 'ZR_6Z1IDD8s' },
-      { titulo: 'Modelando Fluxos', youtubeId: 'ZR_6Z1IDD8s' },
-      { titulo: 'Relatórios Inteligentes', youtubeId: 'ZR_6Z1IDD8s' }
+      { 
+        titulo: 'Introdução ao Fiscatus', 
+        youtubeId: 'ZR_6Z1IDD8s',
+        descricao: 'Visão geral do sistema',
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDgpVdkwFeAJGjjSqgdTflym6XWr27EL61IUbJGcwroWD_F2iqMjqY7jAisYotlFcq4pQk6Ike00WyqXg69Xfh4si3GMT4fuhvrw-tdbKtyT0GE2q8iwQy5t8dibTPWXHlG5mK5oyjbeGYEfTgzx1krj_sGJDNMX4RpCEdnLuJqXfEUjVRW-y3ctD384DfnGBz4Sq-3THxA2Q2V93u6jk-UaCoIqs7ig11eKRNHsUbmvkaQZjF7hOgOYEfOG6fYsZnT40aNlz8yz7A'
+      },
+      { 
+        titulo: 'Modelando Fluxos', 
+        youtubeId: 'ZR_6Z1IDD8s',
+        descricao: 'Crie seu fluxo de trabalho',
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAjatHyRd_vNPKHAJYZbiD0c-OUaUrqqa7jiMnoDu2FhLucHLQg_88lc6hgO_L31yiIGXeAlNkLXeq1ORtjnPBJzYrTr-qfj8MEkn176njNdI4ljsbfOBbaXlqIeGc99Chy5D30jMotsGzMmdCH1usWqQM8hkPvzeRbtUCRzFVF2nn7U8XXIIWD-E8AASIH1PoAayMUWKXE_WzS8PVB7aKHzhV4b3ewrf2Vl-HpXhFcZotOkZs01EEQ8hKZJL72UmRi4LBCVeM2pPM'
+      },
+      { 
+        titulo: 'Relatórios Inteligentes', 
+        youtubeId: 'ZR_6Z1IDD8s',
+        descricao: 'Análise de resultados',
+        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDHQY89-jZxie4EH5if-0xArIpgOE1L0AZtHi9kDVYuBzXjKdFMuHv61g_vZhnO_RaJiM0E0PKTNNZJ5unzne73LhBQTJFzt0nZmZD4bw1L8SxoFnJVEmIEMtSEoSUUTYzRqoCEqZTPAAdAiq3HV7CNZZ4TM6ulTNiOsq-EjadxDrpCye2RaqvpxmTSAZJ5s0CBizMpqSbvJQeFzlvGsFPgCAENV97V5pbQezEBKJ-8mB1V96c09y1QC5X7X6_BVg1hi3hAcBBUE3c'
+      }
     ],
     []
   );
@@ -38,136 +60,106 @@ const TutorialsSection = ({ sectionRef }: Props) => {
       ref={sectionRef}
       component='section'
       sx={{
-        py: { xs: 2, md: 4 },
-        px: { xs: 6, md: 8 },
+        py: { xs: 4, md: 6 },
+        px: { xs: 2, sm: 4, md: 6, lg: 8 },
         width: '100%',
-        bgcolor: 'rgb(245, 245, 245)',
-        overflow: 'hidden'
+        bgcolor: '#f4f6f8'
       }}
     >
-      <Container maxWidth={false}>
-        <Box
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 4
+        }}
+      >
+        <Typography
+          variant='h4'
+          fontWeight={700}
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            mb: 2
+            color: '#212121',
+            fontSize: { xs: '1.75rem', md: '2rem' }
           }}
         >
-          <Typography
-            variant='h6'
-            fontWeight={600}
-            color='text.primary'
-          >
-            Tutoriais & Recursos
-          </Typography>
-          <Button
-            variant='text'
-            size='small'
-            onClick={() => window.open(PLAYLIST_URL_TUTORIALS, '_blank')}
-            sx={{
-              color: 'rgb(137, 78, 238)',
-              ':hover': { color: '#1d4ed8' },
-              fontWeight: 'bold'
-            }}
-          >
-            Ver todos os tutoriais
-          </Button>
-        </Box>
-
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr',
-              md: 'repeat(3, 1fr)'
-            },
-            justifyContent: 'center'
-          }}
-        >
-          {videos.map((v, i) => (
-            <Box
-              key={i.toString()}
+          Tutoriais & Recursos
+        </Typography>
+            <Button
+              variant='text'
+              onClick={() => window.open(PLAYLIST_URL_TUTORIALS, '_blank')}
+              endIcon={<ArrowForwardIcon />}
               sx={{
-                width: { xs: '100%', md: 'auto' },
-                position: 'relative',
-                zIndex: 0,
-                p: 2
+                color: '#1877F2',
+                fontWeight: 700,
+                textTransform: 'none',
+                '&:hover': { 
+                  bgcolor: 'transparent',
+                  color: '#166fe5'
+                }
               }}
             >
-              <Card
+              Ver todos
+            </Button>
+          </Box>
+
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: '1fr',
+                md: 'repeat(3, 1fr)'
+              },
+              gap: 3
+            }}
+          >
+          {videos.map((v, i) => (
+            <Card
+              key={i.toString()}
+              sx={{
+                borderRadius: 3,
+                boxShadow: 2,
+                overflow: 'hidden',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: 4,
+                  transform: 'translateY(-4px)'
+                }
+              }}
+            >
+              <Box
+                component='img'
+                src={v.image}
+                alt={v.titulo}
                 sx={{
-                  borderRadius: 3,
-                  border: '1px solid',
-                  borderColor: 'rgba(229,231,235,1)',
-                  boxShadow: 1,
-                  overflow: 'hidden'
+                  width: '100%',
+                  height: 192,
+                  objectFit: 'cover'
                 }}
-              >
-                <CardContent sx={{ p: 3.75, pb: 3.125 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      mb: 3.125
-                    }}
-                  >
-                    <Typography
-                      sx={{
-                        fontSize: 20,
-                        fontWeight: 700,
-                        color: '#111827'
-                      }}
-                    >
-                      {v.titulo}
-                    </Typography>
-                    <IconButton
-                      size='small'
-                      onClick={() => {
-                        setSelectedVideo(v);
-                        setModalOpen(true);
-                      }}
-                      sx={{
-                        color: 'rgb(137, 78, 238)',
-                        '&:hover': {
-                          backgroundColor: 'rgba(137, 78, 238, 0.1)'
-                        }
-                      }}
-                    >
-                      <OpenInFullIcon fontSize='small' />
-                    </IconButton>
-                  </Box>
-                  <Box
-                    sx={{
-                      position: 'relative',
-                      width: '100%',
-                      aspectRatio: '16 / 10',
-                      bgcolor: '#000',
-                      borderRadius: 2.5,
-                      overflow: 'hidden'
-                    }}
-                  >
-                    <Box
-                      component='iframe'
-                      src={`https://www.youtube.com/embed/${v.youtubeId}`}
-                      title={v.titulo}
-                      allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share'
-                      allowFullScreen
-                      sx={{
-                        width: '100%',
-                        height: '100%',
-                        border: 0,
-                        display: 'block'
-                      }}
-                    />
-                  </Box>
-                </CardContent>
-              </Card>
-            </Box>
+              />
+              <CardContent sx={{ p: 3 }}>
+                <Typography
+                  variant='h6'
+                  fontWeight={700}
+                  sx={{
+                    color: '#212121',
+                    mb: 1,
+                    fontSize: '1.125rem'
+                  }}
+                >
+                  {v.titulo}
+                </Typography>
+                <Typography
+                  sx={{
+                    color: '#616161',
+                    fontSize: '0.875rem'
+                  }}
+                >
+                  {v.descricao}
+                </Typography>
+              </CardContent>
+            </Card>
           ))}
-        </Box>
-      </Container>
+          </Box>
 
       <Dialog
         open={modalOpen}

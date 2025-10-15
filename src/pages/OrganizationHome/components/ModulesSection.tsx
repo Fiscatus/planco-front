@@ -1,87 +1,60 @@
 import {
+  AccountBalance as AccountBalanceIcon,
+  ArrowForward as ArrowForwardIcon,
   BarChart as BarChartIcon,
-  ChevronRight as ChevronRightIcon,
-  FolderOpen as FolderOpenIcon,
+  Description as DescriptionIcon,
+  FolderShared as FolderSharedIcon,
   Gavel as GavelIcon,
-  Group as GroupIcon,
-  ListAlt as ListAltIcon,
-  Settings as SettingsIcon
+  SettingsApplications as SettingsApplicationsIcon
 } from '@mui/icons-material';
-import { Box, Button, Container, Typography } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import { type RefObject, useMemo } from 'react';
+
+// ATENÇÃO: Não usar <Container> aqui. Este componente é embutido na OrganizationHome.
 
 type Props = {
   onOpenModulo: (path: string) => void;
   sectionRef?: RefObject<HTMLDivElement>;
+  embedded?: boolean;
 };
 
-const ModulesSection = ({ onOpenModulo, sectionRef }: Props) => {
+const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) => {
   const modulos = useMemo(
     () => [
       {
         nome: 'Planejamento da Contratação',
-        descricao: 'Organize todas as fases da contratação: da demanda inicial à publicação do edital.',
-        icon: (
-          <FolderOpenIcon
-            fontSize='small'
-            sx={{ color: 'rgb(137, 78, 238)' }}
-          />
-        ),
+        descricao: 'Organize todas as fases da contratação, da demanda inicial à publicação do edital.',
+        icon: <DescriptionIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
         path: '/planejamento-da-contratacao'
       },
       {
         nome: 'Gestão Contratual',
         descricao: 'Gerencie contratos e documentos de forma centralizada.',
-        icon: (
-          <GroupIcon
-            fontSize='small'
-            sx={{ color: 'rgb(137, 78, 238)' }}
-          />
-        ),
+        icon: <FolderSharedIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
         path: '/gestao-contratual'
       },
       {
         nome: 'Execução Contratual',
         descricao: 'Monitore a execução do contrato com controle de entregas, fiscalizações e aditivos.',
-        icon: (
-          <ListAltIcon
-            fontSize='small'
-            sx={{ color: 'rgb(137, 78, 238)' }}
-          />
-        ),
+        icon: <GavelIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
         path: '/execucao-contratual'
       },
       {
         nome: 'Processo Licitatório',
         descricao: 'Acompanhe o processo licitatório desde a abertura até a homologação.',
-        icon: (
-          <GavelIcon
-            fontSize='small'
-            sx={{ color: 'rgb(137, 78, 238)' }}
-          />
-        ),
+        icon: <AccountBalanceIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
         path: '/processo-licitatorio'
       },
       {
         nome: 'Relatórios',
         descricao: 'Visualize dados estratégicos em relatórios automáticos e dashboards personalizáveis.',
-        icon: (
-          <BarChartIcon
-            fontSize='small'
-            sx={{ color: 'rgb(137, 78, 238)' }}
-          />
-        ),
+        icon: <BarChartIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
         path: '/relatorios'
       },
       {
         nome: 'Configurações do Fluxo',
         descricao: 'Personalize o fluxo de trabalho e os modelos padrão conforme a instituição.',
-        icon: (
-          <SettingsIcon
-            fontSize='small'
-            sx={{ color: 'rgb(137, 78, 238)' }}
-          />
-        ),
+        icon: <SettingsApplicationsIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
         path: '/configuracoes-fluxo'
       }
     ],
@@ -92,191 +65,123 @@ const ModulesSection = ({ onOpenModulo, sectionRef }: Props) => {
       ref={sectionRef}
       component='section'
       sx={{
-        py: { xs: 2, md: 4 },
-        px: { xs: 4, md: 6 },
+        py: { xs: 4, md: 6 },
+        px: { xs: 2, sm: 4, md: 6, lg: 8 },
         width: '100%',
-        bgcolor: 'rgb(245, 245, 245)'
+        bgcolor: '#f4f6f8'
       }}
     >
-      <Container maxWidth={false}>
-        <Box sx={{ mb: 3, px: { xs: 2, md: 3 } }}>
-          <Typography
-            variant='h6'
-            fontWeight={600}
-            color='text.primary'
-          >
-            Módulos do Sistema
-          </Typography>
-        </Box>
+      <Typography
+        variant='h4'
+        fontWeight={700}
+        sx={{
+          color: '#212121',
+          mb: 4,
+          fontSize: { xs: '1.75rem', md: '2rem' }
+        }}
+      >
+        Módulos do Sistema
+      </Typography>
 
-        <Box
-          sx={{
-            px: { xs: 2, md: 3 },
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr',
-              md: 'repeat(2, minmax(0, 1fr))',
-              lg: 'repeat(3, minmax(0, 1fr))'
-            },
-            gap: 2.5
-          }}
-        >
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: '1fr',
+                md: 'repeat(2, 1fr)',
+                lg: 'repeat(3, 1fr)'
+              },
+              gap: 3
+            }}
+          >
           {modulos.map((modulo, index) => {
             const isDisponivel = modulo.nome === 'Planejamento da Contratação';
             return (
               <Box
                 key={index.toString()}
                 sx={{
-                  position: 'relative',
-                  height: 192,
-                  borderRadius: 4,
-                  p: '1px',
-                  background: 'linear-gradient(135deg, rgba(229,231,235,0.6), rgba(0,0,0,0))',
-                  transition: 'all 200ms ease',
+                  bgcolor: '#ffffff',
+                  p: 3,
+                  borderRadius: 3,
+                  boxShadow: 2,
+                  transition: 'all 0.3s ease',
+                  display: 'flex',
+                  flexDirection: 'column',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, rgba(191,219,254,0.6), rgba(216,180,254,0.6))'
+                    boxShadow: 4,
+                    transform: 'translateY(-2px)'
                   }
                 }}
               >
                 <Box
-                  className='inner'
                   sx={{
-                    height: '100%',
-                    borderRadius: 4,
-                    bgcolor: '#ffffff',
-                    border: '1px solid',
-                    borderColor: 'rgba(229, 231, 235, 1)',
-                    boxShadow: 1,
-                    overflow: 'hidden',
-                    position: 'relative',
-                    transition: 'box-shadow 200ms ease',
-                    '&:hover': { boxShadow: 3 }
+                    display: 'flex',
+                    alignItems: 'center',
+                    mb: 2
                   }}
                 >
                   <Box
                     sx={{
-                      p: 2.5,
-                      position: 'relative',
+                      bgcolor: 'rgba(24, 119, 242, 0.1)',
+                      p: 1.5,
+                      borderRadius: '50%',
+                      mr: 2,
                       display: 'flex',
-                      flexDirection: 'column',
-                      height: '100%'
+                      alignItems: 'center',
+                      justifyContent: 'center'
                     }}
                   >
-                    <Box
-                      sx={{
-                        pointerEvents: 'none',
-                        position: 'absolute',
-                        right: -24,
-                        top: -24,
-                        width: 80,
-                        height: 80,
-                        bgcolor: 'rgba(238, 219, 254, 0.4)',
-                        borderRadius: '50%',
-                        filter: 'blur(8px)',
-                        transition: 'background-color 200ms ease',
-                        '&:hover': { bgcolor: 'rgba(50, 48, 51, 0.6)' }
-                      }}
-                    />
-
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'flex-start',
-                        justifyContent: 'space-between',
-                        mb: 1.5
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1.5,
-                          minWidth: 0
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            width: 48,
-                            height: 48,
-                            borderRadius: 2.5,
-                            color: '#2563eb',
-                            background: 'linear-gradient(135deg,rgb(252, 239, 255),rgb(248, 238, 255))',
-                            outline: '1px solid rgb(236, 183, 250)',
-                            outlineOffset: -1
-                          }}
-                        >
-                          {modulo.icon}
-                        </Box>
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography
-                            sx={{
-                              fontSize: 17,
-                              fontWeight: 600,
-                              color: '#111827',
-                              lineHeight: 1.25
-                            }}
-                            noWrap
-                          >
-                            {modulo.nome}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Box>
-
-                    <Box sx={{ flex: 1 }}>
-                      <Typography
-                        sx={{
-                          fontSize: 14,
-                          color: '#4b5563',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
-                        }}
-                      >
-                        {modulo.descricao}
-                      </Typography>
-                    </Box>
-
-                    <Box
-                      sx={{
-                        mt: 2,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'flex-start'
-                      }}
-                    >
-                      <Button
-                        onClick={() => isDisponivel && onOpenModulo(modulo.path)}
-                        size='small'
-                        variant='contained'
-                        disabled={!isDisponivel}
-                        sx={{
-                          px: 1.5,
-                          py: 0.75,
-                          borderRadius: 1,
-                          bgcolor: 'rgb(137, 78, 238)',
-                          color: '#ffffff',
-                          textTransform: 'none',
-                          fontSize: 14,
-                          boxShadow: 1,
-                          '&:hover': { bgcolor: '#1d4ed8' }
-                        }}
-                        endIcon={isDisponivel ? <ChevronRightIcon sx={{ fontSize: 18 }} /> : undefined}
-                      >
-                        {isDisponivel ? 'Abrir' : 'Em breve'}
-                      </Button>
-                    </Box>
+                    {modulo.icon}
                   </Box>
+                  <Typography
+                    variant='h6'
+                    fontWeight={700}
+                    sx={{
+                      color: '#212121',
+                      fontSize: '1.25rem'
+                    }}
+                  >
+                    {modulo.nome}
+                  </Typography>
                 </Box>
+
+                <Typography
+                  sx={{
+                    color: '#616161',
+                    mb: 2,
+                    flex: 1,
+                    lineHeight: 1.6
+                  }}
+                >
+                  {modulo.descricao}
+                </Typography>
+
+                <Button
+                  onClick={() => isDisponivel && onOpenModulo(modulo.path)}
+                  variant='text'
+                  disabled={!isDisponivel}
+                  endIcon={<ArrowForwardIcon />}
+                  sx={{
+                    color: '#1877F2',
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    alignSelf: 'flex-start',
+                    p: 0,
+                    '&:hover': {
+                      bgcolor: 'transparent',
+                      color: '#166fe5'
+                    },
+                    '&.Mui-disabled': {
+                      color: '#9ca3af'
+                    }
+                  }}
+                >
+                  {isDisponivel ? 'Ver módulo' : 'Em breve'}
+                </Button>
               </Box>
             );
           })}
-        </Box>
-      </Container>
+          </Box>
     </Box>
   );
 };

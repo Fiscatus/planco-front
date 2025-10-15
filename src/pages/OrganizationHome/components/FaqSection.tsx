@@ -1,37 +1,32 @@
 import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
-import { Accordion, AccordionDetails, AccordionSummary, Box, Container, Typography } from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary, Box, Typography } from '@mui/material';
 import { type RefObject, useMemo } from 'react';
+
+// ATENÇÃO: Não usar <Container> aqui. Este componente é embutido na OrganizationHome.
 
 type Props = {
   sectionRef?: RefObject<HTMLDivElement>;
+  embedded?: boolean;
 };
 
-const FaqSection = ({ sectionRef }: Props) => {
+const FaqSection = ({ sectionRef, embedded = true }: Props) => {
   const faqs = useMemo(
     () => [
       {
         q: 'Como personalizar o fluxo?',
-        a: 'Acesse Configurações do Fluxo para editar etapas, responsáveis e regras.'
-      },
-      {
-        q: 'Onde vejo minhas pendências?',
-        a: 'Abra Notificações ou o módulo Minhas Pendências no topo do painel.'
+        a: 'Você pode personalizar os fluxos de trabalho na seção \'Configurações do Fluxo\', onde é possível criar, editar e remover etapas conforme a necessidade da sua instituição.'
       },
       {
         q: 'Como gerar relatórios?',
-        a: 'No módulo Relatórios, selecione um template e ajuste os filtros desejados.'
-      },
-      {
-        q: 'Posso convidar membros da equipe?',
-        a: 'Sim. Vá em Usuários > Convidar e defina o papel e permissões.'
+        a: 'Acesse o módulo \'Relatórios\' para visualizar dashboards interativos e gerar relatórios personalizados. Filtre por período, tipo de contrato e outras variáveis para obter os dados que precisa.'
       },
       {
         q: 'Como configurar alertas e lembretes?',
-        a: 'Em Configurações > Notificações, escolha canais e periodicidade.'
+        a: 'Alertas e lembretes podem ser configurados no seu perfil de usuário. Defina notificações por e-mail ou no sistema para prazos importantes e atualizações de processos.'
       },
       {
-        q: 'Onde encontro os tutoriais?',
-        a: 'Acesse a seção Tutoriais & Recursos para vídeos e guias rápidos.'
+        q: 'Onde vejo minhas pendências?',
+        a: 'Suas pendências e tarefas atribuídas a você são listadas no painel inicial e também podem ser acessadas através do ícone de notificações no topo da página.'
       }
     ],
     []
@@ -42,71 +37,91 @@ const FaqSection = ({ sectionRef }: Props) => {
       ref={sectionRef}
       component='section'
       sx={{
-        py: { xs: 2, md: 4 },
-        px: { xs: 4, md: 6 },
-        width: '100%',
-        bgcolor: '#fff'
+        py: { xs: 4, md: 6 },
+        px: { xs: 2, sm: 4, md: 6, lg: 8 },
+        width: '100%'
       }}
     >
-      <Container maxWidth={false}>
-        <Box sx={{ mb: 3 }}>
-          <Typography
-            variant='h6'
-            fontWeight={600}
-            color='text.primary'
-            sx={{ mb: 2 }}
-          >
-            Perguntas Frequentes
-          </Typography>
+      <Box sx={{ textAlign: 'center', mb: 6 }}>
+        <Typography
+          variant='h4'
+          fontWeight={700}
+          sx={{
+            color: '#212121',
+            mb: 1,
+            fontSize: { xs: '1.75rem', md: '2rem' }
+          }}
+        >
+          Perguntas Frequentes
+        </Typography>
+        <Typography
+          sx={{
+            color: '#616161',
+            maxWidth: '32rem',
+            mx: 'auto',
+            lineHeight: 1.6
+          }}
+        >
+          Encontre respostas rápidas para as dúvidas mais comuns sobre o sistema.
+        </Typography>
+      </Box>
 
-          {(() => {
-            const columns = [faqs.slice(0, 2), faqs.slice(2, 4), faqs.slice(4, 6)];
-            return (
-              <Box
+          <Box
+            sx={{
+              maxWidth: '64rem',
+              mx: 'auto'
+            }}
+          >
+          {faqs.map((faq, idx) => (
+            <Accordion
+              key={idx.toString()}
+              sx={{
+                mb: 1,
+                borderRadius: 2,
+                boxShadow: 1,
+                border: '1px solid',
+                borderColor: 'rgba(229, 231, 235, 1)',
+                '&:before': {
+                  display: 'none'
+                },
+                '&.Mui-expanded': {
+                  margin: '0 0 4px 0'
+                }
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
                 sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' },
-                  gap: { xs: 2, md: 2.5 }
+                  px: 3,
+                  py: 2,
+                  '& .MuiAccordionSummary-content': {
+                    margin: 0
+                  }
                 }}
               >
-                {columns.map((group, colIdx) => (
-                  <Box
-                    key={colIdx.toString()}
-                    sx={{
-                      borderRadius: 4,
-                      border: '1px solid',
-                      borderColor: 'rgba(229,231,235,1)',
-                      bgcolor: '#fff',
-                      boxShadow: 1
-                    }}
-                  >
-                    {group.map((faq, idx) => (
-                      <Accordion
-                        key={idx.toString()}
-                        disableGutters
-                        sx={{
-                          boxShadow: 'none',
-                          borderTop: idx === 0 ? 'none' : '1px solid rgba(243,244,246,1)'
-                        }}
-                      >
-                        <AccordionSummary
-                          expandIcon={<ExpandMoreIcon />}
-                          sx={{ px: 2, py: 1.5 }}
-                        >
-                          <Typography sx={{ fontWeight: 600, color: '#111827' }}>{faq.q}</Typography>
-                        </AccordionSummary>
-                        <AccordionDetails sx={{ px: 2, pb: 2 }}>
-                          <Typography sx={{ color: '#4b5563' }}>{faq.a}</Typography>
-                        </AccordionDetails>
-                      </Accordion>
-                    ))}
-                  </Box>
-                ))}
-              </Box>
-            );
-          })()}
-        </Box>
-      </Container>
+                <Typography
+                  sx={{
+                    fontWeight: 500,
+                    color: '#212121',
+                    fontSize: '1.125rem'
+                  }}
+                >
+                  {faq.q}
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 3, pb: 3 }}>
+                <Typography
+                  sx={{
+                    color: '#616161',
+                    lineHeight: 1.6
+                  }}
+                >
+                  {faq.a}
+                </Typography>
+              </AccordionDetails>
+            </Accordion>
+          ))}
+          </Box>
     </Box>
   );
 };

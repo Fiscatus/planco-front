@@ -1,6 +1,8 @@
 import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Box } from '@mui/material';
 import { useAuth } from '@/hooks';
+import { AboutSection } from './components/AboutSection';
 import { FaqSection } from './components/FaqSection';
 import { HeroSection } from './components/HeroSection';
 import { ModulesSection } from './components/ModulesSection';
@@ -32,29 +34,47 @@ const OrganizationHome = () => {
   );
 
   return (
-    <>
+    <Box sx={{ width: '100%' }}>
       <HeroSection
         firstName={firstName}
         onPrimaryClick={handleScrollToModulos}
         onSecondaryClick={handleScrollToTutoriais}
       />
 
-      <ModulesSection
-        onOpenModulo={handleModuloClick}
-        sectionRef={modulosSectionRef}
-      />
+      <Box ref={modulosSectionRef} sx={{ mb: 4 }}>
+        <ModulesSection onOpenModulo={handleModuloClick} />
+      </Box>
 
-      <SupportSection
-        onNavigateHistoria={() => navigate('/historia')}
-        onOpenChat={() => {
-          return;
-        }} //TODO: Integrar com o chat
-      />
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
+          gap: 3,
+          mb: 4,
+          px: { xs: 2, sm: 4, md: 6, lg: 8 }
+        }}
+      >
+        <AboutSection
+          onNavigateHistoria={() => navigate('/historia')}
+        />
+        <Box sx={{ position: { md: 'sticky' }, top: { md: 24 } }}>
+          <SupportSection
+            onNavigateHistoria={() => navigate('/historia')}
+            onOpenChat={() => {
+              return;
+            }} //TODO: Integrar com o chat
+          />
+        </Box>
+      </Box>
 
-      <TutorialsSection sectionRef={tutoriaisSectionRef} />
+      <Box ref={tutoriaisSectionRef} sx={{ mb: 4 }}>
+        <TutorialsSection />
+      </Box>
 
-      <FaqSection sectionRef={faqSectionRef} />
-    </>
+      <Box ref={faqSectionRef}>
+        <FaqSection />
+      </Box>
+    </Box>
   );
 };
 

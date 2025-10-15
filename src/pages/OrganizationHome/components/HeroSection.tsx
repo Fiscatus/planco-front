@@ -1,3 +1,7 @@
+import { 
+  Explore as ExploreIcon,
+  PlayCircleOutline as PlayCircleOutlineIcon
+} from '@mui/icons-material';
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
 
 type Props = {
@@ -12,35 +16,46 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
       component='section'
       sx={{
         py: { xs: 4, md: 6 },
-        px: { xs: 4, md: 6 },
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center'
+        width: '100%'
       }}
     >
-      <Container maxWidth='lg'>
+      <Container maxWidth={false} sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
         <Box
           sx={{
-            display: 'grid',
-            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
             alignItems: 'center',
-            gap: { xs: 4, md: 6 }
+            justifyContent: 'space-between',
+            gap: { xs: 4, md: 8 },
+            maxWidth: '1400px',
+            mx: 'auto'
           }}
         >
-          <Box>
-            <Stack spacing={2.5}>
+          <Box sx={{ 
+            width: { xs: '100%', md: '50%' },
+            pr: { md: 3 }
+          }}>
+            <Stack spacing={3}>
               <Typography
                 variant='h3'
                 fontWeight={700}
                 lineHeight={1.2}
+                sx={{
+                  fontSize: { xs: '2.5rem', md: '3rem', lg: '3.5rem' },
+                  color: '#212121'
+                }}
               >
                 {`Bem-vindo, ${firstName}`}
               </Typography>
               <Typography
-                variant='body1'
-                color='text.secondary'
+                variant='h6'
+                sx={{
+                  color: '#616161',
+                  fontSize: { xs: '1.1rem', md: '1.25rem' },
+                  lineHeight: 1.5
+                }}
               >
-                Sua central para gerenciar contratações públicas de forma inteligente e integrada.
+                Sua central para gerenciar contratações públicas de forma inteligente e eficiente.
               </Typography>
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
@@ -51,25 +66,41 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                   variant='contained'
                   onClick={onPrimaryClick}
                   size='large'
+                  startIcon={<ExploreIcon />}
                   sx={{
-                    bgcolor: 'rgb(137, 78, 238)',
-                    ':hover': { bgcolor: 'rgb(137, 78, 238)' }
+                    bgcolor: '#1877F2',
+                    color: 'white',
+                    fontWeight: 500,
+                    py: 1.5,
+                    px: 3,
+                    borderRadius: 2,
+                    boxShadow: 2,
+                    '&:hover': { 
+                      bgcolor: '#166fe5',
+                      boxShadow: 3
+                    },
+                    transition: 'all 0.3s ease'
                   }}
                 >
                   Explorar Módulos
                 </Button>
                 <Button
                   variant='outlined'
-                  color='primary'
                   onClick={onSecondaryClick}
                   size='large'
+                  startIcon={<PlayCircleOutlineIcon />}
                   sx={{
-                    color: '#000',
-                    borderColor: '#000',
-                    ':hover': {
-                      borderColor: '#000',
-                      bgcolor: 'rgba(0,0,0,0.04)'
-                    }
+                    color: '#1877F2',
+                    borderColor: '#1877F2',
+                    fontWeight: 500,
+                    py: 1.5,
+                    px: 3,
+                    borderRadius: 2,
+                    '&:hover': {
+                      borderColor: '#1877F2',
+                      bgcolor: 'rgba(24, 119, 242, 0.08)'
+                    },
+                    transition: 'all 0.3s ease'
                   }}
                 >
                   Assistir Guia Rápido
@@ -78,38 +109,25 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
             </Stack>
           </Box>
 
-          <Box>
-            <Box sx={{ position: 'relative' }}>
-              <Box
-                aria-hidden
-                sx={{
-                  position: 'absolute',
-                  inset: 0,
-                  mx: 'auto',
-                  width: { xs: '80%', md: '70%' },
-                  height: { xs: 240, md: 320 },
-                  top: { xs: -10, md: -20 },
-                  borderRadius: 4,
-                  filter: 'blur(40px)',
-                  opacity: 0.5,
-                  background: (theme) =>
-                    `radial-gradient(60% 60% at 50% 40%, ${theme.palette.primary.main}33 0%, transparent 70%)`
-                }}
-              />
-              <Box
-                component='img'
-                alt='Painel do Fiscatus'
-                src='https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1400&q=60'
-                sx={{
-                  position: 'relative',
-                  width: '100%',
-                  height: 'auto',
-                  borderRadius: 2,
-                  boxShadow: 3,
-                  display: 'block'
-                }}
-              />
-            </Box>
+          <Box sx={{ 
+            width: { xs: '100%', md: '50%' },
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}>
+            <Box
+              component='img'
+              alt='Ilustração de pessoas trabalhando em um painel de gestão'
+              src='https://lh3.googleusercontent.com/aida-public/AB6AXuCzDZxPcdJDNdIjBYluSPR-2q0iVOBgox7Z8ekNJaFwTvTrjgGvPoL-eOeiMUJmGfD2nhi09TspVlhl2lPvYdOW9z8-biWeMQt1xOZHKO1fSKbAuYIOZqahnkjBSq0o1wrCAiAgBkjnLuRVl2ngdnv5M9ufkb9jzmvtyluSoO2CAvDU2PeqHa54u3SBP-2q5fkdF1RKCLkUX6x9-6YcrBbLzgByjFhGQGGkaL6xG-R4VrNl9qv1NKnxOvU1DPTxXSU-O_8-GG6rFWY'
+              sx={{
+                width: '100%',
+                maxWidth: 500,
+                height: 'auto',
+                borderRadius: 2,
+                objectFit: 'contain',
+                display: 'block'
+              }}
+            />
           </Box>
         </Box>
       </Container>

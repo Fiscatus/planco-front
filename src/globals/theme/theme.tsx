@@ -48,12 +48,12 @@ const themeOptions: ThemeOptions = {
 
     // Neutros da interface do Facebook
     background: {
-      default: '#F0F2F5',  // cinza claro padrão da UI
-      paper: '#FFFFFF'
+      default: '#f4f6f8',  // cinza claro padrão da UI
+      paper: '#ffffff'
     },
     text: {
-      primary: '#1C1E21',   // texto principal
-      secondary: '#65676B', // texto secundário
+      primary: '#212121',   // texto principal
+      secondary: '#616161', // texto secundário
       disabled: '#A0A4A8'   // desabilitado
     },
     divider: '#E4E6EB',
@@ -84,18 +84,21 @@ const themeOptions: ThemeOptions = {
     }
   },
 
+  shape: { borderRadius: 12 },
+
   typography: {
-    fontFamily: '"Source Sans Pro", sans-serif',
+    fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', 'Arial', sans-serif",
     fontWeightLight: 400,
     fontSize: 15,
-    h1: { fontFamily: '"Source Sans Pro", sans-serif', fontSize: 56 },
-    h2: { fontFamily: '"Source Sans Pro", sans-serif', fontSize: 40 },
-    h3: { fontFamily: '"Source Sans Pro", sans-serif', fontSize: 32, fontWeight: 700 },
-    h4: { fontFamily: '"Source Sans Pro", sans-serif', fontSize: 28, fontWeight: 700 },
-    h5: { fontFamily: '"Source Sans Pro", sans-serif', fontSize: 22 },
-    h6: { fontFamily: '"Source Sans Pro", sans-serif', fontSize: 18, fontWeight: 700 },
-    overline: { fontFamily: '"Source Sans Pro", sans-serif', fontSize: 14, fontWeight: 400, letterSpacing: 1.1 },
-    subtitle1: { fontFamily: '"Source Sans Pro", sans-serif', fontSize: 13, fontWeight: 700 }
+    h1: { fontWeight: 700, fontSize: "2.75rem", lineHeight: 1.15 },
+    h2: { fontWeight: 700, fontSize: "2rem" },
+    h3: { fontWeight: 700, fontSize: "1.375rem" },
+    h4: { fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', 'Arial', sans-serif", fontSize: 28, fontWeight: 700 },
+    h5: { fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', 'Arial', sans-serif", fontSize: 22 },
+    h6: { fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', 'Arial', sans-serif", fontSize: 18, fontWeight: 700 },
+    body1: { color: "#616161" },
+    overline: { fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', 'Arial', sans-serif", fontSize: 14, fontWeight: 400, letterSpacing: 1.1 },
+    subtitle1: { fontFamily: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica', 'Arial', sans-serif", fontSize: 13, fontWeight: 700 }
   },
 
   components: {
@@ -110,7 +113,7 @@ const themeOptions: ThemeOptions = {
           padding: 0,
           display: 'flex',
           placeItems: 'center',
-          backgroundColor: '#F0F2F5',
+          backgroundColor: '#f4f6f8',
           width: '100%'
         },
         '#root': {
@@ -126,9 +129,22 @@ const themeOptions: ThemeOptions = {
         '::-webkit-scrollbar-thumb:hover': { background: '#787D82' }
       }
     },
+    MuiButton: {
+      defaultProps: { variant: "contained", disableElevation: true },
+      styleOverrides: {
+        root: { textTransform: "none", borderRadius: 10, fontWeight: 600 },
+        containedPrimary: { ":hover": { backgroundColor: "#105BBE" } },
+        outlinedPrimary: { ":hover": { backgroundColor: "rgba(24,119,242,0.08)" } },
+      },
+    },
+    MuiCard: { 
+      styleOverrides: { 
+        root: { borderRadius: 16, boxShadow: "0 1px 3px rgba(16,24,40,.08)" } 
+      } 
+    },
     MuiContainer: {
       defaultProps: {
-        maxWidth: false,
+        maxWidth: "lg",
         style: { paddingLeft: 0, paddingRight: 0, margin: 0 }
       },
       styleOverrides: {
