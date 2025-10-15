@@ -28,6 +28,12 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
         path: '/planejamento-da-contratacao'
       },
       {
+        nome: 'Processo Licitatório',
+        descricao: 'Acompanhe o processo licitatório desde a abertura até a homologação.',
+        icon: <AccountBalanceIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
+        path: '/processo-licitatorio'
+      },
+      {
         nome: 'Gestão Contratual',
         descricao: 'Gerencie contratos e documentos de forma centralizada.',
         icon: <FolderSharedIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
@@ -38,12 +44,6 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
         descricao: 'Monitore a execução do contrato com controle de entregas, fiscalizações e aditivos.',
         icon: <GavelIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
         path: '/execucao-contratual'
-      },
-      {
-        nome: 'Processo Licitatório',
-        descricao: 'Acompanhe o processo licitatório desde a abertura até a homologação.',
-        icon: <AccountBalanceIcon sx={{ fontSize: '2rem', color: '#1877F2' }} />,
-        path: '/processo-licitatorio'
       },
       {
         nome: 'Relatórios',
@@ -65,7 +65,7 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
       ref={sectionRef}
       component='section'
       sx={{
-        py: { xs: 4, md: 6 },
+        py: { xs: 6, md: 8 },
         px: { xs: 2, sm: 4, md: 6, lg: 8 },
         width: '100%',
         bgcolor: '#f4f6f8'
@@ -76,8 +76,9 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
         fontWeight={700}
         sx={{
           color: '#212121',
-          mb: 4,
-          fontSize: { xs: '1.75rem', md: '2rem' }
+          mb: 3, // 24px - dentro da especificação 16-24px
+          fontSize: { xs: '1.75rem', md: '2rem' },
+          textAlign: 'center'
         }}
       >
         Módulos do Sistema
@@ -91,7 +92,7 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
                 md: 'repeat(2, 1fr)',
                 lg: 'repeat(3, 1fr)'
               },
-              gap: 3
+              gap: 4
             }}
           >
           {modulos.map((modulo, index) => {
@@ -101,7 +102,7 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
                 key={index.toString()}
                 sx={{
                   bgcolor: '#ffffff',
-                  p: 3,
+                  p: 4,
                   borderRadius: 3,
                   boxShadow: 2,
                   transition: 'all 0.3s ease',

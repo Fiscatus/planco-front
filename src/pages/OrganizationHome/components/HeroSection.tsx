@@ -1,8 +1,9 @@
 import { 
-  Explore as ExploreIcon,
-  PlayCircleOutline as PlayCircleOutlineIcon
+  Widgets as WidgetsIcon,
+  PlayCircle as PlayCircleIcon
 } from '@mui/icons-material';
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
+import { useEffect, useState } from 'react';
 
 type Props = {
   firstName: string;
@@ -11,120 +12,201 @@ type Props = {
 };
 
 const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
+
   return (
     <Box
       component='section'
       sx={{
-        py: { xs: 4, md: 6 },
-        width: '100%'
+        py: { xs: 3, md: 5 }, // 24px/40px - baseline 8px
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: { xs: 'auto', md: 'clamp(260px, 40vh, 380px)' }
       }}
     >
       <Container maxWidth={false} sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
         <Box
           sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', md: 'row' },
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: { xs: 4, md: 8 },
-            maxWidth: '1400px',
-            mx: 'auto'
+            maxWidth: '1200px',
+            mx: 'auto',
+            background: 'linear-gradient(135deg, rgba(248, 250, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%)',
+            bgcolor: 'background.paper',
+            borderRadius: { xs: 2, md: 3 },
+            boxShadow: '0 8px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
+            border: '1px solid',
+            borderColor: 'divider',
+            overflow: 'hidden',
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1.22fr 1fr' }, // 55/45 ratio
+            alignItems: 'stretch',
+            minHeight: { xs: 'auto', md: 'clamp(260px, 40vh, 380px)' }
           }}
         >
+          {/* Conteúdo de texto */}
           <Box sx={{ 
-            width: { xs: '100%', md: '50%' },
-            pr: { md: 3 }
+            p: { xs: 3, md: 4 }, // 24px/32px - baseline 8px
+            textAlign: { xs: 'center', md: 'left' },
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: { xs: 'center', md: 'flex-start' }
           }}>
-            <Stack spacing={3}>
-              <Typography
-                variant='h3'
-                fontWeight={700}
-                lineHeight={1.2}
+            <Box sx={{ 
+              maxWidth: '62ch', // Largura controlada para leitura confortável
+              width: '100%'
+            }}>
+              {/* Headline Stack - Duas linhas controladas */}
+              <Box
                 sx={{
-                  fontSize: { xs: '2.5rem', md: '3rem', lg: '3.5rem' },
-                  color: '#212121'
+                  opacity: isVisible ? 1 : 0,
+                  transform: isVisible ? 'translateY(0)' : 'translateY(8px)',
+                  transition: 'opacity 350ms cubic-bezier(0.4, 0, 0.2, 1), transform 350ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  mb: { xs: 2.5, md: 3 } // Espaçamento profissional entre headline e descrição
                 }}
               >
-                {`Bem-vindo, ${firstName}`}
-              </Typography>
+                <Typography
+                  variant='h1'
+                  fontWeight={600}
+                  lineHeight={1.08}
+                  sx={{
+                    fontSize: { xs: '2rem', sm: '2.75rem', md: '3.25rem', lg: '3.75rem' }, // Tamanhos profissionais e escalonados
+                    color: 'text.primary',
+                    letterSpacing: { xs: '-0.015em', md: '-0.025em' }, // Letter-spacing refinado
+                    display: 'block',
+                    mb: 0,
+                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif' // Fonte profissional
+                  }}
+                >
+                  Bem-vindo,
+                </Typography>
+                <Typography
+                  variant='h1'
+                  fontWeight={700}
+                  lineHeight={1.08}
+                  sx={{
+                    fontSize: { xs: '2rem', sm: '2.75rem', md: '3.25rem', lg: '3.75rem' },
+                    color: 'primary.main',
+                    letterSpacing: { xs: '-0.015em', md: '-0.025em' },
+                    display: 'block',
+                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif'
+                  }}
+                >
+                  {firstName}
+                </Typography>
+              </Box>
+              
               <Typography
-                variant='h6'
+                variant='body1'
                 sx={{
-                  color: '#616161',
-                  fontSize: { xs: '1.1rem', md: '1.25rem' },
-                  lineHeight: 1.5
+                  color: 'text.secondary',
+                  fontSize: { xs: '1.0625rem', md: '1.1875rem' }, // 17px/19px - tamanhos profissionais
+                  lineHeight: 1.6, // Line-height otimizado para leitura
+                  fontWeight: 400,
+                  maxWidth: '52ch', // Largura ideal para leitura
+                  mx: { xs: 'auto', md: 0 },
+                  mb: { xs: 3.5, md: 4 }, // Espaçamento generoso antes dos botões
+                  opacity: isVisible ? 1 : 0,
+                  transition: 'opacity 300ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  transitionDelay: '80ms',
+                  fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif'
                 }}
               >
-                Sua central para gerenciar contratações públicas de forma inteligente e eficiente.
+                A sua plataforma inteligente para conectar todas as fases da licitação pública com agilidade, transparência e&nbsp;eficiência.
               </Typography>
+              
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
-                spacing={2}
-                sx={{ mt: 1 }}
+                spacing={{ xs: 2, sm: 2.5 }} // Espaçamento profissional entre botões
+                sx={{ 
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  opacity: isVisible ? 1 : 0,
+                  transform: isVisible ? 'scale(1)' : 'scale(1.02)',
+                  transition: 'opacity 260ms cubic-bezier(0.4, 0, 0.2, 1), transform 260ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  transitionDelay: '140ms'
+                }}
               >
                 <Button
                   variant='contained'
                   onClick={onPrimaryClick}
                   size='large'
-                  startIcon={<ExploreIcon />}
+                  startIcon={<WidgetsIcon />}
+                  aria-label="Explorar módulos da plataforma"
                   sx={{
                     bgcolor: '#1877F2',
                     color: 'white',
-                    fontWeight: 500,
+                    fontWeight: 600,
+                    fontSize: '1rem',
                     py: 1.5,
-                    px: 3,
+                    px: 3.5,
                     borderRadius: 2,
-                    boxShadow: 2,
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
                     '&:hover': { 
                       bgcolor: '#166fe5',
-                      boxShadow: 3
+                      boxShadow: '0 8px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
+                      transform: 'translateY(-1px)'
                     },
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    minWidth: { xs: '100%', sm: 'auto' },
+                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif'
                   }}
                 >
                   Explorar Módulos
                 </Button>
+                
                 <Button
                   variant='outlined'
                   onClick={onSecondaryClick}
                   size='large'
-                  startIcon={<PlayCircleOutlineIcon />}
+                  startIcon={<PlayCircleIcon />}
+                  aria-label="Assistir guia rápido de uso"
                   sx={{
-                    color: '#1877F2',
-                    borderColor: '#1877F2',
-                    fontWeight: 500,
+                    color: 'text.primary',
+                    borderColor: 'rgba(0, 0, 0, 0.12)',
+                    bgcolor: 'rgba(0, 0, 0, 0.02)',
+                    fontWeight: 600,
+                    fontSize: '1rem',
                     py: 1.5,
-                    px: 3,
+                    px: 3.5,
                     borderRadius: 2,
                     '&:hover': {
-                      borderColor: '#1877F2',
-                      bgcolor: 'rgba(24, 119, 242, 0.08)'
+                      borderColor: 'rgba(0, 0, 0, 0.2)',
+                      bgcolor: 'rgba(0, 0, 0, 0.04)',
+                      transform: 'translateY(-1px)'
                     },
-                    transition: 'all 0.3s ease'
+                    transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    minWidth: { xs: '100%', sm: 'auto' },
+                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif'
                   }}
                 >
                   Assistir Guia Rápido
                 </Button>
               </Stack>
-            </Stack>
+            </Box>
           </Box>
 
+          {/* Imagem */}
           <Box sx={{ 
-            width: { xs: '100%', md: '50%' },
-            display: 'flex',
+            display: { xs: 'none', md: 'flex' },
+            alignItems: 'center',
             justifyContent: 'center',
-            alignItems: 'center'
+            p: { xs: 3, md: 4 } // 24px/32px - baseline 8px, mesmo padding do texto
           }}>
             <Box
               component='img'
-              alt='Ilustração de pessoas trabalhando em um painel de gestão'
-              src='https://lh3.googleusercontent.com/aida-public/AB6AXuCzDZxPcdJDNdIjBYluSPR-2q0iVOBgox7Z8ekNJaFwTvTrjgGvPoL-eOeiMUJmGfD2nhi09TspVlhl2lPvYdOW9z8-biWeMQt1xOZHKO1fSKbAuYIOZqahnkjBSq0o1wrCAiAgBkjnLuRVl2ngdnv5M9ufkb9jzmvtyluSoO2CAvDU2PeqHa54u3SBP-2q5fkdF1RKCLkUX6x9-6YcrBbLzgByjFhGQGGkaL6xG-R4VrNl9qv1NKnxOvU1DPTxXSU-O_8-GG6rFWY'
+              alt='Uma mulher e um homem trabalhando juntos em um escritório moderno, colaborando em um projeto em um laptop. A imagem é profissional e transmite uma sensação de produtividade e trabalho em equipe.'
+              src='https://lh3.googleusercontent.com/aida-public/AB6AXuAJWGTRTdKCw9Rbx73UpfjVtc88nTz9GADQgT9fJdvY8TYk9J3XZQbBNvZ6O1y2YvJbtq4kfd3xzh-BbCRdhA6fZ5cRyoI6yOpa1AzhDGJmIbtsiyVmCB7KgF5-B8lhp6tMFtpFggYl6zm9_P2iP6PIE2MFCfGjVoXsedZaWAXyqW7Oe7hkhfkYvD8DPKfvma-aQNVDoBvfhvQ6pYxBtSku8SLPwd0Kbs8fKUl638fYOYigs8L7rAC9i62ELy9CbG4Ius9VllRRzfs'
               sx={{
                 width: '100%',
-                maxWidth: 500,
-                height: 'auto',
-                borderRadius: 2,
-                objectFit: 'contain',
+                height: '100%',
+                maxHeight: '100%',
+                objectFit: 'cover',
+                objectPosition: 'center',
+                borderRadius: 2, // Mesmo raio visual do card
                 display: 'block'
               }}
             />

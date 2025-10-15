@@ -1,6 +1,6 @@
 import {
   ArrowForward as ArrowForwardIcon,
-  OpenInFull as OpenInFullIcon
+  PlayArrow as PlayArrowIcon
 } from '@mui/icons-material';
 import {
   Box,
@@ -37,19 +37,19 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
         titulo: 'Introdução ao Planco', 
         youtubeId: 'ZR_6Z1IDD8s',
         descricao: 'Visão geral do sistema',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDgpVdkwFeAJGjjSqgdTflym6XWr27EL61IUbJGcwroWD_F2iqMjqY7jAisYotlFcq4pQk6Ike00WyqXg69Xfh4si3GMT4fuhvrw-tdbKtyT0GE2q8iwQy5t8dibTPWXHlG5mK5oyjbeGYEfTgzx1krj_sGJDNMX4RpCEdnLuJqXfEUjVRW-y3ctD384DfnGBz4Sq-3THxA2Q2V93u6jk-UaCoIqs7ig11eKRNHsUbmvkaQZjF7hOgOYEfOG6fYsZnT40aNlz8yz7A'
+        image: 'https://images.unsplash.com/photo-1553877522-43269d4ea984?w=1200&h=800&fit=crop&crop=center'
       },
       { 
         titulo: 'Modelando Fluxos', 
         youtubeId: 'ZR_6Z1IDD8s',
         descricao: 'Crie seu fluxo de trabalho',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAjatHyRd_vNPKHAJYZbiD0c-OUaUrqqa7jiMnoDu2FhLucHLQg_88lc6hgO_L31yiIGXeAlNkLXeq1ORtjnPBJzYrTr-qfj8MEkn176njNdI4ljsbfOBbaXlqIeGc99Chy5D30jMotsGzMmdCH1usWqQM8hkPvzeRbtUCRzFVF2nn7U8XXIIWD-E8AASIH1PoAayMUWKXE_WzS8PVB7aKHzhV4b3ewrf2Vl-HpXhFcZotOkZs01EEQ8hKZJL72UmRi4LBCVeM2pPM'
+        image: 'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=800&h=600&fit=crop&crop=center'
       },
       { 
         titulo: 'Relatórios Inteligentes', 
         youtubeId: 'ZR_6Z1IDD8s',
         descricao: 'Análise de resultados',
-        image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDHQY89-jZxie4EH5if-0xArIpgOE1L0AZtHi9kDVYuBzXjKdFMuHv61g_vZhnO_RaJiM0E0PKTNNZJ5unzne73LhBQTJFzt0nZmZD4bw1L8SxoFnJVEmIEMtSEoSUUTYzRqoCEqZTPAAdAiq3HV7CNZZ4TM6ulTNiOsq-EjadxDrpCye2RaqvpxmTSAZJ5s0CBizMpqSbvJQeFzlvGsFPgCAENV97V5pbQezEBKJ-8mB1V96c09y1QC5X7X6_BVg1hi3hAcBBUE3c'
+        image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop&crop=center'
       }
     ],
     []
@@ -60,10 +60,10 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
       ref={sectionRef}
       component='section'
       sx={{
-        py: { xs: 4, md: 6 },
+        py: { xs: 6, md: 8 },
         px: { xs: 2, sm: 4, md: 6, lg: 8 },
         width: '100%',
-        bgcolor: '#f4f6f8'
+        bgcolor: '#F8FAFC'
       }}
     >
       <Box
@@ -71,30 +71,31 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          mb: 4
+          mb: 3 // 24px - dentro da especificação 16-24px
         }}
       >
         <Typography
           variant='h4'
           fontWeight={700}
           sx={{
-            color: '#212121',
+            color: '#334155',
             fontSize: { xs: '1.75rem', md: '2rem' }
           }}
         >
-          Tutoriais & Recursos
+          Aprenda a usar o sistema
         </Typography>
             <Button
               variant='text'
               onClick={() => window.open(PLAYLIST_URL_TUTORIALS, '_blank')}
               endIcon={<ArrowForwardIcon />}
               sx={{
-                color: '#1877F2',
-                fontWeight: 700,
+                color: '#3B82F6',
+                fontWeight: 600,
                 textTransform: 'none',
                 '&:hover': { 
                   bgcolor: 'transparent',
-                  color: '#166fe5'
+                  color: '#2563EB',
+                  textDecoration: 'underline'
                 }
               }}
             >
@@ -109,7 +110,7 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
                 xs: '1fr',
                 md: 'repeat(3, 1fr)'
               },
-              gap: 3
+              gap: 4
             }}
           >
           {videos.map((v, i) => (
@@ -117,31 +118,64 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
               key={i.toString()}
               sx={{
                 borderRadius: 3,
-                boxShadow: 2,
+                boxShadow: 1,
                 overflow: 'hidden',
                 transition: 'all 0.3s ease',
+                bgcolor: '#FFFFFF',
                 '&:hover': {
-                  boxShadow: 4,
-                  transform: 'translateY(-4px)'
+                  boxShadow: 4
                 }
               }}
             >
-              <Box
-                component='img'
-                src={v.image}
-                alt={v.titulo}
-                sx={{
-                  width: '100%',
-                  height: 192,
-                  objectFit: 'cover'
-                }}
-              />
+              <Box sx={{ position: 'relative', overflow: 'hidden' }}>
+                <Box
+                  component='img'
+                  src={v.image}
+                  alt={v.titulo}
+                  sx={{
+                    width: '100%',
+                    height: 240,
+                    objectFit: 'cover',
+                    objectPosition: 'center',
+                    display: 'block'
+                  }}
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: 0,
+                    bgcolor: 'rgba(0, 0, 0, 0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <IconButton
+                    onClick={() => {
+                      setSelectedVideo(v);
+                      setModalOpen(true);
+                    }}
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      bgcolor: 'rgba(255, 255, 255, 0.3)',
+                      backdropFilter: 'blur(4px)',
+                      color: 'white',
+                      '&:hover': {
+                        bgcolor: 'rgba(255, 255, 255, 0.5)'
+                      }
+                    }}
+                  >
+                    <PlayArrowIcon sx={{ fontSize: 32 }} />
+                  </IconButton>
+                </Box>
+              </Box>
               <CardContent sx={{ p: 3 }}>
                 <Typography
                   variant='h6'
                   fontWeight={700}
                   sx={{
-                    color: '#212121',
+                    color: '#334155',
                     mb: 1,
                     fontSize: '1.125rem'
                   }}
@@ -150,7 +184,7 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
                 </Typography>
                 <Typography
                   sx={{
-                    color: '#616161',
+                    color: '#64748B',
                     fontSize: '0.875rem'
                   }}
                 >

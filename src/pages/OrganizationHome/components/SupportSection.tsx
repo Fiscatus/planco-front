@@ -20,22 +20,29 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
   return (
     <Card
       sx={{
-        p: 3,
-        borderRadius: 3,
-        boxShadow: 2,
+        p: { xs: 5, sm: 6, lg: 6 },
+        borderRadius: 4,
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
         height: '100%',
         backgroundColor: '#fff',
         display: 'flex',
-        flexDirection: 'column'
+        flexDirection: 'column',
+        border: '1px solid #F1F5F9',
+        transition: 'all 0.2s ease-in-out',
+        '&:hover': {
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          transform: 'translateY(-1px)'
+        }
       }}
     >
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
         <Typography
-          variant='h6'
+          variant='h5'
           fontWeight={700}
           sx={{
-            color: '#212121',
-            fontSize: '1.25rem'
+            color: '#1E293B',
+            fontSize: '1.5rem',
+            letterSpacing: '-0.025em'
           }}
         >
           Precisa de Ajuda?
@@ -43,41 +50,88 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
         <Chip
           label='Online agora'
           size='small'
-          color='success'
           sx={{
-            fontWeight: 700,
-            fontSize: '0.75rem'
+            bgcolor: '#ECFDF5',
+            color: '#059669',
+            fontWeight: 600,
+            fontSize: '0.75rem',
+            px: 2,
+            py: 0.5,
+            borderRadius: '9999px',
+            border: '1px solid #D1FAE5'
           }}
         />
       </Box>
 
       <Typography
-        variant='body2'
+        variant='body1'
         sx={{
-          color: '#616161',
-          mb: 2,
-          lineHeight: 1.6
+          color: '#64748B',
+          mb: 4,
+          lineHeight: 1.6,
+          fontSize: '1rem',
+          fontWeight: 400
         }}
       >
         Nossa equipe de suporte está pronta para te ajudar. Veja nossos canais de atendimento ou abra um chamado.
       </Typography>
 
-      <Box sx={{ mb: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', color: '#616161', mb: 1 }}>
-          <ChatIcon sx={{ color: '#1877F2', mr: 1.5, fontSize: '1.25rem' }} />
-          <Typography variant='body2'>Chat em tempo real</Typography>
+      <Box sx={{ mb: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2.5 }}>
+          <Box sx={{ 
+            bgcolor: '#EBF4FF', 
+            p: 1, 
+            borderRadius: 2, 
+            mr: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <ChatIcon sx={{ color: '#1877F2', fontSize: '1.25rem' }} />
+          </Box>
+          <Typography variant='body1' sx={{ fontSize: '1rem', color: '#374151', fontWeight: 500 }}>Chat em tempo real</Typography>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', color: '#616161', mb: 1 }}>
-          <PhoneInTalkIcon sx={{ color: '#1877F2', mr: 1.5, fontSize: '1.25rem' }} />
-          <Typography variant='body2'>(99) 99999-9999</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2.5 }}>
+          <Box sx={{ 
+            bgcolor: '#EBF4FF', 
+            p: 1, 
+            borderRadius: 2, 
+            mr: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <PhoneInTalkIcon sx={{ color: '#1877F2', fontSize: '1.25rem' }} />
+          </Box>
+          <Typography variant='body1' sx={{ fontSize: '1rem', color: '#374151', fontWeight: 500 }}>(99) 99999-9999</Typography>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', color: '#616161', mb: 1 }}>
-          <EmailIcon sx={{ color: '#1877F2', mr: 1.5, fontSize: '1.25rem' }} />
-          <Typography variant='body2'>ajuda@planco.co.br</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2.5 }}>
+          <Box sx={{ 
+            bgcolor: '#EBF4FF', 
+            p: 1, 
+            borderRadius: 2, 
+            mr: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <EmailIcon sx={{ color: '#1877F2', fontSize: '1.25rem' }} />
+          </Box>
+          <Typography variant='body1' sx={{ fontSize: '1rem', color: '#374151', fontWeight: 500 }}>ajuda@planco.co.br</Typography>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', color: '#616161' }}>
-          <HelpCenterIcon sx={{ color: '#1877F2', mr: 1.5, fontSize: '1.25rem' }} />
-          <Typography variant='body2'>Central de ajuda</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ 
+            bgcolor: '#EBF4FF', 
+            p: 1, 
+            borderRadius: 2, 
+            mr: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <HelpCenterIcon sx={{ color: '#1877F2', fontSize: '1.25rem' }} />
+          </Box>
+          <Typography variant='body1' sx={{ fontSize: '1rem', color: '#374151', fontWeight: 500 }}>Central de ajuda</Typography>
         </Box>
       </Box>
 
@@ -89,13 +143,19 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
           onClick={onOpenChat}
           startIcon={<SupportAgentIcon />}
           sx={{
-            fontWeight: 700,
-            py: 1.2,
-            borderRadius: 9999,
+            fontWeight: 600,
+            py: 2,
+            px: 3,
+            borderRadius: 3,
+            fontSize: '1rem',
+            bgcolor: '#1877F2',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
             '&:hover': {
-              boxShadow: 3
+              bgcolor: '#166fe5',
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              transform: 'translateY(-1px)'
             },
-            transition: 'all 0.3s ease'
+            transition: 'all 0.2s ease-in-out'
           }}
         >
           Abrir Suporte

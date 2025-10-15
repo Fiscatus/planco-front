@@ -8,7 +8,8 @@ import { version } from '@/../package.json';
 const NAVIGATE_PATHS = {
   PRIVACY_POLICY_PATH: '/politica-privacidade',
   TERMS_OF_USE_PATH: '/termos-de-uso',
-  SUPPORT_PATH: '/suporte'
+  SUPPORT_PATH: '/suporte',
+  ABOUT_SYSTEM_PATH: '/historia'
 };
 
 const Footer = () => {
@@ -189,6 +190,27 @@ const Footer = () => {
               <Button
                 variant='text'
                 size='small'
+                onClick={() => navigate(NAVIGATE_PATHS.ABOUT_SYSTEM_PATH)}
+                sx={{
+                  justifyContent: { xs: 'center', md: 'flex-start' },
+                  color: '#616161',
+                  fontSize: '0.875rem',
+                  minHeight: 'auto',
+                  py: 0.25,
+                  px: 0,
+                  textTransform: 'uppercase',
+                  fontWeight: 500,
+                  '&:hover': {
+                    color: '#1877F2',
+                    backgroundColor: 'transparent'
+                  }
+                }}
+              >
+                SOBRE O SISTEMA
+              </Button>
+              <Button
+                variant='text'
+                size='small'
                 onClick={() => navigate(NAVIGATE_PATHS.SUPPORT_PATH)}
                 sx={{
                   justifyContent: { xs: 'center', md: 'flex-start' },
@@ -282,7 +304,7 @@ const Footer = () => {
                 fontSize: '0.875rem'
               }}
             >
-              ©2024 Planco - Feito com dedicação para a administração pública brasileira.
+              ©2026 Planco – A nova geração de tecnologia para o setor público.
             </Typography>
           </Box>
         </Container>

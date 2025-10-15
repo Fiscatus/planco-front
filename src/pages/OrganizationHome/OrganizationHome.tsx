@@ -2,7 +2,6 @@ import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { useAuth } from '@/hooks';
-import { AboutSection } from './components/AboutSection';
 import { FaqSection } from './components/FaqSection';
 import { HeroSection } from './components/HeroSection';
 import { ModulesSection } from './components/ModulesSection';
@@ -35,29 +34,43 @@ const OrganizationHome = () => {
 
   return (
     <Box sx={{ width: '100%' }}>
+      {/* 1️⃣ Hero / Boas-vindas */}
       <HeroSection
         firstName={firstName}
         onPrimaryClick={handleScrollToModulos}
         onSecondaryClick={handleScrollToTutoriais}
       />
 
-      <Box ref={modulosSectionRef} sx={{ mb: 4 }}>
+      {/* 2️⃣ Módulos do Sistema */}
+      <Box ref={modulosSectionRef} sx={{ mb: { xs: 8, md: 12 } }}>
         <ModulesSection onOpenModulo={handleModuloClick} />
       </Box>
 
+      {/* 3️⃣ Tutoriais & Recursos (ou Aprenda a usar / Comece por aqui) */}
+      <Box ref={tutoriaisSectionRef} sx={{ mb: { xs: 8, md: 12 } }}>
+        <TutorialsSection />
+      </Box>
+
+      {/* 4️⃣ FAQ + Suporte (60/40) */}
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: '2fr 1fr' },
-          gap: 3,
-          mb: 4,
-          px: { xs: 2, sm: 4, md: 6, lg: 8 }
+          gridTemplateColumns: { xs: '1fr', sm: '7fr 5fr', md: '7.2fr 4.8fr' }, // 60/40 responsivo
+          gap: { xs: 6, sm: 6, md: 8 },
+          mb: { xs: 8, md: 12 },
+          px: { xs: 2, sm: 4, md: 6, lg: 8 },
+          alignItems: 'start'
         }}
       >
-        <AboutSection
-          onNavigateHistoria={() => navigate('/historia')}
-        />
-        <Box sx={{ position: { md: 'sticky' }, top: { md: 24 } }}>
+        <Box ref={faqSectionRef} sx={{ minHeight: 'fit-content' }}>
+          <FaqSection />
+        </Box>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'flex-start',
+          position: 'sticky',
+          top: 24
+        }}>
           <SupportSection
             onNavigateHistoria={() => navigate('/historia')}
             onOpenChat={() => {
@@ -65,14 +78,6 @@ const OrganizationHome = () => {
             }} //TODO: Integrar com o chat
           />
         </Box>
-      </Box>
-
-      <Box ref={tutoriaisSectionRef} sx={{ mb: 4 }}>
-        <TutorialsSection />
-      </Box>
-
-      <Box ref={faqSectionRef}>
-        <FaqSection />
       </Box>
     </Box>
   );

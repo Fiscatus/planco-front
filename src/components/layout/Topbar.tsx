@@ -156,7 +156,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             justifyContent: 'center',
             mx: 2,
             minWidth: 0,
-            maxWidth: '28rem'
+            maxWidth: '32rem'
           }}
         >
           <Box
@@ -170,11 +170,12 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             <Search
               sx={{
                 position: 'absolute',
-                left: 4,
-                color: '#616161',
+                left: 16,
+                color: '#64748B',
                 fontSize: 20,
                 pointerEvents: 'none',
-                zIndex: 1
+                zIndex: 1,
+                transition: 'color 0.2s ease'
               }}
             />
             <InputBase
@@ -183,25 +184,38 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{
                 width: '100%',
-                height: 40,
-                borderRadius: '20px',
-                backgroundColor: '#f4f6f8',
-                border: '1px solid #d1d5db',
-                pl: 5,
-                pr: 2,
+                height: 44,
+                borderRadius: '12px',
+                backgroundColor: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                pl: 6,
+                pr: 3,
                 fontSize: '0.875rem',
-                transition: 'all 0.2s ease',
+                fontWeight: 400,
+                color: '#1E293B',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                 '&:focus': {
-                  outline: '2px solid #1877F2',
-                  outlineOffset: '2px',
+                  outline: 'none',
                   borderColor: '#1877F2',
-                  boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                  backgroundColor: '#FFFFFF',
+                  boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  '& + .MuiSvgIcon-root': {
+                    color: '#1877F2'
+                  }
                 },
                 '&:hover': {
-                  borderColor: '#9ca3af'
+                  borderColor: '#CBD5E1',
+                  backgroundColor: '#F1F5F9',
+                  boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.1)'
                 },
                 '&::placeholder': {
-                  color: '#616161'
+                  color: '#94A3B8',
+                  fontWeight: 400,
+                  opacity: 1
+                },
+                '&:focus::placeholder': {
+                  color: '#CBD5E1'
                 }
               }}
             />

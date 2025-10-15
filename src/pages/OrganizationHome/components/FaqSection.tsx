@@ -9,6 +9,90 @@ type Props = {
   embedded?: boolean;
 };
 
+// Estilos compartilhados para garantir consistência visual absoluta
+const sharedAccordionStyles = {
+  borderRadius: '24px !important', // Pílula - forçar mesmo valor para todos
+  boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+  bgcolor: '#FFFFFF',
+  border: '1px solid #F1F5F9',
+  margin: 0,
+  '&:before': {
+    display: 'none'
+  },
+  // Forçar bordas arredondadas em todos os estados e posições
+  '&:first-of-type': {
+    borderRadius: '24px !important'
+  },
+  '&:last-of-type': {
+    borderRadius: '24px !important'
+  },
+  '&.Mui-expanded': {
+    margin: 0,
+    borderRadius: '24px !important', // Manter mesmo raio quando expandido
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    '&:first-of-type': {
+      borderRadius: '24px !important'
+    },
+    '&:last-of-type': {
+      borderRadius: '24px !important'
+    }
+  },
+  '&:hover': {
+    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+    borderColor: '#E2E8F0',
+    borderRadius: '24px !important'
+  },
+  transition: 'all 0.25s ease-in-out'
+};
+
+const sharedSummaryStyles = {
+  px: 4,
+  py: 2.5,
+  minHeight: 64,
+  height: 64,
+  '& .MuiAccordionSummary-content': {
+    margin: 0,
+    alignItems: 'center'
+  },
+  '&.Mui-expanded': {
+    minHeight: 64,
+    height: 64
+  },
+  '& .MuiAccordionSummary-expandIconWrapper': {
+    transition: 'transform 0.25s ease',
+    color: '#64748B',
+    fontSize: '1.5rem'
+  },
+  '&.Mui-expanded .MuiAccordionSummary-expandIconWrapper': {
+    transform: 'rotate(180deg)',
+    color: '#1877F2'
+  },
+  '&:hover': {
+    bgcolor: '#F8FAFC'
+  }
+};
+
+const sharedDetailsStyles = {
+  px: 4,
+  pb: 4,
+  pt: 0
+};
+
+const sharedTitleStyles = {
+  fontWeight: 600,
+  color: '#1E293B',
+  fontSize: '1.125rem',
+  lineHeight: 1.5,
+  letterSpacing: '-0.01em'
+};
+
+const sharedAnswerStyles = {
+  color: '#64748B',
+  lineHeight: 1.6,
+  fontSize: '1rem',
+  fontWeight: 400
+};
+
 const FaqSection = ({ sectionRef, embedded = true }: Props) => {
   const faqs = useMemo(
     () => [
@@ -38,7 +122,6 @@ const FaqSection = ({ sectionRef, embedded = true }: Props) => {
       component='section'
       sx={{
         py: { xs: 4, md: 6 },
-        px: { xs: 2, sm: 4, md: 6, lg: 8 },
         width: '100%'
       }}
     >
@@ -47,75 +130,52 @@ const FaqSection = ({ sectionRef, embedded = true }: Props) => {
           variant='h4'
           fontWeight={700}
           sx={{
-            color: '#212121',
-            mb: 1,
-            fontSize: { xs: '1.75rem', md: '2rem' }
+            color: '#1E293B',
+            mb: 2,
+            fontSize: { xs: '1.75rem', md: '2rem' },
+            letterSpacing: '-0.025em'
           }}
         >
           Perguntas Frequentes
         </Typography>
         <Typography
           sx={{
-            color: '#616161',
-            maxWidth: '32rem',
+            color: '#64748B',
+            maxWidth: '28rem',
             mx: 'auto',
-            lineHeight: 1.6
+            lineHeight: 1.6,
+            fontSize: { xs: '1rem', md: '1.125rem' },
+            fontWeight: 400
           }}
         >
-          Encontre respostas rápidas para as dúvidas mais comuns sobre o sistema.
+          Tire suas dúvidas de forma rápida com as perguntas mais frequentes do sistema.
         </Typography>
       </Box>
 
           <Box
             sx={{
-              maxWidth: '64rem',
-              mx: 'auto'
+              maxWidth: '52rem', // ~832px - mais compacto
+              mx: 'auto', // Centralizar acordions
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 2 // Gap consistente entre todos os itens
             }}
           >
           {faqs.map((faq, idx) => (
             <Accordion
               key={idx.toString()}
-              sx={{
-                mb: 1,
-                borderRadius: 2,
-                boxShadow: 1,
-                border: '1px solid',
-                borderColor: 'rgba(229, 231, 235, 1)',
-                '&:before': {
-                  display: 'none'
-                },
-                '&.Mui-expanded': {
-                  margin: '0 0 4px 0'
-                }
-              }}
+              sx={sharedAccordionStyles}
             >
               <AccordionSummary
                 expandIcon={<ExpandMoreIcon />}
-                sx={{
-                  px: 3,
-                  py: 2,
-                  '& .MuiAccordionSummary-content': {
-                    margin: 0
-                  }
-                }}
+                sx={sharedSummaryStyles}
               >
-                <Typography
-                  sx={{
-                    fontWeight: 500,
-                    color: '#212121',
-                    fontSize: '1.125rem'
-                  }}
-                >
+                <Typography sx={sharedTitleStyles}>
                   {faq.q}
                 </Typography>
               </AccordionSummary>
-              <AccordionDetails sx={{ px: 3, pb: 3 }}>
-                <Typography
-                  sx={{
-                    color: '#616161',
-                    lineHeight: 1.6
-                  }}
-                >
+              <AccordionDetails sx={sharedDetailsStyles}>
+                <Typography sx={sharedAnswerStyles}>
                   {faq.a}
                 </Typography>
               </AccordionDetails>
