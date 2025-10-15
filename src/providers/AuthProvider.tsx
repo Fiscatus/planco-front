@@ -6,7 +6,7 @@ import { api } from '@/services';
 import parseJwtToJson from '@/utils/parseJwtToJson';
 
 const authApiPath = '/auth';
-const localStorageUserKey = '@fiscatus:user';
+const localStorageUserKey = '@planco:user';
 
 type Props = {
   children: ReactNode;

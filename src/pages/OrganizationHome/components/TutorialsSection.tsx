@@ -34,7 +34,7 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
   const videos = useMemo(
     () => [
       { 
-        titulo: 'Introdução ao Fiscatus', 
+        titulo: 'Introdução ao Planco', 
         youtubeId: 'ZR_6Z1IDD8s',
         descricao: 'Visão geral do sistema',
         image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDgpVdkwFeAJGjjSqgdTflym6XWr27EL61IUbJGcwroWD_F2iqMjqY7jAisYotlFcq4pQk6Ike00WyqXg69Xfh4si3GMT4fuhvrw-tdbKtyT0GE2q8iwQy5t8dibTPWXHlG5mK5oyjbeGYEfTgzx1krj_sGJDNMX4RpCEdnLuJqXfEUjVRW-y3ctD384DfnGBz4Sq-3THxA2Q2V93u6jk-UaCoIqs7ig11eKRNHsUbmvkaQZjF7hOgOYEfOG6fYsZnT40aNlz8yz7A'

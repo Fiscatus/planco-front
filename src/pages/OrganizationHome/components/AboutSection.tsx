@@ -40,7 +40,7 @@ const AboutSection = ({ onNavigateHistoria, embedded = true }: Props) => {
           lineHeight: 1.6
         }}
       >
-        O Fiscatus é uma solução para contratações públicas que conecta todas as etapas do processo, do planejamento à execução contratual. Modernize seu órgão com uma ferramenta que simplifica e torna cada etapa mais clara.
+        O Planco é uma solução para contratações públicas que conecta todas as etapas do processo, do planejamento à execução contratual. Modernize seu órgão com uma ferramenta que simplifica e torna cada etapa mais clara.
       </Typography>
       
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>

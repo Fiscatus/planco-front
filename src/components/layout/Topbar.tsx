@@ -145,7 +145,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
               whiteSpace: 'nowrap'
             }}
           >
-            Fiscatus
+            Planco
           </Typography>
         </Box>
 

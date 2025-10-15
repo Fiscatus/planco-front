@@ -62,7 +62,7 @@ const Footer = () => {
                   fontSize: '1.125rem'
                 }}
               >
-                Fiscatus
+                Planco
               </Typography>
             </Box>
             <Typography
@@ -282,7 +282,7 @@ const Footer = () => {
                 fontSize: '0.875rem'
               }}
             >
-              ©2024 Fiscatus - Feito com dedicação para a administração pública brasileira.
+              ©2024 Planco - Feito com dedicação para a administração pública brasileira.
             </Typography>
           </Box>
         </Container>

@@ -73,7 +73,7 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', color: '#616161', mb: 1 }}>
           <EmailIcon sx={{ color: '#1877F2', mr: 1.5, fontSize: '1.25rem' }} />
-          <Typography variant='body2'>ajuda@fiscatus.co.br</Typography>
+          <Typography variant='body2'>ajuda@planco.co.br</Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', color: '#616161' }}>
           <HelpCenterIcon sx={{ color: '#1877F2', mr: 1.5, fontSize: '1.25rem' }} />
