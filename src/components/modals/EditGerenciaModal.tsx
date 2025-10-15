@@ -92,7 +92,7 @@ export const EditGerenciaModal = ({
             ? gerencia.responsavelUserId
             : gerencia.responsavelUserId?._id || gerencia.responsavelUserId_details?._id;
 
-        setGerenciaForm({
+        const formData = {
           department_name: gerencia.department_name,
           department_acronym: gerencia.department_acronym,
           deparment_email: gerencia.deparment_email,
@@ -100,7 +100,9 @@ export const EditGerenciaModal = ({
           email_owner: gerencia.email_owner,
           description: gerencia.description,
           responsavelUserId: responsavelId
-        });
+        };
+
+        setGerenciaForm(formData);
       } else {
         setGerenciaForm({});
       }
@@ -111,6 +113,7 @@ export const EditGerenciaModal = ({
   }, [open, isEdit, gerencia, searchResponsavel]);
 
   const handleSave = useCallback(async () => {
+    
     if (!gerenciaForm.department_name || !gerenciaForm.deparment_email || !gerenciaForm.email_owner) {
       return;
     }
@@ -626,7 +629,9 @@ export const EditGerenciaModal = ({
             Cancelar
           </Button>
           <Button
-            onClick={handleSave}
+            onClick={() => {
+              handleSave();
+            }}
             variant='contained'
             disabled={loading}
             sx={{

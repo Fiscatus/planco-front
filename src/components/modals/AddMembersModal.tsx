@@ -22,7 +22,7 @@ import {
   Search as SearchIcon
 } from '@mui/icons-material';
 import type { Department, User } from '@/globals/types';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type UserWithMembership = User & { isMember?: boolean };
 
@@ -57,6 +57,7 @@ export const AddMembersModal = ({
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [savingMembers, setSavingMembers] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
 
   const toggleUserSelection = useCallback(
     (userId: string) => {
@@ -112,11 +113,12 @@ export const AddMembersModal = ({
     [onUserPageChange, onSearchUsers, userSearch]
   );
 
+  // Carregar usuários apenas quando o modal abrir e não tiver usuários
   useEffect(() => {
     if (open && users.length === 0) {
       onSearchUsers('', 1);
     }
-  }, [open, onSearchUsers, users.length]);
+  }, [open, users.length, onSearchUsers]);
 
   useEffect(() => {
     return () => {

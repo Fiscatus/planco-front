@@ -4,7 +4,7 @@ import { Box, Button, Card, Chip, Grid, Stack, Typography } from '@mui/material'
 import type { Department, User } from '@/globals/types';
 import { Loading, useNotification } from '@/components';
 import { useAccessControl, useActiveDepartment, useAuth, useDepartments, useUsers } from '@/hooks';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ActiveDepartmentSelector } from '@/components';
 import { InfoSection } from './components/InfoSection';
@@ -45,6 +45,7 @@ const MinhasGerencias = () => {
 
   const [members, setMembers] = useState<User[]>([]);
   const [canEditGerencia, setCanEditGerencia] = useState(false);
+  const [currentGerenciaData, setCurrentGerenciaData] = useState<Department | null>(null);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [addMembersModalOpen, setAddMembersModalOpen] = useState(false);
@@ -54,36 +55,63 @@ const MinhasGerencias = () => {
   const [allUsers, setAllUsers] = useState<UserWithMembership[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [userPagination, setUserPagination] = useState({ page: 0, limit: 5, total: 0 });
+  const usersRef = useRef(users);
 
+  // Atualizar ref quando users mudar
+  useEffect(() => {
+    usersRef.current = users;
+  }, [users]);
 
   useEffect(() => {
     const loadActiveDepartmentData = async () => {
       if (!activeDepartment || !currentUser?._id) {
         setMembers([]);
         setCanEditGerencia(false);
+        setCurrentGerenciaData(null);
+        setAllUsers([]);
         return;
       }
 
       try {
+        const gerenciaInfo = await getDepartmentInfo(activeDepartment._id);
+        setCurrentGerenciaData(gerenciaInfo);
+
         const accessResult = await checkAccess(currentUser._id, activeDepartment._id);
         setCanEditGerencia(accessResult.hasAccess);
 
         const membersData = await getDepartmentMembers(activeDepartment._id);
         setMembers(membersData);
       } catch (error) {
-        console.error('Erro ao carregar dados da gerência:', error);
         showNotification('Erro ao carregar dados da gerência', 'error');
         setCanEditGerencia(false);
         setMembers([]);
+        setCurrentGerenciaData(null);
       }
     };
 
     loadActiveDepartmentData();
-  }, [activeDepartment, currentUser, checkAccess, getDepartmentMembers, showNotification]);
+  }, [activeDepartment, currentUser, checkAccess, getDepartmentMembers, getDepartmentInfo, showNotification]);
 
   const handleEditGerencia = useCallback(() => {
     setEditModalOpen(true);
   }, []);
+
+  const reloadGerenciaData = useCallback(async () => {
+    if (!activeDepartment || !currentUser?._id) return;
+
+    try {
+      const gerenciaInfo = await getDepartmentInfo(activeDepartment._id);
+      setCurrentGerenciaData(gerenciaInfo);
+
+      const accessResult = await checkAccess(currentUser._id, activeDepartment._id);
+      setCanEditGerencia(accessResult.hasAccess);
+
+      const membersData = await getDepartmentMembers(activeDepartment._id);
+      setMembers(membersData);
+    } catch (error) {
+      console.error('Erro ao recarregar dados da gerência:', error);
+    }
+  }, [activeDepartment, currentUser, getDepartmentInfo, checkAccess, getDepartmentMembers]);
 
   const handleSaveGerencia = useCallback(async (data: any) => {
     if (!activeDepartment) return;
@@ -93,17 +121,14 @@ const MinhasGerencias = () => {
       await updateDepartment(activeDepartment._id, data);
       showNotification('Gerência atualizada com sucesso!', 'success');
 
-      if (activeDepartment._id) {
-        const updatedMembers = await getDepartmentMembers(activeDepartment._id);
-        setMembers(updatedMembers);
-      }
+      await reloadGerenciaData();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar gerência';
       showNotification(errorMessage, 'error');
     } finally {
       setSavingGerencia(false);
     }
-  }, [activeDepartment, updateDepartment, showNotification, getDepartmentMembers]);
+  }, [activeDepartment, updateDepartment, showNotification, reloadGerenciaData]);
 
   const handleAddMember = useCallback(() => {
     setAddMembersModalOpen(true);
@@ -125,7 +150,7 @@ const MinhasGerencias = () => {
         const membersResponse = await getDepartmentMembers(activeDepartment._id);
         const memberIds = membersResponse.map((member) => member._id);
 
-        const usersWithMembership = users.map((user) => ({
+        const usersWithMembership = usersRef.current.map((user) => ({
           ...user,
           isMember: memberIds.includes(user._id)
         }));
@@ -133,18 +158,17 @@ const MinhasGerencias = () => {
         setAllUsers(usersWithMembership);
         setUserPagination((prev) => ({
           ...prev,
-          total: users.length,
+          total: usersRef.current.length,
           page: page - 1
         }));
       } catch (err) {
-        console.error('Erro ao buscar usuários:', err);
         showNotification('Erro ao carregar usuários', 'error');
         setAllUsers([]);
       } finally {
         setLoadingUsers(false);
       }
     },
-    [activeDepartment, showNotification, userPagination.limit, fetchUsers, users, getDepartmentMembers]
+    [activeDepartment, showNotification, userPagination.limit, fetchUsers, getDepartmentMembers]
   );
 
   const handleSaveMembers = useCallback(async (userIds: string[]) => {
@@ -154,13 +178,12 @@ const MinhasGerencias = () => {
       const response = await addMembersBulk(activeDepartment._id, userIds);
       showNotification(response.message, 'success');
 
-      const updatedMembers = await getDepartmentMembers(activeDepartment._id);
-      setMembers(updatedMembers);
+      await reloadGerenciaData();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erro ao adicionar membros';
       showNotification(errorMessage, 'error');
     }
-  }, [activeDepartment, addMembersBulk, showNotification, getDepartmentMembers]);
+  }, [activeDepartment, addMembersBulk, showNotification, reloadGerenciaData]);
 
   const handleUserPageChange = useCallback((page: number) => {
     setUserPagination((prev) => ({ ...prev, page }));
@@ -173,12 +196,11 @@ const MinhasGerencias = () => {
       await removeMember(activeDepartment._id, userId);
       showNotification('Membro removido com sucesso', 'success');
 
-      const updatedMembers = await getDepartmentMembers(activeDepartment._id);
-      setMembers(updatedMembers);
+      await reloadGerenciaData();
     } catch (error) {
       showNotification('Erro ao remover membro', 'error');
     }
-  }, [activeDepartment, removeMember, showNotification, getDepartmentMembers]);
+  }, [activeDepartment, removeMember, showNotification, reloadGerenciaData]);
 
   const handleDeleteGerencia = useCallback(() => {
     setDeleteModalOpen(true);
@@ -368,7 +390,7 @@ const MinhasGerencias = () => {
         {/* Seção de Informações */}
         <Grid size={{ xs: 12, lg: 6 }}>
           <InfoSection
-            gerencia={activeDepartment}
+            gerencia={currentGerenciaData}
             canEdit={canEditGerencia}
             onEdit={handleEditGerencia}
           />
@@ -377,7 +399,7 @@ const MinhasGerencias = () => {
         {/* Seção de Membros */}
         <Grid size={{ xs: 12, lg: 6 }}>
           <MembersSection
-            gerencia={activeDepartment}
+            gerencia={currentGerenciaData}
             members={members}
             onAddMember={handleAddMember}
             onRemoveMember={handleRemoveMember}
@@ -392,7 +414,7 @@ const MinhasGerencias = () => {
         open={editModalOpen}
         onClose={() => setEditModalOpen(false)}
         onSave={handleSaveGerencia}
-        gerencia={activeDepartment}
+        gerencia={currentGerenciaData}
         isEdit={true}
         loading={savingGerencia}
       />
@@ -401,7 +423,7 @@ const MinhasGerencias = () => {
         open={addMembersModalOpen}
         onClose={() => setAddMembersModalOpen(false)}
         onSave={handleSaveMembers}
-        gerencia={activeDepartment}
+        gerencia={currentGerenciaData}
         users={allUsers}
         loading={loadingUsers}
         onSearchUsers={searchUsers}
@@ -413,7 +435,7 @@ const MinhasGerencias = () => {
         open={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleConfirmDelete}
-        gerencia={activeDepartment}
+        gerencia={currentGerenciaData}
         loading={savingGerencia}
       />
     </Box>
