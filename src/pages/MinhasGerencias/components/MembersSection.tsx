@@ -1,3 +1,4 @@
+import { Delete as DeleteIcon, GroupAdd as GroupAddIcon } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -13,36 +14,32 @@ import {
   TableRow,
   Typography
 } from '@mui/material';
-import {
-  Delete as DeleteIcon,
-  GroupAdd as GroupAddIcon
-} from '@mui/icons-material';
-import type { Department, User } from '@/globals/types';
 import { useMemo, useState } from 'react';
-
+import { Loading } from '@/components';
+import type { Department, User } from '@/globals/types';
 import { useAccessControl } from '@/hooks';
 
 interface MembersSectionProps {
   gerencia: Department | null;
   members: User[];
   onAddMember?: () => void;
-  onRemoveMember?: (userId: string) => void;
+  onRemoveMember?: ({ userIds, type }: { userIds: string[]; type: 'remove' }) => void
   loading?: boolean;
   canEdit?: boolean;
 }
 
-export const MembersSection = ({ 
-  gerencia, 
-  members, 
-  onAddMember, 
-  onRemoveMember, 
+export const MembersSection = ({
+  gerencia,
+  members,
+  onAddMember,
+  onRemoveMember,
   loading = false,
   canEdit = false
 }: MembersSectionProps) => {
   const { hasPermission } = useAccessControl();
-  
+
   const canManageMembers = canEdit || hasPermission('departments.update');
-  
+
   const [membersPagination, setMembersPagination] = useState({
     page: 0,
     limit: 5,
@@ -144,70 +141,81 @@ export const MembersSection = ({
                     )}
                   </TableRow>
                 </TableHead>
-                <TableBody>
-                  {paginatedMembers.map((u) => {
-                    const isResponsavel = u.email === gerencia?.email_owner;
-                    const isOnlyMember = members.length === 1;
-                    const canRemove = !isResponsavel && !(isOnlyMember && isResponsavel);
-                    return (
-                      <TableRow
-                        key={u._id}
-                        sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
-                      >
-                        <TableCell sx={{ py: 2 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Typography variant='body2'>
-                              {u.firstName} {u.lastName}
-                            </Typography>
-                            {isResponsavel && (
-                              <Chip
-                                label='Responsável'
-                                size='small'
-                                sx={{
-                                  fontSize: '0.75rem',
-                                  fontWeight: 600,
-                                  bgcolor: 'warning.main',
-                                  color: 'white',
-                                  borderRadius: 1
-                                }}
-                              />
-                            )}
-                          </Box>
-                        </TableCell>
-                        <TableCell sx={{ py: 2 }}>{u.email}</TableCell>
-                        <TableCell sx={{ py: 2, textTransform: 'capitalize' }}>
-                          {isResponsavel ? 'Responsável' : 'Membro'}
-                        </TableCell>
-                        {canManageMembers && (
-                          <TableCell
-                            align='right'
-                            sx={{ py: 2 }}
-                          >
-                            <Button
-                              size='small'
-                              variant='text'
-                              color='error'
-                              disabled={!canRemove}
-                              onClick={() => u._id && onRemoveMember?.(u._id)}
-                              sx={{
-                                minWidth: 'auto',
-                                p: 1,
-                                borderRadius: '50%',
-                                color: canRemove ? 'error.main' : 'text.disabled',
-                                '&:hover': {
-                                  bgcolor: canRemove ? 'error.main' : 'transparent',
-                                  color: canRemove ? 'white' : 'text.disabled'
-                                }
-                              }}
-                            >
-                              <DeleteIcon />
-                            </Button>
+                {!loading ? (
+                  <TableBody>
+                    {paginatedMembers.map((u) => {
+                      const isResponsavel = u.email === gerencia?.email_owner;
+                      const isOnlyMember = members.length === 1;
+                      const canRemove = !isResponsavel && !(isOnlyMember && isResponsavel);
+                      return (
+                        <TableRow
+                          key={u._id}
+                          sx={{ borderBottom: '1px solid', borderColor: 'divider' }}
+                        >
+                          <TableCell sx={{ py: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography variant='body2'>
+                                {u.firstName} {u.lastName}
+                              </Typography>
+                              {isResponsavel && (
+                                <Chip
+                                  label='Responsável'
+                                  size='small'
+                                  sx={{
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600,
+                                    bgcolor: 'warning.main',
+                                    color: 'white',
+                                    borderRadius: 1
+                                  }}
+                                />
+                              )}
+                            </Box>
                           </TableCell>
-                        )}
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
+                          <TableCell sx={{ py: 2 }}>{u.email}</TableCell>
+                          <TableCell sx={{ py: 2, textTransform: 'capitalize' }}>
+                            {isResponsavel ? 'Responsável' : 'Membro'}
+                          </TableCell>
+                          {canManageMembers && (
+                            <TableCell
+                              align='right'
+                              sx={{ py: 2 }}
+                            >
+                              <Button
+                                size='small'
+                                variant='text'
+                                color='error'
+                                disabled={!canRemove}
+                                onClick={() => u._id && onRemoveMember?.({ userIds: [u._id], type: 'remove' })}
+                                sx={{
+                                  minWidth: 'auto',
+                                  p: 1,
+                                  borderRadius: '50%',
+                                  color: canRemove ? 'error.main' : 'text.disabled',
+                                  '&:hover': {
+                                    bgcolor: canRemove ? 'error.main' : 'transparent',
+                                    color: canRemove ? 'white' : 'text.disabled'
+                                  }
+                                }}
+                              >
+                                <DeleteIcon />
+                              </Button>
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={3}
+                      align='center'
+                    >
+                      <Loading isLoading />
+                    </TableCell>
+                  </TableRow>
+                )}
               </Table>
             </TableContainer>
 

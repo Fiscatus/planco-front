@@ -1,5 +1,5 @@
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import type { Department } from '@/globals/types';
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useAuth, useDepartments } from '@/hooks';
 
 type ApiDepartment = {
@@ -46,7 +46,7 @@ const createSafeDepartmentForStorage = (dept: Department) => {
 };
 
 const findDepartmentFromSafeData = (safeData: any, availableDepartments: Department[]) => {
-  return availableDepartments.find(dept => dept._id === safeData._id);
+  return availableDepartments.find((dept) => dept._id === safeData._id);
 };
 
 type ActiveDepartmentContextType = {
@@ -73,73 +73,72 @@ export const ActiveDepartmentProvider = ({ children }: Props) => {
   const [availableDepartments, setAvailableDepartments] = useState<Department[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    const loadUserDepartments = async () => {
-      if (!user?._id) {
-        setAvailableDepartments([]);
+  const loadUserDepartments = useCallback(async () => {
+    if (!user?._id) {
+      setAvailableDepartments([]);
+      setActiveDepartmentState(null);
+      localStorage.removeItem(ACTIVE_DEPARTMENT_KEY);
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const apiDepartments = await getUserDepartments(user._id);
+
+      const userDepartments = apiDepartments.map((apiDept: ApiDepartment) => {
+        const mappedDept = mapApiDepartmentToDepartment(apiDept);
+        mappedDept.org = user.org?._id || '';
+        return mappedDept;
+      });
+
+      setAvailableDepartments(userDepartments);
+
+      if (userDepartments.length === 0) {
         setActiveDepartmentState(null);
         localStorage.removeItem(ACTIVE_DEPARTMENT_KEY);
         return;
       }
 
-      try {
-        setIsLoading(true);
-        
-        const apiDepartments = await getUserDepartments(user._id);
-        
-        const userDepartments = apiDepartments.map((apiDept: ApiDepartment) => {
-          const mappedDept = mapApiDepartmentToDepartment(apiDept);
-          mappedDept.org = user.org?._id || '';
-          return mappedDept;
-        });
-        
-        setAvailableDepartments(userDepartments);
+      const savedActiveDepartment = localStorage.getItem(ACTIVE_DEPARTMENT_KEY);
 
-        if (userDepartments.length === 0) {
-          setActiveDepartmentState(null);
-          localStorage.removeItem(ACTIVE_DEPARTMENT_KEY);
-          return;
-        }
+      if (savedActiveDepartment) {
+        try {
+          const parsed = JSON.parse(savedActiveDepartment);
 
-        const savedActiveDepartment = localStorage.getItem(ACTIVE_DEPARTMENT_KEY);
-        
-        if (savedActiveDepartment) {
-          try {
-            const parsed = JSON.parse(savedActiveDepartment);
-            
-            const fullDepartment = findDepartmentFromSafeData(parsed, userDepartments);
-            
-            if (fullDepartment) {
-              setActiveDepartmentState(fullDepartment);
-            } else {
-              const firstDepartment = userDepartments[0];
-              setActiveDepartmentState(firstDepartment);
-              localStorage.setItem(ACTIVE_DEPARTMENT_KEY, JSON.stringify(createSafeDepartmentForStorage(firstDepartment)));
-            }
-          } catch (error) {
-            console.error('Erro ao carregar gerência ativa do localStorage:', error);
-            localStorage.removeItem(ACTIVE_DEPARTMENT_KEY);
-            
+          const fullDepartment = findDepartmentFromSafeData(parsed, userDepartments);
+
+          if (fullDepartment) {
+            setActiveDepartmentState(fullDepartment);
+          } else {
             const firstDepartment = userDepartments[0];
             setActiveDepartmentState(firstDepartment);
-            localStorage.setItem(ACTIVE_DEPARTMENT_KEY, JSON.stringify(createSafeDepartmentForStorage(firstDepartment)));
+            localStorage.setItem(
+              ACTIVE_DEPARTMENT_KEY,
+              JSON.stringify(createSafeDepartmentForStorage(firstDepartment))
+            );
           }
-        } else {
+        } catch (error) {
+          console.error('Erro ao carregar gerência ativa do localStorage:', error);
+          localStorage.removeItem(ACTIVE_DEPARTMENT_KEY);
+
           const firstDepartment = userDepartments[0];
           setActiveDepartmentState(firstDepartment);
           localStorage.setItem(ACTIVE_DEPARTMENT_KEY, JSON.stringify(createSafeDepartmentForStorage(firstDepartment)));
         }
-      } catch (error) {
-        console.error('Erro ao carregar departamentos do usuário:', error);
-        setAvailableDepartments([]);
-        setActiveDepartmentState(null);
-        localStorage.removeItem(ACTIVE_DEPARTMENT_KEY);
-      } finally {
-        setIsLoading(false);
+      } else {
+        const firstDepartment = userDepartments[0];
+        setActiveDepartmentState(firstDepartment);
+        localStorage.setItem(ACTIVE_DEPARTMENT_KEY, JSON.stringify(createSafeDepartmentForStorage(firstDepartment)));
       }
-    };
-
-    loadUserDepartments();
+    } catch (error) {
+      console.error('Erro ao carregar departamentos do usuário:', error);
+      setAvailableDepartments([]);
+      setActiveDepartmentState(null);
+      localStorage.removeItem(ACTIVE_DEPARTMENT_KEY);
+    } finally {
+      setIsLoading(false);
+    }
   }, [user, getUserDepartments]);
 
   const setActiveDepartment = (department: Department | null) => {
@@ -152,6 +151,9 @@ export const ActiveDepartmentProvider = ({ children }: Props) => {
     }
   };
 
+  useEffect(() => {
+    loadUserDepartments();
+  }, [loadUserDepartments]);
 
   return (
     <ActiveDepartmentContext.Provider

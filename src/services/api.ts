@@ -20,14 +20,8 @@ api.interceptors.request.use(
           if (shouldAddHeader) {
             config.headers['X-Active-Department'] = parsed._id;
           }
-          
-          const shouldAddQueryParam = 
-            url.includes('/departments/') || 
-            url.includes('/reports/') || 
-            url.includes('/analytics/') ||
-            url.includes('/dashboard/');
-          
-          if (config.method === 'get' && shouldAddQueryParam) {
+
+          if (config.method === 'get' && url.includes('/departments/')) {
             if (!config.params) {
               config.params = { activeDepartmentId: parsed._id };
             } else {

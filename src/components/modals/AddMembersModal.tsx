@@ -1,3 +1,4 @@
+import { Search as SearchIcon } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -5,6 +6,9 @@ import {
   CircularProgress,
   Dialog,
   DialogContent,
+  MenuItem,
+  Pagination,
+  Select,
   Table,
   TableBody,
   TableCell,
@@ -14,26 +18,19 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import {
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  KeyboardDoubleArrowLeft as KeyboardDoubleArrowLeftIcon,
-  KeyboardDoubleArrowRight as KeyboardDoubleArrowRightIcon,
-  Search as SearchIcon
-} from '@mui/icons-material';
+import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { Department, User } from '@/globals/types';
-import { useCallback, useEffect, useRef, useState } from 'react';
 
 type UserWithMembership = User & { isMember?: boolean };
 
 interface AddMembersModalProps {
   open: boolean;
   onClose: () => void;
-  onSave: (userIds: string[]) => Promise<void>;
+  onSave: ({ userIds, type }: { userIds: string[]; type: 'add' }) => void;
   gerencia: Department | null;
   users: UserWithMembership[];
   loading?: boolean;
-  onSearchUsers: (query: string, page?: number) => Promise<void>;
   userPagination: {
     page: number;
     limit: number;
@@ -49,15 +46,14 @@ export const AddMembersModal = ({
   gerencia,
   users,
   loading = false,
-  onSearchUsers,
   userPagination,
   onUserPageChange
 }: AddMembersModalProps) => {
-  const [userSearch, setUserSearch] = useState('');
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [savingMembers, setSavingMembers] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
+  const [urlParams, setUrlParams] = useSearchParams();
 
   const toggleUserSelection = useCallback(
     (userId: string) => {
@@ -71,54 +67,28 @@ export const AddMembersModal = ({
     [users]
   );
 
+  const handleClose = useCallback(() => {
+    setSelectedUserIds([]);
+    urlParams.delete('search');
+    urlParams.delete('page');
+    urlParams.delete('limit');
+    setUrlParams(urlParams, { replace: true });
+    onClose();
+  }, [onClose, setUrlParams, urlParams]);
+
   const handleSaveMembers = useCallback(async () => {
     if (!gerencia) return;
     try {
       setSavingMembers(true);
-      await onSave(selectedUserIds);
+      await onSave({ userIds: selectedUserIds, type: 'add' });
       setSelectedUserIds([]);
-      onClose();
+      handleClose();
     } catch (err) {
       console.error('Erro ao adicionar membros:', err);
     } finally {
       setSavingMembers(false);
     }
-  }, [gerencia, selectedUserIds, onSave, onClose]);
-
-  const handleUserSearch = useCallback(
-    (searchTerm: string) => {
-      setUserSearch(searchTerm);
-      onUserPageChange(0);
-
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
-
-      const timeout = setTimeout(() => {
-        if (searchTerm.trim() !== userSearch.trim()) {
-          onSearchUsers(searchTerm, 1);
-        }
-      }, 300);
-
-      setSearchTimeout(timeout);
-    },
-    [searchTimeout, userSearch, onSearchUsers, onUserPageChange]
-  );
-
-  const handleUserPageChange = useCallback(
-    (_event: unknown, newPage: number) => {
-      onUserPageChange(newPage);
-      onSearchUsers(userSearch, newPage + 1);
-    },
-    [onUserPageChange, onSearchUsers, userSearch]
-  );
-
-  // Carregar usuários apenas quando o modal abrir e não tiver usuários
-  useEffect(() => {
-    if (open && users.length === 0) {
-      onSearchUsers('', 1);
-    }
-  }, [open, users.length, onSearchUsers]);
+  }, [gerencia, selectedUserIds, onSave, handleClose]);
 
   useEffect(() => {
     return () => {
@@ -127,12 +97,6 @@ export const AddMembersModal = ({
       }
     };
   }, [searchTimeout]);
-
-  const handleClose = useCallback(() => {
-    setUserSearch('');
-    setSelectedUserIds([]);
-    onClose();
-  }, [onClose]);
 
   return (
     <Dialog
@@ -192,8 +156,19 @@ export const AddMembersModal = ({
             <TextField
               fullWidth
               placeholder='Buscar usuários por nome ou email...'
-              value={userSearch}
-              onChange={(e) => handleUserSearch(e.target.value)}
+              value={urlParams.get('search') || ''}
+              onChange={(e) => {
+                const value = e.target.value;
+                setUrlParams(
+                  (prev) => {
+                    const next = new URLSearchParams(prev);
+                    next.set('search', value);
+                    next.set('page', '1'); // reset paginação ao buscar
+                    return next;
+                  },
+                  { replace: true }
+                ); // evita empilhar histórico
+              }}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   pl: 5,
@@ -297,7 +272,7 @@ export const AddMembersModal = ({
                         variant='body2'
                         sx={{ color: '#6b7280' }}
                       >
-                        {userSearch ? 'Nenhum usuário encontrado' : 'Digite para buscar usuários'}
+                        {urlParams.get('search') ? 'Nenhum usuário encontrado' : 'Digite para buscar usuários'}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -357,11 +332,7 @@ export const AddMembersModal = ({
                         <Button
                           size='small'
                           variant={
-                            u.isMember
-                              ? 'text'
-                              : selectedUserIds.includes(u._id || '')
-                                ? 'contained'
-                                : 'outlined'
+                            u.isMember ? 'text' : selectedUserIds.includes(u._id || '') ? 'contained' : 'outlined'
                           }
                           onClick={() => u._id && toggleUserSelection(u._id)}
                           disabled={u.isMember}
@@ -400,11 +371,7 @@ export const AddMembersModal = ({
                                   })
                           }}
                         >
-                          {u.isMember
-                            ? 'Já é membro'
-                            : selectedUserIds.includes(u._id || '')
-                              ? 'Remover'
-                              : 'Adicionar'}
+                          {u.isMember ? 'Já é membro' : selectedUserIds.includes(u._id || '') ? 'Remover' : 'Adicionar'}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -432,139 +399,96 @@ export const AddMembersModal = ({
             sx={{ color: '#6b7280', fontSize: '0.875rem' }}
           >
             {userPagination.page * userPagination.limit + 1}-
-            {Math.min((userPagination.page + 1) * userPagination.limit, userPagination.total)} de{' '}
-            {userPagination.total}
+            {Math.min((userPagination.page + 1) * userPagination.limit, userPagination.total)} de {userPagination.total}
           </Typography>
 
           {/* Pagination Controls */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Button
-              size='small'
-              disabled={userPagination.page === 0}
-              onClick={() => handleUserPageChange(null, 0)}
-              sx={{
-                p: 1,
-                borderRadius: 2,
-                color: '#6b7280',
-                '&:hover': {
-                  backgroundColor: '#f3f4f6'
-                },
-                '&:disabled': {
-                  opacity: 0.5
-                }
-              }}
-            >
-              <KeyboardDoubleArrowLeftIcon sx={{ fontSize: '1.25rem' }} />
-            </Button>
-            <Button
-              size='small'
-              disabled={userPagination.page === 0}
-              onClick={() => handleUserPageChange(null, userPagination.page - 1)}
-              sx={{
-                p: 1,
-                borderRadius: 2,
-                color: '#6b7280',
-                '&:hover': {
-                  backgroundColor: '#f3f4f6'
-                },
-                '&:disabled': {
-                  opacity: 0.5
-                }
-              }}
-            >
-              <ChevronLeftIcon sx={{ fontSize: '1.25rem' }} />
-            </Button>
-            <Button
-              size='small'
-              disabled={(userPagination.page + 1) * userPagination.limit >= userPagination.total}
-              onClick={() => handleUserPageChange(null, userPagination.page + 1)}
-              sx={{
-                p: 1,
-                borderRadius: 2,
-                color: '#6b7280',
-                '&:hover': {
-                  backgroundColor: '#f3f4f6'
-                },
-                '&:disabled': {
-                  opacity: 0.5
-                }
-              }}
-            >
-              <ChevronRightIcon sx={{ fontSize: '1.25rem' }} />
-            </Button>
-            <Button
-              size='small'
-              disabled={(userPagination.page + 1) * userPagination.limit >= userPagination.total}
-              onClick={() => handleUserPageChange(null, Math.ceil(userPagination.total / userPagination.limit) - 1)}
-              sx={{
-                p: 1,
-                borderRadius: 2,
-                color: '#6b7280',
-                '&:hover': {
-                  backgroundColor: '#f3f4f6'
-                },
-                '&:disabled': {
-                  opacity: 0.5
-                }
-              }}
-            >
-              <KeyboardDoubleArrowRightIcon sx={{ fontSize: '1.25rem' }} />
-            </Button>
-          </Box>
-
-          {/* Action Buttons */}
+          {/* select to change limit of items per page */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Button
-              onClick={handleClose}
-              sx={{
-                px: 3,
-                py: 1.5,
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                color: '#6b7280',
-                textTransform: 'none',
-                borderRadius: 2,
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  backgroundColor: '#f3f4f6',
-                  color: '#1f2937'
-                }
+            <Select
+              value={urlParams.get('limit') || userPagination.limit}
+              onChange={(e) => {
+                const newLimit = Number(e.target.value);
+                urlParams.set('limit', String(newLimit));
+                urlParams.set('page', '1'); // reset page to 1 when limit changes
+                setUrlParams(urlParams, { replace: true });
               }}
+              sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
             >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSaveMembers}
-              variant='contained'
-              disabled={savingMembers || !gerencia || selectedUserIds.length === 0}
-              sx={{
-                px: 3,
-                py: 1.5,
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                backgroundColor: '#1877F2',
-                textTransform: 'none',
-                borderRadius: 2,
-                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  backgroundColor: '#166fe5',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                },
-                '&:focus': {
-                  outline: 'none',
-                  boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                },
-                '&:disabled': {
-                  backgroundColor: '#e5e7eb',
-                  color: '#9ca3af',
-                  boxShadow: 'none'
-                }
+              {[5, 10, 25].map((limit) => (
+                <MenuItem
+                  key={limit}
+                  value={limit}
+                >
+                  {limit} por página
+                </MenuItem>
+              ))}
+            </Select>
+
+            <Pagination
+              count={Math.ceil(userPagination.total / userPagination.limit)}
+              page={Number(urlParams.get('page') || 1)}
+              onChange={(_e, value) => {
+                urlParams.set('page', String(value));
+                setUrlParams(urlParams);
               }}
-            >
-              {savingMembers ? 'Adicionando...' : `Adicionar ${selectedUserIds.length} membro(s)`}
-            </Button>
+              variant='outlined'
+              shape='rounded'
+            />
           </Box>
+        </Box>
+        {/* Action Buttons */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, justifyContent: 'flex-end', p: 4, pt: 0 }}>
+          <Button
+            onClick={handleClose}
+            sx={{
+              px: 3,
+              py: 1.5,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: '#6b7280',
+              textTransform: 'none',
+              borderRadius: 2,
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: '#f3f4f6',
+                color: '#1f2937'
+              }
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSaveMembers}
+            variant='contained'
+            disabled={savingMembers || !gerencia || selectedUserIds.length === 0}
+            sx={{
+              px: 3,
+              py: 1.5,
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              backgroundColor: '#1877F2',
+              textTransform: 'none',
+              borderRadius: 2,
+              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+              transition: 'all 0.2s ease-in-out',
+              '&:hover': {
+                backgroundColor: '#166fe5',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+              },
+              '&:focus': {
+                outline: 'none',
+                boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+              },
+              '&:disabled': {
+                backgroundColor: '#e5e7eb',
+                color: '#9ca3af',
+                boxShadow: 'none'
+              }
+            }}
+          >
+            {savingMembers ? 'Adicionando...' : `Adicionar ${selectedUserIds.length} membro(s)`}
+          </Button>
         </Box>
       </DialogContent>
     </Dialog>

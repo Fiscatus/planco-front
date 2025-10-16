@@ -1,11 +1,11 @@
 import { AdminPanelSettings, Business } from '@mui/icons-material';
 import { Box, Button, Card, Chip, Grid, Typography } from '@mui/material';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useCallback, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ActiveDepartmentSelector, Loading, useNotification } from '@/components';
 import { AddMembersModal, DeleteGerenciaModal, EditGerenciaModal } from '@/components/modals';
-import type { CreateDepartmentDto, UpdateDepartmentDto, User } from '@/globals/types';
+import type { User } from '@/globals/types';
 import { useAccessControl, useActiveDepartment, useAuth, useDepartments, useUsers } from '@/hooks';
 import { InfoSection } from './components/InfoSection';
 import { MembersSection } from './components/MembersSection';
@@ -17,7 +17,6 @@ const MinhasGerencias = () => {
   const { canAccessAdmin } = useAccessControl();
   const { showNotification } = useNotification();
   const navigate = useNavigate();
-  const [urlParams] = useSearchParams();
 
   // Context da gerência ativa
   const {
@@ -60,18 +59,19 @@ const MinhasGerencias = () => {
     setEditModalOpen(true);
   }, []);
 
-  const { data: gerencia, refetch: refetchGerencia } = useQuery({
+  const { data: gerencia } = useQuery({
     enabled: !!activeDepartment?._id,
     queryKey: ['fetchGerencia', `id:${activeDepartment?._id}`],
     refetchOnWindowFocus: false,
     queryFn: async () => {
       if (!activeDepartment?._id) return null;
       const gerenciaInfo = await getDepartmentInfo(activeDepartment._id);
+      console.log('Gerência info:', gerenciaInfo);
       return gerenciaInfo;
     }
   });
 
-  const { data: canEdit, refetch: refetchCanEdit } = useQuery({
+  const {data: canEdit} = useQuery({
     enabled: !!activeDepartment?._id && !!currentUser?._id,
     queryKey: ['checkGerenciaAccess', `userId:${currentUser?._id}`, `deptId:${activeDepartment?._id}`],
     refetchOnWindowFocus: false,
@@ -79,25 +79,10 @@ const MinhasGerencias = () => {
       if (!activeDepartment?._id || !currentUser?._id) return false;
       const accessResult = await checkAccess(currentUser._id, activeDepartment._id);
       return accessResult.hasAccess;
-    }
+    },
   });
 
-  const {data: departmentMembers, refetch: refetchDepartmentMembers } = useQuery({
-    enabled: !!activeDepartment?._id,
-    queryKey: ['fetchDepartmentMembers', `deptId:${activeDepartment?._id}`],
-    refetchOnWindowFocus: false,
-    queryFn: async () => {
-      if (!activeDepartment?._id) return [];
-      const membersResponse = await getDepartmentMembers(activeDepartment._id);
-      return membersResponse;
-    }
-  });
-
-  const {
-    data: membersData,
-    isLoading: membersLoading,
-    refetch: refetchMembers
-  } = useQuery({
+  const {data: membersData, isLoading: membersLoading} = useQuery({
     enabled: !!activeDepartment?._id,
     queryKey: ['fetchGerenciaMembers', `deptId:${activeDepartment?._id}`],
     refetchOnWindowFocus: false,
@@ -105,81 +90,86 @@ const MinhasGerencias = () => {
       if (!activeDepartment?._id) return [];
       const membersResponse = await getDepartmentMembers(activeDepartment._id);
       return membersResponse;
-    }
-  });
-
-  const {data: usersData, refetch: refetchUsers } = useQuery({
-    enabled: !!activeDepartment?._id && departmentMembers !== undefined,
-    queryKey: ['fetchUsers', 
-      `deptId:${activeDepartment?._id}`, 
-      `page:${urlParams.get('page') || 1}`,
-      `limit:${ Number(urlParams.get('limit') || 5)}`,
-      `search:${urlParams.get('search') || ''}`
-    ],
-    refetchOnWindowFocus: false,
-    queryFn: async () => {
-      if (!activeDepartment?._id) return [];
-      const res = await fetchUsers({
-        page: Number(urlParams.get('page')|| 1),
-        limit: Number(urlParams.get('limit') || userPagination.limit),
-        name: urlParams.get('search') || undefined
-      });
-      const usersWithMembership = res.users.map((user) => ({
-        ...user,
-        isMember: departmentMembers?.some((member) => member._id === user._id) || false
-      }));
-
-      setUserPagination((prev) => ({
-        ...prev,
-        total: res.total
-      }));
-      usersRef.current = usersWithMembership;
-
-      return usersRef.current;
     },
+  })
 
-  });
+  const handleSaveGerencia = useCallback(
+    async (data: any) => {
+      if (!activeDepartment) return;
 
-  const { mutate: editActiveDepartment, isPending: editGerenciaPending } = useMutation({
-    mutationFn: async (data: CreateDepartmentDto | UpdateDepartmentDto) => {
-      return await updateDepartment(activeDepartment._id, data);
-    },
-    onError: () => {
-      showNotification('Erro ao alterar gerência ativa', 'error');
-    },
-    onSuccess: () => {
-      showNotification(`Gerência ativa alterada`, 'success');
-      refetchGerencia();
-      refetchCanEdit();
-      refetchMembers();
-      setEditModalOpen(false);
-    }
-  });
+      try {
+        setSavingGerencia(true);
+        await updateDepartment(activeDepartment._id, data);
+        // Atualiza a lista de gerências disponíveis
+        await fetchDepartments();
+        showNotification('Gerência atualizada com sucesso!', 'success');
 
-  const {mutate: mutateMembers, isPending: membersPending } = useMutation({
-    mutationFn: async ({ userIds, type }: { userIds: string[], type: 'add' | 'remove' }) => {
-      if (!activeDepartment) throw new Error('Gerência ativa não definida');
-      if (type === 'add') {
-        return await addMembersBulk(activeDepartment._id, userIds);
-      } else {
-        if (userIds.length !== 1) throw new Error('Para remoção, envie exatamente um ID de usuário');
-        return await removeMember(activeDepartment._id, userIds[0]);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Erro ao atualizar gerência';
+        showNotification(errorMessage, 'error');
+      } finally {
+        setSavingGerencia(false);
       }
     },
-    onError: (_error, variables) => {
-      showNotification(`Erro ao ${variables.type === 'add' ? 'adicionar' : 'remover'} membros`, 'error');
-    },
-    onSuccess: (_data, variables) => {
-      showNotification(`Membros ${variables.type === 'add' ? 'adicionados' : 'removidos'} com sucesso`, 'success');
-      refetchMembers();
-      refetchDepartmentMembers();
-      setAddMembersModalOpen(false);
-    }
-  });
+    [activeDepartment, updateDepartment, showNotification, fetchDepartments]
+  );
 
   const handleAddMember = useCallback(() => {
     setAddMembersModalOpen(true);
   }, []);
+
+  const searchUsers = useCallback(
+    async (query: string, page = 1) => {
+      if (!activeDepartment) return;
+
+      try {
+        setLoadingUsers(true);
+
+        await fetchUsers({
+          page,
+          limit: userPagination.limit,
+          name: query.trim() || undefined
+        });
+
+        const membersResponse = await getDepartmentMembers(activeDepartment._id);
+        const memberIds = membersResponse.map((member) => member._id);
+
+        const usersWithMembership = usersRef.current.map((user) => ({
+          ...user,
+          isMember: memberIds.includes(user._id)
+        }));
+
+        setAllUsers(usersWithMembership);
+        setUserPagination((prev) => ({
+          ...prev,
+          total: usersRef.current.length,
+          page: page - 1
+        }));
+      } catch (err) {
+        showNotification('Erro ao carregar usuários', 'error');
+        setAllUsers([]);
+      } finally {
+        setLoadingUsers(false);
+      }
+    },
+    [activeDepartment, showNotification, userPagination.limit, fetchUsers, getDepartmentMembers]
+  );
+
+  const handleSaveMembers = useCallback(
+    async (userIds: string[]) => {
+      if (!activeDepartment) return;
+
+      try {
+        const response = await addMembersBulk(activeDepartment._id, userIds);
+        showNotification(response.message, 'success');
+
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Erro ao adicionar membros';
+        showNotification(errorMessage, 'error');
+      }
+    },
+    [activeDepartment, addMembersBulk, showNotification]
+  );
 
   const handleUserPageChange = useCallback((page: number) => {
     setUserPagination((prev) => ({ ...prev, page }));
@@ -192,6 +182,7 @@ const MinhasGerencias = () => {
       try {
         await removeMember(activeDepartment._id, userId);
         showNotification('Membro removido com sucesso', 'success');
+
       } catch (error) {
         showNotification('Erro ao remover membro', 'error');
       }
@@ -218,6 +209,19 @@ const MinhasGerencias = () => {
       setSavingGerencia(false);
     }
   }, [activeDepartment, deleteDepartment, showNotification, setActiveDepartment]);
+
+  // Atualizar ref quando users mudar
+  useEffect(() => {
+    usersRef.current = users;
+  }, [users]);
+
+  if (departmentsLoading) {
+    return (
+      <Box sx={{ p: 3, textAlign: 'center' }}>
+        <Loading isLoading={true} />
+      </Box>
+    );
+  }
 
   if (canAccessAdmin) {
     return (
@@ -397,21 +401,16 @@ const MinhasGerencias = () => {
 
         {/* Seção de Membros */}
         <Grid size={{ xs: 12, lg: 6 }}>
-          {membersData ? (
-            <MembersSection
-              gerencia={gerencia}
-              members={membersData}
-              onAddMember={ async () => {
-               await refetchUsers();
-                handleAddMember();
-              }}
-              onRemoveMember={mutateMembers}
-              loading={membersLoading}
-              canEdit={canEdit}
-            />
-          ) : (
-            <Loading isLoading={true} />
-          )}
+         { membersData ? (
+           <MembersSection
+            gerencia={gerencia}
+            members={membersData}
+            onAddMember={handleAddMember}
+            onRemoveMember={handleRemoveMember}
+            loading={membersLoading}
+            canEdit={canEdit}
+          />
+        ) : <Loading isLoading={true} /> }
         </Grid>
       </Grid>
 
@@ -419,19 +418,20 @@ const MinhasGerencias = () => {
       <EditGerenciaModal
         open={editModalOpen}
         onClose={() => setEditModalOpen(false)}
-        onSave={editActiveDepartment}
+        onSave={handleSaveGerencia}
         gerencia={gerencia}
         isEdit={true}
-        loading={editGerenciaPending}
+        loading={savingGerencia}
       />
 
-        <AddMembersModal
+      <AddMembersModal
         open={addMembersModalOpen}
         onClose={() => setAddMembersModalOpen(false)}
-        onSave={mutateMembers}
+        onSave={handleSaveMembers}
         gerencia={gerencia}
-        users={usersData || []}
+        users={allUsers}
         loading={loadingUsers}
+        onSearchUsers={searchUsers}
         userPagination={userPagination}
         onUserPageChange={handleUserPageChange}
       />

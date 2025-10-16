@@ -1,5 +1,4 @@
 import { useCallback, useMemo } from "react";
-
 import { useAuth } from "./useAuth";
 
 export const useAccessControl = () => {
@@ -74,7 +73,7 @@ export const useAccessControl = () => {
       canAccessInvites ||
       canAccessRoles
     );
-  }, [canAccessUsers, canAccessDepartments, canAccessInvites, canAccessRoles]);
+  }, [canAccessUsers, canAccessDepartments, canAccessInvites, canAccessRoles, hasPermission]);
 
   return {
     canAccessUsers,
