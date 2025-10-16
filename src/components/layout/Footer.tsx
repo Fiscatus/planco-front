@@ -118,7 +118,7 @@ const Footer = () => {
                 }
               }}
             >
-              Gestão moderna e integrada para o setor público.
+              Tecnologia que impulsiona o planejamento público eficiente.
             </Typography>
             <Box sx={{ 
               display: 'flex', 
@@ -362,7 +362,7 @@ const Footer = () => {
                       }
                     }}
                   >
-                    Documentação
+                    Tutoriais Interativos
                   </Button>
                   <Button
                     variant='text'
@@ -386,7 +386,7 @@ const Footer = () => {
                       }
                     }}
                   >
-                    Status da API
+                    Enviar Feedback
                   </Button>
                 </Box>
               </Box>

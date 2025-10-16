@@ -420,7 +420,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
               mt: 0.5
             }}
           >
-            Gestão inteligente e integrada para contratações públicas.
+            Tecnologia que impulsiona o planejamento público eficiente.
           </Typography>
         </Box>
       </Box>
