@@ -255,8 +255,9 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                 borderRadius: 2, // Mesmo raio visual do card
                 display: 'block',
                 '@media (max-width: 767px)': {
-                  height: 200, // Altura fixa para mobile
-                  maxHeight: 200,
+                  height: 'auto', // Altura automática para mobile
+                  maxHeight: 'none',
+                  objectFit: 'contain', // Mostra a imagem completa no mobile
                   borderRadius: 1.5 // 12px para mobile
                 }
               }}
