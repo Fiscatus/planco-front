@@ -1,4 +1,6 @@
-import { Assignment, BarChart, Close, FolderOpen, Gavel, Home, People, Settings, Shield, Business } from '@mui/icons-material';
+
+import { Assignment, AssignmentTurnedIn, BarChart, Close, FolderOpen, Gavel, Home, Settings, Shield } from '@mui/icons-material';
+
 import {
   Box,
   Drawer,
@@ -13,8 +15,8 @@ import {
 import { type ReactNode, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { version } from '@/../package.json';
-import logo from '/assets/isologo.svg';
 import { useAccessControl, useAuth } from '@/hooks';
+import logo from '/assets/isologo.svg';
 
 type SidebarProps = {
   open: boolean;
@@ -39,20 +41,20 @@ const dashboard = {
 const modules: Module[] = [
   {
     label: 'Planejamento da Contratação',
-    icon: <FolderOpen sx={{ fontSize: 20 }} />,
+    icon: <Assignment sx={{ fontSize: 20 }} />,
     path: '/planejamento-da-contratacao',
     description: 'Organize todas as fases da contratação'
   },
   {
     label: 'Gestão Contratual',
-    icon: <People sx={{ fontSize: 20 }} />,
+    icon: <FolderOpen sx={{ fontSize: 20 }} />,
     path: '/gestao-contratual',
     description: 'Gerencie contratos e documentos',
     disabled: true
   },
   {
     label: 'Execução Contratual',
-    icon: <Assignment sx={{ fontSize: 20 }} />,
+    icon: <AssignmentTurnedIn sx={{ fontSize: 20 }} />,
     path: '/execucao-contratual',
     description: 'Monitore a execução do contrato',
     disabled: true
@@ -129,10 +131,14 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <img
-            src={logo}
-            alt='Logo Fiscatus'
-            style={{ width: 32, height: 32 }}
+          <img 
+            src={logo} 
+            alt="Planco Logo" 
+            style={{ 
+              width: '30px', 
+              height: '30px',
+              objectFit: 'contain'
+            }} 
           />
           <Typography
             variant='h6'
@@ -142,7 +148,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
               color: '#111827'
             }}
           >
-            Fiscatus
+            Planco
           </Typography>
         </Box>
         <IconButton
@@ -308,19 +314,6 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                     </Typography>
                   }
                 />
-                {module.disabled && (
-                  <Typography
-                    variant='caption'
-                    sx={{
-                      color: '#9ca3af',
-                      fontSize: '0.75rem',
-                      flexShrink: 0,
-                      mt: 0.5
-                    }}
-                  >
-                    Em breve
-                  </Typography>
-                )}
               </ListItemButton>
             </ListItem>
           ))}
@@ -480,7 +473,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
               display: 'block'
             }}
           >
-            Fiscatus V{version}
+            Planco V{version}
           </Typography>
           <Typography
             variant='caption'
@@ -491,7 +484,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
               mt: 0.5
             }}
           >
-            Gestão inteligente e integrada para contratações públicas.
+            Tecnologia que impulsiona o planejamento público eficiente.
           </Typography>
         </Box>
       </Box>

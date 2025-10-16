@@ -3,9 +3,9 @@ import { Controller, useForm } from 'react-hook-form';
 import { PrivacyPolicyModal, TermsOfUseModal, useNotification } from '@/components';
 
 import type { RegisterDto } from '@/globals/types/User';
-import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import logo from '/assets/isologo.svg';
 import { useAuth } from '@/hooks';
 import { useState } from 'react';
 import { z } from 'zod';
@@ -138,14 +138,16 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
       <form onSubmit={handleSubmit(onSubmit)}>
         {/* Cabeçalho */}
         <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <VerifiedUserIcon
-            sx={{
-              fontSize: '2.5rem',
-              color: '#1877F2',
-              mb: 1,
+          <img 
+            src={logo} 
+            alt="Planco Logo" 
+            style={{ 
+              width: '40px', 
+              height: '40px',
+              objectFit: 'contain',
               display: 'block',
-              mx: 'auto'
-            }}
+              margin: '0 auto 8px auto'
+            }} 
           />
           <Typography
             variant='h4'

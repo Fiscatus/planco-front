@@ -1,5 +1,5 @@
 import { Block as BlockIcon, Home as HomeIcon } from '@mui/icons-material';
-import { Box, Button, Container, Stack, Typography } from '@mui/material';
+import { Box, Button, Container, Stack, Typography, Link } from '@mui/material';
 
 import { useAuth } from '@/hooks';
 import { useNavigate } from 'react-router-dom';
@@ -32,168 +32,179 @@ const NotAccessPage = () => {
     <Box
       component='section'
       sx={{
-        py: { xs: 6, md: 8 },
-        px: { xs: 4, md: 6 },
         display: 'flex',
-        justifyContent: 'center',
         alignItems: 'center',
-        minHeight: hasOrganization ? '60vh' : '100vh',
-        bgcolor: hasOrganization ? 'transparent' : 'rgb(245, 245, 245)'
+        justifyContent: 'center',
+        minHeight: '100vh',
+        bgcolor: hasOrganization ? 'transparent' : 'rgb(249, 250, 251)',
+        py: 4,
+        px: 2
       }}
     >
-      <Container maxWidth='md'>
+      <Box
+        sx={{
+          textAlign: 'center',
+          maxWidth: 'lg',
+          mx: 'auto',
+          p: { xs: 3, md: 6 },
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: { xs: 3, md: 4 }
+        }}
+      >
+        {/* Ícone de bloqueio centralizado */}
         <Box
           sx={{
-            textAlign: 'center',
-            position: 'relative'
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            mb: { xs: 2, md: 3 }
           }}
         >
-          <Box
-            aria-hidden
+          <BlockIcon
             sx={{
-              position: 'absolute',
-              inset: 0,
-              mx: 'auto',
-              width: { xs: '80%', md: '60%' },
-              height: { xs: 200, md: 300 },
-              top: { xs: -50, md: -80 },
-              borderRadius: 4,
-              filter: 'blur(40px)',
-              opacity: 0.3,
-              background: 'radial-gradient(60% 60% at 50% 40%, rgb(137, 78, 238) 0%, transparent 70%)'
+              fontSize: { xs: 100, md: 120 },
+              color: '#1877F2',
+              opacity: 0.8
             }}
           />
+        </Box>
 
-          <Box
+         {/* Container do conteúdo principal */}
+         <Box
+           sx={{
+             display: 'flex',
+             flexDirection: 'column',
+             alignItems: 'center',
+             gap: { xs: 1.5, md: 2 },
+             maxWidth: 600,
+             width: '100%',
+             textAlign: 'center'
+           }}
+         >
+           {/* Título principal */}
+           <Typography
+             variant='h1'
+             sx={{
+               fontSize: { xs: '2.5rem', md: '3rem' },
+               fontWeight: 800,
+               color: '#1877F2',
+               lineHeight: 1.1,
+               letterSpacing: '-0.02em',
+               mb: { xs: 0.5, md: 1 }
+             }}
+           >
+             Acesso Negado
+           </Typography>
+
+           {/* Subtítulo */}
+           <Typography
+             variant='h2'
+             sx={{
+               fontSize: { xs: '1.25rem', md: '1.5rem' },
+               fontWeight: 600,
+               color: 'rgb(31, 41, 55)',
+               lineHeight: 1.2,
+               letterSpacing: '-0.01em',
+               mb: { xs: 1.5, md: 2 }
+             }}
+           >
+             Sem acesso a esse recurso
+           </Typography>
+
+           {/* Descrição */}
+           <Typography
+             variant='body1'
+             sx={{
+               color: 'rgb(107, 114, 128)',
+               fontSize: { xs: '0.95rem', md: '1rem' },
+               lineHeight: 1.6,
+               maxWidth: 480,
+               textAlign: 'center',
+               mx: 'auto',
+               px: { xs: 1, md: 0 }
+             }}
+           >
+             Ops! Você não tem acesso a esse recurso. Verifique suas permissões ou entre em contato com o administrador.
+           </Typography>
+         </Box>
+
+        {/* Botão principal */}
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            mt: { xs: 3, md: 4 },
+            width: '100%'
+          }}
+        >
+          <Button
+            variant='contained'
+            onClick={handleGoHome}
+            size='large'
+            startIcon={<HomeIcon />}
             sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              mb: 3,
-              position: 'relative'
+              bgcolor: '#1877F2',
+              color: '#ffffff',
+              textTransform: 'none',
+              fontSize: { xs: '0.95rem', md: '1rem' },
+              fontWeight: 500,
+              px: { xs: 3, md: 4 },
+              py: { xs: 1.25, md: 1.5 },
+              borderRadius: 2,
+              boxShadow: 'none',
+              minWidth: { xs: 200, md: 220 },
+              '&:hover': {
+                bgcolor: '#166fe5',
+                boxShadow: '0 4px 12px rgba(24, 119, 242, 0.3)'
+              },
+              '&:focus': {
+                outline: 'none',
+                boxShadow: '0 0 0 2px rgba(24, 119, 242, 0.2)'
+              }
             }}
           >
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: 120,
-                height: 120,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, rgb(252, 239, 255), rgb(248, 238, 255))',
-                border: '2px solid rgb(236, 183, 250)',
-                boxShadow: 3
-              }}
-            >
-              <BlockIcon
-                sx={{
-                  fontSize: 60,
-                  color: 'rgb(137, 78, 238)'
-                }}
-              />
-            </Box>
-          </Box>
-
-          <Stack
-            spacing={3}
-            sx={{ position: 'relative' }}
-          >
-            <Box>
-              <Typography
-                variant='h3'
-                sx={{
-                  fontSize: { xs: 24, md: 32 },
-                  fontWeight: 600,
-                  color: '#111827',
-                  mb: 2
-                }}
-              >
-                Sem acesso a esse recurso
-              </Typography>
-              <Typography
-                variant='body1'
-                sx={{
-                  fontSize: { xs: 16, md: 18 },
-                  color: '#6b7280',
-                  maxWidth: 500,
-                  mx: 'auto',
-                  lineHeight: 1.6
-                }}
-              >
-                Ops! Você não tem acesso a esse recurso.{' '}
-                {hasOrganization
-                  ? 'Que tal voltar para o início e explorar nossos módulos?'
-                  : 'Que tal fazer login para acessar nossa plataforma?'}
-              </Typography>
-            </Box>
-
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={2}
-              sx={{
-                justifyContent: 'center',
-                mt: 4
-              }}
-            >
-              <Button
-                variant='contained'
-                onClick={handleGoHome}
-                size='large'
-                startIcon={<HomeIcon />}
-                sx={{
-                  bgcolor: 'rgb(137, 78, 238)',
-                  color: '#ffffff',
-                  textTransform: 'none',
-                  fontSize: 16,
-                  fontWeight: 600,
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: 2,
-                  boxShadow: 2,
-                  '&:hover': {
-                    bgcolor: 'rgb(120, 60, 220)',
-                    boxShadow: 4
-                  }
-                }}
-              >
-                {hasOrganization ? 'Voltar ao Início' : isLoggedInWithoutOrg ? 'Ver Convites' : 'Fazer Login'}
-              </Button>
-              <Button
-                variant='outlined'
-                onClick={handleGoBack}
-                size='large'
-                sx={{
-                  color: '#374151',
-                  borderColor: '#d1d5db',
-                  textTransform: 'none',
-                  fontSize: 16,
-                  fontWeight: 600,
-                  px: 4,
-                  py: 1.5,
-                  borderRadius: 2,
-                  '&:hover': {
-                    borderColor: '#9ca3af',
-                    bgcolor: 'rgba(0,0,0,0.04)'
-                  }
-                }}
-              >
-                Voltar
-              </Button>
-            </Stack>
-
-            <Typography
-              variant='body2'
-              sx={{
-                color: '#9ca3af',
-                fontSize: 14,
-                mt: 3
-              }}
-            >
-              Se você acredita que isso é um erro, entre em contato com nosso suporte.
-            </Typography>
-          </Stack>
+            {hasOrganization ? 'Voltar para a Página Inicial' : isLoggedInWithoutOrg ? 'Ver Convites' : 'Fazer Login'}
+          </Button>
         </Box>
-      </Container>
+
+         {/* Link de suporte */}
+         <Box
+           sx={{
+             mt: { xs: 4, md: 5 },
+             width: '100%',
+             maxWidth: 400,
+             textAlign: 'center'
+           }}
+         >
+          <Typography
+            variant='body2'
+            sx={{
+              color: 'rgb(107, 114, 128)',
+              fontSize: { xs: '0.8rem', md: '0.875rem' },
+              lineHeight: 1.5
+            }}
+          >
+            Se você acha que isso é um erro, por favor, entre em contato com nosso{' '}
+            <Link
+              href='#'
+              sx={{
+                color: '#1877F2',
+                textDecoration: 'none',
+                fontWeight: 500,
+                '&:hover': {
+                  textDecoration: 'underline'
+                }
+              }}
+            >
+              suporte
+            </Link>
+            .
+          </Typography>
+        </Box>
+      </Box>
     </Box>
   );
 };
