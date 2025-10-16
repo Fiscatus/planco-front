@@ -1,4 +1,4 @@
-import { Assignment, AssignmentTurnedIn, BarChart, Close, FolderOpen, Gavel, Home, Layers, Settings, Shield } from '@mui/icons-material';
+import { Assignment, AssignmentTurnedIn, BarChart, Close, FolderOpen, Gavel, Home, Settings, Shield } from '@mui/icons-material';
 import {
   Box,
   Drawer,
@@ -14,6 +14,7 @@ import { type ReactNode, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { version } from '@/../package.json';
 import { useAccessControl, useAuth } from '@/hooks';
+import logo from '/assets/isologo.svg';
 
 type SidebarProps = {
   open: boolean;
@@ -129,7 +130,15 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <Layers sx={{ color: '#1877F2', fontSize: '1.875rem' }} />
+          <img 
+            src={logo} 
+            alt="Planco Logo" 
+            style={{ 
+              width: '30px', 
+              height: '30px',
+              objectFit: 'contain'
+            }} 
+          />
           <Typography
             variant='h6'
             sx={{

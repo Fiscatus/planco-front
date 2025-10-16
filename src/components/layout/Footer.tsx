@@ -1,5 +1,4 @@
 import { 
-  Layers as LayersIcon, 
   Security as SecurityIcon,
   Help as HelpIcon,
   Info as InfoIcon,
@@ -81,13 +80,15 @@ const Footer = () => {
                 mb: 1.5
               }}
             >
-              <LayersIcon sx={{ 
-                color: '#3B82F6', 
-                fontSize: '2rem',
-                '@media (max-width: 767px)': {
-                  fontSize: '1.75rem' // 28px para mobile
-                }
-              }} />
+              <img 
+                src={logo} 
+                alt="Planco Logo" 
+                style={{ 
+                  width: '32px', 
+                  height: '32px',
+                  objectFit: 'contain'
+                }} 
+              />
               <Typography
                 variant='h4'
                 sx={{ 

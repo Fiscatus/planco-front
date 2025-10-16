@@ -1,4 +1,4 @@
-import { Headphones, Layers, Logout, Menu as MenuIcon, Notifications, Search, Settings } from '@mui/icons-material';
+import { Headphones, Logout, Menu as MenuIcon, Notifications, Search, Settings } from '@mui/icons-material';
 import {
   AppBar,
   Avatar,
@@ -135,7 +135,15 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             <MenuIcon sx={{ fontSize: 24 }} />
           </IconButton>
           
-          <Layers sx={{ color: '#1877F2', fontSize: '1.875rem' }} />
+          <img 
+            src={logo} 
+            alt="Planco Logo" 
+            style={{ 
+              width: '30px', 
+              height: '30px',
+              objectFit: 'contain'
+            }} 
+          />
           <Typography
             variant='h6'
             sx={{
