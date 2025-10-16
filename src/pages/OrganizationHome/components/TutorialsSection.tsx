@@ -92,22 +92,35 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
           Aprenda a usar o sistema
         </Typography>
             <Button
-              variant='text'
+              variant='contained'
               onClick={() => window.open(PLAYLIST_URL_TUTORIALS, '_blank')}
               endIcon={<ArrowForwardIcon />}
               sx={{
-                color: '#3B82F6',
+                bgcolor: '#1877F2',
+                color: '#ffffff',
                 fontWeight: 600,
                 textTransform: 'none',
-                '&:hover': { 
-                  bgcolor: 'transparent',
-                  color: '#2563EB',
-                  textDecoration: 'underline'
+                px: 3,
+                py: 1.5,
+                borderRadius: 2,
+                fontSize: '0.9375rem',
+                minWidth: '140px',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: '0 2px 8px rgba(24, 119, 242, 0.3)',
+                '&:hover': {
+                  bgcolor: '#166fe5',
+                  boxShadow: '0 4px 16px rgba(24, 119, 242, 0.4)',
+                  transform: 'translateY(-1px)'
+                },
+                '&:active': {
+                  transform: 'translateY(0px)',
+                  boxShadow: '0 2px 8px rgba(24, 119, 242, 0.3)'
                 },
                 '@media (max-width: 767px)': {
-                  fontSize: '0.875rem', // 14px para mobile
-                  px: 1, // 8px para mobile
-                  py: 0.5 // 4px para mobile
+                  px: 2.5,
+                  py: 1.25,
+                  fontSize: '0.875rem',
+                  minWidth: '120px'
                 }
               }}
             >

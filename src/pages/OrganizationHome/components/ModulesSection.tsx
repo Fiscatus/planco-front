@@ -178,27 +178,52 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
                   {modulo.descricao}
                 </Typography>
 
-                <Button
-                  onClick={() => isDisponivel && onOpenModulo(modulo.path)}
-                  variant='text'
-                  disabled={!isDisponivel}
-                  endIcon={<ArrowForwardIcon />}
-                  sx={{
-                    color: '#1877F2',
-                    fontWeight: 700,
+                 <Button
+                   onClick={() => isDisponivel && onOpenModulo(modulo.path)}
+                   variant={isDisponivel ? 'contained' : 'outlined'}
+                   disabled={!isDisponivel}
+                   endIcon={isDisponivel ? <ArrowForwardIcon /> : undefined}
+                   sx={{
+                     alignSelf: 'flex-end',
+                    px: 3,
+                    py: 1.5,
+                    borderRadius: 2,
                     textTransform: 'none',
-                    alignSelf: 'flex-start',
-                    p: 0,
-                    '&:hover': {
-                      bgcolor: 'transparent',
-                      color: '#166fe5'
-                    },
-                    '&.Mui-disabled': {
-                      color: '#9ca3af'
+                    fontWeight: 600,
+                    fontSize: '0.9375rem',
+                    minWidth: '140px',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    ...(isDisponivel ? {
+                      bgcolor: '#1877F2',
+                      color: '#ffffff',
+                      boxShadow: '0 2px 8px rgba(24, 119, 242, 0.3)',
+                      '&:hover': {
+                        bgcolor: '#166fe5',
+                        boxShadow: '0 4px 16px rgba(24, 119, 242, 0.4)',
+                        transform: 'translateY(-1px)'
+                      },
+                      '&:active': {
+                        transform: 'translateY(0px)',
+                        boxShadow: '0 2px 8px rgba(24, 119, 242, 0.3)'
+                      }
+                    } : {
+                      borderColor: '#e0e0e0',
+                      color: '#9ca3af',
+                      bgcolor: '#f8f9fa',
+                      '&:hover': {
+                        borderColor: '#d0d0d0',
+                        bgcolor: '#f0f0f0'
+                      }
+                    }),
+                    '@media (max-width: 767px)': {
+                      px: 2.5,
+                      py: 1.25,
+                      fontSize: '0.875rem',
+                      minWidth: '120px'
                     }
                   }}
                 >
-                  {isDisponivel ? 'Ver módulo' : 'Em breve'}
+                  {isDisponivel ? 'Acessar' : 'Em breve'}
                 </Button>
               </Box>
             );
