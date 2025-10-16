@@ -22,14 +22,14 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
     <Box
       component='section'
       sx={{
-        py: { xs: 1, md: 5 }, // 8px/40px - baseline 8px
+        py: { xs: 0.5, md: 2 }, // 4px/16px - reduzindo distância da topbar
         width: '100%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: { xs: 'auto', md: 'clamp(260px, 40vh, 380px)' },
         '@media (max-width: 767px)': {
-          py: 0.5, // 4px para mobile - reduzindo distância da topbar
+          py: 0.25, // 2px para mobile - ainda mais próximo da topbar
           minHeight: 'auto'
         }
       }}

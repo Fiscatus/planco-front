@@ -16,6 +16,7 @@ const sharedAccordionStyles = {
   bgcolor: '#FFFFFF',
   border: '1px solid #F1F5F9',
   margin: 0,
+  overflow: 'hidden', // Garantir que o conteúdo não quebre as bordas
   '&:before': {
     display: 'none'
   },
@@ -35,12 +36,24 @@ const sharedAccordionStyles = {
     },
     '&:last-of-type': {
       borderRadius: '24px !important'
+    },
+    '& .MuiAccordionSummary-root': {
+      borderRadius: '24px 24px 0 0 !important' // Borda superior arredondada quando expandido
+    },
+    '& .MuiAccordionDetails-root': {
+      borderRadius: '0 0 24px 24px !important' // Borda inferior arredondada quando expandido
     }
   },
   '&:hover': {
     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
     borderColor: '#E2E8F0',
     borderRadius: '24px !important'
+  },
+  '& .MuiAccordionSummary-root': {
+    borderRadius: '24px !important' // Garantir bordas arredondadas no summary
+  },
+  '& .MuiAccordionDetails-root': {
+    borderRadius: '0 0 24px 24px !important' // Garantir bordas arredondadas no details
   },
   transition: 'all 0.25s ease-in-out'
 };
@@ -50,13 +63,15 @@ const sharedSummaryStyles = {
   py: 2.5,
   minHeight: 64,
   height: 64,
+  borderRadius: '24px !important', // Garantir bordas arredondadas
   '& .MuiAccordionSummary-content': {
     margin: 0,
     alignItems: 'center'
   },
   '&.Mui-expanded': {
     minHeight: 64,
-    height: 64
+    height: 64,
+    borderRadius: '24px 24px 0 0 !important' // Borda superior arredondada quando expandido
   },
   '& .MuiAccordionSummary-expandIconWrapper': {
     transition: 'transform 0.25s ease',
@@ -77,7 +92,8 @@ const sharedSummaryStyles = {
     height: 56,
     '&.Mui-expanded': {
       minHeight: 56,
-      height: 56
+      height: 56,
+      borderRadius: '24px 24px 0 0 !important' // Manter bordas arredondadas no mobile
     },
     '& .MuiAccordionSummary-expandIconWrapper': {
       fontSize: '1.25rem' // 20px para mobile
@@ -89,9 +105,11 @@ const sharedDetailsStyles = {
   px: 4,
   pb: 4,
   pt: 0,
+  borderRadius: '0 0 24px 24px !important', // Borda inferior arredondada
   '@media (max-width: 767px)': {
     px: 2.5, // 20px para mobile
-    pb: 3 // 24px para mobile
+    pb: 3, // 24px para mobile
+    borderRadius: '0 0 24px 24px !important' // Manter bordas arredondadas no mobile
   }
 };
 

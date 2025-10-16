@@ -304,19 +304,6 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                     </Typography>
                   }
                 />
-                {module.disabled && (
-                  <Typography
-                    variant='caption'
-                    sx={{
-                      color: '#9ca3af',
-                      fontSize: '0.75rem',
-                      flexShrink: 0,
-                      mt: 0.5
-                    }}
-                  >
-                    Em breve
-                  </Typography>
-                )}
               </ListItemButton>
             </ListItem>
           ))}
