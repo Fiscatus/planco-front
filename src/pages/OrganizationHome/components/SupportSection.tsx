@@ -32,6 +32,10 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
         '&:hover': {
           boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
           transform: 'translateY(-1px)'
+        },
+        '@media (max-width: 767px)': {
+          p: 3, // 24px para mobile
+          borderRadius: 3 // 24px para mobile
         }
       }}
     >
@@ -42,7 +46,10 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
           sx={{
             color: '#1E293B',
             fontSize: '1.5rem',
-            letterSpacing: '-0.025em'
+            letterSpacing: '-0.025em',
+            '@media (max-width: 767px)': {
+              fontSize: '1.25rem' // 20px para mobile
+            }
           }}
         >
           Precisa de Ajuda?
@@ -58,7 +65,12 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
             px: 2,
             py: 0.5,
             borderRadius: '9999px',
-            border: '1px solid #D1FAE5'
+            border: '1px solid #D1FAE5',
+            '@media (max-width: 767px)': {
+              fontSize: '0.6875rem', // 11px para mobile
+              px: 1.5, // 12px para mobile
+              py: 0.25 // 2px para mobile
+            }
           }}
         />
       </Box>
@@ -70,14 +82,30 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
           mb: 4,
           lineHeight: 1.6,
           fontSize: '1rem',
-          fontWeight: 400
+          fontWeight: 400,
+          '@media (max-width: 767px)': {
+            fontSize: '0.9375rem', // 15px para mobile
+            mb: 3 // 24px para mobile
+          }
         }}
       >
         Nossa equipe de suporte está pronta para te ajudar. Veja nossos canais de atendimento ou abra um chamado.
       </Typography>
 
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2.5 }}>
+      <Box sx={{ 
+        mb: 4,
+        '@media (max-width: 767px)': {
+          mb: 3 // 24px para mobile
+        }
+      }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          mb: 2.5,
+          '@media (max-width: 767px)': {
+            mb: 2 // 16px para mobile
+          }
+        }}>
           <Box sx={{ 
             bgcolor: '#EBF4FF', 
             p: 1, 
@@ -85,13 +113,37 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
             mr: 2,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            '@media (max-width: 767px)': {
+              p: 0.75, // 6px para mobile
+              mr: 1.5 // 12px para mobile
+            }
           }}>
-            <ChatIcon sx={{ color: '#1877F2', fontSize: '1.25rem' }} />
+            <ChatIcon sx={{ 
+              color: '#1877F2', 
+              fontSize: '1.25rem',
+              '@media (max-width: 767px)': {
+                fontSize: '1.125rem' // 18px para mobile
+              }
+            }} />
           </Box>
-          <Typography variant='body1' sx={{ fontSize: '1rem', color: '#374151', fontWeight: 500 }}>Chat em tempo real</Typography>
+          <Typography variant='body1' sx={{ 
+            fontSize: '1rem', 
+            color: '#374151', 
+            fontWeight: 500,
+            '@media (max-width: 767px)': {
+              fontSize: '0.9375rem' // 15px para mobile
+            }
+          }}>Chat em tempo real</Typography>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2.5 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          mb: 2.5,
+          '@media (max-width: 767px)': {
+            mb: 2 // 16px para mobile
+          }
+        }}>
           <Box sx={{ 
             bgcolor: '#EBF4FF', 
             p: 1, 
@@ -99,13 +151,37 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
             mr: 2,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            '@media (max-width: 767px)': {
+              p: 0.75, // 6px para mobile
+              mr: 1.5 // 12px para mobile
+            }
           }}>
-            <PhoneInTalkIcon sx={{ color: '#1877F2', fontSize: '1.25rem' }} />
+            <PhoneInTalkIcon sx={{ 
+              color: '#1877F2', 
+              fontSize: '1.25rem',
+              '@media (max-width: 767px)': {
+                fontSize: '1.125rem' // 18px para mobile
+              }
+            }} />
           </Box>
-          <Typography variant='body1' sx={{ fontSize: '1rem', color: '#374151', fontWeight: 500 }}>(99) 99999-9999</Typography>
+          <Typography variant='body1' sx={{ 
+            fontSize: '1rem', 
+            color: '#374151', 
+            fontWeight: 500,
+            '@media (max-width: 767px)': {
+              fontSize: '0.9375rem' // 15px para mobile
+            }
+          }}>(99) 99999-9999</Typography>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2.5 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          mb: 2.5,
+          '@media (max-width: 767px)': {
+            mb: 2 // 16px para mobile
+          }
+        }}>
           <Box sx={{ 
             bgcolor: '#EBF4FF', 
             p: 1, 
@@ -113,11 +189,28 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
             mr: 2,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            '@media (max-width: 767px)': {
+              p: 0.75, // 6px para mobile
+              mr: 1.5 // 12px para mobile
+            }
           }}>
-            <EmailIcon sx={{ color: '#1877F2', fontSize: '1.25rem' }} />
+            <EmailIcon sx={{ 
+              color: '#1877F2', 
+              fontSize: '1.25rem',
+              '@media (max-width: 767px)': {
+                fontSize: '1.125rem' // 18px para mobile
+              }
+            }} />
           </Box>
-          <Typography variant='body1' sx={{ fontSize: '1rem', color: '#374151', fontWeight: 500 }}>ajuda@planco.co.br</Typography>
+          <Typography variant='body1' sx={{ 
+            fontSize: '1rem', 
+            color: '#374151', 
+            fontWeight: 500,
+            '@media (max-width: 767px)': {
+              fontSize: '0.9375rem' // 15px para mobile
+            }
+          }}>ajuda@planco.co.br</Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ 
@@ -127,11 +220,28 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
             mr: 2,
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            '@media (max-width: 767px)': {
+              p: 0.75, // 6px para mobile
+              mr: 1.5 // 12px para mobile
+            }
           }}>
-            <HelpCenterIcon sx={{ color: '#1877F2', fontSize: '1.25rem' }} />
+            <HelpCenterIcon sx={{ 
+              color: '#1877F2', 
+              fontSize: '1.25rem',
+              '@media (max-width: 767px)': {
+                fontSize: '1.125rem' // 18px para mobile
+              }
+            }} />
           </Box>
-          <Typography variant='body1' sx={{ fontSize: '1rem', color: '#374151', fontWeight: 500 }}>Central de ajuda</Typography>
+          <Typography variant='body1' sx={{ 
+            fontSize: '1rem', 
+            color: '#374151', 
+            fontWeight: 500,
+            '@media (max-width: 767px)': {
+              fontSize: '0.9375rem' // 15px para mobile
+            }
+          }}>Central de ajuda</Typography>
         </Box>
       </Box>
 
@@ -155,7 +265,13 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
               transform: 'translateY(-1px)'
             },
-            transition: 'all 0.2s ease-in-out'
+            transition: 'all 0.2s ease-in-out',
+            '@media (max-width: 767px)': {
+              py: 1.5, // 12px para mobile
+              px: 2.5, // 20px para mobile
+              fontSize: '0.9375rem', // 15px para mobile
+              borderRadius: 2.5 // 20px para mobile
+            }
           }}
         >
           Abrir Suporte

@@ -62,6 +62,10 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
       sx={{
         py: { xs: 6, md: 8 },
         px: { xs: 2, sm: 4, md: 6, lg: 8 },
+        '@media (max-width: 767px)': {
+          py: 4, // 32px para mobile
+          px: 1.5 // 12px para mobile
+        },
         width: '100%',
         bgcolor: '#F8FAFC'
       }}
@@ -79,7 +83,10 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
           fontWeight={700}
           sx={{
             color: '#334155',
-            fontSize: { xs: '1.75rem', md: '2rem' }
+            fontSize: { xs: '1.75rem', md: '2rem' },
+            '@media (max-width: 767px)': {
+              fontSize: '1.5rem' // 24px para mobile
+            }
           }}
         >
           Aprenda a usar o sistema
@@ -96,6 +103,11 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
                   bgcolor: 'transparent',
                   color: '#2563EB',
                   textDecoration: 'underline'
+                },
+                '@media (max-width: 767px)': {
+                  fontSize: '0.875rem', // 14px para mobile
+                  px: 1, // 8px para mobile
+                  py: 0.5 // 4px para mobile
                 }
               }}
             >
@@ -110,7 +122,10 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
                 xs: '1fr',
                 md: 'repeat(3, 1fr)'
               },
-              gap: 4
+              gap: 4,
+              '@media (max-width: 767px)': {
+                gap: 2.5 // 20px para mobile
+              }
             }}
           >
           {videos.map((v, i) => (
@@ -135,6 +150,9 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
                   sx={{
                     width: '100%',
                     height: 240,
+                    '@media (max-width: 767px)': {
+                      height: 180 // 180px para mobile
+                    },
                     objectFit: 'cover',
                     objectPosition: 'center',
                     display: 'block'
@@ -170,14 +188,22 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
                   </IconButton>
                 </Box>
               </Box>
-              <CardContent sx={{ p: 3 }}>
+              <CardContent sx={{ 
+                p: 3,
+                '@media (max-width: 767px)': {
+                  p: 2 // 16px para mobile
+                }
+              }}>
                 <Typography
                   variant='h6'
                   fontWeight={700}
                   sx={{
                     color: '#334155',
                     mb: 1,
-                    fontSize: '1.125rem'
+                    fontSize: '1.125rem',
+                    '@media (max-width: 767px)': {
+                      fontSize: '1rem' // 16px para mobile
+                    }
                   }}
                 >
                   {v.titulo}
@@ -185,7 +211,10 @@ const TutorialsSection = ({ sectionRef, embedded = true }: Props) => {
                 <Typography
                   sx={{
                     color: '#64748B',
-                    fontSize: '0.875rem'
+                    fontSize: '0.875rem',
+                    '@media (max-width: 767px)': {
+                      fontSize: '0.8125rem' // 13px para mobile
+                    }
                   }}
                 >
                   {v.descricao}

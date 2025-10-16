@@ -67,6 +67,10 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
       sx={{
         py: { xs: 6, md: 8 },
         px: { xs: 2, sm: 4, md: 6, lg: 8 },
+        '@media (max-width: 767px)': {
+          py: 4, // 32px para mobile
+          px: 1.5 // 12px para mobile
+        },
         width: '100%',
         bgcolor: '#f4f6f8'
       }}
@@ -78,6 +82,10 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
           color: '#212121',
           mb: 3, // 24px - dentro da especificação 16-24px
           fontSize: { xs: '1.75rem', md: '2rem' },
+          '@media (max-width: 767px)': {
+            fontSize: '1.5rem', // 24px para mobile
+            mb: 2.5 // 20px para mobile
+          },
           textAlign: 'center'
         }}
       >
@@ -92,7 +100,10 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
                 md: 'repeat(2, 1fr)',
                 lg: 'repeat(3, 1fr)'
               },
-              gap: 4
+              gap: 4,
+              '@media (max-width: 767px)': {
+                gap: 2.5 // 20px para mobile
+              }
             }}
           >
           {modulos.map((modulo, index) => {
@@ -103,6 +114,9 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
                 sx={{
                   bgcolor: '#ffffff',
                   p: 4,
+                  '@media (max-width: 767px)': {
+                    p: 2.5 // 20px para mobile
+                  },
                   borderRadius: 3,
                   boxShadow: 2,
                   transition: 'all 0.3s ease',
@@ -139,7 +153,10 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
                     fontWeight={700}
                     sx={{
                       color: '#212121',
-                      fontSize: '1.25rem'
+                      fontSize: '1.25rem',
+                      '@media (max-width: 767px)': {
+                        fontSize: '1.125rem' // 18px para mobile
+                      }
                     }}
                   >
                     {modulo.nome}
@@ -151,7 +168,11 @@ const ModulesSection = ({ onOpenModulo, sectionRef, embedded = true }: Props) =>
                     color: '#616161',
                     mb: 2,
                     flex: 1,
-                    lineHeight: 1.6
+                    lineHeight: 1.6,
+                    '@media (max-width: 767px)': {
+                      fontSize: '0.9375rem', // 15px para mobile
+                      mb: 1.5 // 12px para mobile
+                    }
                   }}
                 >
                   {modulo.descricao}

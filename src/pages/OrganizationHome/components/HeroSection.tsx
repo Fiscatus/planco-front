@@ -22,15 +22,24 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
     <Box
       component='section'
       sx={{
-        py: { xs: 3, md: 5 }, // 24px/40px - baseline 8px
+        py: { xs: 1, md: 5 }, // 8px/40px - baseline 8px
         width: '100%',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: { xs: 'auto', md: 'clamp(260px, 40vh, 380px)' }
+        minHeight: { xs: 'auto', md: 'clamp(260px, 40vh, 380px)' },
+        '@media (max-width: 767px)': {
+          py: 0.5, // 4px para mobile - reduzindo distância da topbar
+          minHeight: 'auto'
+        }
       }}
     >
-      <Container maxWidth={false} sx={{ px: { xs: 2, sm: 4, md: 6, lg: 8 } }}>
+      <Container maxWidth={false} sx={{ 
+        px: { xs: 2, sm: 4, md: 6, lg: 8 },
+        '@media (max-width: 767px)': {
+          px: 1.5 // 12px para mobile
+        }
+      }}>
         <Box
           sx={{
             maxWidth: '1200px',
@@ -44,13 +53,22 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
             overflow: 'hidden',
             display: 'grid',
             gridTemplateColumns: { xs: '1fr', md: '1.22fr 1fr' }, // 55/45 ratio
+            gridTemplateRows: { xs: 'auto auto', md: '1fr' }, // Em mobile: texto acima, imagem abaixo
             alignItems: 'stretch',
-            minHeight: { xs: 'auto', md: 'clamp(260px, 40vh, 380px)' }
+            minHeight: { xs: 'auto', md: 'clamp(260px, 40vh, 380px)' },
+            '@media (max-width: 767px)': {
+              borderRadius: 1.5, // 12px para mobile
+              boxShadow: '0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
+              gap: 2 // 16px entre texto e imagem no mobile
+            }
           }}
         >
           {/* Conteúdo de texto */}
           <Box sx={{ 
             p: { xs: 3, md: 4 }, // 24px/32px - baseline 8px
+            '@media (max-width: 767px)': {
+              p: 2 // 16px para mobile
+            },
             textAlign: { xs: 'center', md: 'left' },
             display: 'flex',
             alignItems: 'center',
@@ -75,6 +93,9 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                   lineHeight={1.08}
                   sx={{
                     fontSize: { xs: '2rem', sm: '2.75rem', md: '3.25rem', lg: '3.75rem' }, // Tamanhos profissionais e escalonados
+                    '@media (max-width: 767px)': {
+                      fontSize: '1.75rem' // 28px para mobile
+                    },
                     color: 'text.primary',
                     letterSpacing: { xs: '-0.015em', md: '-0.025em' }, // Letter-spacing refinado
                     display: 'block',
@@ -90,6 +111,9 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                   lineHeight={1.08}
                   sx={{
                     fontSize: { xs: '2rem', sm: '2.75rem', md: '3.25rem', lg: '3.75rem' },
+                    '@media (max-width: 767px)': {
+                      fontSize: '1.75rem' // 28px para mobile
+                    },
                     color: 'primary.main',
                     letterSpacing: { xs: '-0.015em', md: '-0.025em' },
                     display: 'block',
@@ -105,6 +129,9 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                 sx={{
                   color: 'text.secondary',
                   fontSize: { xs: '1.0625rem', md: '1.1875rem' }, // 17px/19px - tamanhos profissionais
+                  '@media (max-width: 767px)': {
+                    fontSize: '1rem' // 16px para mobile
+                  },
                   lineHeight: 1.6, // Line-height otimizado para leitura
                   fontWeight: 400,
                   maxWidth: '52ch', // Largura ideal para leitura
@@ -123,6 +150,12 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={{ xs: 2, sm: 2.5 }} // Espaçamento profissional entre botões
                 sx={{ 
+                  '@media (max-width: 767px)': {
+                    '& > * + *': {
+                      mt: 1.5 // 12px entre botões no mobile
+                    },
+                    width: '100%'
+                  },
                   justifyContent: { xs: 'center', md: 'flex-start' },
                   opacity: isVisible ? 1 : 0,
                   transform: isVisible ? 'scale(1)' : 'scale(1.02)',
@@ -152,7 +185,12 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                     },
                     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                     minWidth: { xs: '100%', sm: 'auto' },
-                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif'
+                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    '@media (max-width: 767px)': {
+                      py: 1.25, // 10px para mobile
+                      px: 2.5, // 20px para mobile
+                      fontSize: '0.9375rem' // 15px para mobile
+                    }
                   }}
                 >
                   Explorar Módulos
@@ -180,7 +218,12 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                     },
                     transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                     minWidth: { xs: '100%', sm: 'auto' },
-                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif'
+                    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+                    '@media (max-width: 767px)': {
+                      py: 1.25, // 10px para mobile
+                      px: 2.5, // 20px para mobile
+                      fontSize: '0.9375rem' // 15px para mobile
+                    }
                   }}
                 >
                   Assistir Guia Rápido
@@ -191,10 +234,13 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
 
           {/* Imagem */}
           <Box sx={{ 
-            display: { xs: 'none', md: 'flex' },
+            display: 'flex', // Mostrar em todas as telas
             alignItems: 'center',
             justifyContent: 'center',
-            p: { xs: 3, md: 4 } // 24px/32px - baseline 8px, mesmo padding do texto
+            p: { xs: 2, md: 4 }, // 16px/32px - padding menor para mobile
+            '@media (max-width: 767px)': {
+              p: 1.5 // 12px para mobile
+            }
           }}>
             <Box
               component='img'
@@ -207,7 +253,12 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                 objectFit: 'cover',
                 objectPosition: 'center',
                 borderRadius: 2, // Mesmo raio visual do card
-                display: 'block'
+                display: 'block',
+                '@media (max-width: 767px)': {
+                  height: 200, // Altura fixa para mobile
+                  maxHeight: 200,
+                  borderRadius: 1.5 // 12px para mobile
+                }
               }}
             />
           </Box>

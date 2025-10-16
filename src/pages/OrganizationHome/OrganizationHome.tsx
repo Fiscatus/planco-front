@@ -42,12 +42,22 @@ const OrganizationHome = () => {
       />
 
       {/* 2️⃣ Módulos do Sistema */}
-      <Box ref={modulosSectionRef} sx={{ mb: { xs: 8, md: 12 } }}>
+      <Box ref={modulosSectionRef} sx={{ 
+        mb: { xs: 8, md: 12 },
+        '@media (max-width: 767px)': {
+          mb: 6 // 48px para mobile
+        }
+      }}>
         <ModulesSection onOpenModulo={handleModuloClick} />
       </Box>
 
       {/* 3️⃣ Tutoriais & Recursos (ou Aprenda a usar / Comece por aqui) */}
-      <Box ref={tutoriaisSectionRef} sx={{ mb: { xs: 8, md: 12 } }}>
+      <Box ref={tutoriaisSectionRef} sx={{ 
+        mb: { xs: 8, md: 12 },
+        '@media (max-width: 767px)': {
+          mb: 6 // 48px para mobile
+        }
+      }}>
         <TutorialsSection />
       </Box>
 
@@ -59,6 +69,11 @@ const OrganizationHome = () => {
           gap: { xs: 6, sm: 6, md: 8 },
           mb: { xs: 8, md: 12 },
           px: { xs: 2, sm: 4, md: 6, lg: 8 },
+          '@media (max-width: 767px)': {
+            gap: 4, // 32px para mobile
+            mb: 6, // 48px para mobile
+            px: 1.5 // 12px para mobile
+          },
           alignItems: 'start'
         }}
       >
@@ -69,7 +84,11 @@ const OrganizationHome = () => {
           display: 'flex', 
           alignItems: 'flex-start',
           position: 'sticky',
-          top: 24
+          top: 24,
+          '@media (max-width: 767px)': {
+            position: 'static', // Remove sticky no mobile
+            top: 'auto'
+          }
         }}>
           <SupportSection
             onNavigateHistoria={() => navigate('/historia')}

@@ -69,13 +69,30 @@ const sharedSummaryStyles = {
   },
   '&:hover': {
     bgcolor: '#F8FAFC'
+  },
+  '@media (max-width: 767px)': {
+    px: 2.5, // 20px para mobile
+    py: 2, // 16px para mobile
+    minHeight: 56, // 56px para mobile
+    height: 56,
+    '&.Mui-expanded': {
+      minHeight: 56,
+      height: 56
+    },
+    '& .MuiAccordionSummary-expandIconWrapper': {
+      fontSize: '1.25rem' // 20px para mobile
+    }
   }
 };
 
 const sharedDetailsStyles = {
   px: 4,
   pb: 4,
-  pt: 0
+  pt: 0,
+  '@media (max-width: 767px)': {
+    px: 2.5, // 20px para mobile
+    pb: 3 // 24px para mobile
+  }
 };
 
 const sharedTitleStyles = {
@@ -83,14 +100,20 @@ const sharedTitleStyles = {
   color: '#1E293B',
   fontSize: '1.125rem',
   lineHeight: 1.5,
-  letterSpacing: '-0.01em'
+  letterSpacing: '-0.01em',
+  '@media (max-width: 767px)': {
+    fontSize: '1rem' // 16px para mobile
+  }
 };
 
 const sharedAnswerStyles = {
   color: '#64748B',
   lineHeight: 1.6,
   fontSize: '1rem',
-  fontWeight: 400
+  fontWeight: 400,
+  '@media (max-width: 767px)': {
+    fontSize: '0.9375rem' // 15px para mobile
+  }
 };
 
 const FaqSection = ({ sectionRef, embedded = true }: Props) => {
@@ -133,7 +156,11 @@ const FaqSection = ({ sectionRef, embedded = true }: Props) => {
             color: '#1E293B',
             mb: 2,
             fontSize: { xs: '1.75rem', md: '2rem' },
-            letterSpacing: '-0.025em'
+            letterSpacing: '-0.025em',
+            '@media (max-width: 767px)': {
+              fontSize: '1.5rem', // 24px para mobile
+              mb: 1.5 // 12px para mobile
+            }
           }}
         >
           Perguntas Frequentes
@@ -145,7 +172,12 @@ const FaqSection = ({ sectionRef, embedded = true }: Props) => {
             mx: 'auto',
             lineHeight: 1.6,
             fontSize: { xs: '1rem', md: '1.125rem' },
-            fontWeight: 400
+            fontWeight: 400,
+            '@media (max-width: 767px)': {
+              fontSize: '0.9375rem', // 15px para mobile
+              maxWidth: '100%',
+              px: 2 // 16px para mobile
+            }
           }}
         >
           Tire suas dúvidas de forma rápida com as perguntas mais frequentes do sistema.
