@@ -1,11 +1,11 @@
 import {
   Add as AddIcon,
-  FilterListOff as FilterListOffIcon,
   Delete as DeleteIcon,
+  FilterListOff as FilterListOffIcon,
+  MailOutline as MailOutlineIcon,
   Refresh as RefreshIcon,
   Search as SearchIcon,
   Warning as WarningIcon,
-  MailOutline as MailOutlineIcon,
 } from '@mui/icons-material';
 import {
   Alert,
@@ -38,10 +38,9 @@ import {
   useTheme
 } from '@mui/material';
 import type { CreateInviteDto, FilterInvitesDto, Invite, InviteStatus } from '@/globals/types';
+import { Loading, useNotification } from '@/components';
 import { useCallback, useEffect, useState } from 'react';
 import { useDepartments, useInvites, useRoles, useScreen } from '@/hooks';
-
-import { useNotification } from '@/components';
 
 const InvitesSection = () => {
   const theme = useTheme();
@@ -1308,8 +1307,7 @@ const InvitesSection = () => {
                   {departments.length === 0 ? (
                     <MenuItem disabled>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CircularProgress size={20} />
-                        Carregando gerências...
+                        <Loading isLoading={true} />
                       </Box>
                     </MenuItem>
                   ) : (

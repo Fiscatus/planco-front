@@ -127,6 +127,7 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
               }
             }} />
           </Box>
+
           <Typography variant='body1' sx={{ 
             fontSize: '1rem', 
             color: '#374151', 
@@ -135,6 +136,7 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
               fontSize: '0.9375rem' // 15px para mobile
             }
           }}>Chat em tempo real</Typography>
+        
         </Box>
         <Box sx={{ 
           display: 'flex', 

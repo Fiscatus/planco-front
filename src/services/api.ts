@@ -4,6 +4,49 @@ const BASE_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({ baseURL: BASE_URL });
 
+api.interceptors.request.use(
+  (config) => {
+    const activeDepartment = localStorage.getItem('@planco:activeDepartment');
+    if (activeDepartment) {
+      try {
+        const parsed = JSON.parse(activeDepartment);
+        if (parsed._id) {
+          const url = config.url || '';
+          
+          const shouldAddHeader = 
+            url.includes('/departments/check-access') ||
+            url.includes('/departments/') && url.includes('/info');
+          
+          if (shouldAddHeader) {
+            config.headers['X-Active-Department'] = parsed._id;
+          }
+          
+          const shouldAddQueryParam = 
+            url.includes('/departments/') || 
+            url.includes('/reports/') || 
+            url.includes('/analytics/') ||
+            url.includes('/dashboard/');
+          
+          if (config.method === 'get' && shouldAddQueryParam) {
+            if (!config.params) {
+              config.params = { activeDepartmentId: parsed._id };
+            } else {
+              config.params.activeDepartmentId = parsed._id;
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('Erro ao parsear gerência ativa:', error);
+      }
+    }
+    
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 api.interceptors.response.use(
   (response) => {
     return response

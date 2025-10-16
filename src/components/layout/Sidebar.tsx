@@ -1,4 +1,6 @@
+
 import { Assignment, AssignmentTurnedIn, BarChart, Close, FolderOpen, Gavel, Home, Settings, Shield } from '@mui/icons-material';
+
 import {
   Box,
   Drawer,
@@ -105,7 +107,8 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
       location.pathname === modulePath ||
       (modulePath === '/' && location.pathname === '/') ||
       (modulePath === '/planejamento-da-contratacao' && location.pathname === '/planejamento-da-contratacao') ||
-      (modulePath === '/admin' && location.pathname === '/admin')
+      (modulePath === '/admin' && location.pathname === '/admin') ||
+      (modulePath === '/minhas-gerencias' && location.pathname === '/minhas-gerencias')
     );
   };
 
@@ -113,8 +116,6 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
     return location.pathname === dashboardPath;
   };
 
-  // TODO: Implementar permissões de administração do usuário para acessar o painel de administração
-  // TODO: Implementar usuario sempre logado para fazer acoes dentro da topbar e sidebar
   const drawerContent = (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <Box
@@ -225,7 +226,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
           </ListItemButton>
         </Box>
 
-        <Box sx={{ px: 2, mb: 2 }}>
+        <Box sx={{ px: 2 }}>
           <Typography
             variant='caption'
             sx={{
@@ -319,23 +320,86 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         </List>
       </Box>
 
-      {canAccessAdmin && (
-        <Box sx={{ borderTop: '1px solid #e5e7eb', p: 2 }}>
-          <Typography
-            variant='caption'
+      <Box sx={{ borderTop: '1px solid #e5e7eb', p: 2 }}>
+        <Typography
+          variant='caption'
+          sx={{
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            color: '#6b7280',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            mb: 0.5,
+            display: 'block'
+          }}
+        >
+          Acesso Rápido
+        </Typography>
+
+        {!canAccessAdmin && (
+          <ListItemButton
+            onClick={() =>
+              handleModuleClick({
+                label: 'Minhas Gerências',
+                icon: <Business sx={{ fontSize: 16 }} />,
+                path: '/minhas-gerencias',
+                description: 'Gerencie suas gerências'
+              })
+            }
             sx={{
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              color: '#6b7280',
-              textTransform: 'uppercase',
-              letterSpacing: '0.05em',
-              mb: 1,
-              display: 'block'
+              borderRadius: 1,
+              border: isActiveModule('/minhas-gerencias') ? '1px solid #bfdbfe' : '1px solid transparent',
+              backgroundColor: isActiveModule('/minhas-gerencias') ? '#eff6ff' : 'transparent',
+              color: isActiveModule('/minhas-gerencias') ? '#2563eb' : '#4b5563',
+              '&:hover': {
+                backgroundColor: isActiveModule('/minhas-gerencias') ? '#eff6ff' : '#f9fafb',
+                border: isActiveModule('/minhas-gerencias') ? '1px solid #bfdbfe' : '1px solid #e5e7eb'
+              },
+              py: 1,
+              px: 2
             }}
           >
-            Acesso Rápido
-          </Typography>
+            <ListItemIcon
+              sx={{
+                minWidth: 32,
+                color: isActiveModule('/minhas-gerencias') ? '#2563eb' : '#6b7280'
+              }}
+            >
+              <Business sx={{ fontSize: 16 }} />
+            </ListItemIcon>
+            <ListItemText
+              primary={
+                <Typography
+                  variant='body2'
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: '0.875rem',
+                    lineHeight: 1.2
+                  }}
+                >
+                  Minhas Gerências
+                </Typography>
+              }
+              secondary={
+                <Typography
+                  variant='caption'
+                  sx={{
+                    color: '#6b7280',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1.2,
+                    fontSize: '0.75rem'
+                  }}
+                >
+                  Acesse suas gerências
+                </Typography>
+              }
+            />
+          </ListItemButton>
+        )}
 
+        {canAccessAdmin && (
           <ListItemButton
             onClick={() =>
               handleModuleClick({
@@ -396,8 +460,8 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
               }
             />
           </ListItemButton>
-        </Box>
-      )}
+        )}
+      </Box>
 
       <Box sx={{ borderTop: '1px solid #e5e7eb', p: 2 }}>
         <Box sx={{ textAlign: 'center' }}>
