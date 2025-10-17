@@ -52,18 +52,15 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
   const { fetchRoles, createRole, updateRole, checkDeleteImpact, deleteRole } = useRoles();
   const { fetchPermissions } = usePermissions();
 
-  // Limpar parâmetros quando não estiver na aba de roles
   useEffect(() => {
     if (currentTab !== 'roles') {
       setUrlParams({}, { replace: true });
     }
   }, [currentTab, setUrlParams]);
 
-  // Memoizar as query keys para evitar re-renders desnecessários
   const rolesQueryKey = useMemo(() => ['fetchRoles'], []);
   const permissionsQueryKey = useMemo(() => ['fetchPermissions'], []);
 
-  // Query para buscar roles
   const {
     data: rolesData,
     isLoading: rolesLoading,
@@ -72,13 +69,11 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
   } = useQuery({
     queryKey: rolesQueryKey,
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutos
     queryFn: async () => {
       return await fetchRoles();
     }
   });
 
-  // Query para buscar permissions
   const {
     data: permissionsData,
     isLoading: permissionsLoading,
@@ -87,7 +82,6 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
   } = useQuery({
     queryKey: permissionsQueryKey,
     refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000, // 5 minutos
     queryFn: async () => {
       return await fetchPermissions();
     }
@@ -98,7 +92,6 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
-  // Mutation para criar role
   const { mutate: createRoleMutation, isPending: creatingRole } = useMutation({
     mutationFn: async (data: CreateRoleDto) => {
       return await createRole(data);
@@ -121,7 +114,6 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
     }
   });
 
-  // Mutation para atualizar role
   const { mutate: updateRoleMutation, isPending: updatingRole } = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateRoleDto }) => {
       return await updateRole(id, data);
@@ -145,7 +137,6 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
     }
   });
 
-  // Mutation para deletar role
   const { mutate: deleteRoleMutation, isPending: deletingRole } = useMutation({
     mutationFn: async (roleId: string) => {
       return await deleteRole(roleId);
@@ -273,7 +264,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
   const filteredRoles = (rolesData || []).filter((role) => role.name.toLowerCase().includes(search.toLowerCase()));
 
   const currentPage = Number(urlParams.get('page') || 1);
-  const currentLimit = Number(urlParams.get('limit') || 10);
+  const currentLimit = Number(urlParams.get('limit') || 5);
   const totalPages = Math.ceil(filteredRoles.length / currentLimit);
 
   const paginatedRoles = filteredRoles.slice(
@@ -295,17 +286,18 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
   }, {});
 
   return (
-    <Box sx={{ height: '100%', p: 3, bgcolor: 'background.default' }}>
+    <Box sx={{ minHeight: '100%', p: { xs: 1.5, sm: 2, lg: 3 }, bgcolor: 'background.default' }}>
       <Grid
         container
-        spacing={3}
-        sx={{ height: '100%' }}
+        spacing={{ xs: 1.5, sm: 2, lg: 3 }}
+        sx={{ alignItems: 'flex-start' }}
       >
         {/* Coluna da esquerda - Lista de Roles */}
         <Grid size={{ xs: 12, lg: 4 }}>
           <Card
             sx={{
-              height: '100%',
+              height: 'fit-content',
+              maxHeight: '80vh',
               display: 'flex',
               flexDirection: 'column',
               borderRadius: 3,
@@ -314,8 +306,8 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
               borderColor: 'divider'
             }}
           >
-            <Box sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ p: { xs: 1, sm: 1.25, lg: 1.5 } }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 1, sm: 1.25, lg: 1.5 } }}>
                 <Typography
                   variant='h6'
                   sx={{ fontWeight: 500, px: 1 }}
@@ -378,11 +370,11 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 <SearchIcon
                   sx={{
                     position: 'absolute',
-                    left: 14,
+                    left: 12,
                     top: '50%',
                     transform: 'translateY(-50%)',
                     color: 'text.secondary',
-                    fontSize: 22,
+                    fontSize: 18,
                     zIndex: 1
                   }}
                 />
@@ -391,34 +383,35 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                   placeholder='Buscar roles...'
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
+                  size='small'
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      pl: 6,
-                      pr: 3,
-                      py: 2,
-                      borderRadius: 8,
-                      fontSize: '0.95rem',
-                      height: 48,
+                      pl: 5,
+                      pr: 2,
+                      py: 1,
+                      borderRadius: 6,
+                      fontSize: '0.875rem',
+                      height: 36,
                       '& fieldset': {
                         borderColor: 'divider',
-                        borderWidth: 1.5
+                        borderWidth: 1
                       },
                       '&:hover fieldset': {
                         borderColor: 'primary.main',
-                        borderWidth: 1.5
+                        borderWidth: 1
                       },
                       '&.Mui-focused fieldset': {
                         borderColor: 'primary.main',
-                        borderWidth: 2
+                        borderWidth: 1.5
                       }
                     },
                     '& .MuiInputBase-input': {
-                      fontSize: '0.95rem',
+                      fontSize: '0.875rem',
                       fontWeight: 400,
                       '&::placeholder': {
                         color: 'text.secondary',
                         opacity: 0.8,
-                        fontSize: '0.95rem'
+                        fontSize: '0.875rem'
                       }
                     }
                   }}
@@ -433,7 +426,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 </Box>
               ) : (
                 <>
-                  <Box sx={{ flex: 1, overflow: 'auto', px: 1, pb: 1 }}>
+                  <Box sx={{ flex: 1, overflow: 'auto', px: 0.5, pb: 0.5 }}>
                     <List disablePadding>
                       {paginatedRoles.map((role) => {
                         const isSelected = selectedRole?._id === role._id;
@@ -441,21 +434,22 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                           <ListItem
                             key={role._id}
                             disableGutters
-                            sx={{ mb: 0.5 }}
+                            sx={{ mb: 0.25 }}
                           >
                             <ListItemButton
                               selected={isSelected}
                               onClick={() => setSelectedRole(role)}
                               sx={{
-                                borderRadius: 2,
-                                py: 1.5,
-                                px: 2,
-                                border: isSelected ? '2px solid' : '1px solid',
+                                borderRadius: 1.5,
+                                py: 1,
+                                px: 1.5,
+                                border: isSelected ? '1.5px solid' : '1px solid',
                                 borderColor: isSelected ? 'primary.main' : 'divider',
                                 bgcolor: isSelected ? 'primary.main' : 'background.paper',
                                 color: isSelected ? 'white' : 'text.primary',
                                 boxShadow: isSelected ? 1 : 0,
                                 transition: 'all 0.2s ease-in-out',
+                                minHeight: 40,
                                 '&:hover': {
                                   bgcolor: isSelected ? 'primary.dark' : 'grey.50',
                                   borderColor: isSelected ? 'primary.dark' : 'primary.main',
@@ -478,7 +472,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                                   <Typography
                                     variant='body2'
                                     fontWeight={500}
-                                    sx={{ fontSize: '0.875rem' }}
+                                    sx={{ fontSize: '0.8rem' }}
                                   >
                                     {role.name}
                                   </Typography>
@@ -489,12 +483,13 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                                   size='small'
                                   label={role.permissions.length}
                                   sx={{
-                                    fontSize: '0.75rem',
+                                    fontSize: '0.7rem',
                                     fontWeight: 700,
-                                    height: 20,
+                                    height: 18,
+                                    minWidth: 18,
                                     bgcolor: isSelected ? 'white' : 'primary.main',
                                     color: isSelected ? 'primary.main' : 'white',
-                                    borderRadius: 3,
+                                    borderRadius: 2,
                                     border: isSelected ? '1px solid' : 'none',
                                     borderColor: isSelected ? 'primary.main' : 'transparent'
                                   }}
@@ -520,12 +515,12 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                   {/* Pagination */}
                   <Box
                     sx={{
-                      p: 4,
+                      p: { xs: 1.5, sm: 1.75, lg: 2 },
                       display: 'flex',
                       flexDirection: { xs: 'column', md: 'row' },
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      gap: 2,
+                      gap: { xs: 1, sm: 1.25, lg: 1.5 },
                       backgroundColor: '#f8fafc',
                       borderTop: '1px solid #e5e7eb'
                     }}
@@ -533,7 +528,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                     {/* Pagination Info */}
                     <Typography
                       variant='body2'
-                      sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                      sx={{ color: '#6b7280', fontSize: '0.75rem' }}
                     >
                       {filteredRoles.length > 0 ? (
                         <>
@@ -546,11 +541,12 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                     </Typography>
 
                     {/* Pagination Controls */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.25, lg: 1.5 } }}>
                       <Select
                         value={currentLimit}
                         onChange={(e) => handleLimitChange(Number(e.target.value))}
-                        sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+                        size='small'
+                        sx={{ minWidth: 100, height: 28, fontSize: '0.75rem' }}
                       >
                         {[5, 10, 25, 50].map((limit) => (
                           <MenuItem key={limit} value={limit}>
@@ -565,8 +561,16 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                         onChange={(_e, value) => handlePageChange(_e, value)}
                         variant='outlined'
                         shape='rounded'
+                        size='small'
                         showFirstButton={!isMobile}
                         showLastButton={!isMobile}
+                        sx={{
+                          '& .MuiPaginationItem-root': {
+                            minWidth: 28,
+                            height: 28,
+                            fontSize: '0.75rem'
+                          }
+                        }}
                       />
                     </Box>
                   </Box>
@@ -579,8 +583,8 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
         {/* Coluna da direita - Detalhes da Role */}
         <Grid size={{ xs: 12, lg: 8 }}>
           <Stack
-            spacing={3}
-            sx={{ height: '100%' }}
+            spacing={{ xs: 1.5, sm: 2, lg: 3 }}
+            sx={{ alignItems: 'stretch' }}
           >
             {/* Card de Detalhes da Role */}
             <Card
@@ -591,8 +595,8 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 boxShadow: 1
               }}
             >
-              <Box sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+              <Box sx={{ p: { xs: 2, sm: 2.5, lg: 3 } }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: { xs: 2, sm: 2.5, lg: 3 } }}>
                   <Box>
                     <Typography
                       variant='h4'
@@ -614,7 +618,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                       {selectedRole ? 'Detalhes da role selecionada' : 'Selecione uma role à esquerda'}
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 0.75, lg: 1 } }}>
                     <Button
                       variant='outlined'
                       size='small'

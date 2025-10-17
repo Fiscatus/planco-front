@@ -59,7 +59,6 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
   
   const { showNotification } = useNotification();
 
-  // Limpar parâmetros quando não estiver na aba de usuários
   useEffect(() => {
     if (currentTab !== 'users') {
       setUrlParams({}, { replace: true });
@@ -91,7 +90,6 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
     departments: []
   });
 
-  // Query para buscar usuários
   const {
     data: usersData,
     isLoading: usersLoading,
@@ -122,21 +120,19 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
     }
   });
 
-  // Query para buscar roles - só executa quando necessário
   const { data: rolesData, refetch: refetchRoles } = useQuery({
     queryKey: ['fetchRoles'],
     refetchOnWindowFocus: false,
-    enabled: false, // Não executa automaticamente
+    enabled: false,
     queryFn: async () => {
       return await fetchRoles();
     }
   });
 
-  // Query para buscar departments - só executa quando necessário
   const { data: departmentsData, refetch: refetchDepartments } = useQuery({
     queryKey: ['fetchDepartments'],
     refetchOnWindowFocus: false,
-    enabled: false, // Não executa automaticamente
+    enabled: false,
     queryFn: async () => {
       return await fetchDepartments();
     }
@@ -191,7 +187,6 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
     setUrlParams(urlParams, { replace: true });
   }, [urlParams, setUrlParams]);
 
-  // Mutation para editar usuário
   const { mutate: editUser, isPending: editUserPending } = useMutation({
     mutationFn: async ({ userId, role, departments }: { userId: string; role: string; departments: string[] }) => {
       const promises = [];
@@ -221,7 +216,6 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
     }
   });
 
-  // Mutation para toggle status
   const { mutate: toggleStatus, isPending: toggleStatusPending } = useMutation({
     mutationFn: async (userId: string) => {
       return await toggleUserStatus(userId);

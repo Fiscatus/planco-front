@@ -71,7 +71,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
   const invitesQueryKey = useMemo(() => [
     'fetchInvites', 
     `page:${urlParams.get('page') || 1}`,
-    `limit:${urlParams.get('limit') || 10}`,
+    `limit:${urlParams.get('limit') || 5}`,
     `status:${urlParams.get('status') || ''}`,
     `email:${urlParams.get('email') || ''}`,
     `role:${urlParams.get('role') || ''}`
