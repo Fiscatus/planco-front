@@ -16,6 +16,14 @@ import { useNavigate } from 'react-router-dom';
 import { useNotification } from '@/components';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { LoginDto } from '@/globals/types/User';
+import { useNotification } from '@/components';
+import { useAuth } from '@/hooks';
+import PersonIcon from '@mui/icons-material/Person';
+import LockIcon from '@mui/icons-material/Lock';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import logo from '/assets/isologo.svg';
 
 type Props = {
   setIsSignIn: (value: boolean) => void;
@@ -81,14 +89,16 @@ const SignIn = ({ setIsSignIn }: Props) => {
     <Box>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <PersonAdd
-            sx={{
-              fontSize: '4rem',
-              color: '#1877F2',
-              mb: 2,
+          <img 
+            src={logo} 
+            alt="Planco Logo" 
+            style={{ 
+              width: '64px', 
+              height: '64px',
+              objectFit: 'contain',
               display: 'block',
-              mx: 'auto'
-            }}
+              margin: '0 auto 16px auto'
+            }} 
           />
           <Typography
             variant='h4'

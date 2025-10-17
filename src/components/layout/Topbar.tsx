@@ -88,23 +88,21 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
 
   return (
     <AppBar
-      position='fixed'
+      position='sticky'
       sx={{
-        backgroundColor: `rgba(255, 255, 255, ${getBackgroundOpacity()})`,
-        backdropFilter: `blur(${getBlurIntensity()})`,
-        borderBottom: '1px solid #f3f4f6',
-        boxShadow: 'none',
+        backgroundColor: '#ffffff',
+        boxShadow: 1,
         zIndex: 50,
         width: '100%',
         left: 0,
-        right: 0,
-        transition: 'all 0.3s ease-in-out'
+        right: 0
       }}
     >
       <Toolbar
         sx={{
           width: '100%',
-          px: { xs: 1, sm: 2 },
+          px: { xs: 2, md: 4 },
+          py: 1,
           minHeight: '64px !important',
           display: 'flex',
           justifyContent: 'space-between',
@@ -117,7 +115,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
           sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: { xs: 0.25, sm: 0.5 },
+            gap: 1,
             flexShrink: 0,
             minWidth: 0
           }}
@@ -125,53 +123,39 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
           <IconButton
             onClick={onMenuClick}
             sx={{
-              width: 36,
-              height: 36,
-              borderRadius: 1,
+              width: 40,
+              height: 40,
+              color: '#616161',
+              borderRadius: '50%',
               '&:hover': {
-                backgroundColor: '#f3f4f6'
-              },
-              '&:focus-visible': {
-                outline: '2px solid #6366f1',
-                outlineOffset: '2px'
+                backgroundColor: 'rgba(0, 0, 0, 0.04)'
               }
             }}
-            aria-label='Abrir menu'
+            aria-label='Menu'
           >
-            <MenuIcon sx={{ color: '#374151', fontSize: 20 }} />
+            <MenuIcon sx={{ fontSize: 24 }} />
           </IconButton>
-
-          <Box
+          
+          <img 
+            src={logo} 
+            alt="Planco Logo" 
+            style={{ 
+              width: '30px', 
+              height: '30px',
+              objectFit: 'contain'
+            }} 
+          />
+          <Typography
+            variant='h6'
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: { xs: 0.25, sm: 0.5 },
-              minWidth: 0
+              fontWeight: 700,
+              color: '#212121',
+              fontSize: '1.25rem',
+              whiteSpace: 'nowrap'
             }}
           >
-            <img
-              src={logo}
-              alt='Logo Planco'
-              style={{
-                width: 32,
-                height: 32
-              }}
-            />
-            <Typography
-              variant='h6'
-              sx={{
-                fontWeight: 700,
-                color: '#1f2937',
-                fontSize: '1.125rem',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: { xs: 'none', sm: 'block' }
-              }}
-            >
-              Planco
-            </Typography>
-          </Box>
+            Planco
+          </Typography>
         </Box>
 
         <Box
@@ -179,9 +163,9 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             flex: 1,
             display: { xs: 'none', sm: 'flex' },
             justifyContent: 'center',
-            mx: 1,
+            mx: 2,
             minWidth: 0,
-            maxWidth: { sm: '250px', md: '350px' }
+            maxWidth: '32rem'
           }}
         >
           <Box
@@ -195,38 +179,52 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             <Search
               sx={{
                 position: 'absolute',
-                left: 8,
-                color: '#9ca3af',
-                fontSize: 16,
+                left: 16,
+                color: '#64748B',
+                fontSize: 20,
                 pointerEvents: 'none',
-                zIndex: 1
+                zIndex: 1,
+                transition: 'color 0.2s ease'
               }}
             />
             <InputBase
-              placeholder='Buscar...'
+              placeholder='Buscar por processos, contratos ou relatórios...'
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               sx={{
                 width: '100%',
-                height: 32,
-                borderRadius: '16px',
-                backgroundColor: 'white',
-                border: '1px solid #e5e7eb',
-                pl: 4,
-                pr: 1,
+                height: 44,
+                borderRadius: '12px',
+                backgroundColor: '#F8FAFC',
+                border: '1px solid #E2E8F0',
+                pl: 6,
+                pr: 3,
                 fontSize: '0.875rem',
-                transition: 'all 0.2s ease',
+                fontWeight: 400,
+                color: '#1E293B',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                 '&:focus': {
-                  outline: '2px solid #6366f1',
-                  outlineOffset: '2px',
-                  borderColor: '#6366f1',
-                  boxShadow: '0 0 0 3px rgba(99, 102, 241, 0.1)'
+                  outline: 'none',
+                  borderColor: '#1877F2',
+                  backgroundColor: '#FFFFFF',
+                  boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                  '& + .MuiSvgIcon-root': {
+                    color: '#1877F2'
+                  }
                 },
                 '&:hover': {
-                  borderColor: '#d1d5db'
+                  borderColor: '#CBD5E1',
+                  backgroundColor: '#F1F5F9',
+                  boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.1)'
                 },
                 '&::placeholder': {
-                  color: '#9ca3af'
+                  color: '#94A3B8',
+                  fontWeight: 400,
+                  opacity: 1
+                },
+                '&:focus::placeholder': {
+                  color: '#CBD5E1'
                 }
               }}
             />
@@ -237,73 +235,53 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
           sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: { xs: 0.25, sm: 0.5 },
+            gap: 1,
             flexShrink: 0,
             minWidth: 0
           }}
         >
           <IconButton
             sx={{
-              width: 36,
-              height: 36,
+              width: 40,
+              height: 40,
               position: 'relative',
-              color: '#374151',
+              color: '#616161',
+              borderRadius: '50%',
               '&:hover': {
-                backgroundColor: '#f3f4f6'
+                backgroundColor: 'rgba(0, 0, 0, 0.04)'
               }
             }}
             aria-label='Notificações'
             onClick={() => setNotificationsOpen(!notificationsOpen)}
           >
-            <Badge
-              badgeContent={156}
-              sx={{
-                '& .MuiBadge-badge': {
-                  backgroundColor: '#ef4444',
-                  color: 'white',
-                  fontSize: '12px',
-                  minWidth: 16,
-                  height: 16,
-                  top: -2,
-                  right: -2,
-                  fontWeight: 600
-                }
-              }}
-            >
-              <Notifications sx={{ fontSize: 22 }} />
-            </Badge>
+            <Notifications sx={{ fontSize: 24 }} />
           </IconButton>
 
-          <IconButton
+          <Box
             onClick={handleAccountMenuOpen}
             sx={{
-              width: 36,
-              height: 36,
-              p: 0,
-              overflow: 'hidden',
+              width: 40,
+              height: 40,
               borderRadius: '50%',
-              border: '1px solid #e5e7eb',
+              backgroundColor: '#1877F2',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              fontWeight: 700,
+              fontSize: '1.125rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
               '&:hover': {
-                backgroundColor: '#f3f4f6'
+                backgroundColor: '#166fe5',
+                transform: 'scale(1.05)'
               }
             }}
-            aria-label='Abrir menu da conta'
           >
-            <Avatar
-              sx={{
-                width: 36,
-                height: 36,
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                backgroundColor: '#6366f1',
-                color: 'white'
-              }}
-            >
-              {getInitials(
-                ((user?.firstName ? user.firstName : '') + ' ' + (user?.lastName ? user.lastName : '')).trim() || 'U'
-              )}
-            </Avatar>
-          </IconButton>
+            {getInitials(
+              ((user?.firstName ? user.firstName : '') + ' ' + (user?.lastName ? user.lastName : '')).trim() || 'U'
+            )}
+          </Box>
 
           <Menu
             anchorEl={accountMenuAnchor}

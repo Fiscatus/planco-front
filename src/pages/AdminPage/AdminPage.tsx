@@ -310,7 +310,7 @@ const AdminPage = () => {
           <Box>
             <Chip
               label={isPlatformAdmin ? 'Admin da Plataforma' : 'Admin da Organização'}
-              color={isPlatformAdmin ? 'primary' : 'secondary'}
+              color='primary'
               variant='filled'
               size='medium'
               sx={{

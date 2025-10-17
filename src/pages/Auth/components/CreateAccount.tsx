@@ -146,14 +146,16 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
       <form onSubmit={handleSubmit(onSubmit)}>
         {/* Cabeçalho */}
         <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <PersonAdd
-            sx={{
-              fontSize: '2.5rem',
-              color: '#1877F2',
-              mb: 1,
+          <img 
+            src={logo} 
+            alt="Planco Logo" 
+            style={{ 
+              width: '40px', 
+              height: '40px',
+              objectFit: 'contain',
               display: 'block',
-              mx: 'auto'
-            }}
+              margin: '0 auto 8px auto'
+            }} 
           />
           <Typography
             variant='h4'
