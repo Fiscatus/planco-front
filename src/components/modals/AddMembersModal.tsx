@@ -1,4 +1,3 @@
-import { Search as SearchIcon } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -18,16 +17,18 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import { useCallback, useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import type { Department, User } from '@/globals/types';
+import { useCallback, useEffect, useState } from 'react';
+
+import { Search as SearchIcon } from '@mui/icons-material';
+import { useSearchParams } from 'react-router-dom';
 
 type UserWithMembership = User & { isMember?: boolean };
 
 interface AddMembersModalProps {
   open: boolean;
   onClose: () => void;
-  onSave: ({ userIds, type }: { userIds: string[]; type: 'add' }) => void;
+  onSave: ({ userIds, type }: { userIds: string[]; type: 'add' | 'remove' }) => void;
   gerencia: Department | null;
   users: UserWithMembership[];
   loading?: boolean;
@@ -47,12 +48,10 @@ export const AddMembersModal = ({
   users,
   loading = false,
   userPagination,
-  onUserPageChange
 }: AddMembersModalProps) => {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [savingMembers, setSavingMembers] = useState(false);
   const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [urlParams, setUrlParams] = useSearchParams();
 
   const toggleUserSelection = useCallback(
@@ -76,11 +75,11 @@ export const AddMembersModal = ({
     onClose();
   }, [onClose, setUrlParams, urlParams]);
 
-  const handleSaveMembers = useCallback(async () => {
+  const handleSaveMembers = useCallback(() => {
     if (!gerencia) return;
     try {
       setSavingMembers(true);
-      await onSave({ userIds: selectedUserIds, type: 'add' });
+      onSave({ userIds: selectedUserIds, type: 'add' });
       setSelectedUserIds([]);
       handleClose();
     } catch (err) {

@@ -1,11 +1,12 @@
 import { useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks';
+
 import { FaqSection } from './components/FaqSection';
 import { HeroSection } from './components/HeroSection';
 import { ModulesSection } from './components/ModulesSection';
 import { SupportSection } from './components/SupportSection';
 import { TutorialsSection } from './components/TutorialsSection';
+import { useAuth } from '@/hooks';
+import { useNavigate } from 'react-router-dom';
 
 const OrganizationHome = () => {
   const { user } = useAuth();

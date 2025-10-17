@@ -1,7 +1,8 @@
-import { Home as HomeIcon, SearchOff as SearchOffIcon } from '@mui/icons-material';
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Home as HomeIcon, SearchOff as SearchOffIcon } from '@mui/icons-material';
+
 import { useAuth } from '@/hooks';
+import { useNavigate } from 'react-router-dom';
 
 const NotFoundPage = () => {
   const navigate = useNavigate();

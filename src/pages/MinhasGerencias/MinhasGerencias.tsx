@@ -1,16 +1,15 @@
-import { AdminPanelSettings, Business } from '@mui/icons-material';
-import { Box, Button, Card, Chip, Grid, Typography } from '@mui/material';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { useCallback, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ActiveDepartmentSelector, Loading, useNotification } from '@/components';
 import { AddMembersModal, DeleteGerenciaModal, EditGerenciaModal } from '@/components/modals';
+import { AdminPanelSettings, Business } from '@mui/icons-material';
+import { Box, Button, Card, Chip, Grid, Typography } from '@mui/material';
 import type { CreateDepartmentDto, UpdateDepartmentDto, User } from '@/globals/types';
 import { useAccessControl, useActiveDepartment, useAuth, useDepartments, useUsers } from '@/hooks';
+import { useCallback, useRef, useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import { InfoSection } from './components/InfoSection';
 import { MembersSection } from './components/MembersSection';
-
-type UserWithMembership = User & { isMember?: boolean };
 
 const MinhasGerencias = () => {
   const { user: currentUser } = useAuth();
@@ -22,18 +21,10 @@ const MinhasGerencias = () => {
   // Context da gerência ativa
   const {
     activeDepartment,
-    setActiveDepartment,
-    availableDepartments,
-    isLoading: activeDeptLoading
   } = useActiveDepartment();
 
   const {
-    departments,
-    loading: departmentsLoading,
-    error: departmentsError,
-    fetchDepartments,
     updateDepartment,
-    deleteDepartment,
     getDepartmentMembers,
     addMembersBulk,
     removeMember,
@@ -43,15 +34,10 @@ const MinhasGerencias = () => {
 
   const { users, fetchUsers } = useUsers();
 
-  const [members, setMembers] = useState<User[]>([]);
-  const [canEditGerencia, setCanEditGerencia] = useState(false);
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [addMembersModalOpen, setAddMembersModalOpen] = useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [savingGerencia, setSavingGerencia] = useState(false);
 
-  const [allUsers, setAllUsers] = useState<UserWithMembership[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [userPagination, setUserPagination] = useState({ page: 0, limit: 5, total: 0 });
   const usersRef = useRef(users);
@@ -185,39 +171,6 @@ const MinhasGerencias = () => {
     setUserPagination((prev) => ({ ...prev, page }));
   }, []);
 
-  const handleRemoveMember = useCallback(
-    async (userId: string) => {
-      if (!activeDepartment) return;
-
-      try {
-        await removeMember(activeDepartment._id, userId);
-        showNotification('Membro removido com sucesso', 'success');
-      } catch (error) {
-        showNotification('Erro ao remover membro', 'error');
-      }
-    },
-    [activeDepartment, removeMember, showNotification]
-  );
-
-  const handleDeleteGerencia = useCallback(() => {
-    setDeleteModalOpen(true);
-  }, []);
-
-  const handleConfirmDelete = useCallback(async () => {
-    if (!activeDepartment) return;
-
-    try {
-      setSavingGerencia(true);
-      await deleteDepartment(activeDepartment._id);
-      showNotification('Gerência excluída com sucesso!', 'success');
-      setActiveDepartment(null);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro ao excluir gerência';
-      showNotification(errorMessage, 'error');
-    } finally {
-      setSavingGerencia(false);
-    }
-  }, [activeDepartment, deleteDepartment, showNotification, setActiveDepartment]);
 
   if (canAccessAdmin) {
     return (
@@ -434,14 +387,6 @@ const MinhasGerencias = () => {
         loading={loadingUsers}
         userPagination={userPagination}
         onUserPageChange={handleUserPageChange}
-      />
-
-      <DeleteGerenciaModal
-        open={deleteModalOpen}
-        onClose={() => setDeleteModalOpen(false)}
-        onConfirm={handleConfirmDelete}
-        gerencia={gerencia}
-        loading={savingGerencia}
       />
     </Box>
   );

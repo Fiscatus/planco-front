@@ -1,3 +1,4 @@
+import { Box, Button, Container, Typography } from '@mui/material';
 import {
   BarChart as BarChartIcon,
   ChevronRight as ChevronRightIcon,
@@ -7,7 +8,6 @@ import {
   ListAlt as ListAltIcon,
   Settings as SettingsIcon
 } from '@mui/icons-material';
-import { Box, Button, Container, Typography } from '@mui/material';
 import { type RefObject, useMemo } from 'react';
 
 type Props = {

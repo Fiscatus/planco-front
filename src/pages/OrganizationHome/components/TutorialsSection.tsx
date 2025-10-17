@@ -1,4 +1,3 @@
-import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import {
   Box,
   Button,
@@ -10,6 +9,7 @@ import {
   IconButton,
   Typography
 } from '@mui/material';
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import { type RefObject, useMemo, useState } from 'react';
 
 type Props = {

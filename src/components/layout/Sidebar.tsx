@@ -1,4 +1,4 @@
-import { Assignment, BarChart, Close, FolderOpen, Gavel, Home, People, Settings, Shield, Business } from '@mui/icons-material';
+import { useAccessControl, useAuth } from '@/hooks';
 import {
   Box,
   Drawer,
@@ -10,11 +10,12 @@ import {
   ListItemText,
   Typography
 } from '@mui/material';
+import { Assignment, BarChart, Business, Close, FolderOpen, Gavel, Home, People, Settings, Shield } from '@mui/icons-material';
 import { type ReactNode, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+
 import { version } from '@/../package.json';
 import logo from '/assets/isologo.svg';
-import { useAccessControl, useAuth } from '@/hooks';
 
 type SidebarProps = {
   open: boolean;

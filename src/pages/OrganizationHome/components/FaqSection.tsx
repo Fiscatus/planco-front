@@ -1,5 +1,5 @@
-import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Container, Typography } from '@mui/material';
+import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { type RefObject, useMemo } from 'react';
 
 type Props = {

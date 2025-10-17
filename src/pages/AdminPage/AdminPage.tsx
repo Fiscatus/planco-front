@@ -1,12 +1,12 @@
+import {
+  AdminPanelSettingsOutlined,
+  BusinessOutlined,
+  MailOutlineOutlined,
+  PeopleAltOutlined
+} from '@mui/icons-material';
 import { Alert, Box, Chip, Skeleton, Tab, Tabs, Typography } from '@mui/material';
 import { Component, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
-import {
-  PeopleAltOutlined,
-  BusinessOutlined,
-  MailOutlineOutlined,
-  AdminPanelSettingsOutlined
-} from '@mui/icons-material';
 import { useAccessControl, useAuth, useScreen } from '@/hooks';
 
 import { GerenciaSection } from './components/GerenciaSection';

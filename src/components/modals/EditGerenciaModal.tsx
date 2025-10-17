@@ -10,8 +10,8 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import { useCallback, useEffect, useState } from 'react';
 import type { CreateDepartmentDto, Department, UpdateDepartmentDto, User } from '@/globals/types';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useUsers } from '@/hooks';
 

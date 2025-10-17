@@ -1,8 +1,9 @@
 import { Box, Typography, useTheme } from '@mui/material';
-import { useState } from 'react';
+
 import CreateAccount from './components/CreateAccount';
-import SignIn from './components/SignIn';
 import GavelIcon from '@mui/icons-material/Gavel';
+import SignIn from './components/SignIn';
+import { useState } from 'react';
 
 const Auth = () => {
   const [isSignIn, setIsSignIn] = useState(true);

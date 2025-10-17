@@ -1,4 +1,4 @@
-import { Snackbar, Alert } from '@mui/material';
+import { Alert, Snackbar } from '@mui/material';
 import { createContext, type ReactNode, useContext, useState } from 'react';
 
 type NotificationType = 'success' | 'error' | 'warning' | 'info';

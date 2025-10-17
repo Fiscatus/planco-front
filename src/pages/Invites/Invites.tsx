@@ -1,9 +1,17 @@
-import { AccessTime, CheckCircle, InfoOutlined, Mail, PersonAdd, Shield } from '@mui/icons-material';
+import {
+  AccessTime,
+  CheckCircle,
+  InfoOutlined,
+  Mail,
+  PersonAdd,
+  Shield
+} from '@mui/icons-material';
 import { Alert, Box, Button, Card, CardContent, CardHeader, Chip, Divider, Paper, Typography } from '@mui/material';
 import { useAuth, useInvites } from '@/hooks';
-import { useCallback, useEffect } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import type { Invite } from '@/globals/types';
+import { useCallback } from 'react';
 import { useNotification } from '@/components';
 
 const Invites = () => {
@@ -11,45 +19,59 @@ const Invites = () => {
   const { invites, loading, error, fetchUserInvites, acceptInvite, declineInvite, clearError } = useInvites();
   const { showNotification } = useNotification();
 
-  useEffect(() => {
-    if (user?.email && !hasOrganization) {
-      fetchUserInvites(user.email);
+  const { data: invitesData, refetch: refetchInvites } = useQuery({
+    queryKey: ['fetchUserInvites', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      return await fetchUserInvites(user.email);
+    },
+    enabled: !!user?.email && !hasOrganization,
+    refetchOnWindowFocus: false
+  });
+
+  const { mutate: acceptInviteMutation, isPending: acceptingInvite } = useMutation({
+    mutationFn: async (inviteId: string) => {
+      return await acceptInvite(inviteId);
+    },
+    onError: () => {
+      showNotification('Erro ao aceitar convite', 'error');
+    },
+    onSuccess: () => {
+      showNotification('Convite aceito com sucesso!', 'success');
+      refetchInvites();
     }
-  }, [user?.email, hasOrganization, fetchUserInvites]);
+  });
+
+  const { mutate: declineInviteMutation, isPending: decliningInvite } = useMutation({
+    mutationFn: async (inviteId: string) => {
+      return await declineInvite(inviteId);
+    },
+    onError: () => {
+      showNotification('Erro ao recusar convite', 'error');
+    },
+    onSuccess: () => {
+      showNotification('Convite recusado com sucesso!', 'success');
+      refetchInvites();
+    }
+  });
 
   const handleAcceptInvite = useCallback(
-    async (inviteId: string) => {
-      try {
-        await acceptInvite(inviteId);
-        if (user?.email) {
-          await fetchUserInvites(user.email);
-        }
-      } catch {
-        showNotification('Erro ao aceitar convite', 'error');
-      }
+    (inviteId: string) => {
+      acceptInviteMutation(inviteId);
     },
-    [acceptInvite, fetchUserInvites, user?.email]
+    [acceptInviteMutation]
   );
 
   const handleDeclineInvite = useCallback(
-    async (inviteId: string) => {
-      try {
-        await declineInvite(inviteId);
-        if (user?.email) {
-          await fetchUserInvites(user.email);
-        }
-      } catch {
-        showNotification('Erro ao recusar convite', 'error');
-      }
+    (inviteId: string) => {
+      declineInviteMutation(inviteId);
     },
-    [declineInvite, fetchUserInvites, user?.email]
+    [declineInviteMutation]
   );
 
   const handleRefresh = useCallback(() => {
-    if (user?.email) {
-      fetchUserInvites(user.email);
-    }
-  }, [fetchUserInvites, user?.email]);
+    refetchInvites();
+  }, [refetchInvites]);
 
   if (hasOrganization) {
     return (
@@ -113,7 +135,7 @@ const Invites = () => {
     );
   }
 
-  if (!loading && invites.length === 0) {
+  if (!loading && (invitesData || []).length === 0) {
     return (
       <Box
         sx={{
@@ -440,7 +462,7 @@ const Invites = () => {
               </Typography>
             </Box>
           ) : (
-            invites.map((invite: Invite) => (
+            (invitesData || []).map((invite: Invite) => (
               <Card
                 key={invite._id}
                 variant='outlined'
@@ -566,7 +588,7 @@ const Invites = () => {
                       variant='contained'
                       startIcon={<CheckCircle />}
                       onClick={() => handleAcceptInvite(invite._id)}
-                      disabled={loading}
+                      disabled={acceptingInvite || decliningInvite}
                       sx={{
                         flex: 1,
                         bgcolor: 'rgb(124, 59, 237)'
@@ -577,7 +599,7 @@ const Invites = () => {
                     <Button
                       variant='outlined'
                       onClick={() => handleDeclineInvite(invite._id)}
-                      disabled={loading}
+                      disabled={acceptingInvite || decliningInvite}
                       sx={{
                         borderColor: 'rgb(124, 59, 237)',
                         color: 'rgb(124, 59, 237)',

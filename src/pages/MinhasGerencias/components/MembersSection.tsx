@@ -1,4 +1,3 @@
-import { Delete as DeleteIcon, GroupAdd as GroupAddIcon } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -14,9 +13,11 @@ import {
   TableRow,
   Typography
 } from '@mui/material';
-import { useMemo, useState } from 'react';
-import { Loading } from '@/components';
+import { Delete as DeleteIcon, GroupAdd as GroupAddIcon } from '@mui/icons-material';
 import type { Department, User } from '@/globals/types';
+import { useMemo, useState } from 'react';
+
+import { Loading } from '@/components';
 import { useAccessControl } from '@/hooks';
 
 interface MembersSectionProps {

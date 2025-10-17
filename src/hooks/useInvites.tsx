@@ -155,18 +155,9 @@ export const useInvites = () => {
 
         try {
           await refreshToken();
-
-          showNotification('Convite aceito com sucesso! Redirecionando...', 'success');
-
-          setTimeout(() => {
-            navigate('/');
-          }, 1500);
+          navigate('/');
         } catch (refreshError) {
           console.warn('Erro ao atualizar token após aceitar convite:', refreshError);
-          showNotification(
-            'Convite aceito, mas houve um problema ao atualizar as informações. Recarregue a página.',
-            'warning'
-          );
         }
 
         return response.data;
@@ -216,7 +207,6 @@ export const useInvites = () => {
     loading,
     error,
     pagination,
-
     fetchInvites,
     fetchUserInvites,
     createInvite,
