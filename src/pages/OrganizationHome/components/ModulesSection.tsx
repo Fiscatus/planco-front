@@ -8,7 +8,6 @@ import {
   AssignmentTurnedIn as AssignmentTurnedInIcon,
   Settings as SettingsIcon
 } from '@mui/icons-material';
-import { Box, Button, Typography } from '@mui/material';
 import { type RefObject, useMemo } from 'react';
 
 // ATENÇÃO: Não usar <Container> aqui. Este componente é embutido na OrganizationHome.

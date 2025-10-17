@@ -3,7 +3,6 @@ import { Controller, useForm } from 'react-hook-form';
 import {
   Lock,
   Person,
-  PersonAdd,
   Visibility,
   VisibilityOff
 } from '@mui/icons-material';
@@ -16,13 +15,6 @@ import { useNavigate } from 'react-router-dom';
 import { useNotification } from '@/components';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { LoginDto } from '@/globals/types/User';
-import { useNotification } from '@/components';
-import { useAuth } from '@/hooks';
-import PersonIcon from '@mui/icons-material/Person';
-import LockIcon from '@mui/icons-material/Lock';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import logo from '/assets/isologo.svg';
 
 type Props = {

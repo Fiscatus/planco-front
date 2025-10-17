@@ -1,7 +1,6 @@
 import { ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
 import { Box, Button, Card, Chip, Typography } from '@mui/material';
 
-// ATENÇÃO: Não usar <Container> aqui. Este componente é embutido na OrganizationHome.
 
 type Props = {
   onNavigateHistoria: () => void;
