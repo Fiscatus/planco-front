@@ -13,6 +13,7 @@ import { GerenciaSection } from './components/GerenciaSection';
 import { InvitesSection } from './components/InvitesSection';
 import { RolesSection } from './components/RolesSection';
 import { UserSection } from './components/UserSection';
+import { useQuery } from '@tanstack/react-query';
 
 type TabValue = 'users' | 'gerencias' | 'invites' | 'roles';
 
@@ -158,20 +159,27 @@ const AdminPage = () => {
   const { isMobile } = useScreen();
   const { canAccessUsers, canAccessDepartments, canAccessInvites, canAccessRoles } = useAccessControl();
 
+  // Query para verificar permissões
+  const { data: permissions } = useQuery({
+    queryKey: ['adminPermissions'],
+    queryFn: () => ({
+      canAccessUsers,
+      canAccessDepartments,
+      canAccessInvites,
+      canAccessRoles
+    }),
+    refetchOnWindowFocus: false
+  });
+
   const pages = useMemo(
     () =>
-      createPages({
-        canAccessUsers,
-        canAccessDepartments,
-        canAccessInvites,
-        canAccessRoles
-      }),
-    [canAccessUsers, canAccessDepartments, canAccessInvites, canAccessRoles]
+      permissions ? createPages(permissions) : [],
+    [permissions]
   );
 
   const [activeTabValue, setActiveTabValue] = useState<TabValue>('users');
 
-  // URL synchronization
+  // Initialize tab from URL hash
   useEffect(() => {
     const hash = window.location.hash.replace('#', '') as TabValue;
     if (hash && pages.some((p) => p.value === hash)) {
@@ -179,63 +187,36 @@ const AdminPage = () => {
     }
   }, [pages]);
 
-  useEffect(() => {
-    window.location.hash = activeTabValue;
-  }, [activeTabValue]);
-
   // Memoize current page configuration
-  const currentPage = useMemo(() => pages.find((p) => p.value === activeTabValue) || pages[0], [pages, activeTabValue]);
+  const currentPage = useMemo(() => {
+    if (!pages || pages.length === 0) return null;
+    return pages.find((p) => p.value === activeTabValue) || pages[0];
+  }, [pages, activeTabValue]);
 
   // Handle tab change with validation
   const handleTabChange = useCallback(
     (_: React.SyntheticEvent, newValue: TabValue) => {
-      if (pages.some((p) => p.value === newValue)) {
+      if (pages && pages.some((p) => p.value === newValue)) {
         setActiveTabValue(newValue);
+        // Update URL hash
+        window.location.hash = newValue;
       }
     },
     [pages]
   );
 
-  // Keyboard navigation OPTIONAL was just for fun
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.ctrlKey || event.metaKey) {
-        const currentIndex = pages.findIndex((p) => p.value === activeTabValue);
-
-        switch (event.key) {
-          case '1':
-          case '2':
-          case '3':
-          case '4': {
-            event.preventDefault();
-            const tabIndex = Number.parseInt(event.key) - 1;
-            if (tabIndex < pages.length) {
-              setActiveTabValue(pages[tabIndex].value);
-            }
-            break;
-          }
-          case 'ArrowLeft': {
-            event.preventDefault();
-            const prevIndex = currentIndex > 0 ? currentIndex - 1 : pages.length - 1;
-            setActiveTabValue(pages[prevIndex].value);
-            break;
-          }
-          case 'ArrowRight': {
-            event.preventDefault();
-            const nextIndex = currentIndex < pages.length - 1 ? currentIndex + 1 : 0;
-            setActiveTabValue(pages[nextIndex].value);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [pages, activeTabValue]);
-
   // Render current component with error boundary
   const renderTabContent = useCallback(() => {
+    if (!currentPage) {
+      return (
+        <Box sx={{ p: 3, textAlign: 'center' }}>
+          <Typography variant="h6" color="text.secondary">
+            Carregando permissões...
+          </Typography>
+        </Box>
+      );
+    }
+
     const Component = currentPage.component;
     return (
       <TabErrorBoundary fallback={ErrorFallback}>
@@ -244,7 +225,7 @@ const AdminPage = () => {
         </Suspense>
       </TabErrorBoundary>
     );
-  }, [currentPage.component]);
+  }, [currentPage]);
 
   return (
     <Box
@@ -303,7 +284,7 @@ const AdminPage = () => {
                   fontSize: '1rem'
                 }}
               >
-                {currentPage.description}
+                {currentPage?.description || 'Carregando...'}
               </Typography>
             </Box>
           </Box>
@@ -325,14 +306,15 @@ const AdminPage = () => {
         </Box>
 
         {/* Navigation Tabs */}
-        <Box>
-          <Tabs
-            value={activeTabValue}
-            onChange={handleTabChange}
-            aria-label='Abas da Administração'
-            variant={isMobile ? 'scrollable' : 'standard'}
-            scrollButtons={isMobile ? 'auto' : false}
-            allowScrollButtonsMobile
+        {pages && pages.length > 0 && (
+          <Box>
+            <Tabs
+              value={activeTabValue}
+              onChange={handleTabChange}
+              aria-label='Abas da Administração'
+              variant={isMobile ? 'scrollable' : 'standard'}
+              scrollButtons={isMobile ? 'auto' : false}
+              allowScrollButtonsMobile
             sx={{
               '& .MuiTab-root': {
                 textTransform: 'none',
@@ -376,8 +358,9 @@ const AdminPage = () => {
                 aria-label={`${tab.label} - ${tab.description}`}
               />
             ))}
-          </Tabs>
-        </Box>
+            </Tabs>
+          </Box>
+        )}
       </Box>
 
       {/* Tab Content */}

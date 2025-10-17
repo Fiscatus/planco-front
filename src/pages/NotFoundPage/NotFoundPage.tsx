@@ -1,6 +1,6 @@
+import { Box, Button, Container, Link, Stack, Typography } from '@mui/material';
 import { Home as HomeIcon, SearchOff as SearchOffIcon } from '@mui/icons-material';
-import { Box, Button, Container, Stack, Typography, Link } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+
 import { useAuth } from '@/hooks';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,10 +35,11 @@ const NotFoundPage = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '100vh',
+        minHeight: '60vh',
         bgcolor: hasOrganization ? 'transparent' : 'rgb(249, 250, 251)',
         py: 4,
-        px: 2
+        px: 2,
+        mt: 2
       }}
     >
        <Box
