@@ -287,8 +287,8 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
           {/* Filtros e Botão Atualizar */}
           <Box sx={{ mb: 4 }}>
             <Grid container spacing={2}>
-              {/* Campo de busca - sempre full width */}
-              <Grid size={{ xs: 12 }}>
+              {/* Campo de busca - agora inline com outros filtros */}
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <TextField
                   fullWidth
                   size="small"

@@ -24,16 +24,20 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  MenuItem,
+  Pagination,
+  Select,
   Stack,
-  TablePagination,
   TextField,
   Typography
 } from '@mui/material';
 import type { CreateRoleDto, PermissionDto, Role, UpdateRoleDto } from '@/globals/types';
-import { useAuth, usePermissions, useRoles } from '@/hooks';
-import { useCallback, useEffect, useState } from 'react';
+import { useAuth, usePermissions, useRoles, useScreen } from '@/hooks';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { useNotification } from '@/components';
+import { useSearchParams } from 'react-router-dom';
 
 interface RolesSectionProps {
   currentTab: 'users' | 'gerencias' | 'invites' | 'roles';
@@ -42,21 +46,128 @@ interface RolesSectionProps {
 const RolesSection = ({ currentTab }: RolesSectionProps) => {
   const { user } = useAuth();
   const { showNotification } = useNotification();
-  const { roles, loading, error, fetchRoles, createRole, updateRole, checkDeleteImpact, deleteRole, clearError } =
-    useRoles();
+  const { isMobile } = useScreen();
+  const [urlParams, setUrlParams] = useSearchParams();
+  
+  const { fetchRoles, createRole, updateRole, checkDeleteImpact, deleteRole } = useRoles();
+  const { fetchPermissions } = usePermissions();
 
+  // Limpar parâmetros quando não estiver na aba de roles
+  useEffect(() => {
+    if (currentTab !== 'roles') {
+      setUrlParams({}, { replace: true });
+    }
+  }, [currentTab, setUrlParams]);
+
+  // Memoizar as query keys para evitar re-renders desnecessários
+  const rolesQueryKey = useMemo(() => ['fetchRoles'], []);
+  const permissionsQueryKey = useMemo(() => ['fetchPermissions'], []);
+
+  // Query para buscar roles
   const {
-    permissions: availablePermissions,
-    loading: permissionsLoading,
+    data: rolesData,
+    isLoading: rolesLoading,
+    error: rolesError,
+    refetch: refetchRoles
+  } = useQuery({
+    queryKey: rolesQueryKey,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    queryFn: async () => {
+      return await fetchRoles();
+    }
+  });
+
+  // Query para buscar permissions
+  const {
+    data: permissionsData,
+    isLoading: permissionsLoading,
     error: permissionsError,
-    fetchPermissions,
-    clearError: clearPermissionsError
-  } = usePermissions();
+    refetch: refetchPermissions
+  } = useQuery({
+    queryKey: permissionsQueryKey,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    queryFn: async () => {
+      return await fetchPermissions();
+    }
+  });
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+
+  // Mutation para criar role
+  const { mutate: createRoleMutation, isPending: creatingRole } = useMutation({
+    mutationFn: async (data: CreateRoleDto) => {
+      return await createRole(data);
+    },
+    onError: (error: any) => {
+      let errorMessage = 'Erro ao criar role';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      showNotification(errorMessage, 'error');
+    },
+    onSuccess: () => {
+      showNotification('Role criada com sucesso!', 'success');
+      setCreateModalOpen(false);
+      refetchRoles();
+    }
+  });
+
+  // Mutation para atualizar role
+  const { mutate: updateRoleMutation, isPending: updatingRole } = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateRoleDto }) => {
+      return await updateRole(id, data);
+    },
+    onError: (error: any) => {
+      let errorMessage = 'Erro ao atualizar role';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      showNotification(errorMessage, 'error');
+    },
+    onSuccess: () => {
+      showNotification('Role atualizada com sucesso!', 'success');
+      setEditModalOpen(false);
+      setSelectedRole(null);
+      refetchRoles();
+    }
+  });
+
+  // Mutation para deletar role
+  const { mutate: deleteRoleMutation, isPending: deletingRole } = useMutation({
+    mutationFn: async (roleId: string) => {
+      return await deleteRole(roleId);
+    },
+    onError: (error: any) => {
+      let errorMessage = 'Erro ao deletar role';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      showNotification(errorMessage, 'error');
+    },
+    onSuccess: () => {
+      showNotification('Role deletada com sucesso!', 'success');
+      setDeleteConfirmOpen(false);
+      setSelectedRole(null);
+      refetchRoles();
+    }
+  });
   const [deleteImpact, setDeleteImpact] = useState<{
     canDelete: boolean;
     affectedUsers: number;
@@ -67,16 +178,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
   const [roleName, setRoleName] = useState('');
   const [permissions, setPermissions] = useState<string[]>([]);
   const [search, setSearch] = useState('');
-  const [pagination, setPagination] = useState({
-    page: 0,
-    limit: 5,
-    total: 0
-  });
 
-  useEffect(() => {
-    fetchRoles();
-    fetchPermissions();
-  }, [fetchRoles, fetchPermissions]);
 
   const clearForms = useCallback(() => {
     setRoleName('');
@@ -104,40 +206,28 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
     clearForms();
   }, [clearForms]);
 
-  const handleCreateRole = useCallback(async () => {
+  const handleCreateRole = useCallback(() => {
     if (!user?.org?._id || !roleName.trim()) return;
 
-    try {
-      const roleData: CreateRoleDto = {
-        name: roleName.trim(),
-        permissions,
-        orgId: user.org._id
-      };
+    const roleData: CreateRoleDto = {
+      name: roleName.trim(),
+      permissions,
+      orgId: user.org._id
+    };
 
-      await createRole(roleData);
-      showNotification('Role criada com sucesso!', 'success');
-      handleCloseModals();
-    } catch {
-      showNotification('Erro ao criar role', 'error');
-    }
-  }, [user?.org?._id, roleName, permissions, createRole, showNotification, handleCloseModals]);
+    createRoleMutation(roleData);
+  }, [user?.org?._id, roleName, permissions, createRoleMutation]);
 
-  const handleUpdateRole = useCallback(async () => {
+  const handleUpdateRole = useCallback(() => {
     if (!selectedRole?._id || !roleName.trim()) return;
 
-    try {
-      const updateData: UpdateRoleDto = {
-        name: roleName.trim(),
-        permissions
-      };
+    const updateData: UpdateRoleDto = {
+      name: roleName.trim(),
+      permissions
+    };
 
-      await updateRole(selectedRole._id, updateData);
-      showNotification('Role atualizada com sucesso!', 'success');
-      handleCloseModals();
-    } catch {
-      showNotification('Erro ao atualizar role', 'error');
-    }
-  }, [selectedRole?._id, roleName, permissions, updateRole, showNotification, handleCloseModals]);
+    updateRoleMutation({ id: selectedRole._id, data: updateData });
+  }, [selectedRole?._id, roleName, permissions, updateRoleMutation]);
 
   const handleOpenDeleteConfirm = useCallback(
     async (role: Role) => {
@@ -160,36 +250,35 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
     [checkDeleteImpact, showNotification]
   );
 
-  const handleConfirmDelete = useCallback(async () => {
+  const handleConfirmDelete = useCallback(() => {
     if (!selectedRole?._id) return;
-
-    try {
-      const result = await deleteRole(selectedRole._id);
-      showNotification(`Role deletada com sucesso! ${result.affectedUsers} usuário(s) foram afetados.`, 'success');
-      handleCloseModals();
-    } catch {
-      showNotification('Erro ao deletar role', 'error');
-    }
-  }, [selectedRole?._id, deleteRole, showNotification, handleCloseModals]);
+    deleteRoleMutation(selectedRole._id);
+  }, [selectedRole?._id, deleteRoleMutation]);
 
   const handleRefresh = useCallback(() => {
-    fetchRoles();
-  }, [fetchRoles]);
+    refetchRoles();
+  }, [refetchRoles]);
 
   const handlePageChange = useCallback((_event: unknown, newPage: number) => {
-    setPagination((prev) => ({ ...prev, page: newPage }));
-  }, []);
+    urlParams.set('page', String(newPage));
+    setUrlParams(urlParams, { replace: true });
+  }, [urlParams, setUrlParams]);
 
-  const handleRowsPerPageChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const newLimit = Number(event.target.value);
-    setPagination((prev) => ({ ...prev, limit: newLimit, page: 0 }));
-  }, []);
+  const handleLimitChange = useCallback((newLimit: number) => {
+    urlParams.set('limit', String(newLimit));
+    urlParams.set('page', '1');
+    setUrlParams(urlParams, { replace: true });
+  }, [urlParams, setUrlParams]);
 
-  const filteredRoles = roles.filter((role) => role.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredRoles = (rolesData || []).filter((role) => role.name.toLowerCase().includes(search.toLowerCase()));
+
+  const currentPage = Number(urlParams.get('page') || 1);
+  const currentLimit = Number(urlParams.get('limit') || 10);
+  const totalPages = Math.ceil(filteredRoles.length / currentLimit);
 
   const paginatedRoles = filteredRoles.slice(
-    pagination.page * pagination.limit,
-    (pagination.page + 1) * pagination.limit
+    (currentPage - 1) * currentLimit,
+    currentPage * currentLimit
   );
 
   const togglePermission = useCallback((permission: string) => {
@@ -198,7 +287,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
     );
   }, []);
 
-  const groupedPermissions = availablePermissions.reduce<Record<string, PermissionDto[]>>((acc, perm) => {
+  const groupedPermissions = (permissionsData || []).reduce<Record<string, PermissionDto[]>>((acc, perm) => {
     const group = perm.category.toUpperCase();
     if (!acc[group]) acc[group] = [];
     acc[group].push(perm);
@@ -236,13 +325,13 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Button
                     onClick={handleRefresh}
-                    disabled={loading}
+                    disabled={rolesLoading}
                     sx={{
                       minWidth: 'auto',
                       p: 1,
                       borderRadius: '50%',
-                      color: 'text.secondary',
-                      '&:hover': { bgcolor: 'grey.100' }
+                      color: 'white',
+                      '&:hover': { bgcolor: 'grey.100', color: '#1f2937'}
                     }}
                   >
                     <RefreshIcon />
@@ -267,23 +356,21 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 </Box>
               </Box>
 
-              {error && (
-                <Alert
-                  severity='error'
-                  sx={{ mb: 2 }}
-                  onClose={clearError}
-                >
-                  {error}
-                </Alert>
-              )}
+          {rolesError && (
+            <Alert
+              severity='error'
+              sx={{ mb: 2 }}
+            >
+              {rolesError?.message || 'Erro ao carregar roles'}
+            </Alert>
+          )}
 
               {permissionsError && (
                 <Alert
                   severity='error'
                   sx={{ mb: 2 }}
-                  onClose={clearPermissionsError}
                 >
-                  {permissionsError}
+                  {permissionsError?.message || 'Erro ao carregar permissões'}
                 </Alert>
               )}
 
@@ -340,7 +427,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
             </Box>
 
             <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              {loading ? (
+              {rolesLoading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
                   <CircularProgress />
                 </Box>
@@ -430,27 +517,59 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                     </List>
                   </Box>
 
-                  <TablePagination
-                    component='div'
-                    count={filteredRoles.length}
-                    page={pagination.page}
-                    onPageChange={handlePageChange}
-                    rowsPerPage={pagination.limit}
-                    onRowsPerPageChange={handleRowsPerPageChange}
-                    rowsPerPageOptions={[5, 10, 25, 50]}
-                    labelRowsPerPage='Itens por página:'
-                    labelDisplayedRows={({ from, to, count }) =>
-                      `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
-                    }
+                  {/* Pagination */}
+                  <Box
                     sx={{
-                      borderTop: '1px solid',
-                      borderColor: 'divider',
-                      '& .MuiTablePagination-toolbar': {
-                        minHeight: 48,
-                        px: 2
-                      }
+                      p: 4,
+                      display: 'flex',
+                      flexDirection: { xs: 'column', md: 'row' },
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 2,
+                      backgroundColor: '#f8fafc',
+                      borderTop: '1px solid #e5e7eb'
                     }}
-                  />
+                  >
+                    {/* Pagination Info */}
+                    <Typography
+                      variant='body2'
+                      sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                    >
+                      {filteredRoles.length > 0 ? (
+                        <>
+                          {(currentPage - 1) * currentLimit + 1}-
+                          {Math.min(currentPage * currentLimit, filteredRoles.length)} de {filteredRoles.length}
+                        </>
+                      ) : (
+                        '0 de 0'
+                      )}
+                    </Typography>
+
+                    {/* Pagination Controls */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Select
+                        value={currentLimit}
+                        onChange={(e) => handleLimitChange(Number(e.target.value))}
+                        sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+                      >
+                        {[5, 10, 25, 50].map((limit) => (
+                          <MenuItem key={limit} value={limit}>
+                            {limit} por página
+                          </MenuItem>
+                        ))}
+                      </Select>
+
+                      <Pagination
+                        count={totalPages}
+                        page={currentPage}
+                        onChange={(_e, value) => handlePageChange(_e, value)}
+                        variant='outlined'
+                        shape='rounded'
+                        showFirstButton={!isMobile}
+                        showLastButton={!isMobile}
+                      />
+                    </Box>
+                  </Box>
                 </>
               )}
             </Box>
@@ -830,7 +949,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
           <Button
             onClick={handleCreateRole}
             variant='contained'
-            disabled={loading || !roleName.trim()}
+            disabled={creatingRole || !roleName.trim()}
             sx={{
               px: 3,
               py: 1,
@@ -1125,7 +1244,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
           <Button
             onClick={handleUpdateRole}
             variant='contained'
-            disabled={loading || !roleName.trim()}
+            disabled={updatingRole || !roleName.trim()}
             sx={{
               px: 3,
               py: 1,
@@ -1361,7 +1480,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
             </Button>
             <Button
               onClick={handleConfirmDelete}
-              disabled={loading || !deleteImpact?.canDelete}
+              disabled={deletingRole || !deleteImpact?.canDelete}
               sx={{
                 px: 3,
                 py: 1.25,
@@ -1381,7 +1500,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 }
               }}
             >
-              {loading ? 'Excluindo...' : 'Confirmar Exclusão'}
+              {deletingRole ? 'Excluindo...' : 'Confirmar Exclusão'}
             </Button>
           </Box>
         </DialogContent>
