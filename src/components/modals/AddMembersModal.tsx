@@ -68,9 +68,9 @@ export const AddMembersModal = ({
 
   const handleClose = useCallback(() => {
     setSelectedUserIds([]);
-    urlParams.delete('search');
-    urlParams.delete('page');
-    urlParams.delete('limit');
+    urlParams.delete('modalSearch');
+    urlParams.delete('modalPage');
+    urlParams.delete('modalLimit');
     setUrlParams(urlParams, { replace: true });
     onClose();
   }, [onClose, setUrlParams, urlParams]);
@@ -155,14 +155,14 @@ export const AddMembersModal = ({
             <TextField
               fullWidth
               placeholder='Buscar usuários por nome ou email...'
-              value={urlParams.get('search') || ''}
+              value={urlParams.get('modalSearch') || ''}
               onChange={(e) => {
                 const value = e.target.value;
                 setUrlParams(
                   (prev) => {
                     const next = new URLSearchParams(prev);
-                    next.set('search', value);
-                    next.set('page', '1'); // reset paginação ao buscar
+                    next.set('modalSearch', value);
+                    next.set('modalPage', '1'); // reset paginação ao buscar
                     return next;
                   },
                   { replace: true }
@@ -405,11 +405,11 @@ export const AddMembersModal = ({
           {/* select to change limit of items per page */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Select
-              value={urlParams.get('limit') || userPagination.limit}
+              value={urlParams.get('modalLimit') || userPagination.limit}
               onChange={(e) => {
                 const newLimit = Number(e.target.value);
-                urlParams.set('limit', String(newLimit));
-                urlParams.set('page', '1'); // reset page to 1 when limit changes
+                urlParams.set('modalLimit', String(newLimit));
+                urlParams.set('modalPage', '1'); // reset page to 1 when limit changes
                 setUrlParams(urlParams, { replace: true });
               }}
               sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
@@ -426,9 +426,9 @@ export const AddMembersModal = ({
 
             <Pagination
               count={Math.ceil(userPagination.total / userPagination.limit)}
-              page={Number(urlParams.get('page') || 1)}
+              page={Number(urlParams.get('modalPage') || 1)}
               onChange={(_e, value) => {
-                urlParams.set('page', String(value));
+                urlParams.set('modalPage', String(value));
                 setUrlParams(urlParams);
               }}
               variant='outlined'
@@ -445,7 +445,7 @@ export const AddMembersModal = ({
               py: 1.5,
               fontSize: '0.875rem',
               fontWeight: 600,
-              color: '#6b7280',
+              color: 'white',
               textTransform: 'none',
               borderRadius: 2,
               transition: 'all 0.2s ease-in-out',

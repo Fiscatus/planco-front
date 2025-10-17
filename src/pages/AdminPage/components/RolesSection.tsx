@@ -35,7 +35,11 @@ import { useCallback, useEffect, useState } from 'react';
 
 import { useNotification } from '@/components';
 
-const RolesSection = () => {
+interface RolesSectionProps {
+  currentTab: 'users' | 'gerencias' | 'invites' | 'roles';
+}
+
+const RolesSection = ({ currentTab }: RolesSectionProps) => {
   const { user } = useAuth();
   const { showNotification } = useNotification();
   const { roles, loading, error, fetchRoles, createRole, updateRole, checkDeleteImpact, deleteRole, clearError } =

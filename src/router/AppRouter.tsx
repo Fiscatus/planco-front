@@ -84,6 +84,22 @@ const AppRouter = () => {
                  element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
                />
                <Route
+                 path='/admin/users'
+                 element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
+               />
+               <Route
+                 path='/admin/gerencias'
+                 element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
+               />
+               <Route
+                 path='/admin/invites'
+                 element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
+               />
+               <Route
+                 path='/admin/roles'
+                 element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
+               />
+               <Route
                  path='/minhas-gerencias'
                  element={<MinhasGerencias />}
                />

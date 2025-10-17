@@ -42,7 +42,11 @@ import { Loading, useNotification } from '@/components';
 import { useCallback, useEffect, useState } from 'react';
 import { useDepartments, useInvites, useRoles, useScreen } from '@/hooks';
 
-const InvitesSection = () => {
+interface InvitesSectionProps {
+  currentTab: 'users' | 'gerencias' | 'invites' | 'roles';
+}
+
+const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
   const theme = useTheme();
   const { isMobile } = useScreen();
 

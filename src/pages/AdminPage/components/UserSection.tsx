@@ -43,17 +43,28 @@ import {
 import type { FilterUsersDto, User } from '@/globals/types';
 import { Loading, useNotification } from '@/components';
 import { useAuth, useDepartments, useRoles, useUsers } from '@/hooks';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { useSearchParams } from 'react-router-dom';
 
-const UserSection = () => {
+interface UserSectionProps {
+  currentTab: 'users' | 'gerencias' | 'invites' | 'roles';
+}
+
+const UserSection = ({ currentTab }: UserSectionProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [urlParams, setUrlParams] = useSearchParams();
   
   const { showNotification } = useNotification();
+
+  // Limpar parâmetros quando não estiver na aba de usuários
+  useEffect(() => {
+    if (currentTab !== 'users') {
+      setUrlParams({}, { replace: true });
+    }
+  }, [currentTab, setUrlParams]);
   const {
     fetchUsers,
     updateUserRole,

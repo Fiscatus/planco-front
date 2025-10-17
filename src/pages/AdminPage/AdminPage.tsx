@@ -8,6 +8,7 @@ import { Alert, Box, Chip, Skeleton, Tab, Tabs, Typography } from '@mui/material
 import { Component, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { useAccessControl, useAuth, useScreen } from '@/hooks';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import { GerenciaSection } from './components/GerenciaSection';
 import { InvitesSection } from './components/InvitesSection';
@@ -25,7 +26,7 @@ type TabConfig = {
 };
 
 type PageConfig = TabConfig & {
-  component: React.ComponentType;
+  component: React.ComponentType<{ currentTab: TabValue }>;
 };
 
 const createPages = (permissions: {
@@ -158,6 +159,8 @@ const AdminPage = () => {
   const { isPlatformAdmin } = useAuth();
   const { isMobile } = useScreen();
   const { canAccessUsers, canAccessDepartments, canAccessInvites, canAccessRoles } = useAccessControl();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // Query para verificar permissões
   const { data: permissions } = useQuery({
@@ -177,15 +180,39 @@ const AdminPage = () => {
     [permissions]
   );
 
-  const [activeTabValue, setActiveTabValue] = useState<TabValue>('users');
+  // Extrair aba atual da URL
+  const getCurrentTabFromUrl = useCallback((): TabValue => {
+    const pathSegments = location.pathname.split('/');
+    const lastSegment = pathSegments[pathSegments.length - 1];
+    
+    // Mapear segmentos da URL para valores de aba
+    const urlToTabMap: Record<string, TabValue> = {
+      'users': 'users',
+      'gerencias': 'gerencias', 
+      'invites': 'invites',
+      'roles': 'roles'
+    };
+    
+    return urlToTabMap[lastSegment] || 'users';
+  }, [location.pathname]);
 
-  // Initialize tab from URL hash
+  const [activeTabValue, setActiveTabValue] = useState<TabValue>(getCurrentTabFromUrl());
+
+  // Sincronizar aba com URL
   useEffect(() => {
-    const hash = window.location.hash.replace('#', '') as TabValue;
-    if (hash && pages.some((p) => p.value === hash)) {
-      setActiveTabValue(hash);
+    const currentTab = getCurrentTabFromUrl();
+    if (currentTab && pages.some((p) => p.value === currentTab)) {
+      setActiveTabValue(currentTab);
     }
-  }, [pages]);
+  }, [location.pathname, pages, getCurrentTabFromUrl]);
+
+  // Redirecionar /admin para /admin/users se não houver aba específica
+  useEffect(() => {
+    if (location.pathname === '/admin' && pages.length > 0) {
+      const defaultTab = pages[0].value;
+      navigate(`/admin/${defaultTab}`, { replace: true });
+    }
+  }, [location.pathname, pages, navigate]);
 
   // Memoize current page configuration
   const currentPage = useMemo(() => {
@@ -198,11 +225,11 @@ const AdminPage = () => {
     (_: React.SyntheticEvent, newValue: TabValue) => {
       if (pages && pages.some((p) => p.value === newValue)) {
         setActiveTabValue(newValue);
-        // Update URL hash
-        window.location.hash = newValue;
+        // Navegar para a nova URL e limpar parâmetros de busca
+        navigate(`/admin/${newValue}`, { replace: true });
       }
     },
-    [pages]
+    [pages, navigate]
   );
 
   // Render current component with error boundary
@@ -221,7 +248,7 @@ const AdminPage = () => {
     return (
       <TabErrorBoundary fallback={ErrorFallback}>
         <Suspense fallback={<LoadingFallback />}>
-          <Component />
+          <Component currentTab={activeTabValue} />
         </Suspense>
       </TabErrorBoundary>
     );
