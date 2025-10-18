@@ -21,6 +21,7 @@ import type { Department, User } from '@/globals/types';
 import { useCallback, useEffect, useState } from 'react';
 
 import { Search as SearchIcon } from '@mui/icons-material';
+import { useDebounce } from '@/hooks';
 import { useSearchParams } from 'react-router-dom';
 
 type UserWithMembership = User & { isMember?: boolean };
@@ -51,8 +52,17 @@ export const AddMembersModal = ({
 }: AddMembersModalProps) => {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [savingMembers, setSavingMembers] = useState(false);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
   const [urlParams, setUrlParams] = useSearchParams();
+  const [localSearch, setLocalSearch] = useState(urlParams.get('modalSearch') || '');
+  const debouncedLocalSearch = useDebounce(localSearch, 150);
+
+  useEffect(() => {
+    if (debouncedLocalSearch !== urlParams.get('modalSearch')) {
+      urlParams.set('modalSearch', debouncedLocalSearch);
+      urlParams.set('modalPage', '1');
+      setUrlParams(urlParams, { replace: true });
+    }
+  }, [debouncedLocalSearch, urlParams, setUrlParams]);
 
   const toggleUserSelection = useCallback(
     (userId: string) => {
@@ -68,6 +78,7 @@ export const AddMembersModal = ({
 
   const handleClose = useCallback(() => {
     setSelectedUserIds([]);
+    setLocalSearch('');
     urlParams.delete('modalSearch');
     urlParams.delete('modalPage');
     urlParams.delete('modalLimit');
@@ -89,13 +100,6 @@ export const AddMembersModal = ({
     }
   }, [gerencia, selectedUserIds, onSave, handleClose]);
 
-  useEffect(() => {
-    return () => {
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
-    };
-  }, [searchTimeout]);
 
   return (
     <Dialog
@@ -109,7 +113,8 @@ export const AddMembersModal = ({
           boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
           overflow: 'hidden',
           height: 'auto',
-          maxHeight: '90vh'
+          maxHeight: '95vh',
+          minHeight: 'auto'
         }
       }}
     >
@@ -155,18 +160,9 @@ export const AddMembersModal = ({
             <TextField
               fullWidth
               placeholder='Buscar usuários por nome ou email...'
-              value={urlParams.get('modalSearch') || ''}
+              value={localSearch}
               onChange={(e) => {
-                const value = e.target.value;
-                setUrlParams(
-                  (prev) => {
-                    const next = new URLSearchParams(prev);
-                    next.set('modalSearch', value);
-                    next.set('modalPage', '1'); // reset paginação ao buscar
-                    return next;
-                  },
-                  { replace: true }
-                ); // evita empilhar histórico
+                setLocalSearch(e.target.value);
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
@@ -197,8 +193,18 @@ export const AddMembersModal = ({
         </Box>
 
         {/* Table Content */}
-        <Box sx={{ px: 4, mb: 4 }}>
-          <TableContainer sx={{ overflow: 'auto' }}>
+        <Box sx={{ 
+          px: 4, 
+          mb: 4,
+          // Altura dinâmica: até 5 itens sem scroll, depois com scroll
+          height: users.length <= 5 ? 'auto' : '400px',
+          minHeight: users.length <= 5 ? 'auto' : '400px'
+        }}>
+          <TableContainer sx={{ 
+            overflow: users.length <= 5 ? 'visible' : 'auto', 
+            height: users.length <= 5 ? 'auto' : '100%',
+            maxHeight: users.length <= 5 ? 'none' : '400px'
+          }}>
             <Table>
               <TableHead>
                 <TableRow sx={{ borderBottom: '1px solid #e5e7eb' }}>

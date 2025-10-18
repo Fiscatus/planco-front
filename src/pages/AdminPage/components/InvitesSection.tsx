@@ -40,7 +40,7 @@ import {
 import type { CreateInviteDto, FilterInvitesDto, Invite, InviteStatus } from '@/globals/types';
 import { Loading, useNotification } from '@/components';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useDepartments, useInvites, useRoles, useScreen } from '@/hooks';
+import { useDebounce, useDepartments, useInvites, useRoles, useScreen } from '@/hooks';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { useSearchParams } from 'react-router-dom';
@@ -53,6 +53,18 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
   const theme = useTheme();
   const { isMobile } = useScreen();
   const [urlParams, setUrlParams] = useSearchParams();
+  const [localSearch, setLocalSearch] = useState(urlParams.get('name') || '');
+  const debouncedLocalSearch = useDebounce(localSearch, 300);
+
+  // Atualiza URL params apenas quando o debounce for processado
+  useEffect(() => {
+    if (debouncedLocalSearch !== urlParams.get('name')) {
+      urlParams.set('name', debouncedLocalSearch);
+      urlParams.set('email', debouncedLocalSearch);
+      urlParams.set('page', '1');
+      setUrlParams(urlParams, { replace: true });
+    }
+  }, [debouncedLocalSearch, urlParams, setUrlParams]);
 
   const { showNotification } = useNotification();
   const { fetchInvites, createInvite, deleteInvite } = useInvites();
@@ -316,12 +328,10 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                 <TextField
                   fullWidth
                   size='small'
-                  placeholder='Buscar por email'
-                  value={urlParams.get('email') || ''}
+                  placeholder='Buscar por email ou nome'
+                  value={localSearch}
                   onChange={(e) => {
-                    urlParams.set('email', e.target.value);
-                    urlParams.set('page', '1');
-                    setUrlParams(urlParams, { replace: true });
+                    setLocalSearch(e.target.value);
                   }}
                   InputProps={{
                     startAdornment: <SearchIcon sx={{ mr: 1, color: '#9ca3af', fontSize: '1.25rem' }} />,

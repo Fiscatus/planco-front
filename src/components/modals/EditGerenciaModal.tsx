@@ -586,13 +586,13 @@ export const EditGerenciaModal = ({
               py: 1.25,
               fontSize: '0.875rem',
               fontWeight: 600,
-              color: '#64748b',
+              color: 'white',
               textTransform: 'uppercase',
               borderRadius: 2,
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
                 backgroundColor: '#f1f5f9',
-                color: '#0f172a'
+                color: 'gray'
               }
             }}
           >

@@ -42,7 +42,7 @@ import {
 } from '@mui/icons-material';
 import type { FilterUsersDto, User } from '@/globals/types';
 import { Loading, useNotification } from '@/components';
-import { useAuth, useDepartments, useRoles, useUsers } from '@/hooks';
+import { useAuth, useDebounce, useDepartments, useRoles, useUsers } from '@/hooks';
 import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
@@ -56,6 +56,18 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [urlParams, setUrlParams] = useSearchParams();
+  const [localSearch, setLocalSearch] = useState(urlParams.get('name') || '');
+  const debouncedLocalSearch = useDebounce(localSearch, 300);
+
+  // Atualiza URL params apenas quando o debounce for processado
+  useEffect(() => {
+    if (debouncedLocalSearch !== urlParams.get('name')) {
+      urlParams.set('name', debouncedLocalSearch);
+      urlParams.set('email', debouncedLocalSearch);
+      urlParams.set('page', '1');
+      setUrlParams(urlParams, { replace: true });
+    }
+  }, [debouncedLocalSearch, urlParams, setUrlParams]);
   
   const { showNotification } = useNotification();
 
@@ -98,7 +110,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
   } = useQuery({
     queryKey: ['fetchUsers', 
       `page:${urlParams.get('page') || 1}`,
-      `limit:${urlParams.get('limit') || 10}`,
+      `limit:${urlParams.get('limit') || 5}`,
       `name:${urlParams.get('name') || ''}`,
       `email:${urlParams.get('email') || ''}`,
       `isActive:${urlParams.get('isActive') || ''}`,
@@ -109,7 +121,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
     queryFn: async () => {
       const filters: FilterUsersDto = {
         page: Number(urlParams.get('page') || 1),
-        limit: Number(urlParams.get('limit') || 10),
+        limit: Number(urlParams.get('limit') || 5),
         name: urlParams.get('name') || '',
         email: urlParams.get('email') || '',
         isActive: urlParams.get('isActive') ? urlParams.get('isActive') === 'true' : undefined,
@@ -287,13 +299,9 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                   fullWidth
                   size="small"
                   placeholder='Buscar por nome ou email'
-                  value={urlParams.get('name') || ''}
+                  value={localSearch}
                   onChange={(e) => {
-                    const value = e.target.value;
-                    urlParams.set('name', value);
-                    urlParams.set('email', value);
-                    urlParams.set('page', '1');
-                    setUrlParams(urlParams, { replace: true });
+                    setLocalSearch(e.target.value);
                   }}
                   InputProps={{
                     startAdornment: <SearchIcon sx={{ mr: 1, color: '#9ca3af', fontSize: '1.25rem' }} />,

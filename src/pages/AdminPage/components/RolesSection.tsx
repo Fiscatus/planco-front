@@ -32,7 +32,7 @@ import {
   Typography
 } from '@mui/material';
 import type { CreateRoleDto, PermissionDto, Role, UpdateRoleDto } from '@/globals/types';
-import { useAuth, usePermissions, useRoles, useScreen } from '@/hooks';
+import { useAuth, useDebounce, usePermissions, useRoles, useScreen } from '@/hooks';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
@@ -169,6 +169,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
   const [roleName, setRoleName] = useState('');
   const [permissions, setPermissions] = useState<string[]>([]);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
 
 
   const clearForms = useCallback(() => {
@@ -261,7 +262,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
     setUrlParams(urlParams, { replace: true });
   }, [urlParams, setUrlParams]);
 
-  const filteredRoles = (rolesData || []).filter((role) => role.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredRoles = (rolesData || []).filter((role) => role.name.toLowerCase().includes(debouncedSearch.toLowerCase()));
 
   const currentPage = Number(urlParams.get('page') || 1);
   const currentLimit = Number(urlParams.get('limit') || 5);
