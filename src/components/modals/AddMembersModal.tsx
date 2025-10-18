@@ -38,7 +38,6 @@ interface AddMembersModalProps {
     limit: number;
     total: number;
   };
-  onUserPageChange: (page: number) => void;
 }
 
 export const AddMembersModal = ({
@@ -411,7 +410,7 @@ export const AddMembersModal = ({
           {/* select to change limit of items per page */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Select
-              value={urlParams.get('modalLimit') || userPagination.limit}
+              value={userPagination.limit}
               onChange={(e) => {
                 const newLimit = Number(e.target.value);
                 urlParams.set('modalLimit', String(newLimit));
@@ -432,10 +431,10 @@ export const AddMembersModal = ({
 
             <Pagination
               count={Math.ceil(userPagination.total / userPagination.limit)}
-              page={Number(urlParams.get('modalPage') || 1)}
+              page={userPagination.page + 1}
               onChange={(_e, value) => {
                 urlParams.set('modalPage', String(value));
-                setUrlParams(urlParams);
+                setUrlParams(urlParams, { replace: true });
               }}
               variant='outlined'
               shape='rounded'

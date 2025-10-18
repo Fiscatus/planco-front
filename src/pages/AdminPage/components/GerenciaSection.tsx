@@ -1059,7 +1059,6 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
           limit: Number(urlParams.get('modalLimit') || 5),
           total: modalUsersData?.total || 0
         }}
-        onUserPageChange={() => {}}
       />
     </Box>
   );

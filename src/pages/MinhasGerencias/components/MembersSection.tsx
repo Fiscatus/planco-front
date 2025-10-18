@@ -4,21 +4,24 @@ import {
   Button,
   Card,
   Chip,
+  MenuItem,
+  Pagination,
+  Select,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TablePagination,
   TableRow,
   Typography
 } from '@mui/material';
 import { Delete as DeleteIcon, GroupAdd as GroupAddIcon } from '@mui/icons-material';
 import type { Department, User } from '@/globals/types';
-import { useMemo, useState } from 'react';
 
 import { Loading } from '@/components';
 import { useAccessControl } from '@/hooks';
+import { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 interface MembersSectionProps {
   gerencia: Department | null;
@@ -27,6 +30,13 @@ interface MembersSectionProps {
   onRemoveMember?: ({ userIds, type }: { userIds: string[]; type: 'remove' }) => void
   loading?: boolean;
   canEdit?: boolean;
+  membersPagination?: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+  onMembersPageChange?: (page: number) => void;
+  onMembersLimitChange?: (limit: number) => void;
 }
 
 export const MembersSection = ({
@@ -35,17 +45,15 @@ export const MembersSection = ({
   onAddMember,
   onRemoveMember,
   loading = false,
-  canEdit = false
+  canEdit = false,
+  membersPagination = { page: 0, limit: 5, total: 0 },
+  onMembersPageChange,
+  onMembersLimitChange
 }: MembersSectionProps) => {
   const { hasPermission } = useAccessControl();
+  const [urlParams, setUrlParams] = useSearchParams();
 
   const canManageMembers = canEdit || hasPermission('departments.update');
-
-  const [membersPagination, setMembersPagination] = useState({
-    page: 0,
-    limit: 5,
-    total: 0
-  });
 
   const paginatedMembers = useMemo(() => {
     const startIndex = membersPagination.page * membersPagination.limit;
@@ -54,12 +62,23 @@ export const MembersSection = ({
   }, [members, membersPagination.page, membersPagination.limit]);
 
   const handleMembersPageChange = (_event: unknown, newPage: number) => {
-    setMembersPagination((prev) => ({ ...prev, page: newPage }));
+    if (onMembersPageChange) {
+      onMembersPageChange(newPage - 1);
+    } else {
+      urlParams.set('membersPage', String(newPage));
+      setUrlParams(urlParams, { replace: true });
+    }
   };
 
-  const handleMembersRowsPerPageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newLimit = Number.parseInt(event.target.value, 10);
-    setMembersPagination((prev) => ({ ...prev, limit: newLimit, page: 0 }));
+  const handleMembersLimitChange = (event: any) => {
+    const newLimit = Number(event.target.value);
+    if (onMembersLimitChange) {
+      onMembersLimitChange(newLimit);
+    } else {
+      urlParams.set('membersLimit', String(newLimit));
+      urlParams.set('membersPage', '1');
+      setUrlParams(urlParams, { replace: true });
+    }
   };
 
   return (
@@ -220,26 +239,50 @@ export const MembersSection = ({
               </Table>
             </TableContainer>
 
-            <Box sx={{ borderTop: '1px solid', borderColor: 'divider' }}>
-              <TablePagination
-                component='div'
-                count={members.length}
-                page={membersPagination.page}
-                onPageChange={handleMembersPageChange}
-                rowsPerPage={membersPagination.limit}
-                onRowsPerPageChange={handleMembersRowsPerPageChange}
-                rowsPerPageOptions={[5, 10, 25, 50]}
-                labelRowsPerPage='Itens por página:'
-                labelDisplayedRows={({ from, to, count }) =>
-                  `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
-                }
-                sx={{
-                  '& .MuiTablePagination-toolbar': {
-                    minHeight: 48,
-                    px: 2
-                  }
-                }}
-              />
+            {/* Pagination */}
+            <Box
+              sx={{
+                p: 3,
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: 2,
+                backgroundColor: '#f8fafc',
+                borderTop: '1px solid #e5e7eb'
+              }}
+            >
+              {/* Pagination Info */}
+              <Typography
+                variant='body2'
+                sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+              >
+                {membersPagination.page * membersPagination.limit + 1}-
+                {Math.min((membersPagination.page + 1) * membersPagination.limit, members.length)} de {members.length}
+              </Typography>
+
+              {/* Pagination Controls */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                <Select
+                  value={membersPagination.limit}
+                  onChange={handleMembersLimitChange}
+                  sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+                >
+                  {[5, 10, 25, 50].map((limit) => (
+                    <MenuItem key={limit} value={limit}>
+                      {limit} por página
+                    </MenuItem>
+                  ))}
+                </Select>
+
+                <Pagination
+                  count={Math.ceil(members.length / membersPagination.limit)}
+                  page={membersPagination.page + 1}
+                  onChange={handleMembersPageChange}
+                  variant='outlined'
+                  shape='rounded'
+                />
+              </Box>
             </Box>
           </>
         )}

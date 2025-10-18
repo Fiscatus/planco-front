@@ -16,7 +16,7 @@ const MinhasGerencias = () => {
   const { canAccessAdmin } = useAccessControl();
   const { showNotification } = useNotification();
   const navigate = useNavigate();
-  const [urlParams] = useSearchParams();
+  const [urlParams, setUrlParams] = useSearchParams();
 
   // Context da gerência ativa
   const {
@@ -34,13 +34,20 @@ const MinhasGerencias = () => {
 
   const { users, fetchUsers } = useUsers();
 
-
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [addMembersModalOpen, setAddMembersModalOpen] = useState(false);
 
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [userPagination, setUserPagination] = useState({ page: 0, limit: 5, total: 0 });
   const usersRef = useRef(users);
+
+  const clearModalParams = useCallback(() => {
+    const newParams = new URLSearchParams(urlParams);
+    newParams.delete('modalSearch');
+    newParams.delete('modalPage');
+    newParams.delete('modalLimit');
+    setUrlParams(newParams, { replace: true });
+  }, [urlParams, setUrlParams]);
 
   const handleEditGerencia = useCallback(() => {
     setEditModalOpen(true);
@@ -68,7 +75,11 @@ const MinhasGerencias = () => {
     }
   });
 
-  const {data: departmentMembers, refetch: refetchDepartmentMembers } = useQuery({
+  const {
+    data: membersData,
+    isLoading: membersLoading,
+    refetch: refetchMembers
+  } = useQuery({
     enabled: !!activeDepartment?._id,
     queryKey: ['fetchDepartmentMembers', `deptId:${activeDepartment?._id}`],
     refetchOnWindowFocus: false,
@@ -79,40 +90,25 @@ const MinhasGerencias = () => {
     }
   });
 
-  const {
-    data: membersData,
-    isLoading: membersLoading,
-    refetch: refetchMembers
-  } = useQuery({
-    enabled: !!activeDepartment?._id,
-    queryKey: ['fetchGerenciaMembers', `deptId:${activeDepartment?._id}`],
-    refetchOnWindowFocus: false,
-    queryFn: async () => {
-      if (!activeDepartment?._id) return [];
-      const membersResponse = await getDepartmentMembers(activeDepartment._id);
-      return membersResponse;
-    }
-  });
-
   const {data: usersData, refetch: refetchUsers } = useQuery({
-    enabled: !!activeDepartment?._id && departmentMembers !== undefined,
+    enabled: !!activeDepartment?._id && membersData !== undefined && addMembersModalOpen,
     queryKey: ['fetchUsers', 
       `deptId:${activeDepartment?._id}`, 
-      `page:${urlParams.get('page') || 1}`,
-      `limit:${ Number(urlParams.get('limit') || 5)}`,
-      `search:${urlParams.get('search') || ''}`
+      `page:${urlParams.get('modalPage') || 1}`,
+      `limit:${ Number(urlParams.get('modalLimit') || 5)}`,
+      `search:${urlParams.get('modalSearch') || ''}`
     ],
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      if (!activeDepartment?._id) return [];
+      if (!activeDepartment?._id) return { users: [], total: 0 };
       const res = await fetchUsers({
-        page: Number(urlParams.get('page')|| 1),
-        limit: Number(urlParams.get('limit') || userPagination.limit),
-        name: urlParams.get('search') || undefined
+        page: Number(urlParams.get('modalPage')|| 1),
+        limit: Number(urlParams.get('modalLimit') || 5),
+        name: urlParams.get('modalSearch') || undefined
       });
       const usersWithMembership = res.users.map((user) => ({
         ...user,
-        isMember: departmentMembers?.some((member) => member._id === user._id) || false
+        isMember: membersData?.some((member) => member._id === user._id) || false
       }));
 
       setUserPagination((prev) => ({
@@ -121,7 +117,7 @@ const MinhasGerencias = () => {
       }));
       usersRef.current = usersWithMembership;
 
-      return usersRef.current;
+      return { users: usersRef.current, total: res.total };
     },
 
   });
@@ -158,18 +154,30 @@ const MinhasGerencias = () => {
     onSuccess: (_data, variables) => {
       showNotification(`Membros ${variables.type === 'add' ? 'adicionados' : 'removidos'} com sucesso`, 'success');
       refetchMembers();
-      refetchDepartmentMembers();
       setAddMembersModalOpen(false);
+      clearModalParams();
     }
   });
 
   const handleAddMember = useCallback(() => {
+    urlParams.delete('modalSearch');
+    urlParams.set('modalPage', '1');
+    urlParams.set('modalLimit', '5');
+    setUrlParams(urlParams, { replace: true });
     setAddMembersModalOpen(true);
-  }, []);
+  }, [urlParams, setUrlParams]);
 
-  const handleUserPageChange = useCallback((page: number) => {
-    setUserPagination((prev) => ({ ...prev, page }));
-  }, []);
+
+  const handleMembersPageChange = useCallback((page: number) => {
+    urlParams.set('membersPage', String(page + 1));
+    setUrlParams(urlParams, { replace: true });
+  }, [urlParams, setUrlParams]);
+
+  const handleMembersLimitChange = useCallback((limit: number) => {
+    urlParams.set('membersLimit', String(limit));
+    urlParams.set('membersPage', '1');
+    setUrlParams(urlParams, { replace: true });
+  }, [urlParams, setUrlParams]);
 
 
   if (canAccessAdmin) {
@@ -361,6 +369,13 @@ const MinhasGerencias = () => {
               onRemoveMember={mutateMembers}
               loading={membersLoading}
               canEdit={canEdit}
+              membersPagination={{
+                page: Number(urlParams.get('membersPage') || 1) - 1,
+                limit: Number(urlParams.get('membersLimit') || 5),
+                total: membersData.length
+              }}
+              onMembersPageChange={handleMembersPageChange}
+              onMembersLimitChange={handleMembersLimitChange}
             />
           ) : (
             <Loading isLoading={true} />
@@ -380,13 +395,19 @@ const MinhasGerencias = () => {
 
         <AddMembersModal
         open={addMembersModalOpen}
-        onClose={() => setAddMembersModalOpen(false)}
+        onClose={() => {
+          setAddMembersModalOpen(false);
+          clearModalParams();
+        }}
         onSave={mutateMembers}
         gerencia={gerencia}
-        users={usersData || []}
+        users={usersData?.users || []}
         loading={loadingUsers}
-        userPagination={userPagination}
-        onUserPageChange={handleUserPageChange}
+        userPagination={{
+          page: Number(urlParams.get('modalPage') || 1) - 1,
+          limit: Number(urlParams.get('modalLimit') || 5),
+          total: usersData?.total || 0
+        }}
       />
     </Box>
   );
