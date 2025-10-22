@@ -13,6 +13,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import logo from '/assets/isologo.svg';
 
 type Props = {
   setIsSignIn: (value: boolean) => void;
