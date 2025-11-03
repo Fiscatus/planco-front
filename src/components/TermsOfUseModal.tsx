@@ -1,6 +1,5 @@
-import { Box, Button, Dialog, DialogContent, Typography, IconButton } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-import DescriptionIcon from '@mui/icons-material/Description';
+import { Box, Button, Dialog, DialogContent, IconButton, Typography } from '@mui/material';
+import { Close as CloseIcon, Description as DescriptionIcon } from '@mui/icons-material';
 
 type Props = {
   open: boolean;

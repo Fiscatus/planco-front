@@ -1,4 +1,11 @@
 import {
+  Edit as EditIcon,
+  FilterListOff as FilterListOffIcon,
+  GroupsOutlined as GroupsOutlinedIcon,
+  Refresh as RefreshIcon,
+  Search as SearchIcon
+} from '@mui/icons-material';
+import {
   Alert,
   Autocomplete,
   Box,
@@ -15,6 +22,7 @@ import {
   Grid,
   IconButton,
   MenuItem,
+  Pagination,
   Paper,
   Select,
   Skeleton,
@@ -25,7 +33,6 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TablePagination,
   TableRow,
   TextField,
   Tooltip,
@@ -33,34 +40,42 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
-import {
-  Edit as EditIcon,
-  FilterListOff as FilterListOffIcon,
-  GroupsOutlined as GroupsOutlinedIcon,
-  Refresh as RefreshIcon,
-  Search as SearchIcon
-} from '@mui/icons-material';
-import type { FilterUsersDto, User } from '@/globals/types';
-import { Loading, useNotification } from '@/components';
-import { useAuth, useDepartments, useRoles, useUsers } from '@/hooks';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { Loading, useNotification } from '@/components';
+import type { FilterUsersDto, User } from '@/globals/types';
+import { useAuth, useDebounce, useDepartments, useRoles, useUsers } from '@/hooks';
 
-const UserSection = () => {
+interface UserSectionProps {
+  currentTab: 'users' | 'gerencias' | 'invites' | 'roles';
+}
+
+const UserSection = ({ currentTab }: UserSectionProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  
+  const [urlParams, setUrlParams] = useSearchParams();
+  const [localSearch, setLocalSearch] = useState(urlParams.get('name') || '');
+  const debouncedLocalSearch = useDebounce(localSearch, 300);
+
+  // Atualiza URL params apenas quando o debounce for processado
+  useEffect(() => {
+    if (debouncedLocalSearch !== urlParams.get('name') && debouncedLocalSearch !== '') {
+      urlParams.set('name', debouncedLocalSearch);
+      urlParams.set('email', debouncedLocalSearch);
+      urlParams.set('page', '1');
+      setUrlParams(urlParams, { replace: true });
+    }
+  }, [debouncedLocalSearch, urlParams, setUrlParams]);
+
   const { showNotification } = useNotification();
-  const {
-    users,
-    loading,
-    error,
-    pagination,
-    fetchUsers,
-    updateUserRole,
-    updateUserDepartments,
-    toggleUserStatus,
-    clearError
-  } = useUsers();
+
+  useEffect(() => {
+    if (currentTab !== 'users') {
+      setUrlParams({}, { replace: true });
+    }
+  }, [currentTab, setUrlParams]);
+  const { fetchUsers, updateUserRole, updateUserDepartments, toggleUserStatus } = useUsers();
 
   const { user: currentUser } = useAuth();
   const { roles, fetchRoles } = useRoles();
@@ -70,18 +85,6 @@ const UserSection = () => {
   const [departmentsDropdownOpen, setDepartmentsDropdownOpen] = useState(false);
   const [editRolesDropdownOpen, setEditRolesDropdownOpen] = useState(false);
   const [editDepartmentsDropdownOpen, setEditDepartmentsDropdownOpen] = useState(false);
-
-  const [filters, setFilters] = useState<FilterUsersDto>({
-    page: 1,
-    limit: 10,
-    name: '',
-    email: '',
-    isActive: undefined,
-    role: '',
-    departments: []
-  });
-
-  const [searchValue, setSearchValue] = useState('');
 
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -93,78 +96,151 @@ const UserSection = () => {
     departments: []
   });
 
-  useEffect(() => {
-    fetchUsers(filters);
-  }, []);
+  const {
+    data: usersData,
+    isLoading: usersLoading,
+    error: usersError,
+    refetch: refetchUsers
+  } = useQuery({
+    queryKey: [
+      'fetchUsers',
+      `page:${urlParams.get('page') || 1}`,
+      `limit:${urlParams.get('limit') || 5}`,
+      `name:${urlParams.get('name')}`,
+      `email:${urlParams.get('email')}`,
+      `isActive:${urlParams.get('isActive')}`,
+      `role:${urlParams.get('role')}`,
+      `departments:${urlParams.get('departments')}`
+    ],
+    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      const filters: FilterUsersDto = {
+        page: Number(urlParams.get('page') || 1),
+        limit: Number(urlParams.get('limit') || 5),
+        name: urlParams.get('name'),
+        email: urlParams.get('email'),
+        isActive: urlParams.get('isActive') ? urlParams.get('isActive') === 'true' : undefined,
+        role: urlParams.get('role'),
+        departments: urlParams.get('departments') ? urlParams.get('departments')!.split(',') : []
+      };
+      return await fetchUsers(filters);
+    }
+  });
+
+  const { data: rolesData, refetch: refetchRoles } = useQuery({
+    queryKey: ['fetchRoles'],
+    refetchOnWindowFocus: false,
+    enabled: false,
+    queryFn: async () => {
+      return await fetchRoles();
+    }
+  });
+
+  const { data: departmentsData, refetch: refetchDepartments } = useQuery({
+    queryKey: ['fetchDepartments'],
+    refetchOnWindowFocus: false,
+    enabled: false,
+    queryFn: async () => {
+      return await fetchDepartments();
+    }
+  });
 
   const handleRolesDropdownOpen = useCallback(async () => {
     setRolesDropdownOpen(true);
-    if (roles.length === 0) {
-      await fetchRoles();
+    if (!rolesData) {
+      await refetchRoles();
     }
-  }, [roles.length, fetchRoles]);
+  }, [rolesData, refetchRoles]);
 
   const handleDepartmentsDropdownOpen = useCallback(async () => {
     setDepartmentsDropdownOpen(true);
-    if (departments.length === 0) {
-      await fetchDepartments();
+    if (!departmentsData) {
+      await refetchDepartments();
     }
-  }, [departments.length, fetchDepartments]);
+  }, [departmentsData, refetchDepartments]);
 
   const handleEditRolesDropdownOpen = useCallback(async () => {
     setEditRolesDropdownOpen(true);
-    if (roles.length === 0) {
-      await fetchRoles();
+    if (!rolesData) {
+      await refetchRoles();
     }
-  }, [roles.length, fetchRoles]);
+  }, [rolesData, refetchRoles]);
 
   const handleEditDepartmentsDropdownOpen = useCallback(async () => {
     setEditDepartmentsDropdownOpen(true);
-    if (departments.length === 0) {
-      await fetchDepartments();
+    if (!departmentsData) {
+      await refetchDepartments();
     }
-  }, [departments.length, fetchDepartments]);
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      fetchUsers({ ...filters, page: 1 });
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [filters.name, filters.email, filters.isActive, filters.role, filters.departments]);
+  }, [departmentsData, refetchDepartments]);
 
   const handleClearFilters = useCallback(() => {
-    const clearedFilters = {
-      page: 1,
-      limit: 10,
-      name: '',
-      email: '',
-      isActive: undefined,
-      role: '',
-      departments: []
-    };
-    setFilters(clearedFilters);
-    setSearchValue('');
-  }, []);
+    urlParams.delete('name');
+    urlParams.delete('email');
+    urlParams.delete('isActive');
+    urlParams.delete('role');
+    urlParams.delete('departments');
+    urlParams.set('page', '1');
+    setUrlParams(urlParams, { replace: true });
+  }, [urlParams, setUrlParams]);
 
   const handlePageChange = useCallback(
-    (_event: unknown, newPage: number) => {
-      const newFilters = { ...filters, page: newPage + 1 };
-      setFilters(newFilters);
-      fetchUsers(newFilters);
+    (page: number) => {
+      urlParams.set('page', String(page));
+      setUrlParams(urlParams, { replace: true });
     },
-    [filters, fetchUsers]
+    [urlParams, setUrlParams]
   );
 
-  const handleRowsPerPageChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const newLimit = Number.parseInt(event.target.value, 10);
-      const newFilters = { ...filters, page: 1, limit: newLimit };
-      setFilters(newFilters);
-      fetchUsers(newFilters);
+  const handleLimitChange = useCallback(
+    (limit: number) => {
+      urlParams.set('limit', String(limit));
+      urlParams.set('page', '1');
+      setUrlParams(urlParams, { replace: true });
     },
-    [filters, fetchUsers]
+    [urlParams, setUrlParams]
   );
+
+  const { mutate: editUser, isPending: editUserPending } = useMutation({
+    mutationFn: async ({ userId, role, departments }: { userId: string; role: string; departments: string[] }) => {
+      const promises = [];
+
+      if (role !== (selectedUser?.role?._id || '')) {
+        promises.push(updateUserRole(userId, role));
+      }
+
+      const currentDeptIds = selectedUser?.departments?.map((dept) => dept._id) || [];
+      const departmentsChanged = JSON.stringify(currentDeptIds.sort()) !== JSON.stringify(departments.sort());
+
+      if (departmentsChanged) {
+        promises.push(updateUserDepartments(userId, departments));
+      }
+
+      return await Promise.all(promises);
+    },
+    onError: () => {
+      showNotification('Erro ao atualizar usuário', 'error');
+    },
+    onSuccess: () => {
+      showNotification('Usuário atualizado com sucesso', 'success');
+      refetchUsers();
+      setEditModalOpen(false);
+      setSelectedUser(null);
+      setEditForm({ role: '', departments: [] });
+    }
+  });
+
+  const { mutate: toggleStatus, isPending: toggleStatusPending } = useMutation({
+    mutationFn: async (userId: string) => {
+      return await toggleUserStatus(userId);
+    },
+    onError: () => {
+      showNotification('Erro ao alterar status do usuário', 'error');
+    },
+    onSuccess: () => {
+      showNotification('Status do usuário alterado com sucesso', 'success');
+      refetchUsers();
+    }
+  });
 
   const handleEditUser = useCallback((user: User) => {
     setSelectedUser(user);
@@ -175,34 +251,17 @@ const UserSection = () => {
     setEditModalOpen(true);
   }, []);
 
-  const handleSaveEdit = useCallback(async () => {
+  const handleSaveEdit = useCallback(() => {
     if (!selectedUser?._id) return;
-
-    try {
-      const roleChanged = editForm.role !== (selectedUser.role?._id || '');
-
-      const currentDeptIds = selectedUser.departments?.map((dept) => dept._id) || [];
-      const newDeptIds = editForm.departments || [];
-      const departmentsChanged = JSON.stringify(currentDeptIds.sort()) !== JSON.stringify(newDeptIds.sort());
-
-      if (roleChanged) {
-        await updateUserRole(selectedUser._id, editForm.role);
-      }
-
-      if (departmentsChanged) {
-        await updateUserDepartments(selectedUser._id, editForm.departments || []);
-      }
-
-      setEditModalOpen(false);
-      setSelectedUser(null);
-      setEditForm({ role: '', departments: [] });
-    } catch {
-      showNotification('Erro ao atualizar usuário', 'error');
-    }
-  }, [selectedUser, editForm, updateUserRole, updateUserDepartments]);
+    editUser({
+      userId: selectedUser._id,
+      role: editForm.role,
+      departments: editForm.departments
+    });
+  }, [selectedUser, editForm, editUser]);
 
   const handleToggleStatus = useCallback(
-    async (user: User) => {
+    (user: User) => {
       if (!user._id) return;
 
       if (currentUser?._id === user._id && user.isActive) {
@@ -210,18 +269,14 @@ const UserSection = () => {
         return;
       }
 
-      try {
-        await toggleUserStatus(user._id);
-      } catch {
-        showNotification('Erro ao alterar status do usuário', 'error');
-      }
+      toggleStatus(user._id);
     },
-    [toggleUserStatus, currentUser?._id]
+    [toggleStatus, currentUser?._id, showNotification]
   );
 
   const handleRefresh = useCallback(() => {
-    fetchUsers(filters);
-  }, [filters, fetchUsers]);
+    refetchUsers();
+  }, [refetchUsers]);
 
   return (
     <Box sx={{ p: 2 }}>
@@ -238,22 +293,19 @@ const UserSection = () => {
         <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column' }}>
           {/* Filtros e Botão Atualizar */}
           <Box sx={{ mb: 4 }}>
-            <Grid container spacing={2}>
-              {/* Campo de busca - sempre full width */}
-              <Grid size={{ xs: 12 }}>
+            <Grid
+              container
+              spacing={2}
+            >
+              {/* Campo de busca - agora inline com outros filtros */}
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <TextField
                   fullWidth
-                  size="small"
+                  size='small'
                   placeholder='Buscar por nome ou email'
-                  value={searchValue}
+                  value={localSearch}
                   onChange={(e) => {
-                    const value = e.target.value;
-                    setSearchValue(value);
-                    setFilters((prev) => ({
-                      ...prev,
-                      name: value,
-                      email: value
-                    }));
+                    setLocalSearch(e.target.value);
                   }}
                   InputProps={{
                     startAdornment: <SearchIcon sx={{ mr: 1, color: '#9ca3af', fontSize: '1.25rem' }} />,
@@ -284,16 +336,22 @@ const UserSection = () => {
 
               {/* Filtros - xs: empilhados, sm: duas colunas, md+: linha única */}
               <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                <FormControl fullWidth size="small">
+                <FormControl
+                  fullWidth
+                  size='small'
+                >
                   <Select
-                    value={filters.isActive === undefined ? 'todos' : filters.isActive}
+                    value={urlParams.get('isActive') || 'todos'}
                     displayEmpty
                     onChange={(e) => {
                       const value = e.target.value;
-                      setFilters((prev) => ({
-                        ...prev,
-                        isActive: value === 'todos' ? undefined : value === 'true'
-                      }));
+                      if (value === 'todos') {
+                        urlParams.delete('isActive');
+                      } else {
+                        urlParams.set('isActive', value);
+                      }
+                      urlParams.set('page', '1');
+                      setUrlParams(urlParams, { replace: true });
                     }}
                     sx={{
                       height: 40,
@@ -311,14 +369,14 @@ const UserSection = () => {
                         boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
                       },
                       '& .MuiSelect-select': {
-                        color: filters.isActive === undefined ? '#9ca3af' : '#374151'
+                        color: !urlParams.get('isActive') ? '#9ca3af' : '#374151'
                       }
                     }}
                     renderValue={(value) => {
                       if (value === 'todos' || value === undefined) {
                         return <span style={{ color: '#9ca3af' }}>Status</span>;
                       }
-                      return value === true ? 'Ativos' : 'Inativos';
+                      return value === 'true' ? 'Ativos' : 'Inativos';
                     }}
                   >
                     <MenuItem value='todos'>Todos</MenuItem>
@@ -330,15 +388,18 @@ const UserSection = () => {
 
               <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                 <Autocomplete
-                  size="small"
-                  options={roles}
+                  size='small'
+                  options={rolesData || []}
                   getOptionLabel={(option) => (typeof option === 'string' ? option : option.name)}
-                  value={roles.find((role) => role._id === filters.role) || null}
+                  value={rolesData?.find((role) => role._id === urlParams.get('role')) || null}
                   onChange={(_, newValue) => {
-                    setFilters((prev) => ({
-                      ...prev,
-                      role: typeof newValue === 'string' ? newValue : newValue?._id || ''
-                    }));
+                    if (newValue && typeof newValue !== 'string') {
+                      urlParams.set('role', newValue._id);
+                    } else {
+                      urlParams.delete('role');
+                    }
+                    urlParams.set('page', '1');
+                    setUrlParams(urlParams, { replace: true });
                   }}
                   onOpen={handleRolesDropdownOpen}
                   onClose={() => setRolesDropdownOpen(false)}
@@ -377,7 +438,7 @@ const UserSection = () => {
                   clearOnBlur
                   selectOnFocus
                   handleHomeEndKeys
-                  loading={roles.length === 0 && rolesDropdownOpen}
+                  loading={!rolesData && rolesDropdownOpen}
                   loadingText={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <CircularProgress size={20} />
@@ -389,16 +450,24 @@ const UserSection = () => {
 
               <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                 <Autocomplete
-                  size="small"
+                  size='small'
                   multiple
-                  options={departments}
+                  options={(departmentsData?.departments || departmentsData || []) as any[]}
                   getOptionLabel={(option) => (typeof option === 'string' ? option : option.department_name)}
-                  value={departments.filter((dept) => filters.departments?.includes(dept._id)) || []}
+                  value={
+                    ((departmentsData?.departments || departmentsData) as any[])?.filter((dept) =>
+                      urlParams.get('departments')?.split(',').includes(dept._id)
+                    ) || []
+                  }
                   onChange={(_, newValue) => {
-                    setFilters((prev) => ({
-                      ...prev,
-                      departments: newValue.map((dept) => (typeof dept === 'string' ? dept : dept._id))
-                    }));
+                    const deptIds = newValue.map((dept) => (typeof dept === 'string' ? dept : dept._id));
+                    if (deptIds.length > 0) {
+                      urlParams.set('departments', deptIds.join(','));
+                    } else {
+                      urlParams.delete('departments');
+                    }
+                    urlParams.set('page', '1');
+                    setUrlParams(urlParams, { replace: true });
                   }}
                   onOpen={handleDepartmentsDropdownOpen}
                   onClose={() => setDepartmentsDropdownOpen(false)}
@@ -437,7 +506,7 @@ const UserSection = () => {
                   clearOnBlur
                   selectOnFocus
                   handleHomeEndKeys
-                  loading={departments.length === 0 && departmentsDropdownOpen}
+                  loading={!departmentsData && departmentsDropdownOpen}
                   loadingText={
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Loading isLoading={true} />
@@ -449,16 +518,18 @@ const UserSection = () => {
               {/* Botão limpar filtros - só aparece no desktop */}
               {!isMobile && (
                 <Grid size={{ xs: 12, sm: 6, md: 1 }}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'flex-start',
-                    alignItems: 'center',
-                    height: '100%',
-                    minHeight: '40px'
-                  }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-start',
+                      alignItems: 'center',
+                      height: '100%',
+                      minHeight: '40px'
+                    }}
+                  >
                     <IconButton
                       onClick={handleClearFilters}
-                      disabled={loading}
+                      disabled={usersLoading}
                       title='Limpar filtros'
                       sx={{
                         backgroundColor: '#f3f4f6',
@@ -484,19 +555,21 @@ const UserSection = () => {
               )}
 
               {/* Botão Atualizar - xs-sm: full width abaixo dos filtros, md+: alinhado à direita */}
-              <Grid xs={12} sm={12} md={1}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  gap: 1,
-                  alignItems: 'center',
-                  justifyContent: { xs: 'space-between', sm: 'space-between', md: 'flex-end' },
-                  width: { xs: '100%', sm: '100%', md: '100%' },
-                  height: { md: '40px' }
-                }}>
+              <Grid size={{ xs: 12, sm: 12, md: 1 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    alignItems: 'center',
+                    justifyContent: { xs: 'space-between', sm: 'space-between', md: 'flex-end' },
+                    width: { xs: '100%', sm: '100%', md: '100%' },
+                    height: { md: '40px' }
+                  }}
+                >
                   {isMobile && (
                     <IconButton
                       onClick={handleClearFilters}
-                      disabled={loading}
+                      disabled={usersLoading}
                       title='Limpar filtros'
                       sx={{
                         backgroundColor: '#f3f4f6',
@@ -518,11 +591,11 @@ const UserSection = () => {
                       <FilterListOffIcon sx={{ fontSize: '1.25rem' }} />
                     </IconButton>
                   )}
-                  
+
                   <Button
                     startIcon={<RefreshIcon sx={{ fontSize: '1.25rem' }} />}
                     onClick={handleRefresh}
-                    disabled={loading}
+                    disabled={usersLoading}
                     variant='contained'
                     color='primary'
                     size={isMobile ? 'medium' : 'small'}
@@ -559,10 +632,10 @@ const UserSection = () => {
             </Grid>
           </Box>
 
-          {error && (
+          {usersError && (
             <Alert
               severity='error'
-              sx={{ 
+              sx={{
                 mb: 3,
                 borderRadius: 3,
                 border: '1px solid #fecaca',
@@ -575,9 +648,8 @@ const UserSection = () => {
                   fontWeight: 500
                 }
               }}
-              onClose={clearError}
             >
-              {error}
+              {usersError?.message || 'Erro ao carregar usuários'}
             </Alert>
           )}
 
@@ -596,17 +668,15 @@ const UserSection = () => {
                 minHeight: 'auto'
               }}
             >
-              <Table stickyHeader size="medium" sx={{ 
-                '& .MuiTableRow-root': {
-                  height: 64,
-                  '&:hover': {
-                    backgroundColor: '#f8fafc',
-                    transform: 'translateY(-1px)',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                    transition: 'all 0.2s ease-in-out'
+              <Table
+                stickyHeader
+                size='medium'
+                sx={{
+                  '& .MuiTableRow-root': {
+                    height: 64
                   }
-                }
-              }}>
+                }}
+              >
                 <TableHead>
                   <TableRow
                     sx={{
@@ -634,24 +704,24 @@ const UserSection = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {loading ? (
+                  {usersLoading ? (
                     <TableRow>
                       <TableCell
                         colSpan={6}
                         align='center'
-                        sx={{ 
+                        sx={{
                           py: 6,
                           backgroundColor: '#fafafa'
                         }}
                       >
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                          <CircularProgress 
+                          <CircularProgress
                             size={32}
                             sx={{ color: theme.palette.primary.main }}
                           />
                           <Typography
                             variant='body2'
-                            sx={{ 
+                            sx={{
                               color: '#6b7280',
                               fontWeight: 500
                             }}
@@ -661,30 +731,30 @@ const UserSection = () => {
                         </Box>
                       </TableCell>
                     </TableRow>
-                  ) : users.length === 0 ? (
+                  ) : !usersData?.users || usersData.users.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={6}
                         align='center'
-                        sx={{ 
+                        sx={{
                           py: 6,
                           backgroundColor: '#fafafa'
                         }}
                       >
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                           <GroupsOutlinedIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
-                          <Typography 
+                          <Typography
                             variant='h6'
-                            sx={{ 
+                            sx={{
                               color: '#6b7280',
                               fontWeight: 500
                             }}
                           >
                             Nenhum usuário encontrado
                           </Typography>
-                          <Typography 
+                          <Typography
                             variant='body2'
-                            sx={{ 
+                            sx={{
                               color: '#9ca3af',
                               fontStyle: 'italic'
                             }}
@@ -693,8 +763,8 @@ const UserSection = () => {
                           </Typography>
                           <Button
                             onClick={handleClearFilters}
-                            variant="outlined"
-                            size="small"
+                            variant='outlined'
+                            size='small'
                             sx={{ mt: 1 }}
                           >
                             Limpar filtros
@@ -703,16 +773,21 @@ const UserSection = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    users.map((user) => (
+                    usersData.users.map((user) => (
                       <TableRow
                         key={user._id}
-                        hover
                         sx={{
                           '& .MuiTableCell-root': {
                             borderBottom: '1px solid #f1f5f9',
                             py: 2,
                             transition: 'all 0.2s ease-in-out',
                             verticalAlign: 'middle'
+                          },
+                          '&:hover': {
+                            backgroundColor: 'rgba(5, 50, 105, 0.02)',
+                            '& .MuiTableCell-root': {
+                              backgroundColor: 'transparent'
+                            }
                           }
                         }}
                       >
@@ -792,21 +867,21 @@ const UserSection = () => {
                             <Switch
                               checked={user.isActive ?? true}
                               onChange={() => handleToggleStatus(user)}
-                              disabled={loading || (currentUser?._id === user._id && user.isActive)}
+                              disabled={toggleStatusPending || (currentUser?._id === user._id && user.isActive)}
                               sx={{
                                 '& .MuiSwitch-switchBase.Mui-checked': {
                                   color: theme.palette.primary.main,
                                   '& + .MuiSwitch-track': {
-                                    backgroundColor: theme.palette.primary.main,
-                                  },
+                                    backgroundColor: theme.palette.primary.main
+                                  }
                                 },
                                 '& .MuiSwitch-track': {
-                                  backgroundColor: '#ccc',
-                                },
+                                  backgroundColor: '#ccc'
+                                }
                               }}
                             />
                             <Typography
-                              variant="body2"
+                              variant='body2'
                               sx={{
                                 color: user.isActive ? 'primary.main' : 'text.secondary',
                                 fontWeight: user.isActive ? 600 : 400,
@@ -821,7 +896,7 @@ const UserSection = () => {
                           <IconButton
                             size='small'
                             onClick={() => handleEditUser(user)}
-                            aria-label="Editar usuário"
+                            aria-label='Editar usuário'
                             sx={{
                               color: '#6b7280',
                               backgroundColor: 'transparent',
@@ -849,27 +924,30 @@ const UserSection = () => {
           {/* Mobile Cards View */}
           {isMobile && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {loading ? (
+              {usersLoading ? (
                 Array.from({ length: 3 }).map(() => {
                   const uniqueKey = `loading-skeleton-${Math.random().toString(36).substr(2, 9)}`;
                   return (
                     <Paper
                       key={uniqueKey}
-                      variant="outlined"
+                      variant='outlined'
                       sx={{
                         p: 2,
                         borderRadius: 2,
                         border: '1px solid #e5e7eb'
                       }}
                     >
-                      <Skeleton variant="rectangular" height={84} />
+                      <Skeleton
+                        variant='rectangular'
+                        height={84}
+                      />
                     </Paper>
                   );
                 })
-              ) : users.length === 0 ? (
+              ) : !usersData?.users || usersData.users.length === 0 ? (
                 // Empty state for mobile
                 <Paper
-                  variant="outlined"
+                  variant='outlined'
                   sx={{
                     p: 4,
                     borderRadius: 2,
@@ -880,18 +958,18 @@ const UserSection = () => {
                 >
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                     <GroupsOutlinedIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
-                    <Typography 
+                    <Typography
                       variant='h6'
-                      sx={{ 
+                      sx={{
                         color: '#6b7280',
                         fontWeight: 500
                       }}
                     >
                       Nenhum usuário encontrado
                     </Typography>
-                    <Typography 
+                    <Typography
                       variant='body2'
-                      sx={{ 
+                      sx={{
                         color: '#9ca3af',
                         fontStyle: 'italic'
                       }}
@@ -900,8 +978,8 @@ const UserSection = () => {
                     </Typography>
                     <Button
                       onClick={handleClearFilters}
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                       sx={{ mt: 1 }}
                     >
                       Limpar filtros
@@ -910,10 +988,10 @@ const UserSection = () => {
                 </Paper>
               ) : (
                 // User cards for mobile
-                users.map((user) => (
+                usersData.users.map((user) => (
                   <Paper
                     key={user._id}
-                    variant="outlined"
+                    variant='outlined'
                     sx={{
                       p: 2,
                       borderRadius: 2,
@@ -929,16 +1007,16 @@ const UserSection = () => {
                       {/* Linha 1: Nome + Botão Editar */}
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography
-                          variant="subtitle1"
+                          variant='subtitle1'
                           fontWeight={600}
                           sx={{ color: '#1f2937' }}
                         >
                           {user.firstName} {user.lastName}
                         </Typography>
                         <IconButton
-                          size="small"
+                          size='small'
                           onClick={() => handleEditUser(user)}
-                          aria-label="Editar usuário"
+                          aria-label='Editar usuário'
                           sx={{
                             color: '#6b7280',
                             backgroundColor: 'transparent',
@@ -959,9 +1037,12 @@ const UserSection = () => {
                       </Box>
 
                       {/* Linha 2: Email com truncamento */}
-                      <Tooltip title={user.email} arrow>
+                      <Tooltip
+                        title={user.email}
+                        arrow
+                      >
                         <Typography
-                          variant="body2"
+                          variant='body2'
                           noWrap
                           sx={{
                             color: '#6b7280',
@@ -999,11 +1080,15 @@ const UserSection = () => {
                             Sem role
                           </Typography>
                         )}
-                        
+
                         {user.departments && user.departments.length > 0 && (
                           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, maxWidth: '100%' }}>
                             {user.departments.slice(0, 2).map((dept) => (
-                              <Tooltip key={dept._id} title={dept.department_name} arrow>
+                              <Tooltip
+                                key={dept._id}
+                                title={dept.department_name}
+                                arrow
+                              >
                                 <Chip
                                   label={dept.department_name}
                                   size='small'
@@ -1050,23 +1135,23 @@ const UserSection = () => {
                           <Switch
                             checked={user.isActive ?? true}
                             onChange={() => handleToggleStatus(user)}
-                            disabled={loading || (currentUser?._id === user._id && user.isActive)}
+                            disabled={toggleStatusPending || (currentUser?._id === user._id && user.isActive)}
                             sx={{
                               '& .MuiSwitch-switchBase.Mui-checked': {
                                 color: theme.palette.primary.main,
                                 '& + .MuiSwitch-track': {
-                                  backgroundColor: theme.palette.primary.main,
-                                },
+                                  backgroundColor: theme.palette.primary.main
+                                }
                               },
                               '& .MuiSwitch-track': {
-                                backgroundColor: '#ccc',
-                              },
+                                backgroundColor: '#ccc'
+                              }
                             }}
                           />
                         }
                         label={
                           <Typography
-                            variant="body2"
+                            variant='body2'
                             sx={{
                               color: user.isActive ? 'primary.main' : 'text.secondary',
                               fontWeight: user.isActive ? 600 : 400,
@@ -1090,51 +1175,63 @@ const UserSection = () => {
             </Box>
           )}
 
-          <TablePagination
-            component='div'
-            count={pagination.total}
-            page={pagination.page - 1}
-            onPageChange={handlePageChange}
-            rowsPerPage={pagination.limit}
-            onRowsPerPageChange={handleRowsPerPageChange}
-            rowsPerPageOptions={isMobile ? [5, 10] : [5, 10, 25, 50]}
-            labelRowsPerPage='Itens por página:'
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`}
-            showFirstButton={!isMobile}
-            showLastButton={!isMobile}
+          {/* Pagination */}
+          <Box
             sx={{
+              p: 4,
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 2,
               backgroundColor: '#f8fafc',
-              borderTop: '1px solid #e5e7eb',
-              '& .MuiTablePagination-toolbar': {
-                paddingLeft: isMobile ? 1 : 2,
-                paddingRight: isMobile ? 1 : 2,
-                minHeight: isMobile ? 48 : 56,
-                flexDirection: isMobile ? 'column' : 'row',
-                gap: isMobile ? 1 : 0
-              },
-              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                color: '#374151',
-                fontWeight: 500,
-                fontSize: isMobile ? '0.75rem' : '0.875rem'
-              },
-              '& .MuiTablePagination-select': {
-                color: theme.palette.primary.main,
-                fontWeight: 600
-              },
-              '& .MuiIconButton-root': {
-                color: '#6b7280',
-                minWidth: 44,
-                minHeight: 44,
-                '&:hover': {
-                  backgroundColor: '#f3f4f6',
-                  color: theme.palette.primary.main
-                }
-              },
-              '& .MuiTablePagination-actions': {
-                marginLeft: isMobile ? 0 : 'auto'
-              }
+              borderTop: '1px solid #e5e7eb'
             }}
-          />
+          >
+            {/* Pagination Info */}
+            <Typography
+              variant='body2'
+              sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+            >
+              {usersData ? (
+                <>
+                  {(Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10) + 1}-
+                  {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10), usersData.total)}{' '}
+                  de {usersData.total}
+                </>
+              ) : (
+                '0 de 0'
+              )}
+            </Typography>
+
+            {/* Pagination Controls */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Select
+                value={urlParams.get('limit') || 10}
+                onChange={(e) => handleLimitChange(Number(e.target.value))}
+                sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+              >
+                {[5, 10, 25, 50].map((limit) => (
+                  <MenuItem
+                    key={limit}
+                    value={limit}
+                  >
+                    {limit} por página
+                  </MenuItem>
+                ))}
+              </Select>
+
+              <Pagination
+                count={usersData ? Math.ceil(usersData.total / Number(urlParams.get('limit') || 10)) : 0}
+                page={Number(urlParams.get('page') || 1)}
+                onChange={(_e, value) => handlePageChange(value)}
+                variant='outlined'
+                shape='rounded'
+                showFirstButton={!isMobile}
+                showLastButton={!isMobile}
+              />
+            </Box>
+          </Box>
         </CardContent>
       </Card>
 
@@ -1154,28 +1251,34 @@ const UserSection = () => {
         <DialogContent sx={{ p: 0 }}>
           <Box sx={{ p: 4 }}>
             {/* Header com ícone e título */}
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              textAlign: 'center', 
-              mb: 4 
-            }}>
-              <Box sx={{
-                backgroundColor: 'rgba(24, 119, 242, 0.1)',
-                p: 1.5,
-                borderRadius: '50%',
-                mb: 2,
+            <Box
+              sx={{
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <EditIcon sx={{ 
-                  fontSize: 32, 
-                  color: '#1877F2' 
-                }} />
+                textAlign: 'center',
+                mb: 4
+              }}
+            >
+              <Box
+                sx={{
+                  backgroundColor: 'rgba(24, 119, 242, 0.1)',
+                  p: 1.5,
+                  borderRadius: '50%',
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <EditIcon
+                  sx={{
+                    fontSize: 32,
+                    color: '#1877F2'
+                  }}
+                />
               </Box>
-              
+
               <Typography
                 variant='h5'
                 sx={{
@@ -1186,7 +1289,7 @@ const UserSection = () => {
               >
                 Editar Usuário
               </Typography>
-              
+
               <Typography
                 variant='body2'
                 sx={{
@@ -1195,7 +1298,10 @@ const UserSection = () => {
                 }}
               >
                 Atualize as informações de{' '}
-                <Box component='span' sx={{ fontWeight: 600, color: '#1f2937' }}>
+                <Box
+                  component='span'
+                  sx={{ fontWeight: 600, color: '#1f2937' }}
+                >
                   {selectedUser?.firstName} {selectedUser?.lastName}
                 </Box>
                 .
@@ -1203,13 +1309,15 @@ const UserSection = () => {
             </Box>
 
             {/* Seção de Permissões */}
-            <Box sx={{
-              backgroundColor: '#f9fafb',
-              p: 3,
-              borderRadius: 2,
-              border: '1px solid #e5e7eb',
-              mb: 4
-            }}>
+            <Box
+              sx={{
+                backgroundColor: '#f9fafb',
+                p: 3,
+                borderRadius: 2,
+                border: '1px solid #e5e7eb',
+                mb: 4
+              }}
+            >
               <Typography
                 variant='h6'
                 sx={{
@@ -1221,7 +1329,7 @@ const UserSection = () => {
               >
                 Permissões
               </Typography>
-              
+
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box>
                   <Typography
@@ -1236,9 +1344,9 @@ const UserSection = () => {
                     Role
                   </Typography>
                   <Autocomplete
-                    options={roles}
+                    options={rolesData || []}
                     getOptionLabel={(option) => (typeof option === 'string' ? option : option.name)}
-                    value={roles.find((role) => role._id === editForm.role) || null}
+                    value={rolesData?.find((role) => role._id === editForm.role) || null}
                     onChange={(_, newValue) => {
                       setEditForm((prev) => ({
                         ...prev,
@@ -1282,7 +1390,7 @@ const UserSection = () => {
                     clearOnBlur
                     selectOnFocus
                     handleHomeEndKeys
-                    loading={roles.length === 0 && editRolesDropdownOpen}
+                    loading={!rolesData && editRolesDropdownOpen}
                     loadingText={
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CircularProgress size={20} />
@@ -1306,9 +1414,13 @@ const UserSection = () => {
                   </Typography>
                   <Autocomplete
                     multiple
-                    options={departments}
+                    options={(departmentsData?.departments || departmentsData || []) as any[]}
                     getOptionLabel={(option) => (typeof option === 'string' ? option : option.department_name)}
-                    value={departments.filter((dept) => editForm.departments?.includes(dept._id)) || []}
+                    value={
+                      ((departmentsData?.departments || departmentsData) as any[])?.filter((dept) =>
+                        editForm.departments?.includes(dept._id)
+                      ) || []
+                    }
                     onChange={(_, newValue) => {
                       setEditForm((prev) => ({
                         ...prev,
@@ -1352,7 +1464,7 @@ const UserSection = () => {
                     clearOnBlur
                     selectOnFocus
                     handleHomeEndKeys
-                    loading={departments.length === 0 && editDepartmentsDropdownOpen}
+                    loading={!departmentsData && editDepartmentsDropdownOpen}
                     loadingText={
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Loading isLoading={true} />
@@ -1364,21 +1476,23 @@ const UserSection = () => {
             </Box>
           </Box>
         </DialogContent>
-        
-        <DialogActions sx={{ 
-          p: 3, 
-          pt: 0,
-          justifyContent: 'flex-end',
-          gap: 1
-        }}>
-          <Button 
+
+        <DialogActions
+          sx={{
+            p: 3,
+            pt: 0,
+            justifyContent: 'flex-end',
+            gap: 1
+          }}
+        >
+          <Button
             onClick={() => setEditModalOpen(false)}
             sx={{
               px: 3,
               py: 1.25,
               fontSize: '0.875rem',
               fontWeight: 600,
-              color: '#6b7280',
+              color: 'white',
               textTransform: 'none',
               borderRadius: 2,
               transition: 'all 0.2s ease-in-out',
@@ -1393,7 +1507,7 @@ const UserSection = () => {
           <Button
             onClick={handleSaveEdit}
             variant='contained'
-            disabled={loading}
+            disabled={editUserPending}
             sx={{
               px: 3,
               py: 1.25,
@@ -1419,7 +1533,7 @@ const UserSection = () => {
               }
             }}
           >
-            Salvar Alterações
+            {editUserPending ? 'Salvando...' : 'Salvar Alterações'}
           </Button>
         </DialogActions>
       </Dialog>

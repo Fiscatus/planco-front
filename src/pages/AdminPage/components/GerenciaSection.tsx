@@ -19,107 +19,317 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  MenuItem,
+  Pagination,
+  Select,
   Stack,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
-  TablePagination,
   TableRow,
   TextField,
   Typography
 } from '@mui/material';
 import type { CreateDepartmentDto, Department, UpdateDepartmentDto } from '@/globals/types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useDepartments, useUsers } from '@/hooks';
+import { useDebounce, useDepartments, useSearchWithDebounce, useUsers } from '@/hooks';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import type { User } from '@/globals/types';
 import { useNotification } from '@/components';
+import { useSearchParams } from 'react-router-dom';
 
-const GerenciaSection = () => {
+interface GerenciaSectionProps {
+  currentTab: 'users' | 'gerencias' | 'invites' | 'roles';
+}
+
+const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
   const { showNotification } = useNotification();
+  const [urlParams, setUrlParams] = useSearchParams();
+  const { 
+    search: deptSearch,
+    debouncedSearch: debouncedDeptSearch,
+    handleSearchChange: handleDeptSearchChange 
+  } = useSearchWithDebounce('deptSearch');
+  const modalSearch = urlParams.get('modalSearch') || '';
+  const debouncedModalSearch = useDebounce(modalSearch, 150);
+
+  useEffect(() => {
+    if (currentTab !== 'gerencias') {
+      setUrlParams({}, { replace: true });
+    }
+  }, [currentTab, setUrlParams]);
 
   const {
-    departments,
-    loading,
-    error,
     fetchDepartments,
     createDepartment,
     updateDepartment,
     deleteDepartment,
     getDepartmentMembers,
     addMembersBulk,
-    removeMember,
-    clearError
+    removeMember
   } = useDepartments();
-  const { users, fetchUsers } = useUsers();
+  const { fetchUsers } = useUsers();
 
-  const [search, setSearch] = useState('');
-  const [selectedDept, setSelectedDept] = useState<Department | null>(null);
-  const [membersPagination, setMembersPagination] = useState({
-    page: 0,
-    limit: 5,
-    total: 0
-  });
-  const [pagination, setPagination] = useState({
-    page: 0,
-    limit: 5,
-    total: 0
-  });
-
-  // Estados dos modais
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [addMembersModalOpen, setAddMembersModalOpen] = useState(false);
   const [selectedGerencia, setSelectedGerencia] = useState<Department | null>(null);
-  const [savingGerencia, setSavingGerencia] = useState(false);
+  const [loadingMembers, setLoadingMembers] = useState(false);
 
-  // Estados para o modal de adicionar membros
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(false);
-  const [userPagination, setUserPagination] = useState({ page: 0, limit: 5, total: 0 });
+  const clearModalParams = useCallback(() => {
+    const newParams = new URLSearchParams(urlParams);
+    newParams.delete('modalSearch');
+    newParams.delete('modalPage');
+    newParams.delete('modalLimit');
+    setUrlParams(newParams, { replace: true });
+  }, [urlParams, setUrlParams]);
 
-  useEffect(() => {
-    fetchDepartments(pagination.page + 1, pagination.limit, search);
-    fetchUsers({ page: 1, limit: 100 });
-  }, [fetchDepartments, fetchUsers, pagination.page, pagination.limit, search]);
-
-  useEffect(() => {
-    if (selectedDept?._id) {
-      const loadMembers = async () => {
-        try {
-          await getDepartmentMembers(selectedDept._id);
-        } catch (error) {
-          console.error('Erro ao carregar membros:', error);
-        }
-      };
-      loadMembers();
+  const {
+    data: departmentsData,
+    isLoading: departmentsLoading,
+    error: departmentsError,
+    refetch: refetchDepartments
+  } = useQuery({
+    queryKey: ['fetchDepartments', 
+      `page:${urlParams.get('deptPage') || 1}`,
+      `limit:${urlParams.get('deptLimit') || 5}`,
+      `search:${debouncedDeptSearch}`
+    ],
+    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      return await fetchDepartments(
+        Number(urlParams.get('deptPage') || 1),
+        Number(urlParams.get('deptLimit') || 5),
+        debouncedDeptSearch
+      );
     }
-  }, [selectedDept, getDepartmentMembers]);
+  });
 
-  const paginatedDepartments = departments;
+  const {
+    data: usersData,
+    refetch: refetchUsers
+  } = useQuery({
+    queryKey: ['fetchUsersForDepartments'],
+    refetchOnWindowFocus: false,
+    enabled: false,
+    queryFn: async () => {
+      return await fetchUsers({ page: 1, limit: 100 });
+    }
+  });
+
+  const {
+    data: departmentMembers,
+    isLoading: departmentMembersLoading,
+    refetch: refetchDepartmentMembers
+  } = useQuery({
+    queryKey: ['fetchDepartmentMembers', `deptId:${urlParams.get('selectedDept') || ''}`],
+    refetchOnWindowFocus: false,
+    enabled: !!urlParams.get('selectedDept'),
+    queryFn: async () => {
+      const selectedDeptId = urlParams.get('selectedDept');
+      if (!selectedDeptId) return [];
+      return await getDepartmentMembers(selectedDeptId);
+    }
+  });
+
+  useEffect(() => {
+    if (urlParams.get('selectedDept')) {
+      setLoadingMembers(departmentMembersLoading);
+    } else {
+      setLoadingMembers(false);
+    }
+  }, [departmentMembersLoading, urlParams]);
+
+  const {
+    data: modalUsersData,
+    isLoading: modalUsersLoading,
+    refetch: refetchModalUsers
+  } = useQuery({
+    queryKey: ['fetchUsersForModal',
+        `search:${debouncedModalSearch}`,
+        `page:${urlParams.get('modalPage') || 1}`,
+        `limit:${urlParams.get('modalLimit') || 5}`],
+    refetchOnWindowFocus: false,
+    enabled: addMembersModalOpen,
+    queryFn: async () => {
+      const page = Number(urlParams.get('modalPage') || 1);
+      const limit = Number(urlParams.get('modalLimit') || 5);
+      
+      return await fetchUsers({
+        page,
+        limit,
+        name: debouncedModalSearch.trim() || undefined,
+        email: debouncedModalSearch.trim() || undefined
+      });
+    }
+  });
+
+  const {
+    data: modalMembersData,
+    isLoading: modalMembersLoading
+  } = useQuery({
+    queryKey: ['fetchDepartmentMembersForModal', `gerenciaId:${selectedGerencia?._id || ''}`],
+    refetchOnWindowFocus: false,
+    enabled: !!selectedGerencia && addMembersModalOpen,
+    queryFn: async () => {
+      if (!selectedGerencia) return [];
+      return await getDepartmentMembers(selectedGerencia._id);
+    }
+  });
+
+  const usersWithMembership = useMemo(() => {
+    if (!modalUsersData?.users || !modalMembersData) {
+      return modalUsersData?.users || [];
+    }
+
+    const memberIds = modalMembersData.map((member) => member._id);
+    
+    return modalUsersData.users.map((user) => ({
+      ...user,
+      isMember: memberIds.includes(user._id)
+    }));
+  }, [modalUsersData?.users, modalMembersData]);
+
+  const { mutate: saveDepartment, isPending: savingDepartment } = useMutation({
+    mutationFn: async (data: CreateDepartmentDto | UpdateDepartmentDto) => {
+      
+      if (selectedGerencia) {
+        const getChangedFields = (newData: any, originalData: any) => {
+          const changedFields: any = {};
+          
+          Object.keys(newData).forEach(key => {
+            if (newData[key] !== undefined && newData[key] !== originalData[key]) {
+              changedFields[key] = newData[key];
+            }
+          });
+          
+          return changedFields;
+        };
+        
+        const updateData = getChangedFields(data, selectedGerencia);
+        
+        return await updateDepartment(selectedGerencia._id, updateData);
+      } else {
+        return await createDepartment(data as CreateDepartmentDto);
+      }
+    },
+    onError: (error: any) => {
+      let errorMessage = 'Erro ao salvar gerência';
+      
+      if (error?.response?.status === 409) {
+        errorMessage = error?.response?.data?.message || 'Nome da gerência já existe ou email já está em uso';
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      showNotification(errorMessage, 'error');
+    },
+    onSuccess: () => {
+      showNotification(
+        selectedGerencia ? 'Gerência atualizada com sucesso!' : 'Gerência criada com sucesso!',
+        'success'
+      );
+      setCreateModalOpen(false);
+      setEditModalOpen(false);
+      setSelectedGerencia(null);
+      refetchDepartments();
+      refetchUsers();
+    }
+  });
+
+  const { mutate: deleteDepartmentMutation, isPending: deletingDepartment } = useMutation({
+    mutationFn: async (deptId: string) => {
+      return await deleteDepartment(deptId);
+    },
+    onError: (error) => {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao excluir gerência';
+      showNotification(errorMessage, 'error');
+    },
+    onSuccess: () => {
+      showNotification('Gerência excluída com sucesso!', 'success');
+      setDeleteModalOpen(false);
+      setSelectedGerencia(null);
+      refetchDepartments();
+      refetchUsers();
+    }
+  });
+
+  const { mutate: addMembersMutation, isPending: addingMembers } = useMutation({
+    mutationFn: async ({ deptId, userIds }: { deptId: string; userIds: string[] }) => {
+      return await addMembersBulk(deptId, userIds);
+    },
+    onError: (error) => {
+      const errorMessage = error instanceof Error ? error.message : 'Erro ao adicionar membros';
+      showNotification(errorMessage, 'error');
+    },
+    onSuccess: (response) => {
+      showNotification(response.message, 'success');
+      setAddMembersModalOpen(false);
+      setSelectedGerencia(null);
+      clearModalParams();
+      refetchDepartments();
+      refetchUsers();
+      refetchDepartmentMembers();
+    }
+  });
+
+  const { mutate: removeMemberMutation, isPending: removingMember } = useMutation({
+    mutationFn: async ({ deptId, userId }: { deptId: string; userId: string }) => {
+      return await removeMember(deptId, userId);
+    },
+    onError: () => {
+      showNotification('Erro ao remover membro', 'error');
+    },
+    onSuccess: () => {
+      showNotification('Membro removido com sucesso', 'success');
+      refetchDepartments();
+      refetchUsers();
+      refetchDepartmentMembers();
+    }
+  });
 
   const handleRefresh = useCallback(() => {
-    fetchDepartments(pagination.page + 1, pagination.limit, search);
-  }, [fetchDepartments, pagination.page, pagination.limit, search]);
+    refetchDepartments();
+  }, [refetchDepartments]);
 
-  const openMembersDialog = useCallback((dept: Department) => {
+  const handleSelectGerencia = useCallback((dept: Department) => {
+    setLoadingMembers(true);
     setSelectedGerencia(dept);
-    setUserPagination({ page: 0, limit: 5, total: 0 });
-    setAllUsers([]);
+    
+    urlParams.set('selectedDept', dept._id);
+    setUrlParams(urlParams, { replace: true });
+  }, [urlParams, setUrlParams]);
+
+  const openMembersDialog = useCallback(async (dept: Department) => {
+    setSelectedGerencia(dept);
+    urlParams.delete('modalSearch');
+    urlParams.set('modalPage', '1');
+    urlParams.set('modalLimit', '5');
+    setUrlParams(urlParams, { replace: true });
+    
+    if (!usersData) {
+      await refetchUsers();
+    }
+    
     setAddMembersModalOpen(true);
-  }, []);
+  }, [urlParams, setUrlParams, usersData, refetchUsers]);
 
-  const handlePageChange = useCallback((_event: unknown, newPage: number) => {
-    setPagination((prev) => ({ ...prev, page: newPage }));
-  }, []);
+  const handleDeptPageChange = useCallback((page: number) => {
+    urlParams.set('deptPage', String(page));
+    setUrlParams(urlParams, { replace: true });
+  }, [urlParams, setUrlParams]);
 
-  const handleRowsPerPageChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const newLimit = Number(event.target.value);
-    setPagination((prev) => ({ ...prev, limit: newLimit, page: 0 }));
-  }, []);
+  const handleDeptLimitChange = useCallback((limit: number) => {
+    urlParams.set('deptLimit', String(limit));
+    urlParams.set('deptPage', '1');
+    setUrlParams(urlParams, { replace: true });
+  }, [urlParams, setUrlParams]);
 
   const handleOpenCreate = useCallback(() => {
     setSelectedGerencia(null);
@@ -136,156 +346,61 @@ const GerenciaSection = () => {
     setDeleteModalOpen(true);
   }, []);
 
-  const handleSaveGerencia = useCallback(async (data: CreateDepartmentDto | UpdateDepartmentDto) => {
-    try {
-      setSavingGerencia(true);
-
-      if (selectedGerencia) {
-        await updateDepartment(selectedGerencia._id, data as UpdateDepartmentDto);
-        showNotification('Gerência atualizada com sucesso!', 'success');
-      } else {
-        await createDepartment(data as CreateDepartmentDto);
-        showNotification('Gerência criada com sucesso!', 'success');
-      }
-
-      setCreateModalOpen(false);
-      setEditModalOpen(false);
-      setSelectedGerencia(null);
-      fetchDepartments(pagination.page + 1, pagination.limit, search);
-      fetchUsers({ page: 1, limit: 100 });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao salvar gerência';
-      showNotification(errorMessage, 'error');
-    } finally {
-      setSavingGerencia(false);
-    }
-  }, [
-    selectedGerencia,
-    updateDepartment,
-    createDepartment,
-    showNotification,
-    fetchDepartments,
-    pagination.page,
-    pagination.limit,
-    search,
-    fetchUsers
-  ]);
+  const handleSaveGerencia = useCallback((data: CreateDepartmentDto | UpdateDepartmentDto) => {
+    saveDepartment(data);
+  }, [saveDepartment]);
 
   const handleDeleteGerencia = useCallback(async () => {
     if (!selectedGerencia) return;
+    deleteDepartmentMutation(selectedGerencia._id);
+  }, [selectedGerencia, deleteDepartmentMutation]);
 
-    try {
-      setSavingGerencia(true);
-      await deleteDepartment(selectedGerencia._id);
-      showNotification('Gerência excluída com sucesso!', 'success');
-      setDeleteModalOpen(false);
-      setSelectedGerencia(null);
-      fetchDepartments(pagination.page + 1, pagination.limit, search);
-      fetchUsers({ page: 1, limit: 100 });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao excluir gerência';
-      showNotification(errorMessage, 'error');
-    } finally {
-      setSavingGerencia(false);
-    }
-  }, [
-    selectedGerencia,
-    deleteDepartment,
-    showNotification,
-    fetchDepartments,
-    pagination.page,
-    pagination.limit,
-    search,
-    fetchUsers
-  ]);
 
-  const searchUsers = useCallback(
-    async (query: string, page = 1) => {
+  const handleSaveMembers = useCallback(({ userIds, type }: { userIds: string[]; type: 'add' | 'remove' }) => {
       if (!selectedGerencia) return;
+    addMembersMutation({ deptId: selectedGerencia._id, userIds });
+  }, [selectedGerencia, addMembersMutation]);
 
-      try {
-        setLoadingUsers(true);
 
-        await fetchUsers({
-          page,
-          limit: userPagination.limit,
-          name: query.trim() || undefined
-        });
+  const handleMembersPageChange = useCallback((page: number) => {
+    urlParams.set('membersPage', String(page));
+    setUrlParams(urlParams, { replace: true });
+  }, [urlParams, setUrlParams]);
 
-        const membersResponse = await getDepartmentMembers(selectedGerencia._id);
-        const memberIds = membersResponse.map((member) => member._id);
+  const handleMembersLimitChange = useCallback((limit: number) => {
+    urlParams.set('membersLimit', String(limit));
+    urlParams.set('membersPage', '1');
+    setUrlParams(urlParams, { replace: true });
+  }, [urlParams, setUrlParams]);
 
-        const usersWithMembership = users.map((user) => ({
-          ...user,
-          isMember: memberIds.includes(user._id)
-        }));
 
-        setAllUsers(usersWithMembership);
-        setUserPagination((prev) => ({
-          ...prev,
-          total: users.length,
-          page: page - 1
-        }));
-      } catch (err) {
-        console.error('Erro ao buscar usuários:', err);
-        showNotification('Erro ao carregar usuários', 'error');
-        setAllUsers([]);
-      } finally {
-        setLoadingUsers(false);
-      }
-    },
-    [selectedGerencia, showNotification, userPagination.limit, fetchUsers, users, getDepartmentMembers]
-  );
+  const handleSelectDepartment = useCallback((dept: Department) => {
+    handleSelectGerencia(dept);
+  }, [handleSelectGerencia]);
 
-  const handleSaveMembers = useCallback(async (userIds: string[]) => {
-    if (!selectedGerencia) return;
-
-    try {
-      const response = await addMembersBulk(selectedGerencia._id, userIds);
-      showNotification(response.message, 'success');
-      setAddMembersModalOpen(false);
-      setSelectedGerencia(null);
-      fetchDepartments(pagination.page + 1, pagination.limit, search);
-      fetchUsers({ page: 1, limit: 100 });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro ao adicionar membros';
-      showNotification(errorMessage, 'error');
-    }
-  }, [selectedGerencia, addMembersBulk, showNotification, fetchDepartments, pagination.page, pagination.limit, search, fetchUsers]);
-
-  const handleUserPageChange = useCallback((page: number) => {
-    setUserPagination((prev) => ({ ...prev, page }));
-  }, []);
-
-  const handleMembersPageChange = useCallback((_event: unknown, newPage: number) => {
-    setMembersPagination((prev) => ({ ...prev, page: newPage }));
-  }, []);
-
-  const handleMembersRowsPerPageChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const newLimit = Number.parseInt(event.target.value, 10);
-    setMembersPagination((prev) => ({ ...prev, limit: newLimit, page: 0 }));
-  }, []);
-
-  useEffect(() => {
-    if (addMembersModalOpen && allUsers.length === 0) {
-      searchUsers('', 1);
-    }
-  }, [addMembersModalOpen, searchUsers, allUsers.length]);
-
-  const effectiveUsersForCounts: User[] = users;
-
-  const selected = selectedDept || departments[0] || null;
+  const departments = (departmentsData?.departments || departmentsData || []) as Department[];
+  const departmentsTotal = departmentsData?.total || departments.length;
+  const departmentsTotalPages = departmentsData?.totalPages || Math.ceil(departments.length / Number(urlParams.get('deptLimit') || 5));
+  const selectedDeptId = urlParams.get('selectedDept');
+  const selected = departments.find((d) => d._id === selectedDeptId) || null;
+  const effectiveUsersForCounts: User[] = usersData?.users || [];
 
   const membersOfSelected = useMemo(() => {
     if (!selected) return [] as User[];
+    if (departmentMembers && departmentMembers.length > 0) {
+      return departmentMembers as User[];
+    }
     return effectiveUsersForCounts.filter((u) => (u.departments || []).some((d) => d._id === selected._id));
-  }, [selected, effectiveUsersForCounts]);
+  }, [selected, departmentMembers, effectiveUsersForCounts]);
+
+  const membersPage = Number(urlParams.get('membersPage') || 1);
+  const membersLimit = Number(urlParams.get('membersLimit') || 5);
 
   const paginatedMembers = useMemo(() => {
-    const startIndex = membersPagination.page * membersPagination.limit;
-    const endIndex = startIndex + membersPagination.limit;
+    const startIndex = (membersPage - 1) * membersLimit;
+    const endIndex = startIndex + membersLimit;
     return membersOfSelected.slice(startIndex, endIndex);
-  }, [membersOfSelected, membersPagination.page, membersPagination.limit]);
+  }, [membersOfSelected, membersPage, membersLimit]);
 
   return (
     <Box sx={{ minHeight: '100%', p: 3, bgcolor: 'background.default' }}>
@@ -319,13 +434,13 @@ const GerenciaSection = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Button
                     onClick={handleRefresh}
-                    disabled={loading}
+                    disabled={departmentsLoading}
                     sx={{
                       minWidth: 'auto',
                       p: 1,
                       borderRadius: '50%',
-                      color: 'text.secondary',
-                      '&:hover': { bgcolor: 'grey.100' }
+                      color: 'white',
+                      '&:hover': { bgcolor: 'grey.100', color: '#1f2937'}
                     }}
                   >
                     <RefreshIcon />
@@ -350,13 +465,12 @@ const GerenciaSection = () => {
                 </Box>
               </Box>
 
-              {error && (
+              {departmentsError && (
                 <Alert
                   severity='error'
                   sx={{ mb: 2 }}
-                  onClose={clearError}
                 >
-                  {error}
+                  {departmentsError?.message || 'Erro ao carregar departamentos'}
                 </Alert>
               )}
 
@@ -372,11 +486,11 @@ const GerenciaSection = () => {
                     zIndex: 1
                   }}
                 />
-                <TextField
-                  fullWidth
-                  placeholder='Buscar gerências...'
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                 <TextField
+                   fullWidth
+                   placeholder='Buscar gerências...'
+                   value={deptSearch}
+                   onChange={(e) => handleDeptSearchChange(e.target.value)}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       pl: 6,
@@ -413,7 +527,7 @@ const GerenciaSection = () => {
             </Box>
 
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              {loading ? (
+              {departmentsLoading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
                   <CircularProgress />
                 </Box>
@@ -421,10 +535,7 @@ const GerenciaSection = () => {
                 <>
                   <Box sx={{ overflow: 'auto', px: 1, pb: 1, maxHeight: '50vh' }}>
                     <List disablePadding>
-                      {paginatedDepartments.map((dept) => {
-                        const memberCount = effectiveUsersForCounts.filter((u) =>
-                          (u.departments || []).some((d) => d._id === dept._id)
-                        ).length;
+                      {departments.map((dept) => {
                         const isSelected = selected?._id === dept._id;
                         return (
                           <ListItem
@@ -434,7 +545,7 @@ const GerenciaSection = () => {
                           >
                             <ListItemButton
                               selected={isSelected}
-                              onClick={() => setSelectedDept(dept)}
+                              onClick={() => handleSelectDepartment(dept)}
                               sx={{
                                 borderRadius: 2,
                                 py: 1.5,
@@ -473,27 +584,11 @@ const GerenciaSection = () => {
                                   </Typography>
                                 }
                               />
-                              {memberCount > 0 && (
-                                <Chip
-                                  size='small'
-                                  label={memberCount}
-                                  sx={{
-                                    fontSize: '0.75rem',
-                                    fontWeight: 700,
-                                    height: 20,
-                                    bgcolor: isSelected ? 'white' : 'primary.main',
-                                    color: isSelected ? 'primary.main' : 'white',
-                                    borderRadius: 3,
-                                    border: isSelected ? '1px solid' : 'none',
-                                    borderColor: isSelected ? 'primary.main' : 'transparent'
-                                  }}
-                                />
-                              )}
                             </ListItemButton>
                           </ListItem>
                         );
                       })}
-                      {paginatedDepartments.length === 0 && (
+                      {departments.length === 0 && (
                         <Box sx={{ p: 2, textAlign: 'center' }}>
                           <Typography
                             variant='body2'
@@ -506,27 +601,53 @@ const GerenciaSection = () => {
                     </List>
                   </Box>
 
-                  <TablePagination
-                    component='div'
-                    count={departments.length}
-                    page={pagination.page}
-                    onPageChange={handlePageChange}
-                    rowsPerPage={pagination.limit}
-                    onRowsPerPageChange={handleRowsPerPageChange}
-                    rowsPerPageOptions={[5, 10, 25, 50]}
-                    labelRowsPerPage='Itens por página:'
-                    labelDisplayedRows={({ from, to, count }) =>
-                      `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
-                    }
+                  <Box
                     sx={{
+                      p: 2,
+                      display: 'flex',
+                      flexDirection: { xs: 'column', md: 'row' },
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 2,
                       borderTop: '1px solid',
-                      borderColor: 'divider',
-                      '& .MuiTablePagination-toolbar': {
-                        minHeight: 48,
-                        px: 2
-                      }
+                      borderColor: 'divider'
                     }}
-                  />
+                  >
+                    {/* Pagination Info */}
+                    <Typography
+                      variant='body2'
+                      sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                    >
+                      {((Number(urlParams.get('deptPage') || 1) - 1) * Number(urlParams.get('deptLimit') || 5)) + 1}-
+                      {Math.min(Number(urlParams.get('deptPage') || 1) * Number(urlParams.get('deptLimit') || 5), departmentsTotal)} de {departmentsTotal}
+                    </Typography>
+
+                    {/* Pagination Controls */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Select
+                        value={urlParams.get('deptLimit') || 5}
+                        onChange={(e) => handleDeptLimitChange(Number(e.target.value))}
+                        sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+                      >
+                        {[5, 10, 25, 50].map((limit) => (
+                          <MenuItem
+                            key={limit}
+                            value={limit}
+                          >
+                            {limit} por página
+                          </MenuItem>
+                        ))}
+                      </Select>
+
+                      <Pagination
+                        count={departmentsTotalPages}
+                        page={Number(urlParams.get('deptPage') || 1)}
+                        onChange={(_e, value) => handleDeptPageChange(value)}
+                        variant='outlined'
+                        shape='rounded'
+                      />
+                    </Box>
+                  </Box>
                 </>
               )}
             </Box>
@@ -746,6 +867,13 @@ const GerenciaSection = () => {
                   <Box sx={{ p: 3 }}>
                     <Alert severity='info'>Selecione uma gerência para ver os membros</Alert>
                   </Box>
+                ) : loadingMembers ? (
+                  <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <CircularProgress size={24} sx={{ mr: 2 }} />
+                    <Typography variant='body2' color='text.secondary'>
+                      Carregando membros...
+                    </Typography>
+                  </Box>
                 ) : membersOfSelected.length === 0 ? (
                   <Box sx={{ p: 3 }}>
                     <Alert severity='info'>Nenhum membro. Clique em "Adicionar Membro".</Alert>
@@ -809,17 +937,10 @@ const GerenciaSection = () => {
                                     size='small'
                                     variant='text'
                                     color='error'
-                                    disabled={!canRemove}
-                                    onClick={async () => {
+                                    disabled={!canRemove || removingMember}
+                                    onClick={() => {
                                       if (!u._id || !selected) return;
-                                      try {
-                                        await removeMember(selected._id, u._id);
-                                        showNotification('Membro removido com sucesso', 'success');
-                                        fetchDepartments(pagination.page + 1, pagination.limit, search);
-                                        fetchUsers({ page: 1, limit: 100 });
-                                      } catch {
-                                        showNotification('Erro ao remover membro', 'error');
-                                      }
+                                      removeMemberMutation({ deptId: selected._id, userId: u._id });
                                     }}
                                     sx={{
                                       minWidth: 'auto',
@@ -843,25 +964,51 @@ const GerenciaSection = () => {
                     </TableContainer>
 
                     <Box sx={{ borderTop: '1px solid', borderColor: 'divider' }}>
-                      <TablePagination
-                        component='div'
-                        count={membersOfSelected.length}
-                        page={membersPagination.page}
-                        onPageChange={handleMembersPageChange}
-                        rowsPerPage={membersPagination.limit}
-                        onRowsPerPageChange={handleMembersRowsPerPageChange}
-                        rowsPerPageOptions={[5, 10, 25, 50]}
-                        labelRowsPerPage='Itens por página:'
-                        labelDisplayedRows={({ from, to, count }) =>
-                          `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
-                        }
+                      <Box
                         sx={{
-                          '& .MuiTablePagination-toolbar': {
-                            minHeight: 48,
-                            px: 2
-                          }
+                          p: 2,
+                          display: 'flex',
+                          flexDirection: { xs: 'column', md: 'row' },
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: 2
                         }}
-                      />
+                      >
+                        {/* Pagination Info */}
+                        <Typography
+                          variant='body2'
+                          sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                        >
+                          {((membersPage - 1) * membersLimit) + 1}-
+                          {Math.min(membersPage * membersLimit, membersOfSelected.length)} de {membersOfSelected.length}
+                        </Typography>
+
+                        {/* Pagination Controls */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Select
+                            value={membersLimit}
+                            onChange={(e) => handleMembersLimitChange(Number(e.target.value))}
+                            sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+                          >
+                            {[5, 10, 25, 50].map((limit) => (
+                              <MenuItem
+                                key={limit}
+                                value={limit}
+                              >
+                                {limit} por página
+                              </MenuItem>
+                            ))}
+                          </Select>
+
+                          <Pagination
+                            count={Math.ceil(membersOfSelected.length / membersLimit)}
+                            page={membersPage}
+                            onChange={(_e, value) => handleMembersPageChange(value)}
+                            variant='outlined'
+                            shape='rounded'
+                          />
+                        </Box>
+                      </Box>
                     </Box>
                   </>
                 )}
@@ -882,7 +1029,7 @@ const GerenciaSection = () => {
         onSave={handleSaveGerencia}
         gerencia={selectedGerencia}
         isEdit={editModalOpen}
-        loading={savingGerencia}
+        loading={savingDepartment}
       />
 
       <DeleteGerenciaModal
@@ -893,7 +1040,7 @@ const GerenciaSection = () => {
         }}
         onConfirm={handleDeleteGerencia}
         gerencia={selectedGerencia}
-        loading={savingGerencia}
+        loading={deletingDepartment}
       />
 
       <AddMembersModal
@@ -901,14 +1048,17 @@ const GerenciaSection = () => {
         onClose={() => {
           setAddMembersModalOpen(false);
           setSelectedGerencia(null);
+          clearModalParams();
         }}
         onSave={handleSaveMembers}
         gerencia={selectedGerencia}
-        users={allUsers}
-        loading={loadingUsers}
-        onSearchUsers={searchUsers}
-        userPagination={userPagination}
-        onUserPageChange={handleUserPageChange}
+        users={usersWithMembership}
+        loading={modalUsersLoading || modalMembersLoading || addingMembers}
+        userPagination={{
+          page: Number(urlParams.get('modalPage') || 1) - 1,
+          limit: Number(urlParams.get('modalLimit') || 5),
+          total: modalUsersData?.total || 0
+        }}
       />
     </Box>
   );

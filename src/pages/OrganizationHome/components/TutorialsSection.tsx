@@ -12,6 +12,7 @@ import {
   IconButton,
   Typography
 } from '@mui/material';
+import OpenInFullIcon from '@mui/icons-material/OpenInFull';
 import { type RefObject, useMemo, useState } from 'react';
 
 // ATENÇÃO: Não usar <Container> aqui. Este componente é embutido na OrganizationHome.

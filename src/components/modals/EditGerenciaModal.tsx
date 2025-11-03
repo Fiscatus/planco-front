@@ -1,41 +1,12 @@
 import {
-  Add as AddIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  GroupAdd as GroupAddIcon,
-  KeyboardDoubleArrowLeft as KeyboardDoubleArrowLeftIcon,
-  KeyboardDoubleArrowRight as KeyboardDoubleArrowRightIcon,
-  Refresh as RefreshIcon,
-  Search as SearchIcon,
-  Warning as WarningIcon
-} from '@mui/icons-material';
-import {
-  Alert,
   Box,
   Button,
-  Card,
-  Chip,
-  CircularProgress,
   Dialog,
   DialogContent,
   FormControl,
   Grid,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
   MenuItem,
   Select,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TablePagination,
-  TableRow,
   TextField,
   Typography
 } from '@mui/material';
@@ -47,7 +18,7 @@ import { useUsers } from '@/hooks';
 interface EditGerenciaModalProps {
   open: boolean;
   onClose: () => void;
-  onSave: (data: CreateDepartmentDto | UpdateDepartmentDto) => Promise<void>;
+  onSave: (data: CreateDepartmentDto | UpdateDepartmentDto) => void;
   gerencia?: Department | null;
   isEdit?: boolean;
   loading?: boolean;
@@ -113,7 +84,6 @@ export const EditGerenciaModal = ({
   }, [open, isEdit, gerencia, searchResponsavel]);
 
   const handleSave = useCallback(async () => {
-    
     if (!gerenciaForm.department_name || !gerenciaForm.deparment_email || !gerenciaForm.email_owner) {
       return;
     }
@@ -616,13 +586,13 @@ export const EditGerenciaModal = ({
               py: 1.25,
               fontSize: '0.875rem',
               fontWeight: 600,
-              color: '#64748b',
+              color: 'white',
               textTransform: 'uppercase',
               borderRadius: 2,
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
                 backgroundColor: '#f1f5f9',
-                color: '#0f172a'
+                color: 'gray'
               }
             }}
           >

@@ -24,35 +24,141 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  MenuItem,
+  Pagination,
+  Select,
   Stack,
-  TablePagination,
   TextField,
   Typography
 } from '@mui/material';
 import type { CreateRoleDto, PermissionDto, Role, UpdateRoleDto } from '@/globals/types';
-import { useAuth, usePermissions, useRoles } from '@/hooks';
-import { useCallback, useEffect, useState } from 'react';
+import { useAuth, useDebounce, usePermissions, useRoles, useScreen } from '@/hooks';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { useNotification } from '@/components';
+import { useSearchParams } from 'react-router-dom';
 
-const RolesSection = () => {
+interface RolesSectionProps {
+  currentTab: 'users' | 'gerencias' | 'invites' | 'roles';
+}
+
+const RolesSection = ({ currentTab }: RolesSectionProps) => {
   const { user } = useAuth();
   const { showNotification } = useNotification();
-  const { roles, loading, error, fetchRoles, createRole, updateRole, checkDeleteImpact, deleteRole, clearError } =
-    useRoles();
+  const { isMobile } = useScreen();
+  const [urlParams, setUrlParams] = useSearchParams();
+  
+  const { fetchRoles, createRole, updateRole, checkDeleteImpact, deleteRole } = useRoles();
+  const { fetchPermissions } = usePermissions();
+
+  useEffect(() => {
+    if (currentTab !== 'roles') {
+      setUrlParams({}, { replace: true });
+    }
+  }, [currentTab, setUrlParams]);
+
+  const rolesQueryKey = useMemo(() => ['fetchRoles'], []);
+  const permissionsQueryKey = useMemo(() => ['fetchPermissions'], []);
 
   const {
-    permissions: availablePermissions,
-    loading: permissionsLoading,
+    data: rolesData,
+    isLoading: rolesLoading,
+    error: rolesError,
+    refetch: refetchRoles
+  } = useQuery({
+    queryKey: rolesQueryKey,
+    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      return await fetchRoles();
+    }
+  });
+
+  const {
+    data: permissionsData,
+    isLoading: permissionsLoading,
     error: permissionsError,
-    fetchPermissions,
-    clearError: clearPermissionsError
-  } = usePermissions();
+    refetch: refetchPermissions
+  } = useQuery({
+    queryKey: permissionsQueryKey,
+    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      return await fetchPermissions();
+    }
+  });
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+
+  const { mutate: createRoleMutation, isPending: creatingRole } = useMutation({
+    mutationFn: async (data: CreateRoleDto) => {
+      return await createRole(data);
+    },
+    onError: (error: any) => {
+      let errorMessage = 'Erro ao criar role';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      showNotification(errorMessage, 'error');
+    },
+    onSuccess: () => {
+      showNotification('Role criada com sucesso!', 'success');
+      setCreateModalOpen(false);
+      refetchRoles();
+    }
+  });
+
+  const { mutate: updateRoleMutation, isPending: updatingRole } = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateRoleDto }) => {
+      return await updateRole(id, data);
+    },
+    onError: (error: any) => {
+      let errorMessage = 'Erro ao atualizar role';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      showNotification(errorMessage, 'error');
+    },
+    onSuccess: () => {
+      showNotification('Role atualizada com sucesso!', 'success');
+      setEditModalOpen(false);
+      setSelectedRole(null);
+      refetchRoles();
+    }
+  });
+
+  const { mutate: deleteRoleMutation, isPending: deletingRole } = useMutation({
+    mutationFn: async (roleId: string) => {
+      return await deleteRole(roleId);
+    },
+    onError: (error: any) => {
+      let errorMessage = 'Erro ao deletar role';
+      
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
+      showNotification(errorMessage, 'error');
+    },
+    onSuccess: () => {
+      showNotification('Role deletada com sucesso!', 'success');
+      setDeleteConfirmOpen(false);
+      setSelectedRole(null);
+      refetchRoles();
+    }
+  });
   const [deleteImpact, setDeleteImpact] = useState<{
     canDelete: boolean;
     affectedUsers: number;
@@ -63,16 +169,8 @@ const RolesSection = () => {
   const [roleName, setRoleName] = useState('');
   const [permissions, setPermissions] = useState<string[]>([]);
   const [search, setSearch] = useState('');
-  const [pagination, setPagination] = useState({
-    page: 0,
-    limit: 5,
-    total: 0
-  });
+  const debouncedSearch = useDebounce(search, 300);
 
-  useEffect(() => {
-    fetchRoles();
-    fetchPermissions();
-  }, [fetchRoles, fetchPermissions]);
 
   const clearForms = useCallback(() => {
     setRoleName('');
@@ -100,40 +198,28 @@ const RolesSection = () => {
     clearForms();
   }, [clearForms]);
 
-  const handleCreateRole = useCallback(async () => {
+  const handleCreateRole = useCallback(() => {
     if (!user?.org?._id || !roleName.trim()) return;
 
-    try {
-      const roleData: CreateRoleDto = {
-        name: roleName.trim(),
-        permissions,
-        orgId: user.org._id
-      };
+    const roleData: CreateRoleDto = {
+      name: roleName.trim(),
+      permissions,
+      orgId: user.org._id
+    };
 
-      await createRole(roleData);
-      showNotification('Role criada com sucesso!', 'success');
-      handleCloseModals();
-    } catch {
-      showNotification('Erro ao criar role', 'error');
-    }
-  }, [user?.org?._id, roleName, permissions, createRole, showNotification, handleCloseModals]);
+    createRoleMutation(roleData);
+  }, [user?.org?._id, roleName, permissions, createRoleMutation]);
 
-  const handleUpdateRole = useCallback(async () => {
+  const handleUpdateRole = useCallback(() => {
     if (!selectedRole?._id || !roleName.trim()) return;
 
-    try {
-      const updateData: UpdateRoleDto = {
-        name: roleName.trim(),
-        permissions
-      };
+    const updateData: UpdateRoleDto = {
+      name: roleName.trim(),
+      permissions
+    };
 
-      await updateRole(selectedRole._id, updateData);
-      showNotification('Role atualizada com sucesso!', 'success');
-      handleCloseModals();
-    } catch {
-      showNotification('Erro ao atualizar role', 'error');
-    }
-  }, [selectedRole?._id, roleName, permissions, updateRole, showNotification, handleCloseModals]);
+    updateRoleMutation({ id: selectedRole._id, data: updateData });
+  }, [selectedRole?._id, roleName, permissions, updateRoleMutation]);
 
   const handleOpenDeleteConfirm = useCallback(
     async (role: Role) => {
@@ -156,36 +242,35 @@ const RolesSection = () => {
     [checkDeleteImpact, showNotification]
   );
 
-  const handleConfirmDelete = useCallback(async () => {
+  const handleConfirmDelete = useCallback(() => {
     if (!selectedRole?._id) return;
-
-    try {
-      const result = await deleteRole(selectedRole._id);
-      showNotification(`Role deletada com sucesso! ${result.affectedUsers} usuário(s) foram afetados.`, 'success');
-      handleCloseModals();
-    } catch {
-      showNotification('Erro ao deletar role', 'error');
-    }
-  }, [selectedRole?._id, deleteRole, showNotification, handleCloseModals]);
+    deleteRoleMutation(selectedRole._id);
+  }, [selectedRole?._id, deleteRoleMutation]);
 
   const handleRefresh = useCallback(() => {
-    fetchRoles();
-  }, [fetchRoles]);
+    refetchRoles();
+  }, [refetchRoles]);
 
   const handlePageChange = useCallback((_event: unknown, newPage: number) => {
-    setPagination((prev) => ({ ...prev, page: newPage }));
-  }, []);
+    urlParams.set('page', String(newPage));
+    setUrlParams(urlParams, { replace: true });
+  }, [urlParams, setUrlParams]);
 
-  const handleRowsPerPageChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const newLimit = Number(event.target.value);
-    setPagination((prev) => ({ ...prev, limit: newLimit, page: 0 }));
-  }, []);
+  const handleLimitChange = useCallback((newLimit: number) => {
+    urlParams.set('limit', String(newLimit));
+    urlParams.set('page', '1');
+    setUrlParams(urlParams, { replace: true });
+  }, [urlParams, setUrlParams]);
 
-  const filteredRoles = roles.filter((role) => role.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredRoles = (rolesData || []).filter((role) => role.name.toLowerCase().includes(debouncedSearch.toLowerCase()));
+
+  const currentPage = Number(urlParams.get('page') || 1);
+  const currentLimit = Number(urlParams.get('limit') || 5);
+  const totalPages = Math.ceil(filteredRoles.length / currentLimit);
 
   const paginatedRoles = filteredRoles.slice(
-    pagination.page * pagination.limit,
-    (pagination.page + 1) * pagination.limit
+    (currentPage - 1) * currentLimit,
+    currentPage * currentLimit
   );
 
   const togglePermission = useCallback((permission: string) => {
@@ -194,7 +279,7 @@ const RolesSection = () => {
     );
   }, []);
 
-  const groupedPermissions = availablePermissions.reduce<Record<string, PermissionDto[]>>((acc, perm) => {
+  const groupedPermissions = (permissionsData || []).reduce<Record<string, PermissionDto[]>>((acc, perm) => {
     const group = perm.category.toUpperCase();
     if (!acc[group]) acc[group] = [];
     acc[group].push(perm);
@@ -202,17 +287,18 @@ const RolesSection = () => {
   }, {});
 
   return (
-    <Box sx={{ height: '100%', p: 3, bgcolor: 'background.default' }}>
+    <Box sx={{ minHeight: '100%', p: { xs: 1.5, sm: 2, lg: 3 }, bgcolor: 'background.default' }}>
       <Grid
         container
-        spacing={3}
-        sx={{ height: '100%' }}
+        spacing={{ xs: 1.5, sm: 2, lg: 3 }}
+        sx={{ alignItems: 'flex-start' }}
       >
         {/* Coluna da esquerda - Lista de Roles */}
         <Grid size={{ xs: 12, lg: 4 }}>
           <Card
             sx={{
-              height: '100%',
+              height: 'fit-content',
+              maxHeight: '80vh',
               display: 'flex',
               flexDirection: 'column',
               borderRadius: 3,
@@ -221,8 +307,8 @@ const RolesSection = () => {
               borderColor: 'divider'
             }}
           >
-            <Box sx={{ p: 2 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Box sx={{ p: { xs: 1, sm: 1.25, lg: 1.5 } }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 1, sm: 1.25, lg: 1.5 } }}>
                 <Typography
                   variant='h6'
                   sx={{ fontWeight: 500, px: 1 }}
@@ -232,13 +318,13 @@ const RolesSection = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Button
                     onClick={handleRefresh}
-                    disabled={loading}
+                    disabled={rolesLoading}
                     sx={{
                       minWidth: 'auto',
                       p: 1,
                       borderRadius: '50%',
-                      color: 'text.secondary',
-                      '&:hover': { bgcolor: 'grey.100' }
+                      color: 'white',
+                      '&:hover': { bgcolor: 'grey.100', color: '#1f2937'}
                     }}
                   >
                     <RefreshIcon />
@@ -263,23 +349,21 @@ const RolesSection = () => {
                 </Box>
               </Box>
 
-              {error && (
-                <Alert
-                  severity='error'
-                  sx={{ mb: 2 }}
-                  onClose={clearError}
-                >
-                  {error}
-                </Alert>
-              )}
+          {rolesError && (
+            <Alert
+              severity='error'
+              sx={{ mb: 2 }}
+            >
+              {rolesError?.message || 'Erro ao carregar roles'}
+            </Alert>
+          )}
 
               {permissionsError && (
                 <Alert
                   severity='error'
                   sx={{ mb: 2 }}
-                  onClose={clearPermissionsError}
                 >
-                  {permissionsError}
+                  {permissionsError?.message || 'Erro ao carregar permissões'}
                 </Alert>
               )}
 
@@ -287,11 +371,11 @@ const RolesSection = () => {
                 <SearchIcon
                   sx={{
                     position: 'absolute',
-                    left: 14,
+                    left: 12,
                     top: '50%',
                     transform: 'translateY(-50%)',
                     color: 'text.secondary',
-                    fontSize: 22,
+                    fontSize: 18,
                     zIndex: 1
                   }}
                 />
@@ -300,34 +384,35 @@ const RolesSection = () => {
                   placeholder='Buscar roles...'
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
+                  size='small'
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      pl: 6,
-                      pr: 3,
-                      py: 2,
-                      borderRadius: 8,
-                      fontSize: '0.95rem',
-                      height: 48,
+                      pl: 5,
+                      pr: 2,
+                      py: 1,
+                      borderRadius: 6,
+                      fontSize: '0.875rem',
+                      height: 36,
                       '& fieldset': {
                         borderColor: 'divider',
-                        borderWidth: 1.5
+                        borderWidth: 1
                       },
                       '&:hover fieldset': {
                         borderColor: 'primary.main',
-                        borderWidth: 1.5
+                        borderWidth: 1
                       },
                       '&.Mui-focused fieldset': {
                         borderColor: 'primary.main',
-                        borderWidth: 2
+                        borderWidth: 1.5
                       }
                     },
                     '& .MuiInputBase-input': {
-                      fontSize: '0.95rem',
+                      fontSize: '0.875rem',
                       fontWeight: 400,
                       '&::placeholder': {
                         color: 'text.secondary',
                         opacity: 0.8,
-                        fontSize: '0.95rem'
+                        fontSize: '0.875rem'
                       }
                     }
                   }}
@@ -336,13 +421,13 @@ const RolesSection = () => {
             </Box>
 
             <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              {loading ? (
+              {rolesLoading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}>
                   <CircularProgress />
                 </Box>
               ) : (
                 <>
-                  <Box sx={{ flex: 1, overflow: 'auto', px: 1, pb: 1 }}>
+                  <Box sx={{ flex: 1, overflow: 'auto', px: 0.5, pb: 0.5 }}>
                     <List disablePadding>
                       {paginatedRoles.map((role) => {
                         const isSelected = selectedRole?._id === role._id;
@@ -350,21 +435,22 @@ const RolesSection = () => {
                           <ListItem
                             key={role._id}
                             disableGutters
-                            sx={{ mb: 0.5 }}
+                            sx={{ mb: 0.25 }}
                           >
                             <ListItemButton
                               selected={isSelected}
                               onClick={() => setSelectedRole(role)}
                               sx={{
-                                borderRadius: 2,
-                                py: 1.5,
-                                px: 2,
-                                border: isSelected ? '2px solid' : '1px solid',
+                                borderRadius: 1.5,
+                                py: 1,
+                                px: 1.5,
+                                border: isSelected ? '1.5px solid' : '1px solid',
                                 borderColor: isSelected ? 'primary.main' : 'divider',
                                 bgcolor: isSelected ? 'primary.main' : 'background.paper',
                                 color: isSelected ? 'white' : 'text.primary',
                                 boxShadow: isSelected ? 1 : 0,
                                 transition: 'all 0.2s ease-in-out',
+                                minHeight: 40,
                                 '&:hover': {
                                   bgcolor: isSelected ? 'primary.dark' : 'grey.50',
                                   borderColor: isSelected ? 'primary.dark' : 'primary.main',
@@ -387,7 +473,7 @@ const RolesSection = () => {
                                   <Typography
                                     variant='body2'
                                     fontWeight={500}
-                                    sx={{ fontSize: '0.875rem' }}
+                                    sx={{ fontSize: '0.8rem' }}
                                   >
                                     {role.name}
                                   </Typography>
@@ -398,12 +484,13 @@ const RolesSection = () => {
                                   size='small'
                                   label={role.permissions.length}
                                   sx={{
-                                    fontSize: '0.75rem',
+                                    fontSize: '0.7rem',
                                     fontWeight: 700,
-                                    height: 20,
+                                    height: 18,
+                                    minWidth: 18,
                                     bgcolor: isSelected ? 'white' : 'primary.main',
                                     color: isSelected ? 'primary.main' : 'white',
-                                    borderRadius: 3,
+                                    borderRadius: 2,
                                     border: isSelected ? '1px solid' : 'none',
                                     borderColor: isSelected ? 'primary.main' : 'transparent'
                                   }}
@@ -426,27 +513,68 @@ const RolesSection = () => {
                     </List>
                   </Box>
 
-                  <TablePagination
-                    component='div'
-                    count={filteredRoles.length}
-                    page={pagination.page}
-                    onPageChange={handlePageChange}
-                    rowsPerPage={pagination.limit}
-                    onRowsPerPageChange={handleRowsPerPageChange}
-                    rowsPerPageOptions={[5, 10, 25, 50]}
-                    labelRowsPerPage='Itens por página:'
-                    labelDisplayedRows={({ from, to, count }) =>
-                      `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`
-                    }
+                  {/* Pagination */}
+                  <Box
                     sx={{
-                      borderTop: '1px solid',
-                      borderColor: 'divider',
-                      '& .MuiTablePagination-toolbar': {
-                        minHeight: 48,
-                        px: 2
-                      }
+                      p: { xs: 1.5, sm: 1.75, lg: 2 },
+                      display: 'flex',
+                      flexDirection: { xs: 'column', md: 'row' },
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: { xs: 1, sm: 1.25, lg: 1.5 },
+                      backgroundColor: '#f8fafc',
+                      borderTop: '1px solid #e5e7eb'
                     }}
-                  />
+                  >
+                    {/* Pagination Info */}
+                    <Typography
+                      variant='body2'
+                      sx={{ color: '#6b7280', fontSize: '0.75rem' }}
+                    >
+                      {filteredRoles.length > 0 ? (
+                        <>
+                          {(currentPage - 1) * currentLimit + 1}-
+                          {Math.min(currentPage * currentLimit, filteredRoles.length)} de {filteredRoles.length}
+                        </>
+                      ) : (
+                        '0 de 0'
+                      )}
+                    </Typography>
+
+                    {/* Pagination Controls */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.25, lg: 1.5 } }}>
+                      <Select
+                        value={currentLimit}
+                        onChange={(e) => handleLimitChange(Number(e.target.value))}
+                        size='small'
+                        sx={{ minWidth: 100, height: 28, fontSize: '0.75rem' }}
+                      >
+                        {[5, 10, 25, 50].map((limit) => (
+                          <MenuItem key={limit} value={limit}>
+                            {limit} por página
+                          </MenuItem>
+                        ))}
+                      </Select>
+
+                      <Pagination
+                        count={totalPages}
+                        page={currentPage}
+                        onChange={(_e, value) => handlePageChange(_e, value)}
+                        variant='outlined'
+                        shape='rounded'
+                        size='small'
+                        showFirstButton={!isMobile}
+                        showLastButton={!isMobile}
+                        sx={{
+                          '& .MuiPaginationItem-root': {
+                            minWidth: 28,
+                            height: 28,
+                            fontSize: '0.75rem'
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Box>
                 </>
               )}
             </Box>
@@ -456,8 +584,8 @@ const RolesSection = () => {
         {/* Coluna da direita - Detalhes da Role */}
         <Grid size={{ xs: 12, lg: 8 }}>
           <Stack
-            spacing={3}
-            sx={{ height: '100%' }}
+            spacing={{ xs: 1.5, sm: 2, lg: 3 }}
+            sx={{ alignItems: 'stretch' }}
           >
             {/* Card de Detalhes da Role */}
             <Card
@@ -468,8 +596,8 @@ const RolesSection = () => {
                 boxShadow: 1
               }}
             >
-              <Box sx={{ p: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
+              <Box sx={{ p: { xs: 2, sm: 2.5, lg: 3 } }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: { xs: 2, sm: 2.5, lg: 3 } }}>
                   <Box>
                     <Typography
                       variant='h4'
@@ -491,7 +619,7 @@ const RolesSection = () => {
                       {selectedRole ? 'Detalhes da role selecionada' : 'Selecione uma role à esquerda'}
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 0.75, lg: 1 } }}>
                     <Button
                       variant='outlined'
                       size='small'
@@ -826,7 +954,7 @@ const RolesSection = () => {
           <Button
             onClick={handleCreateRole}
             variant='contained'
-            disabled={loading || !roleName.trim()}
+            disabled={creatingRole || !roleName.trim()}
             sx={{
               px: 3,
               py: 1,
@@ -1121,7 +1249,7 @@ const RolesSection = () => {
           <Button
             onClick={handleUpdateRole}
             variant='contained'
-            disabled={loading || !roleName.trim()}
+            disabled={updatingRole || !roleName.trim()}
             sx={{
               px: 3,
               py: 1,
@@ -1357,7 +1485,7 @@ const RolesSection = () => {
             </Button>
             <Button
               onClick={handleConfirmDelete}
-              disabled={loading || !deleteImpact?.canDelete}
+              disabled={deletingRole || !deleteImpact?.canDelete}
               sx={{
                 px: 3,
                 py: 1.25,
@@ -1377,7 +1505,7 @@ const RolesSection = () => {
                 }
               }}
             >
-              {loading ? 'Excluindo...' : 'Confirmar Exclusão'}
+              {deletingRole ? 'Excluindo...' : 'Confirmar Exclusão'}
             </Button>
           </Box>
         </DialogContent>

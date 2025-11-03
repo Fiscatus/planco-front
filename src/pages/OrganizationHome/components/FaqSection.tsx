@@ -2,14 +2,11 @@ import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 import { Accordion, AccordionDetails, AccordionSummary, Box, Typography } from '@mui/material';
 import { type RefObject, useMemo } from 'react';
 
-// ATENÇÃO: Não usar <Container> aqui. Este componente é embutido na OrganizationHome.
-
 type Props = {
   sectionRef?: RefObject<HTMLDivElement>;
   embedded?: boolean;
 };
 
-// Estilos compartilhados para garantir consistência visual absoluta
 const sharedAccordionStyles = {
   borderRadius: '24px !important', // Pílula - forçar mesmo valor para todos
   boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',

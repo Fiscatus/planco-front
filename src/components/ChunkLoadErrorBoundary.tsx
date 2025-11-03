@@ -38,7 +38,7 @@ const ChunkErrorFallback = ({ error }: { error: Error }) => {
       // Clear retry count after max retries
       sessionStorage.removeItem('chunkErrorRetryCount');
     }
-  }, [chunkError, retryCount, maxRetries]);
+  }, [chunkError, retryCount]);
 
   const handleRefresh = () => {
     // Clear retry count on manual refresh

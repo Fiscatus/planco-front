@@ -1,16 +1,20 @@
-import { Box, Button, Link, TextField, Typography, InputAdornment, IconButton } from '@mui/material';
+import { Box, Button, IconButton, InputAdornment, Link, TextField, Typography } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
+import {
+  Lock,
+  Person,
+  Visibility,
+  VisibilityOff
+} from '@mui/icons-material';
 import { useEffect, useState } from 'react';
+
+import type { LoginDto } from '@/globals/types/User';
+import { useAuth } from '@/hooks';
+import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { useNotification } from '@/components';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { LoginDto } from '@/globals/types/User';
-import { useNotification } from '@/components';
-import { useAuth } from '@/hooks';
-import PersonIcon from '@mui/icons-material/Person';
-import LockIcon from '@mui/icons-material/Lock';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import logo from '/assets/isologo.svg';
 
 type Props = {
@@ -32,21 +36,25 @@ const SignIn = ({ setIsSignIn }: Props) => {
   const [showPassword, setShowPassword] = useState(true);
   const [shouldRedirectAfterLogin, setShouldRedirectAfterLogin] = useState(false);
 
-  const onSubmit = async (credentials: LoginDto) => {
-    try {
-      await signIn(credentials);
-      showNotification('Login realizado com sucesso!', 'success');
-
-      setShouldRedirectAfterLogin(true);
-    } catch (error: unknown) {
-      console.error('Erro ao fazer login:', error);
-
+  const { mutate: signInMutation, isPending: signingIn } = useMutation({
+    mutationFn: async (credentials: LoginDto) => {
+      return await signIn(credentials);
+    },
+    onError: (error: unknown) => {
       if (error instanceof Error && error.message) {
         showNotification(error.message, 'error');
       } else {
         showNotification('Erro ao fazer login. Tente novamente.', 'error');
       }
+    },
+    onSuccess: () => {
+      showNotification('Login realizado com sucesso!', 'success');
+      setShouldRedirectAfterLogin(true);
     }
+  });
+
+  const onSubmit = (credentials: LoginDto) => {
+    signInMutation(credentials);
   };
 
   useEffect(() => {
@@ -131,7 +139,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position='start'>
-                        <PersonIcon sx={{ color: '#6C757D' }} />
+                        <Person sx={{ color: '#6C757D' }} />
                       </InputAdornment>
                     )
                   }}
@@ -220,7 +228,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position='start'>
-                        <LockIcon sx={{ color: '#6C757D' }} />
+                        <Lock sx={{ color: '#6C757D' }} />
                       </InputAdornment>
                     ),
                     endAdornment: (
@@ -230,7 +238,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
                           edge='end'
                           sx={{ color: '#6C757D' }}
                         >
-                          {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
                       </InputAdornment>
                     )
@@ -280,7 +288,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
           />
         </Box>
         <Button
-          disabled={!isDirty}
+          disabled={!isDirty || signingIn}
           type='submit'
           fullWidth
           sx={{

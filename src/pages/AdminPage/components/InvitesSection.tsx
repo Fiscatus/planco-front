@@ -21,6 +21,7 @@ import {
   Grid,
   IconButton,
   MenuItem,
+  Pagination,
   Paper,
   Select,
   Skeleton,
@@ -30,7 +31,6 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TablePagination,
   TableRow,
   TextField,
   Tooltip,
@@ -39,28 +39,92 @@ import {
 } from '@mui/material';
 import type { CreateInviteDto, FilterInvitesDto, Invite, InviteStatus } from '@/globals/types';
 import { Loading, useNotification } from '@/components';
-import { useCallback, useEffect, useState } from 'react';
-import { useDepartments, useInvites, useRoles, useScreen } from '@/hooks';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useDebounce, useDepartments, useInvites, useRoles, useScreen } from '@/hooks';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
-const InvitesSection = () => {
+import { useSearchParams } from 'react-router-dom';
+
+interface InvitesSectionProps {
+  currentTab: 'users' | 'gerencias' | 'invites' | 'roles';
+}
+
+const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
   const theme = useTheme();
   const { isMobile } = useScreen();
+  const [urlParams, setUrlParams] = useSearchParams();
+  const [localSearch, setLocalSearch] = useState(urlParams.get('name') || '');
+  const debouncedLocalSearch = useDebounce(localSearch, 300);
+
+  // Atualiza URL params apenas quando o debounce for processado
+  useEffect(() => {
+    if (debouncedLocalSearch !== urlParams.get('name')) {
+      urlParams.set('name', debouncedLocalSearch);
+      urlParams.set('email', debouncedLocalSearch);
+      urlParams.set('page', '1');
+      setUrlParams(urlParams, { replace: true });
+    }
+  }, [debouncedLocalSearch, urlParams, setUrlParams]);
 
   const { showNotification } = useNotification();
-  const { invites, loading, error, pagination, fetchInvites, createInvite, deleteInvite, clearError } = useInvites();
+  const { fetchInvites, createInvite, deleteInvite } = useInvites();
+  const { fetchRoles } = useRoles();
+  const { fetchDepartments } = useDepartments();
 
-  const { roles, fetchRoles } = useRoles();
-  const { departments, fetchDepartments } = useDepartments();
+  useEffect(() => {
+    if (currentTab !== 'invites') {
+      setUrlParams({}, { replace: true });
+    }
+  }, [currentTab, setUrlParams]);
 
   const [rolesDropdownOpen, setRolesDropdownOpen] = useState(false);
   const [departmentsDropdownOpen, setDepartmentsDropdownOpen] = useState(false);
 
-  const [filters, setFilters] = useState<FilterInvitesDto>({
-    page: '1',
-    limit: '10',
-    status: undefined,
-    email: '',
-    role: ''
+  const invitesQueryKey = useMemo(() => [
+    'fetchInvites', 
+    `page:${urlParams.get('page') || 1}`,
+    `limit:${urlParams.get('limit') || 5}`,
+    `status:${urlParams.get('status') || ''}`,
+    `email:${urlParams.get('email') || ''}`,
+    `role:${urlParams.get('role') || ''}`
+  ], [urlParams]);
+
+  const {
+    data: invitesData,
+    isLoading: invitesLoading,
+    error: invitesError,
+    refetch: refetchInvites
+  } = useQuery({
+    queryKey: invitesQueryKey,
+    refetchOnWindowFocus: false,
+    queryFn: async () => {
+      const filters: FilterInvitesDto = {
+        page: urlParams.get('page') || '1',
+        limit: urlParams.get('limit') || '10',
+        status: (urlParams.get('status') as InviteStatus) || undefined,
+        email: urlParams.get('email') || '',
+        role: urlParams.get('role') || ''
+      };
+      return await fetchInvites(filters);
+    }
+  });
+
+  const { data: rolesData, refetch: refetchRoles } = useQuery({
+    queryKey: ['fetchRoles'],
+    refetchOnWindowFocus: false,
+    enabled: false,
+    queryFn: async () => {
+      return await fetchRoles();
+    }
+  });
+
+  const { data: departmentsData, refetch: refetchDepartments } = useQuery({
+    queryKey: ['fetchDepartments'],
+    refetchOnWindowFocus: false,
+    enabled: false,
+    queryFn: async () => {
+      return await fetchDepartments();
+    }
   });
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -73,86 +137,15 @@ const InvitesSection = () => {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [inviteToDelete, setInviteToDelete] = useState<Invite | null>(null);
 
-  useEffect(() => {
-    fetchInvites(filters);
-  }, []);
-
-  const handleRolesDropdownOpen = useCallback(async () => {
-    setRolesDropdownOpen(true);
-    if (roles.length === 0) {
-      await fetchRoles();
-    }
-  }, [roles.length, fetchRoles]);
-
-  const handleDepartmentsDropdownOpen = useCallback(async () => {
-    setDepartmentsDropdownOpen(true);
-    if (departments.length === 0) {
-      await fetchDepartments();
-    }
-  }, [departments.length, fetchDepartments]);
-
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      fetchInvites({ ...filters, page: '1' });
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [filters.status, filters.email, filters.role]);
-
-  const handleClearFilters = useCallback(() => {
-    const clearedFilters = {
-      page: '1',
-      limit: '10',
-      status: undefined,
-      email: '',
-      role: ''
-    };
-    setFilters(clearedFilters);
-  }, []);
-
-  const handlePageChange = useCallback(
-    (_event: unknown, newPage: number) => {
-      const newFilters = { ...filters, page: String(newPage + 1) };
-      setFilters(newFilters);
-      fetchInvites(newFilters);
+  const { mutate: createInviteMutation, isPending: creatingInvite } = useMutation({
+    mutationFn: async (data: CreateInviteDto) => {
+      return await createInvite(data);
     },
-    [filters, fetchInvites]
-  );
-
-  const handleRowsPerPageChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const newLimit = event.target.value;
-      const newFilters = { ...filters, page: '1', limit: newLimit };
-      setFilters(newFilters);
-      fetchInvites(newFilters);
-    },
-    [filters, fetchInvites]
-  );
-
-  const handleOpenCreate = useCallback(() => {
-    setCreateForm({
-      email: '',
-      roleId: '',
-      departmentIds: []
-    });
-    setCreateModalOpen(true);
-  }, []);
-
-  const handleCreateInvite = useCallback(async () => {
-    if (!createForm.email || !createForm.roleId) return;
-
-    try {
-      await createInvite(createForm);
-      showNotification('Convite criado com sucesso!', 'success');
-      setCreateModalOpen(false);
-      setCreateForm({ email: '', roleId: '', departmentIds: [] });
-
-      fetchInvites(filters);
-    } catch (err) {
+    onError: (error: any) => {
       let errorMessage = 'Erro ao criar convite';
 
-      if (err?.response?.data?.message) {
-        const message = err.response.data.message;
+      if (error?.response?.data?.message) {
+        const message = error.response.data.message;
         if (message.includes('Email não está cadastrado')) {
           errorMessage = 'Este email não está cadastrado no sistema';
         } else if (message.includes('já existe um convite pendente')) {
@@ -165,32 +158,94 @@ const InvitesSection = () => {
       }
 
       showNotification(errorMessage, 'error');
+    },
+    onSuccess: () => {
+      showNotification('Convite criado com sucesso!', 'success');
+      setCreateModalOpen(false);
+      setCreateForm({ email: '', roleId: '', departmentIds: [] });
+      refetchInvites();
     }
-  }, [createForm, createInvite, showNotification, fetchInvites, filters]);
+  });
+
+  const { mutate: deleteInviteMutation, isPending: deletingInvite } = useMutation({
+    mutationFn: async (inviteId: string) => {
+      return await deleteInvite(inviteId);
+    },
+    onError: (error: any) => {
+      let errorMessage = 'Erro ao deletar convite';
+
+      if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+
+      showNotification(errorMessage, 'error');
+    },
+    onSuccess: () => {
+      showNotification('Convite deletado com sucesso!', 'success');
+      setDeleteConfirmOpen(false);
+      setInviteToDelete(null);
+      refetchInvites();
+    }
+  });
+
+  const handleRolesDropdownOpen = useCallback(async () => {
+    setRolesDropdownOpen(true);
+    if (!rolesData) {
+      await refetchRoles();
+    }
+  }, [rolesData, refetchRoles]);
+
+  const handleDepartmentsDropdownOpen = useCallback(async () => {
+    setDepartmentsDropdownOpen(true);
+    if (!departmentsData) {
+      await refetchDepartments();
+    }
+  }, [departmentsData, refetchDepartments]);
+
+  const handleClearFilters = useCallback(() => {
+    setUrlParams({}, { replace: true });
+  }, [setUrlParams]);
+
+  const handlePageChange = useCallback(
+    (_event: unknown, newPage: number) => {
+      urlParams.set('page', String(newPage));
+      setUrlParams(urlParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
+
+  const handleLimitChange = useCallback(
+    (newLimit: number) => {
+      urlParams.set('limit', String(newLimit));
+      urlParams.set('page', '1');
+      setUrlParams(urlParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
+
+  const handleOpenCreate = useCallback(() => {
+    setCreateForm({
+      email: '',
+      roleId: '',
+      departmentIds: []
+    });
+    setCreateModalOpen(true);
+  }, []);
+
+  const handleCreateInvite = useCallback(() => {
+    if (!createForm.email || !createForm.roleId) return;
+    createInviteMutation(createForm);
+  }, [createForm, createInviteMutation]);
 
   const handleOpenDeleteConfirm = useCallback((invite: Invite) => {
     setInviteToDelete(invite);
     setDeleteConfirmOpen(true);
   }, []);
 
-  const handleConfirmDelete = useCallback(async () => {
+  const handleConfirmDelete = useCallback(() => {
     if (!inviteToDelete?._id) return;
-
-    try {
-      await deleteInvite(inviteToDelete._id);
-      showNotification('Convite deletado com sucesso!', 'success');
-      setDeleteConfirmOpen(false);
-      setInviteToDelete(null);
-    } catch (err) {
-      let errorMessage = 'Erro ao deletar convite';
-
-      if (err?.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      }
-
-      showNotification(errorMessage, 'error');
-    }
-  }, [inviteToDelete, deleteInvite, showNotification]);
+    deleteInviteMutation(inviteToDelete._id);
+  }, [inviteToDelete, deleteInviteMutation]);
 
   const handleCancelDelete = useCallback(() => {
     setDeleteConfirmOpen(false);
@@ -198,8 +253,8 @@ const InvitesSection = () => {
   }, []);
 
   const handleRefresh = useCallback(() => {
-    fetchInvites(filters);
-  }, [filters, fetchInvites]);
+    refetchInvites();
+  }, [refetchInvites]);
 
   const getStatusColor = (status: InviteStatus): 'primary' | 'success' | 'error' | 'warning' | 'default' => {
     switch (status) {
@@ -221,7 +276,7 @@ const InvitesSection = () => {
       case 'aceito':
         return {
           sx: {
-            backgroundColor: 'success.main', // Verde claro das gerências para aceito
+            backgroundColor: 'success.main',
             color: 'white',
             fontWeight: 600,
             '&:hover': {
@@ -268,18 +323,15 @@ const InvitesSection = () => {
               container
               spacing={2}
             >
-              {/* Campo de busca - sempre full width */}
-              <Grid size={{ xs: 12 }}>
+              {/* Campo de busca - agora inline com outros filtros */}
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <TextField
                   fullWidth
                   size='small'
-                  placeholder='Buscar por email'
-                  value={filters.email || ''}
+                  placeholder='Buscar por email ou nome'
+                  value={localSearch}
                   onChange={(e) => {
-                    setFilters((prev) => ({
-                      ...prev,
-                      email: e.target.value
-                    }));
+                    setLocalSearch(e.target.value);
                   }}
                   InputProps={{
                     startAdornment: <SearchIcon sx={{ mr: 1, color: '#9ca3af', fontSize: '1.25rem' }} />,
@@ -315,14 +367,13 @@ const InvitesSection = () => {
                   size='small'
                 >
                   <Select
-                    value={filters.status || 'todos'}
+                    value={urlParams.get('status') || 'todos'}
                     displayEmpty
                     onChange={(e) => {
                       const value = e.target.value;
-                      setFilters((prev) => ({
-                        ...prev,
-                        status: value === 'todos' ? undefined : (value as InviteStatus)
-                      }));
+                      urlParams.set('status', value === 'todos' ? '' : value);
+                      urlParams.set('page', '1');
+                      setUrlParams(urlParams, { replace: true });
                     }}
                     sx={{
                       height: 40,
@@ -340,7 +391,7 @@ const InvitesSection = () => {
                         boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
                       },
                       '& .MuiSelect-select': {
-                        color: filters.status === undefined ? '#9ca3af' : '#374151'
+                        color: !urlParams.get('status') ? '#9ca3af' : '#374151'
                       }
                     }}
                     renderValue={(value) => {
@@ -373,16 +424,15 @@ const InvitesSection = () => {
                   size='small'
                 >
                   <Select
-                    value={filters.role || ''}
+                    value={urlParams.get('role') || ''}
                     displayEmpty
                     onChange={(e) => {
-                      setFilters((prev) => ({
-                        ...prev,
-                        role: e.target.value
-                      }));
+                      urlParams.set('role', e.target.value);
+                      urlParams.set('page', '1');
+                      setUrlParams(urlParams, { replace: true });
                     }}
                     onOpen={handleRolesDropdownOpen}
-                    disabled={loading}
+                    disabled={invitesLoading}
                     sx={{
                       height: 40,
                       borderRadius: 3,
@@ -399,21 +449,21 @@ const InvitesSection = () => {
                         boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
                       },
                       '& .MuiSelect-select': {
-                        color: filters.role === '' ? '#9ca3af' : '#374151'
+                        color: !urlParams.get('role') ? '#9ca3af' : '#374151'
                       }
                     }}
                     renderValue={(value) => {
                       if (!value) {
                         return <span style={{ color: '#9ca3af' }}>Role</span>;
                       }
-                      const role = roles.find((r) => r._id === value);
+                      const role = (rolesData || []).find((r) => r._id === value);
                       return role ? role.name : value;
                     }}
                   >
                     <MenuItem value=''>
                       <em>Todas as roles</em>
                     </MenuItem>
-                    {roles.length === 0 ? (
+                    {!rolesData ? (
                       <MenuItem disabled>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <CircularProgress size={20} />
@@ -421,7 +471,7 @@ const InvitesSection = () => {
                         </Box>
                       </MenuItem>
                     ) : (
-                      roles.map((role) => (
+                      (rolesData || []).map((role) => (
                         <MenuItem
                           key={role._id}
                           value={role._id}
@@ -448,7 +498,7 @@ const InvitesSection = () => {
                   >
                     <IconButton
                       onClick={handleClearFilters}
-                      disabled={loading}
+                      disabled={invitesLoading}
                       title='Limpar filtros'
                       sx={{
                         backgroundColor: '#f3f4f6',
@@ -474,7 +524,7 @@ const InvitesSection = () => {
               )}
 
               {/* Botões de ação - xs-sm: full width abaixo dos filtros, md+: alinhado à direita */}
-              <Grid size={{ xs: 12, sm: 12, md: true }}>
+              <Grid size={{ xs: 12, sm: 12, md: 'auto' }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -489,7 +539,7 @@ const InvitesSection = () => {
                   {isMobile && (
                     <IconButton
                       onClick={handleClearFilters}
-                      disabled={loading}
+                      disabled={invitesLoading}
                       title='Limpar filtros'
                       sx={{
                         backgroundColor: '#f3f4f6',
@@ -549,7 +599,7 @@ const InvitesSection = () => {
                   <Button
                     startIcon={<RefreshIcon sx={{ fontSize: '1.25rem' }} />}
                     onClick={handleRefresh}
-                    disabled={loading}
+                    disabled={invitesLoading}
                     variant='contained'
                     color='primary'
                     fullWidth={isMobile}
@@ -586,7 +636,7 @@ const InvitesSection = () => {
             </Grid>
           </Box>
 
-          {error && (
+          {invitesError && (
             <Alert
               severity='error'
               sx={{
@@ -602,9 +652,8 @@ const InvitesSection = () => {
                   fontWeight: 500
                 }
               }}
-              onClose={clearError}
             >
-              {error}
+              {invitesError?.message || 'Erro ao carregar convites'}
             </Alert>
           )}
 
@@ -629,7 +678,7 @@ const InvitesSection = () => {
                   '& .MuiTableRow-root': {
                     height: 64,
                     '&:hover': {
-                      backgroundColor: '#f8fafc',
+                      backgroundColor: 'rgba(5, 50, 105, 0.02)',
                       transform: 'translateY(-1px)',
                       boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
                       transition: 'all 0.2s ease-in-out'
@@ -666,7 +715,7 @@ const InvitesSection = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {loading ? (
+                  {invitesLoading ? (
                     <TableRow>
                       <TableCell
                         colSpan={8}
@@ -693,7 +742,7 @@ const InvitesSection = () => {
                         </Box>
                       </TableCell>
                     </TableRow>
-                  ) : invites.length === 0 ? (
+                  ) : (invitesData?.invites || []).length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={8}
@@ -735,10 +784,9 @@ const InvitesSection = () => {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    invites.map((invite) => (
+                    (invitesData?.invites || []).map((invite) => (
                       <TableRow
                         key={invite._id}
-                        hover
                         sx={{
                           '& .MuiTableCell-root': {
                             borderBottom: '1px solid #f1f5f9',
@@ -873,7 +921,7 @@ const InvitesSection = () => {
           {/* Mobile Cards View */}
           {isMobile && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {loading ? (
+              {invitesLoading ? (
                 // Loading skeletons for mobile
                 Array.from({ length: 3 }).map(() => {
                   const uniqueKey = crypto.randomUUID();
@@ -894,7 +942,7 @@ const InvitesSection = () => {
                     </Paper>
                   );
                 })
-              ) : invites.length === 0 ? (
+              ) : (invitesData?.invites || []).length === 0 ? (
                 // Empty state for mobile
                 <Paper
                   variant='outlined'
@@ -938,7 +986,7 @@ const InvitesSection = () => {
                 </Paper>
               ) : (
                 // Invite cards for mobile
-                invites.map((invite) => (
+                (invitesData?.invites || []).map((invite) => (
                   <Paper
                     key={invite._id}
                     variant='outlined'
@@ -1037,51 +1085,59 @@ const InvitesSection = () => {
             </Box>
           )}
 
-          <TablePagination
-            component='div'
-            count={pagination.total}
-            page={pagination.page - 1}
-            onPageChange={handlePageChange}
-            rowsPerPage={pagination.limit}
-            onRowsPerPageChange={handleRowsPerPageChange}
-            rowsPerPageOptions={isMobile ? [5, 10] : [5, 10, 25, 50]}
-            labelRowsPerPage='Itens por página:'
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count !== -1 ? count : `mais de ${to}`}`}
-            showFirstButton={!isMobile}
-            showLastButton={!isMobile}
+          {/* Pagination */}
+          <Box
             sx={{
+              p: 4,
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 2,
               backgroundColor: '#f8fafc',
-              borderTop: '1px solid #e5e7eb',
-              '& .MuiTablePagination-toolbar': {
-                paddingLeft: isMobile ? 1 : 2,
-                paddingRight: isMobile ? 1 : 2,
-                minHeight: isMobile ? 48 : 56,
-                flexDirection: isMobile ? 'column' : 'row',
-                gap: isMobile ? 1 : 0
-              },
-              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                color: '#374151',
-                fontWeight: 500,
-                fontSize: isMobile ? '0.75rem' : '0.875rem'
-              },
-              '& .MuiTablePagination-select': {
-                color: theme.palette.primary.main,
-                fontWeight: 600
-              },
-              '& .MuiIconButton-root': {
-                color: '#6b7280',
-                minWidth: 44,
-                minHeight: 44,
-                '&:hover': {
-                  backgroundColor: '#f3f4f6',
-                  color: theme.palette.primary.main
-                }
-              },
-              '& .MuiTablePagination-actions': {
-                marginLeft: isMobile ? 0 : 'auto'
-              }
+              borderTop: '1px solid #e5e7eb'
             }}
-          />
+          >
+            {/* Pagination Info */}
+            <Typography
+              variant='body2'
+              sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+            >
+              {invitesData ? (
+                <>
+                  {(Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10) + 1}-
+                  {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10), invitesData.total)} de {invitesData.total}
+                </>
+              ) : (
+                '0 de 0'
+              )}
+            </Typography>
+
+            {/* Pagination Controls */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Select
+                value={urlParams.get('limit') || 10}
+                onChange={(e) => handleLimitChange(Number(e.target.value))}
+                sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+              >
+                {[5, 10, 25, 50].map((limit) => (
+                  <MenuItem key={limit} value={limit}>
+                    {limit} por página
+                  </MenuItem>
+                ))}
+              </Select>
+
+              <Pagination
+                count={invitesData ? Math.ceil(invitesData.total / Number(urlParams.get('limit') || 10)) : 0}
+                page={Number(urlParams.get('page') || 1)}
+                onChange={(_e, value) => handlePageChange(_e, value)}
+                variant='outlined'
+                shape='rounded'
+                showFirstButton={!isMobile}
+                showLastButton={!isMobile}
+              />
+            </Box>
+          </Box>
         </CardContent>
       </Card>
 
@@ -1198,7 +1254,7 @@ const InvitesSection = () => {
                     }));
                   }}
                   onOpen={handleRolesDropdownOpen}
-                  disabled={loading}
+                  disabled={creatingInvite}
                   displayEmpty
                   sx={{
                     backgroundColor: '#F0F2F5',
@@ -1222,11 +1278,11 @@ const InvitesSection = () => {
                     if (!value) {
                       return <span style={{ color: '#65676B' }}>Selecione um role</span>;
                     }
-                    const role = roles.find((r) => r._id === value);
+                    const role = (rolesData || []).find((r) => r._id === value);
                     return role ? role.name : value;
                   }}
                 >
-                  {roles.length === 0 ? (
+                  {!rolesData ? (
                     <MenuItem disabled>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CircularProgress size={20} />
@@ -1234,7 +1290,7 @@ const InvitesSection = () => {
                       </Box>
                     </MenuItem>
                   ) : (
-                    roles.map((role) => (
+                    (rolesData || []).map((role) => (
                       <MenuItem
                         key={role._id}
                         value={role._id}
@@ -1275,7 +1331,7 @@ const InvitesSection = () => {
                   onOpen={handleDepartmentsDropdownOpen}
                   onClose={() => setDepartmentsDropdownOpen(false)}
                   open={departmentsDropdownOpen}
-                  disabled={loading}
+                  disabled={creatingInvite}
                   displayEmpty
                   sx={{
                     backgroundColor: '#F0F2F5',
@@ -1300,18 +1356,18 @@ const InvitesSection = () => {
                       return <span style={{ color: '#65676B' }}>Selecione uma gerência</span>;
                     }
                     return selected
-                      .map((id) => departments.find((dept) => dept._id === id)?.department_name)
+                      .map((id) => ((departmentsData?.departments || departmentsData) as any[]).find((dept) => dept._id === id)?.department_name)
                       .join(', ');
                   }}
                 >
-                  {departments.length === 0 ? (
+                  {!departmentsData ? (
                     <MenuItem disabled>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Loading isLoading={true} />
                       </Box>
                     </MenuItem>
                   ) : (
-                    departments.map((dept) => (
+                    ((departmentsData?.departments || departmentsData) as any[]).map((dept) => (
                       <MenuItem
                         key={dept._id}
                         value={dept._id}
@@ -1344,7 +1400,7 @@ const InvitesSection = () => {
               py: 1.25,
               fontSize: '0.875rem',
               fontWeight: 500,
-              color: '#1877F2',
+              color: '#white',
               textTransform: 'uppercase',
               borderRadius: 2,
               transition: 'all 0.2s ease-in-out',
@@ -1359,7 +1415,7 @@ const InvitesSection = () => {
           <Button
             onClick={handleCreateInvite}
             variant='contained'
-            disabled={loading || !createForm.email || !createForm.roleId}
+            disabled={creatingInvite || !createForm.email || !createForm.roleId}
             sx={{
               px: 3,
               py: 1.25,
@@ -1573,7 +1629,7 @@ const InvitesSection = () => {
             </Button>
             <Button
               onClick={handleConfirmDelete}
-              disabled={loading}
+              disabled={deletingInvite}
               sx={{
                 px: 3,
                 py: 1.25,
@@ -1593,7 +1649,7 @@ const InvitesSection = () => {
                 }
               }}
             >
-              {loading ? 'Excluindo...' : 'Excluir Convite'}
+              {deletingInvite ? 'Excluindo...' : 'Excluir Convite'}
             </Button>
           </Box>
         </DialogContent>

@@ -1,7 +1,8 @@
 import { Box } from '@mui/material';
 import { type ReactNode, useState } from 'react';
-import { Sidebar, Topbar } from './layout';
+
 import { Footer } from './layout/Footer';
+import { Sidebar, Topbar } from './layout';
 
 type AppLayoutProps = {
   children: ReactNode;

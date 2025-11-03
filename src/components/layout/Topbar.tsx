@@ -1,4 +1,4 @@
-import { Headphones, Logout, Menu as MenuIcon, Notifications, Search, Settings } from '@mui/icons-material';
+import { useAuth } from '@/hooks';
 import {
   AppBar,
   Avatar,
@@ -14,9 +14,10 @@ import {
   Toolbar,
   Typography
 } from '@mui/material';
+import { Headphones, Logout, Menu as MenuIcon, Notifications, Search, Settings } from '@mui/icons-material';
 import { type MouseEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks';
+
 import logo from '/assets/isologo.svg';
 
 interface TopbarProps {

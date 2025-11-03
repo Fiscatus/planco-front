@@ -1,5 +1,5 @@
 import { Block as BlockIcon, Home as HomeIcon } from '@mui/icons-material';
-import { Box, Button, Container, Stack, Typography, Link } from '@mui/material';
+import { Box, Button, Container, Link, Stack, Typography } from '@mui/material';
 
 import { useAuth } from '@/hooks';
 import { useNavigate } from 'react-router-dom';
@@ -35,10 +35,11 @@ const NotAccessPage = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '100vh',
+        minHeight: '60vh',
         bgcolor: hasOrganization ? 'transparent' : 'rgb(249, 250, 251)',
         py: 4,
-        px: 2
+        px: 2,
+        mt: 2
       }}
     >
       <Box

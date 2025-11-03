@@ -1,15 +1,19 @@
 import { Box, Button, Checkbox, Grid, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
 import { Controller, useForm } from 'react-hook-form';
+import {
+  PersonAdd,
+  Visibility,
+  VisibilityOff
+} from '@mui/icons-material';
 import { PrivacyPolicyModal, TermsOfUseModal, useNotification } from '@/components';
 
 import type { RegisterDto } from '@/globals/types/User';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import logo from '/assets/isologo.svg';
 import { useAuth } from '@/hooks';
+import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import logo from '/assets/isologo.svg';
 
 type Props = {
   setIsSignIn: (value: boolean) => void;
@@ -91,23 +95,11 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false);
   const [termsModalOpen, setTermsModalOpen] = useState(false);
 
-  const onSubmit = async (formData: z.infer<typeof authSchema>) => {
-    try {
-      const registerData: RegisterDto = {
-        firstName: formData.name,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        cpf: formData.cpf, // Mantém formatação: 552.607.380-71
-        phone: formData.phone.replace(/\D/g, '') // Remove formatação: 11999999999
-      };
-
-      await signUp(registerData);
-
-      showNotification('Conta criada com sucesso! Faça login para continuar.', 'success');
-      setIsSignIn(true);
-      // biome-ignore lint/suspicious/noExplicitAny: <TODO: create error type>
-    } catch (error: any) {
+  const { mutate: signUpMutation, isPending: signingUp } = useMutation({
+    mutationFn: async (registerData: RegisterDto) => {
+      return await signUp(registerData);
+    },
+    onError: (error: any) => {
       console.error('Erro ao criar conta:', error);
 
       const status = error.response?.status;
@@ -121,7 +113,24 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
       } else {
         showNotification('Erro ao criar conta. Tente novamente.', 'error');
       }
+    },
+    onSuccess: () => {
+      showNotification('Conta criada com sucesso! Faça login para continuar.', 'success');
+      setIsSignIn(true);
     }
+  });
+
+  const onSubmit = (formData: z.infer<typeof authSchema>) => {
+    const registerData: RegisterDto = {
+      firstName: formData.name,
+      lastName: formData.lastName,
+      email: formData.email,
+      password: formData.password,
+      cpf: formData.cpf, // Mantém formatação: 552.607.380-71
+      phone: formData.phone.replace(/\D/g, '') // Remove formatação: 11999999999
+    };
+
+    signUpMutation(registerData);
   };
 
   const {
@@ -189,9 +198,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
             spacing={2}
           >
             <Grid
-              item
-              xs={12}
-              sm={6}
+              size={{ xs: 12, sm: 6 }}
             >
               <Typography
                 variant='body2'
@@ -260,9 +267,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
               />
             </Grid>
             <Grid
-              item
-              xs={12}
-              sm={6}
+              size={{ xs: 12, sm: 6 }}
             >
               <Typography
                 variant='body2'
@@ -340,8 +345,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
             spacing={2}
           >
             <Grid
-              item
-              xs={12}
+              size={{ xs: 12 }}
             >
               <Typography
                 variant='body2'
@@ -417,8 +421,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
               />
             </Grid>
             <Grid
-              item
-              xs={12}
+              size={{ xs: 12 }}
             >
               <Typography
                 variant='body2'
@@ -609,7 +612,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                             edge='end'
                             sx={{ color: '#6C757D' }}
                           >
-                            {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
                         </InputAdornment>
                       )
@@ -690,7 +693,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
                             edge='end'
                             sx={{ color: '#6C757D' }}
                           >
-                            {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                            {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
                         </InputAdornment>
                       )
@@ -800,7 +803,7 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
 
         {/* Botão de Cadastro */}
         <Button
-          disabled={!isDirty || !acceptedTerms}
+          disabled={!isDirty || !acceptedTerms || signingUp}
           type='submit'
           fullWidth
           sx={{

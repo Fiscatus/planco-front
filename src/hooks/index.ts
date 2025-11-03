@@ -1,9 +1,11 @@
 export { useAccessControl } from './useAccessControl';
 export { useActiveDepartment } from './useActiveDepartment';
 export { useAuth } from './useAuth';
+export { useDebounce } from './useDebounce';
 export { useDepartments } from './useDepartments';
 export { useInvites } from './useInvites';
 export { usePermissions } from './usePermissions';
 export { useRoles } from './useRoles';
 export { useScreen } from './useScreen';
+export { useSearchWithDebounce } from './useSearchWithDebounce';
 export { useUsers } from './useUsers';
