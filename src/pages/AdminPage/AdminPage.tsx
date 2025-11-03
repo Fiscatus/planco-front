@@ -5,16 +5,15 @@ import {
   PeopleAltOutlined
 } from '@mui/icons-material';
 import { Alert, Box, Chip, Skeleton, Tab, Tabs, Typography } from '@mui/material';
-import { Component, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { ErrorInfo, ReactNode } from 'react';
-import { useAccessControl, useAuth, useScreen } from '@/hooks';
+import { Component, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-
+import { useAccessControl, useAuth, useScreen } from '@/hooks';
 import { GerenciaSection } from './components/GerenciaSection';
 import { InvitesSection } from './components/InvitesSection';
 import { RolesSection } from './components/RolesSection';
 import { UserSection } from './components/UserSection';
-import { useQuery } from '@tanstack/react-query';
 
 type TabValue = 'users' | 'gerencias' | 'invites' | 'roles';
 
@@ -174,25 +173,21 @@ const AdminPage = () => {
     refetchOnWindowFocus: false
   });
 
-  const pages = useMemo(
-    () =>
-      permissions ? createPages(permissions) : [],
-    [permissions]
-  );
+  const pages = useMemo(() => (permissions ? createPages(permissions) : []), [permissions]);
 
   // Extrair aba atual da URL
   const getCurrentTabFromUrl = useCallback((): TabValue => {
     const pathSegments = location.pathname.split('/');
     const lastSegment = pathSegments[pathSegments.length - 1];
-    
+
     // Mapear segmentos da URL para valores de aba
     const urlToTabMap: Record<string, TabValue> = {
-      'users': 'users',
-      'gerencias': 'gerencias', 
-      'invites': 'invites',
-      'roles': 'roles'
+      users: 'users',
+      gerencias: 'gerencias',
+      invites: 'invites',
+      roles: 'roles'
     };
-    
+
     return urlToTabMap[lastSegment] || 'users';
   }, [location.pathname]);
 
@@ -237,7 +232,10 @@ const AdminPage = () => {
     if (!currentPage) {
       return (
         <Box sx={{ p: 3, textAlign: 'center' }}>
-          <Typography variant="h6" color="text.secondary">
+          <Typography
+            variant='h6'
+            color='text.secondary'
+          >
             Carregando permissões...
           </Typography>
         </Box>
@@ -342,49 +340,49 @@ const AdminPage = () => {
               variant={isMobile ? 'scrollable' : 'standard'}
               scrollButtons={isMobile ? 'auto' : false}
               allowScrollButtonsMobile
-            sx={{
-              '& .MuiTab-root': {
-                textTransform: 'none',
-                fontWeight: 600,
-                minWidth: { xs: 'auto', md: 140 },
-                color: 'text.secondary',
-                fontSize: '0.875rem',
-                px: 3,
-                py: 2,
-                borderRadius: 2,
-                transition: 'all 0.2s ease-in-out',
-                '&:hover': {
-                  backgroundColor: 'rgba(24, 119, 242, 0.04)',
-                  color: 'primary.main'
-                },
-                '&.Mui-selected': {
-                  color: 'primary.main',
-                  backgroundColor: 'rgba(24, 119, 242, 0.08)'
-                },
-                '& .MuiTab-iconWrapper': {
-                  marginRight: 1,
-                  '& svg': {
-                    fontSize: '1.25rem'
+              sx={{
+                '& .MuiTab-root': {
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  minWidth: { xs: 'auto', md: 140 },
+                  color: 'text.secondary',
+                  fontSize: '0.875rem',
+                  px: 3,
+                  py: 2,
+                  borderRadius: 2,
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: 'rgba(24, 119, 242, 0.04)',
+                    color: 'primary.main'
+                  },
+                  '&.Mui-selected': {
+                    color: 'primary.main',
+                    backgroundColor: 'rgba(24, 119, 242, 0.08)'
+                  },
+                  '& .MuiTab-iconWrapper': {
+                    marginRight: 1,
+                    '& svg': {
+                      fontSize: '1.25rem'
+                    }
                   }
+                },
+                '& .MuiTabs-indicator': {
+                  backgroundColor: 'primary.main',
+                  height: 3,
+                  borderRadius: '2px 2px 0 0'
                 }
-              },
-              '& .MuiTabs-indicator': {
-                backgroundColor: 'primary.main',
-                height: 3,
-                borderRadius: '2px 2px 0 0'
-              }
-            }}
-          >
-            {pages.map((tab) => (
-              <Tab
-                key={tab.value}
-                label={tab.label}
-                value={tab.value}
-                icon={tab.icon}
-                iconPosition='start'
-                aria-label={`${tab.label} - ${tab.description}`}
-              />
-            ))}
+              }}
+            >
+              {pages.map((tab) => (
+                <Tab
+                  key={tab.value}
+                  label={tab.label}
+                  value={tab.value}
+                  icon={tab.icon}
+                  iconPosition='start'
+                  aria-label={`${tab.label} - ${tab.description}`}
+                />
+              ))}
             </Tabs>
           </Box>
         )}
@@ -395,7 +393,8 @@ const AdminPage = () => {
         sx={{
           flex: 1,
           overflow: 'auto',
-          backgroundColor: 'grey.50'
+          backgroundColor: 'grey.50',
+
         }}
       >
         {renderTabContent()}

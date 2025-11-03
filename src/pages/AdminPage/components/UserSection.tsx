@@ -1,4 +1,11 @@
 import {
+  Edit as EditIcon,
+  FilterListOff as FilterListOffIcon,
+  GroupsOutlined as GroupsOutlinedIcon,
+  Refresh as RefreshIcon,
+  Search as SearchIcon
+} from '@mui/icons-material';
+import {
   Alert,
   Autocomplete,
   Box,
@@ -33,20 +40,12 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
-import {
-  Edit as EditIcon,
-  FilterListOff as FilterListOffIcon,
-  GroupsOutlined as GroupsOutlinedIcon,
-  Refresh as RefreshIcon,
-  Search as SearchIcon
-} from '@mui/icons-material';
-import type { FilterUsersDto, User } from '@/globals/types';
-import { Loading, useNotification } from '@/components';
-import { useAuth, useDebounce, useDepartments, useRoles, useUsers } from '@/hooks';
-import { useCallback, useEffect, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
-
+import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Loading, useNotification } from '@/components';
+import type { FilterUsersDto, User } from '@/globals/types';
+import { useAuth, useDebounce, useDepartments, useRoles, useUsers } from '@/hooks';
 
 interface UserSectionProps {
   currentTab: 'users' | 'gerencias' | 'invites' | 'roles';
@@ -61,14 +60,14 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
 
   // Atualiza URL params apenas quando o debounce for processado
   useEffect(() => {
-    if (debouncedLocalSearch !== urlParams.get('name')) {
+    if (debouncedLocalSearch !== urlParams.get('name') && debouncedLocalSearch !== '') {
       urlParams.set('name', debouncedLocalSearch);
       urlParams.set('email', debouncedLocalSearch);
       urlParams.set('page', '1');
       setUrlParams(urlParams, { replace: true });
     }
   }, [debouncedLocalSearch, urlParams, setUrlParams]);
-  
+
   const { showNotification } = useNotification();
 
   useEffect(() => {
@@ -76,12 +75,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
       setUrlParams({}, { replace: true });
     }
   }, [currentTab, setUrlParams]);
-  const {
-    fetchUsers,
-    updateUserRole,
-    updateUserDepartments,
-    toggleUserStatus
-  } = useUsers();
+  const { fetchUsers, updateUserRole, updateUserDepartments, toggleUserStatus } = useUsers();
 
   const { user: currentUser } = useAuth();
   const { roles, fetchRoles } = useRoles();
@@ -108,24 +102,25 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
     error: usersError,
     refetch: refetchUsers
   } = useQuery({
-    queryKey: ['fetchUsers', 
+    queryKey: [
+      'fetchUsers',
       `page:${urlParams.get('page') || 1}`,
       `limit:${urlParams.get('limit') || 5}`,
-      `name:${urlParams.get('name') || ''}`,
-      `email:${urlParams.get('email') || ''}`,
-      `isActive:${urlParams.get('isActive') || ''}`,
-      `role:${urlParams.get('role') || ''}`,
-      `departments:${urlParams.get('departments') || ''}`
+      `name:${urlParams.get('name')}`,
+      `email:${urlParams.get('email')}`,
+      `isActive:${urlParams.get('isActive')}`,
+      `role:${urlParams.get('role')}`,
+      `departments:${urlParams.get('departments')}`
     ],
     refetchOnWindowFocus: false,
     queryFn: async () => {
       const filters: FilterUsersDto = {
         page: Number(urlParams.get('page') || 1),
         limit: Number(urlParams.get('limit') || 5),
-        name: urlParams.get('name') || '',
-        email: urlParams.get('email') || '',
+        name: urlParams.get('name'),
+        email: urlParams.get('email'),
         isActive: urlParams.get('isActive') ? urlParams.get('isActive') === 'true' : undefined,
-        role: urlParams.get('role') || '',
+        role: urlParams.get('role'),
         departments: urlParams.get('departments') ? urlParams.get('departments')!.split(',') : []
       };
       return await fetchUsers(filters);
@@ -188,28 +183,34 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
     setUrlParams(urlParams, { replace: true });
   }, [urlParams, setUrlParams]);
 
-  const handlePageChange = useCallback((page: number) => {
-    urlParams.set('page', String(page));
-    setUrlParams(urlParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const handlePageChange = useCallback(
+    (page: number) => {
+      urlParams.set('page', String(page));
+      setUrlParams(urlParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
-  const handleLimitChange = useCallback((limit: number) => {
-    urlParams.set('limit', String(limit));
-    urlParams.set('page', '1');
-    setUrlParams(urlParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const handleLimitChange = useCallback(
+    (limit: number) => {
+      urlParams.set('limit', String(limit));
+      urlParams.set('page', '1');
+      setUrlParams(urlParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
   const { mutate: editUser, isPending: editUserPending } = useMutation({
     mutationFn: async ({ userId, role, departments }: { userId: string; role: string; departments: string[] }) => {
       const promises = [];
-      
+
       if (role !== (selectedUser?.role?._id || '')) {
         promises.push(updateUserRole(userId, role));
       }
 
       const currentDeptIds = selectedUser?.departments?.map((dept) => dept._id) || [];
       const departmentsChanged = JSON.stringify(currentDeptIds.sort()) !== JSON.stringify(departments.sort());
-      
+
       if (departmentsChanged) {
         promises.push(updateUserDepartments(userId, departments));
       }
@@ -292,12 +293,15 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
         <CardContent sx={{ p: 4, display: 'flex', flexDirection: 'column' }}>
           {/* Filtros e Botão Atualizar */}
           <Box sx={{ mb: 4 }}>
-            <Grid container spacing={2}>
+            <Grid
+              container
+              spacing={2}
+            >
               {/* Campo de busca - agora inline com outros filtros */}
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <TextField
                   fullWidth
-                  size="small"
+                  size='small'
                   placeholder='Buscar por nome ou email'
                   value={localSearch}
                   onChange={(e) => {
@@ -332,7 +336,10 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
 
               {/* Filtros - xs: empilhados, sm: duas colunas, md+: linha única */}
               <Grid size={{ xs: 12, sm: 6, md: 2 }}>
-                <FormControl fullWidth size="small">
+                <FormControl
+                  fullWidth
+                  size='small'
+                >
                   <Select
                     value={urlParams.get('isActive') || 'todos'}
                     displayEmpty
@@ -381,7 +388,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
 
               <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                 <Autocomplete
-                  size="small"
+                  size='small'
                   options={rolesData || []}
                   getOptionLabel={(option) => (typeof option === 'string' ? option : option.name)}
                   value={rolesData?.find((role) => role._id === urlParams.get('role')) || null}
@@ -443,11 +450,15 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
 
               <Grid size={{ xs: 12, sm: 6, md: 2 }}>
                 <Autocomplete
-                  size="small"
+                  size='small'
                   multiple
                   options={(departmentsData?.departments || departmentsData || []) as any[]}
                   getOptionLabel={(option) => (typeof option === 'string' ? option : option.department_name)}
-                  value={((departmentsData?.departments || departmentsData) as any[])?.filter((dept) => urlParams.get('departments')?.split(',').includes(dept._id)) || []}
+                  value={
+                    ((departmentsData?.departments || departmentsData) as any[])?.filter((dept) =>
+                      urlParams.get('departments')?.split(',').includes(dept._id)
+                    ) || []
+                  }
                   onChange={(_, newValue) => {
                     const deptIds = newValue.map((dept) => (typeof dept === 'string' ? dept : dept._id));
                     if (deptIds.length > 0) {
@@ -507,13 +518,15 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
               {/* Botão limpar filtros - só aparece no desktop */}
               {!isMobile && (
                 <Grid size={{ xs: 12, sm: 6, md: 1 }}>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    justifyContent: 'flex-start',
-                    alignItems: 'center',
-                    height: '100%',
-                    minHeight: '40px'
-                  }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-start',
+                      alignItems: 'center',
+                      height: '100%',
+                      minHeight: '40px'
+                    }}
+                  >
                     <IconButton
                       onClick={handleClearFilters}
                       disabled={usersLoading}
@@ -543,14 +556,16 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
 
               {/* Botão Atualizar - xs-sm: full width abaixo dos filtros, md+: alinhado à direita */}
               <Grid size={{ xs: 12, sm: 12, md: 1 }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  gap: 1,
-                  alignItems: 'center',
-                  justifyContent: { xs: 'space-between', sm: 'space-between', md: 'flex-end' },
-                  width: { xs: '100%', sm: '100%', md: '100%' },
-                  height: { md: '40px' }
-                }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    alignItems: 'center',
+                    justifyContent: { xs: 'space-between', sm: 'space-between', md: 'flex-end' },
+                    width: { xs: '100%', sm: '100%', md: '100%' },
+                    height: { md: '40px' }
+                  }}
+                >
                   {isMobile && (
                     <IconButton
                       onClick={handleClearFilters}
@@ -576,7 +591,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                       <FilterListOffIcon sx={{ fontSize: '1.25rem' }} />
                     </IconButton>
                   )}
-                  
+
                   <Button
                     startIcon={<RefreshIcon sx={{ fontSize: '1.25rem' }} />}
                     onClick={handleRefresh}
@@ -620,7 +635,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
           {usersError && (
             <Alert
               severity='error'
-              sx={{ 
+              sx={{
                 mb: 3,
                 borderRadius: 3,
                 border: '1px solid #fecaca',
@@ -653,11 +668,15 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                 minHeight: 'auto'
               }}
             >
-              <Table stickyHeader size="medium" sx={{ 
-                '& .MuiTableRow-root': {
-                  height: 64
-                }
-              }}>
+              <Table
+                stickyHeader
+                size='medium'
+                sx={{
+                  '& .MuiTableRow-root': {
+                    height: 64
+                  }
+                }}
+              >
                 <TableHead>
                   <TableRow
                     sx={{
@@ -690,19 +709,19 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                       <TableCell
                         colSpan={6}
                         align='center'
-                        sx={{ 
+                        sx={{
                           py: 6,
                           backgroundColor: '#fafafa'
                         }}
                       >
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                          <CircularProgress 
+                          <CircularProgress
                             size={32}
                             sx={{ color: theme.palette.primary.main }}
                           />
                           <Typography
                             variant='body2'
-                            sx={{ 
+                            sx={{
                               color: '#6b7280',
                               fontWeight: 500
                             }}
@@ -717,25 +736,25 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                       <TableCell
                         colSpan={6}
                         align='center'
-                        sx={{ 
+                        sx={{
                           py: 6,
                           backgroundColor: '#fafafa'
                         }}
                       >
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                           <GroupsOutlinedIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
-                          <Typography 
+                          <Typography
                             variant='h6'
-                            sx={{ 
+                            sx={{
                               color: '#6b7280',
                               fontWeight: 500
                             }}
                           >
                             Nenhum usuário encontrado
                           </Typography>
-                          <Typography 
+                          <Typography
                             variant='body2'
-                            sx={{ 
+                            sx={{
                               color: '#9ca3af',
                               fontStyle: 'italic'
                             }}
@@ -744,8 +763,8 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                           </Typography>
                           <Button
                             onClick={handleClearFilters}
-                            variant="outlined"
-                            size="small"
+                            variant='outlined'
+                            size='small'
                             sx={{ mt: 1 }}
                           >
                             Limpar filtros
@@ -853,16 +872,16 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                                 '& .MuiSwitch-switchBase.Mui-checked': {
                                   color: theme.palette.primary.main,
                                   '& + .MuiSwitch-track': {
-                                    backgroundColor: theme.palette.primary.main,
-                                  },
+                                    backgroundColor: theme.palette.primary.main
+                                  }
                                 },
                                 '& .MuiSwitch-track': {
-                                  backgroundColor: '#ccc',
-                                },
+                                  backgroundColor: '#ccc'
+                                }
                               }}
                             />
                             <Typography
-                              variant="body2"
+                              variant='body2'
                               sx={{
                                 color: user.isActive ? 'primary.main' : 'text.secondary',
                                 fontWeight: user.isActive ? 600 : 400,
@@ -877,7 +896,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                           <IconButton
                             size='small'
                             onClick={() => handleEditUser(user)}
-                            aria-label="Editar usuário"
+                            aria-label='Editar usuário'
                             sx={{
                               color: '#6b7280',
                               backgroundColor: 'transparent',
@@ -911,21 +930,24 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                   return (
                     <Paper
                       key={uniqueKey}
-                      variant="outlined"
+                      variant='outlined'
                       sx={{
                         p: 2,
                         borderRadius: 2,
                         border: '1px solid #e5e7eb'
                       }}
                     >
-                      <Skeleton variant="rectangular" height={84} />
+                      <Skeleton
+                        variant='rectangular'
+                        height={84}
+                      />
                     </Paper>
                   );
                 })
               ) : !usersData?.users || usersData.users.length === 0 ? (
                 // Empty state for mobile
                 <Paper
-                  variant="outlined"
+                  variant='outlined'
                   sx={{
                     p: 4,
                     borderRadius: 2,
@@ -936,18 +958,18 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                 >
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
                     <GroupsOutlinedIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
-                    <Typography 
+                    <Typography
                       variant='h6'
-                      sx={{ 
+                      sx={{
                         color: '#6b7280',
                         fontWeight: 500
                       }}
                     >
                       Nenhum usuário encontrado
                     </Typography>
-                    <Typography 
+                    <Typography
                       variant='body2'
-                      sx={{ 
+                      sx={{
                         color: '#9ca3af',
                         fontStyle: 'italic'
                       }}
@@ -956,8 +978,8 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                     </Typography>
                     <Button
                       onClick={handleClearFilters}
-                      variant="outlined"
-                      size="small"
+                      variant='outlined'
+                      size='small'
                       sx={{ mt: 1 }}
                     >
                       Limpar filtros
@@ -969,7 +991,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                 usersData.users.map((user) => (
                   <Paper
                     key={user._id}
-                    variant="outlined"
+                    variant='outlined'
                     sx={{
                       p: 2,
                       borderRadius: 2,
@@ -985,16 +1007,16 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                       {/* Linha 1: Nome + Botão Editar */}
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <Typography
-                          variant="subtitle1"
+                          variant='subtitle1'
                           fontWeight={600}
                           sx={{ color: '#1f2937' }}
                         >
                           {user.firstName} {user.lastName}
                         </Typography>
                         <IconButton
-                          size="small"
+                          size='small'
                           onClick={() => handleEditUser(user)}
-                          aria-label="Editar usuário"
+                          aria-label='Editar usuário'
                           sx={{
                             color: '#6b7280',
                             backgroundColor: 'transparent',
@@ -1015,9 +1037,12 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                       </Box>
 
                       {/* Linha 2: Email com truncamento */}
-                      <Tooltip title={user.email} arrow>
+                      <Tooltip
+                        title={user.email}
+                        arrow
+                      >
                         <Typography
-                          variant="body2"
+                          variant='body2'
                           noWrap
                           sx={{
                             color: '#6b7280',
@@ -1055,11 +1080,15 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                             Sem role
                           </Typography>
                         )}
-                        
+
                         {user.departments && user.departments.length > 0 && (
                           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, maxWidth: '100%' }}>
                             {user.departments.slice(0, 2).map((dept) => (
-                              <Tooltip key={dept._id} title={dept.department_name} arrow>
+                              <Tooltip
+                                key={dept._id}
+                                title={dept.department_name}
+                                arrow
+                              >
                                 <Chip
                                   label={dept.department_name}
                                   size='small'
@@ -1111,18 +1140,18 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                               '& .MuiSwitch-switchBase.Mui-checked': {
                                 color: theme.palette.primary.main,
                                 '& + .MuiSwitch-track': {
-                                  backgroundColor: theme.palette.primary.main,
-                                },
+                                  backgroundColor: theme.palette.primary.main
+                                }
                               },
                               '& .MuiSwitch-track': {
-                                backgroundColor: '#ccc',
-                              },
+                                backgroundColor: '#ccc'
+                              }
                             }}
                           />
                         }
                         label={
                           <Typography
-                            variant="body2"
+                            variant='body2'
                             sx={{
                               color: user.isActive ? 'primary.main' : 'text.secondary',
                               fontWeight: user.isActive ? 600 : 400,
@@ -1167,7 +1196,8 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
               {usersData ? (
                 <>
                   {(Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10) + 1}-
-                  {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10), usersData.total)} de {usersData.total}
+                  {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10), usersData.total)}{' '}
+                  de {usersData.total}
                 </>
               ) : (
                 '0 de 0'
@@ -1182,7 +1212,10 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                 sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
               >
                 {[5, 10, 25, 50].map((limit) => (
-                  <MenuItem key={limit} value={limit}>
+                  <MenuItem
+                    key={limit}
+                    value={limit}
+                  >
                     {limit} por página
                   </MenuItem>
                 ))}
@@ -1218,28 +1251,34 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
         <DialogContent sx={{ p: 0 }}>
           <Box sx={{ p: 4 }}>
             {/* Header com ícone e título */}
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              textAlign: 'center', 
-              mb: 4 
-            }}>
-              <Box sx={{
-                backgroundColor: 'rgba(24, 119, 242, 0.1)',
-                p: 1.5,
-                borderRadius: '50%',
-                mb: 2,
+            <Box
+              sx={{
                 display: 'flex',
+                flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <EditIcon sx={{ 
-                  fontSize: 32, 
-                  color: '#1877F2' 
-                }} />
+                textAlign: 'center',
+                mb: 4
+              }}
+            >
+              <Box
+                sx={{
+                  backgroundColor: 'rgba(24, 119, 242, 0.1)',
+                  p: 1.5,
+                  borderRadius: '50%',
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                <EditIcon
+                  sx={{
+                    fontSize: 32,
+                    color: '#1877F2'
+                  }}
+                />
               </Box>
-              
+
               <Typography
                 variant='h5'
                 sx={{
@@ -1250,7 +1289,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
               >
                 Editar Usuário
               </Typography>
-              
+
               <Typography
                 variant='body2'
                 sx={{
@@ -1259,7 +1298,10 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                 }}
               >
                 Atualize as informações de{' '}
-                <Box component='span' sx={{ fontWeight: 600, color: '#1f2937' }}>
+                <Box
+                  component='span'
+                  sx={{ fontWeight: 600, color: '#1f2937' }}
+                >
                   {selectedUser?.firstName} {selectedUser?.lastName}
                 </Box>
                 .
@@ -1267,13 +1309,15 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
             </Box>
 
             {/* Seção de Permissões */}
-            <Box sx={{
-              backgroundColor: '#f9fafb',
-              p: 3,
-              borderRadius: 2,
-              border: '1px solid #e5e7eb',
-              mb: 4
-            }}>
+            <Box
+              sx={{
+                backgroundColor: '#f9fafb',
+                p: 3,
+                borderRadius: 2,
+                border: '1px solid #e5e7eb',
+                mb: 4
+              }}
+            >
               <Typography
                 variant='h6'
                 sx={{
@@ -1285,7 +1329,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
               >
                 Permissões
               </Typography>
-              
+
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box>
                   <Typography
@@ -1372,7 +1416,11 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                     multiple
                     options={(departmentsData?.departments || departmentsData || []) as any[]}
                     getOptionLabel={(option) => (typeof option === 'string' ? option : option.department_name)}
-                    value={((departmentsData?.departments || departmentsData) as any[])?.filter((dept) => editForm.departments?.includes(dept._id)) || []}
+                    value={
+                      ((departmentsData?.departments || departmentsData) as any[])?.filter((dept) =>
+                        editForm.departments?.includes(dept._id)
+                      ) || []
+                    }
                     onChange={(_, newValue) => {
                       setEditForm((prev) => ({
                         ...prev,
@@ -1428,14 +1476,16 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
             </Box>
           </Box>
         </DialogContent>
-        
-        <DialogActions sx={{ 
-          p: 3, 
-          pt: 0,
-          justifyContent: 'flex-end',
-          gap: 1
-        }}>
-          <Button 
+
+        <DialogActions
+          sx={{
+            p: 3,
+            pt: 0,
+            justifyContent: 'flex-end',
+            gap: 1
+          }}
+        >
+          <Button
             onClick={() => setEditModalOpen(false)}
             sx={{
               px: 3,
