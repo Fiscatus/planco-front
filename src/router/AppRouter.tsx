@@ -16,6 +16,8 @@ const Invites = lazy(() => import('@/pages/Invites/Invites'));
 const NotAccess = lazy(() => import('@/pages/NotAccessPage/NotAccessPage'));
 const AdminPage = lazy(() => import('@/pages/AdminPage/AdminPage'));
 const MinhasGerencias = lazy(() => import('@/pages/MinhasGerencias/MinhasGerencias'));
+const FolderManagement = lazy(() => import('@/pages/FolderManagement/FolderManagement'));
+const FolderProcessesPage = lazy(() => import('@/pages/FolderProcesses/FolderProcessesPage'));
 
 const withoutHeaderRoutes = ['/auth', '/privacy-policy'];
 
@@ -102,6 +104,14 @@ const AppRouter = () => {
                <Route
                  path='/minhas-gerencias'
                  element={<MinhasGerencias />}
+               />
+               <Route
+                 path='/gerenciamento-pastas'
+                 element={<FolderManagement />}
+               />
+               <Route
+                 path='/pasta/:id'
+                 element={<FolderProcessesPage />}
                />
             </>
           )}

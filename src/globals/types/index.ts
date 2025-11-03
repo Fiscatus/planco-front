@@ -36,3 +36,20 @@ export type {
   CreateDepartmentDto,
   UpdateDepartmentDto
 } from './Department';
+export type {
+  Folder,
+  PaginatedFolders,
+  CreateFolderDto,
+  UpdateFolderDto,
+  FilterFoldersDto,
+  ToggleFavoriteResponse
+} from './Folder';
+export type {
+  Process,
+  PaginatedProcesses,
+  FilterProcessesDto,
+  CreateProcessDto,
+  UpdateProcessDto,
+  FolderStatsDto
+} from './Process';
+export type { MoveProcessesDto } from './MoveProcesses';

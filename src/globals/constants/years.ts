@@ -1,8 +1,8 @@
 const years = (): string[] => {
   const currentYear = new Date().getFullYear();
-  const years = [];
+  const years: string[] = [];
   for (let year = currentYear; year >= 1900; year--) {
-    years.push(year);
+    years.push(String(year));
   }
   return years;
 };
