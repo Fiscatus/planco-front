@@ -1,7 +1,7 @@
 import {
-  Add as AddIcon,
   CalendarMonth as CalendarMonthIcon,
   Clear as ClearIcon,
+  CreateNewFolder as CreateNewFolderIcon,
   FilterAlt as FilterAltIcon,
   Edit as EditIcon,
   Search as SearchIcon,
@@ -400,7 +400,7 @@ const FolderManagement = () => {
         >
           <Button
             variant='contained'
-            startIcon={<AddIcon />}
+            startIcon={<CreateNewFolderIcon />}
             onClick={handleOpenCreate}
             sx={{
               borderRadius: 2,

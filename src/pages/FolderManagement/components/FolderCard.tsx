@@ -11,7 +11,8 @@ import {
   Info as InfoIcon,
   PushPin as PushPinIcon,
   Schedule as ScheduleIcon,
-  Star as StarIcon
+  Star as StarIcon,
+  StarBorder as StarBorderIcon
 } from '@mui/icons-material';
 import type { Folder } from '@/globals/types';
 import { useCallback } from 'react';
@@ -167,15 +168,23 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
                     transition: 'all 0.2s ease-in-out'
                   }}
                 >
-                  <StarIcon
-                    sx={{
-                      fontSize: { xs: 20, sm: 22 },
-                      fill: isFolderFavorite ? '#fbbf24' : 'transparent',
-                      stroke: isFolderFavorite ? '#fbbf24' : '#cbd5e1',
-                      strokeWidth: isFolderFavorite ? 0 : 1.5,
-                      transition: 'all 0.2s ease-in-out'
-                    }}
-                  />
+                  {isFolderFavorite ? (
+                    <StarIcon
+                      sx={{
+                        fontSize: { xs: 20, sm: 22 },
+                        color: '#fbbf24',
+                        transition: 'all 0.2s ease-in-out'
+                      }}
+                    />
+                  ) : (
+                    <StarBorderIcon
+                      sx={{
+                        fontSize: { xs: 20, sm: 22 },
+                        color: '#94a3b8',
+                        transition: 'all 0.2s ease-in-out'
+                      }}
+                    />
+                  )}
                 </IconButton>
               </Tooltip>
             )}

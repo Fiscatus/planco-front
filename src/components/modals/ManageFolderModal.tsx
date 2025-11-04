@@ -503,7 +503,7 @@ export const ManageFolderModal = ({
                   }}
                 >
                   <WarningIcon sx={{ color: '#92400e', fontSize: { xs: 18, sm: 20 }, flexShrink: 0 }} />
-                <Typography
+                  <Typography
                     variant='body2'
                     sx={{
                       color: '#92400e',
@@ -511,7 +511,7 @@ export const ManageFolderModal = ({
                       lineHeight: { xs: 1.4, sm: 1.5 }
                     }}
                   >
-                    Esta pasta não pode ser editada por ser protegida do sistema.
+                    Esta pasta não pode ser editada por ser a pasta padrão do sistema.
                   </Typography>
                 </Box>
               ) : (
@@ -1262,7 +1262,7 @@ export const ManageFolderModal = ({
                       lineHeight: { xs: 1.4, sm: 1.5 }
                     }}
                   >
-                    Esta pasta não pode ser excluída por ser protegida do sistema.
+                    Esta pasta não pode ser excluída por ser a pasta padrão do sistema.
                   </Typography>
                 </Box>
               ) : (
