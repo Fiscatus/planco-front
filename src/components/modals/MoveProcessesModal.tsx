@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import {
   DriveFileMove as DriveFileMoveIcon,
+  Folder as FolderIcon,
   Search as SearchIcon
 } from '@mui/icons-material';
 import type { Folder, MoveProcessesDto, Process } from '@/globals/types';
@@ -247,11 +248,30 @@ export const MoveProcessesModal = ({
                 <MenuItem value='' disabled>
                   {loadingFolders ? 'Carregando pastas...' : availableFolders.length === 0 ? 'Nenhuma pasta disponível' : 'Selecione a pasta destino...'}
                 </MenuItem>
-                {availableFolders.map((f) => (
-                  <MenuItem key={f._id} value={f._id}>
-                    {f.name} {f.year ? `(${f.year})` : ''}
-                  </MenuItem>
-                ))}
+                {availableFolders.map((f) => {
+                  const isPlanco = f.name?.toLowerCase().includes('planco');
+                  const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
+                  
+                  return (
+                    <MenuItem key={f._id} value={f._id}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
+                        <FolderIcon sx={{ fontSize: 24, color: folderIconColor }} />
+                        <Box sx={{ flex: 1 }}>
+                          <Typography
+                            variant='body2'
+                            sx={{
+                              fontWeight: 500,
+                              color: '#0f172a',
+                              fontSize: '0.875rem'
+                            }}
+                          >
+                            {f.name} {f.year ? `(${f.year})` : ''}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </MenuItem>
+                  );
+                })}
               </Select>
               {!loadingFolders && availableFolders.length === 0 && (
                 <Typography

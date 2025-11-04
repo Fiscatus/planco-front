@@ -23,11 +23,11 @@ import {
   useTheme
 } from '@mui/material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loading, useNotification } from '@/components';
 import type { CreateFolderDto, FilterFoldersDto, Folder, UpdateFolderDto, MoveProcessesDto } from '@/globals/types';
-import { useFolders, useSearchWithDebounce } from '@/hooks';
+import { useFolders, useSearchWithDebounce, useFavoriteFolders } from '@/hooks';
 import { FolderCard } from './components/FolderCard';
 import { years } from '@/globals/constants';
 
@@ -167,10 +167,60 @@ const FolderManagement = () => {
     setManageModalOpen(true);
   }, []);
 
-  const handleToggleFavorite = useCallback((id: string) => {
-    // Funcionalidade de favoritar temporariamente desabilitada
-    // favoriteFolder(id);
-  }, []);
+  const { toggleFavorite, getFavoriteIds } = useFavoriteFolders();
+  const [favoritesUpdateTrigger, setFavoritesUpdateTrigger] = useState(0);
+
+  const handleToggleFavorite = useCallback(
+    (id: string) => {
+      toggleFavorite(id);
+      // Forçar atualização da ordenação
+      setFavoritesUpdateTrigger((prev) => prev + 1);
+    },
+    [toggleFavorite]
+  );
+
+  // Função para ordenar pastas: permanentes primeiro, depois favoritas (mais recente primeiro), depois as outras (mais recente primeiro)
+  const sortedFolders = useMemo(() => {
+    if (!foldersData?.folders) return [];
+    
+    const favoriteIds = getFavoriteIds();
+    const favoriteIdsSet = new Set(favoriteIds);
+    
+    // Função auxiliar para obter a data mais recente de uma pasta
+    const getLatestDate = (folder: Folder): number => {
+      const updatedAt = folder.updatedAt ? new Date(folder.updatedAt).getTime() : 0;
+      const createdAt = folder.createdAt ? new Date(folder.createdAt).getTime() : 0;
+      return Math.max(updatedAt, createdAt);
+    };
+    
+    return [...foldersData.folders].sort((a, b) => {
+      const aIsPermanent = a.isPermanent || false;
+      const bIsPermanent = b.isPermanent || false;
+      const aIsFavorite = favoriteIdsSet.has(a._id);
+      const bIsFavorite = favoriteIdsSet.has(b._id);
+      
+      // Pastas permanentes primeiro
+      if (aIsPermanent && !bIsPermanent) return -1;
+      if (!aIsPermanent && bIsPermanent) return 1;
+      
+      // Se ambas são permanentes, manter ordem original entre elas
+      if (aIsPermanent && bIsPermanent) return 0;
+      
+      // Depois pastas favoritadas (não permanentes)
+      if (aIsFavorite && !bIsFavorite) return -1;
+      if (!aIsFavorite && bIsFavorite) return 1;
+      
+      // Se ambas são favoritas ou ambas não são favoritas, ordenar por data (mais recente primeiro)
+      if ((aIsFavorite && bIsFavorite) || (!aIsFavorite && !bIsFavorite)) {
+        const aDate = getLatestDate(a);
+        const bDate = getLatestDate(b);
+        // Mais recente primeiro (data maior vem primeiro)
+        return bDate - aDate;
+      }
+      
+      return 0;
+    });
+  }, [foldersData?.folders, getFavoriteIds, favoritesUpdateTrigger]);
 
   const handleCardClick = useCallback((id: string) => {
     navigate(`/pasta/${id}`);
@@ -290,10 +340,10 @@ const FolderManagement = () => {
       {/* Header */}
       <Box
         sx={{
-          py: { xs: 6, md: 8 },
+          py: { xs: 3, md: 4 },
           px: { xs: 2, sm: 4, md: 6, lg: 8 },
           '@media (max-width: 767px)': {
-            py: 4,
+            py: 2.5,
             px: 1.5
           },
           display: 'flex',
@@ -385,303 +435,257 @@ const FolderManagement = () => {
       >
         <Card
           sx={{
-            borderRadius: 3,
+            borderRadius: 2,
             border: '1px solid',
             borderColor: '#e2e8f0',
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+            boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
             overflow: 'hidden',
-            transition: 'all 0.3s ease-in-out',
-            backgroundColor: '#ffffff',
-            '&:hover': {
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-            }
+            backgroundColor: '#ffffff'
           }}
         >
           <Box
             sx={{
-              p: 3,
-              background: 'linear-gradient(135deg, rgba(248, 250, 252, 1) 0%, rgba(255, 255, 255, 1) 100%)',
+              px: 3,
+              py: 2.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
               borderBottom: '1px solid',
-              borderColor: '#e2e8f0'
+              borderColor: '#f1f5f9',
+              backgroundColor: '#fafbfc'
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: 44,
-                    height: 44,
-                    borderRadius: 2.5,
-                    background: 'linear-gradient(135deg, #1877F2 0%, #166fe5 100%)',
-                    boxShadow: '0 2px 8px rgba(24, 119, 242, 0.3)'
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <FilterAltIcon sx={{ color: '#1877F2', fontSize: 20 }} />
+              <Typography
+                variant='subtitle1'
+                sx={{
+                  fontWeight: 600,
+                  fontSize: '0.9375rem',
+                  color: '#0f172a',
+                  letterSpacing: '-0.01em'
+                }}
+              >
+                Filtros de Pesquisa
+              </Typography>
+            </Box>
+            {(urlParams.get('year') || urlParams.get('sortBy') !== 'name' || urlParams.get('sortOrder') !== 'asc' || folderSearch) && (
+              <Button
+                variant='outlined'
+                size='small'
+                startIcon={<ClearIcon sx={{ fontSize: 16 }} />}
+                onClick={handleClearFilters}
+                sx={{
+                  minWidth: 'auto',
+                  px: 2,
+                  py: 0.875,
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  color: '#64748b',
+                  borderColor: '#cbd5e1',
+                  textTransform: 'none',
+                  borderRadius: 2,
+                  backgroundColor: '#ffffff',
+                  transition: 'all 0.2s ease-in-out',
+                  '&:hover': {
+                    backgroundColor: '#f8fafc',
+                    borderColor: '#94a3b8',
+                    color: '#475569',
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
+                  }
+                }}
+              >
+                Limpar filtros
+              </Button>
+            )}
+          </Box>
+          <Box sx={{ p: 3 }}>
+            <Grid container spacing={2.5}>
+              {/* Campo de busca */}
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  fullWidth
+                  placeholder='Buscar por nome da pasta, processo ou ano...'
+                  value={folderSearch}
+                  onChange={(e) => handleFolderSearchChange(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <SearchIcon sx={{ color: '#94a3b8', fontSize: 20, mr: 1.5 }} />
+                    )
                   }}
-                >
-                  <FilterAltIcon sx={{ color: '#ffffff', fontSize: 22 }} />
-                </Box>
-                <Box>
-                  <Typography
-                    variant='h6'
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '1.125rem',
-                      color: '#0f172a',
-                      letterSpacing: '-0.01em',
-                      lineHeight: 1.4
-                    }}
-                  >
-                    Filtros de Pesquisa
-                  </Typography>
-                  <Typography
-                    variant='caption'
-                    sx={{
-                      color: '#64748b',
-                      fontSize: '0.8125rem',
-                      display: 'block',
-                      mt: 0.25,
-                      lineHeight: 1.3
-                    }}
-                  >
-                    Encontre suas pastas de forma rápida
-                  </Typography>
-                </Box>
-              </Box>
-              {(urlParams.get('year') || urlParams.get('sortBy') !== 'name' || urlParams.get('sortOrder') !== 'asc' || folderSearch) && (
-                <Chip
-                  icon={<ClearIcon sx={{ fontSize: 16 }} />}
-                  label='Limpar'
-                  onClick={handleClearFilters}
                   sx={{
-                    height: 32,
-                    fontWeight: 600,
-                    fontSize: '0.8125rem',
-                    borderRadius: 2.5,
-                    backgroundColor: '#fef2f2',
-                    color: '#dc2626',
-                    border: '1px solid #fecaca',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease-in-out',
-                    '&:hover': {
-                      backgroundColor: '#fee2e2',
-                      borderColor: '#fca5a5',
-                      transform: 'translateY(-1px)'
+                    '& .MuiOutlinedInput-root': {
+                      height: 42,
+                      borderRadius: 2,
+                      backgroundColor: '#ffffff',
+                      fontSize: '0.875rem',
+                      transition: 'all 0.2s ease-in-out',
+                      '&:hover': {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#cbd5e1'
+                        }
+                      },
+                      '&.Mui-focused': {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.primary.main,
+                          borderWidth: '1.5px'
+                        }
+                      }
                     },
-                    '& .MuiChip-icon': {
-                      color: '#dc2626',
-                      marginLeft: '6px'
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#e2e8f0'
+                    },
+                    '& .MuiInputBase-input::placeholder': {
+                      color: '#94a3b8',
+                      opacity: 1,
+                      fontSize: '0.875rem'
                     }
                   }}
                 />
-              )}
-            </Box>
-          </Box>
-          <Box sx={{ p: 3, pt: 2.5 }}>
-            <Grid
-              container
-              spacing={2.5}
-            >
-              {/* Campo de busca */}
-              <Grid size={{ xs: 12, md: 6 }}>
-                <Box>
-                  <Typography
-                    variant='caption'
-                    sx={{
-                      display: 'block',
-                      mb: 1.5,
-                      fontWeight: 600,
-                      color: '#475569',
-                      fontSize: '0.6875rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em'
-                    }}
-                  >
-                    Buscar
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    placeholder='Digite nome da pasta, processo ou ano...'
-                    value={folderSearch}
-                    onChange={(e) => handleFolderSearchChange(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            mr: 1.25,
-                            width: 20,
-                            height: 20
-                          }}
-                        >
-                          <SearchIcon sx={{ color: '#94a3b8', fontSize: '1.25rem' }} />
-                        </Box>
-                      ),
-                      sx: { height: 44 }
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2.5,
-                        backgroundColor: '#ffffff',
-                        border: '1px solid #e2e8f0',
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                          borderColor: '#cbd5e1'
-                        },
-                        '&.Mui-focused': {
-                          borderColor: theme.palette.primary.main,
-                          boxShadow: `0 0 0 3px ${theme.palette.primary.main}15`,
-                          backgroundColor: '#ffffff'
-                        }
-                      },
-                      '& .MuiInputBase-input::placeholder': {
-                        color: '#94a3b8',
-                        opacity: 1,
-                        fontWeight: 400
-                      }
-                    }}
-                  />
-                </Box>
               </Grid>
 
               {/* Filtro de ano */}
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <Box>
-                  <Typography
-                    variant='caption'
+                <FormControl fullWidth>
+                  <Select
+                    value={urlParams.get('year') || 'all'}
+                    onChange={(e) => handleYearChange(e.target.value)}
+                    displayEmpty
                     sx={{
-                      display: 'block',
-                      mb: 1.5,
-                      fontWeight: 600,
-                      color: '#475569',
-                      fontSize: '0.6875rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em'
+                      height: 42,
+                      borderRadius: 2,
+                      fontSize: '0.875rem',
+                      backgroundColor: '#ffffff',
+                      '&:hover': {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#cbd5e1'
+                        }
+                      },
+                      '&.Mui-focused': {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.primary.main,
+                          borderWidth: '1.5px'
+                        }
+                      },
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#e2e8f0'
+                      },
+                      '& .MuiSelect-select': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        py: 1.25,
+                        px: 1.5
+                      }
+                    }}
+                    renderValue={(value) => {
+                      const selectedYear = value === 'all' ? 'Todos os anos' : value;
+                      return (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CalendarMonthIcon sx={{ fontSize: 18, color: '#64748b' }} />
+                          <Typography component='span' sx={{ fontSize: '0.875rem', color: '#0f172a' }}>
+                            {selectedYear}
+                          </Typography>
+                        </Box>
+                      );
                     }}
                   >
-                    Ano
-                  </Typography>
-                  <FormControl fullWidth>
-                    <Select
-                      value={urlParams.get('year') || 'all'}
-                      onChange={(e) => handleYearChange(e.target.value)}
-                      displayEmpty
-                      sx={{
-                        height: 44,
-                        borderRadius: 2.5,
-                        backgroundColor: '#ffffff',
-                        border: '1px solid #e2e8f0',
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                          borderColor: '#cbd5e1'
-                        },
-                        '&.Mui-focused': {
-                          borderColor: theme.palette.primary.main,
-                          boxShadow: `0 0 0 3px ${theme.palette.primary.main}15`,
-                          backgroundColor: '#ffffff'
-                        },
-                        '& .MuiSelect-select': {
-                          display: 'flex',
-                          alignItems: 'center',
-                          paddingLeft: '12px !important'
-                        }
-                      }}
-                      renderValue={(value) => {
-                        const selectedYear = value === 'all' ? 'Todos os anos' : value;
-                        return (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <CalendarMonthIcon sx={{ fontSize: 18, color: '#64748b' }} />
-                            <Box component='span' sx={{ fontWeight: 400, color: '#0f172a' }}>
-                              {selectedYear}
-                            </Box>
-                          </Box>
-                        );
-                      }}
-                    >
-                      <MenuItem value='all'>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                          <CalendarMonthIcon sx={{ fontSize: 18, color: '#64748b' }} />
-                          <Box component='span' sx={{ color: '#64748b' }}>Todos os anos</Box>
-                        </Box>
+                    <MenuItem value='all' sx={{ fontSize: '0.875rem' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CalendarMonthIcon sx={{ fontSize: 18, color: '#64748b' }} />
+                        <Typography component='span' sx={{ fontSize: '0.875rem' }}>Todos os anos</Typography>
+                      </Box>
+                    </MenuItem>
+                    {years().slice(0, 10).map((year) => (
+                      <MenuItem key={year} value={year} sx={{ fontSize: '0.875rem' }}>
+                        {year}
                       </MenuItem>
-                      {years().slice(0, 10).map((year) => (
-                        <MenuItem key={year} value={year}>
-                          {year}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
+                    ))}
+                  </Select>
+                </FormControl>
               </Grid>
 
               {/* Filtro de ordenação */}
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                <Box>
-                  <Typography
-                    variant='caption'
+                <FormControl fullWidth>
+                  <Select
+                    value={`${urlParams.get('sortBy') || 'name'}-${urlParams.get('sortOrder') || 'asc'}`}
+                    onChange={(e) => {
+                      const [sortBy, sortOrder] = e.target.value.split('-');
+                      handleSortByChange(sortBy);
+                      handleSortOrderChange(sortOrder);
+                    }}
                     sx={{
-                      display: 'block',
-                      mb: 1.5,
-                      fontWeight: 600,
-                      color: '#475569',
-                      fontSize: '0.6875rem',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.08em'
+                      height: 42,
+                      borderRadius: 2,
+                      fontSize: '0.875rem',
+                      backgroundColor: '#ffffff',
+                      '&:hover': {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#cbd5e1'
+                        }
+                      },
+                      '&.Mui-focused': {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.primary.main,
+                          borderWidth: '1.5px'
+                        }
+                      },
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#e2e8f0'
+                      },
+                      '& .MuiSelect-select': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        py: 1.25,
+                        px: 1.5
+                      }
+                    }}
+                    renderValue={(value) => {
+                      const sortText = value === 'name-asc' ? 'Nome (A-Z)' : value === 'name-desc' ? 'Nome (Z-A)' : 'Nome (A-Z)';
+                      return (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <SortIcon sx={{ fontSize: 18, color: '#64748b' }} />
+                          <Typography component='span' sx={{ fontSize: '0.875rem', color: '#0f172a' }}>
+                            {sortText}
+                          </Typography>
+                        </Box>
+                      );
                     }}
                   >
-                    Ordenação
-                  </Typography>
-                  <FormControl fullWidth>
-                    <Select
-                      value={`${urlParams.get('sortBy') || 'name'}-${urlParams.get('sortOrder') || 'asc'}`}
-                      onChange={(e) => {
-                        const [sortBy, sortOrder] = e.target.value.split('-');
-                        handleSortByChange(sortBy);
-                        handleSortOrderChange(sortOrder);
-                      }}
-                      sx={{
-                        height: 44,
-                        borderRadius: 2.5,
-                        backgroundColor: '#ffffff',
-                        border: '1px solid #e2e8f0',
-                        transition: 'all 0.2s ease-in-out',
-                        '&:hover': {
-                          borderColor: '#cbd5e1'
-                        },
-                        '&.Mui-focused': {
-                          borderColor: theme.palette.primary.main,
-                          boxShadow: `0 0 0 3px ${theme.palette.primary.main}15`,
-                          backgroundColor: '#ffffff'
-                        },
-                        '& .MuiSelect-select': {
-                          display: 'flex',
-                          alignItems: 'center',
-                          paddingLeft: '12px !important'
-                        }
-                      }}
-                      renderValue={(value) => {
-                        return (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <SortIcon sx={{ fontSize: 18, color: '#64748b' }} />
-                            <Box component='span' sx={{ fontWeight: 400, color: '#0f172a' }}>
-                              {value === 'name-asc' ? 'Nome (A-Z)' : value === 'name-desc' ? 'Nome (Z-A)' : 'Nome (A-Z)'}
-                            </Box>
-                          </Box>
-                        );
-                      }}
-                    >
-                      <MenuItem value='name-asc'>Nome (A-Z)</MenuItem>
-                      <MenuItem value='name-desc'>Nome (Z-A)</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
+                    <MenuItem value='name-asc' sx={{ fontSize: '0.875rem' }}>Nome (A-Z)</MenuItem>
+                    <MenuItem value='name-desc' sx={{ fontSize: '0.875rem' }}>Nome (Z-A)</MenuItem>
+                  </Select>
+                </FormControl>
               </Grid>
             </Grid>
           </Box>
         </Card>
       </Box>
+
+      {/* Informação de Resultados */}
+      {foldersData?.folders && foldersData.folders.length > 0 && (
+        <Box
+          sx={{
+            px: { xs: 2, sm: 4, md: 6, lg: 8 },
+            mb: 2.5,
+            mt: 1,
+            '@media (max-width: 767px)': {
+              px: 1.5
+            }
+          }}
+        >
+          <Typography
+            variant='body2'
+            sx={{
+              color: '#475569',
+              fontSize: '0.875rem',
+              fontWeight: 600
+            }}
+          >
+            {foldersData.total} {foldersData.total === 1 ? 'pasta encontrada' : 'pastas encontradas'}
+          </Typography>
+        </Box>
+      )}
 
       {/* Grid de Pastas */}
       <Box
@@ -693,25 +697,12 @@ const FolderManagement = () => {
           }
         }}
       >
-        {foldersData?.folders && foldersData.folders.length > 0 ? (
-          <>
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                variant='body2'
-                sx={{
-                  color: '#64748b',
-                  fontSize: '0.875rem',
-                  fontWeight: 500
-                }}
-              >
-                {foldersData.total} {foldersData.total === 1 ? 'pasta encontrada' : 'pastas encontradas'}
-              </Typography>
-            </Box>
-            <Grid
-              container
-              spacing={3}
-            >
-              {foldersData.folders.map((folder) => (
+        {sortedFolders && sortedFolders.length > 0 ? (
+          <Grid
+            container
+            spacing={3}
+          >
+              {sortedFolders.map((folder) => (
                 <Grid
                   key={folder._id}
                   size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
@@ -724,7 +715,6 @@ const FolderManagement = () => {
                 </Grid>
               ))}
             </Grid>
-          </>
         ) : (
           <Card
             sx={{

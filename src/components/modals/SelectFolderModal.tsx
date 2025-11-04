@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import {
   Close as CloseIcon,
-  FolderOpen as FolderOpenIcon,
+  Folder as FolderIcon,
   Search as SearchIcon
 } from '@mui/icons-material';
 import type { Folder } from '@/globals/types';
@@ -109,6 +109,7 @@ export const SelectFolderModal = ({
               height: 40,
               borderRadius: '50%',
               color: '#64748b',
+              backgroundColor: 'transparent',
               '&:hover': {
                 backgroundColor: '#f1f5f9'
               }
@@ -119,7 +120,16 @@ export const SelectFolderModal = ({
         </Box>
 
         {/* Search */}
-        <Box sx={{ p: 3, pb: 2 }}>
+        <Box 
+          sx={{ 
+            p: 3, 
+            pb: 2,
+            position: 'relative',
+            zIndex: 2,
+            backgroundColor: '#ffffff',
+            borderBottom: '1px solid #e2e8f0'
+          }}
+        >
           <TextField
             fullWidth
             placeholder='Buscar pasta...'
@@ -163,8 +173,12 @@ export const SelectFolderModal = ({
           sx={{
             px: 3,
             pb: 3,
+            pt: 2,
             maxHeight: 400,
-            overflowY: 'auto'
+            overflowY: 'auto',
+            position: 'relative',
+            zIndex: 1,
+            backgroundColor: '#ffffff'
           }}
         >
           {filteredFolders.length === 0 ? (
@@ -174,7 +188,7 @@ export const SelectFolderModal = ({
                 py: 6
               }}
             >
-              <FolderOpenIcon sx={{ fontSize: 64, color: '#cbd5e1', mb: 2 }} />
+              <FolderIcon sx={{ fontSize: 64, color: '#cbd5e1', mb: 2 }} />
               <Typography
                 variant='body1'
                 sx={{
@@ -206,28 +220,25 @@ export const SelectFolderModal = ({
                       justifyContent: 'flex-start',
                       textTransform: 'none',
                       transition: 'all 0.2s ease-in-out',
+                      position: 'relative',
+                      overflow: 'visible',
                       '&:hover': {
                         backgroundColor: '#f8fafc',
                         borderColor: '#1877F2',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                        transform: 'translateY(-2px)'
+                        transform: 'translateY(-1px)'
                       }
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: 48,
-                          height: 48,
-                          borderRadius: 2,
-                          backgroundColor: '#EFF6FF'
-                        }}
-                      >
-                        <FolderOpenIcon sx={{ fontSize: 24, color: '#1877F2' }} />
-                      </Box>
+                      {(() => {
+                        const isPlanco = folder.name?.toLowerCase().includes('planco');
+                        const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
+                        
+                        return (
+                          <FolderIcon sx={{ fontSize: 24, color: folderIconColor }} />
+                        );
+                      })()}
                       <Box sx={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                         <Typography
                           variant='body1'

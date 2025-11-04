@@ -10,11 +10,13 @@ import {
   Folder as FolderIcon,
   Info as InfoIcon,
   PushPin as PushPinIcon,
-  Schedule as ScheduleIcon
+  Schedule as ScheduleIcon,
+  Star as StarIcon
 } from '@mui/icons-material';
 import type { Folder } from '@/globals/types';
 import { useCallback } from 'react';
 import dayjs from 'dayjs';
+import { useFavoriteFolders } from '@/hooks';
 
 interface FolderCardProps {
   folder: Folder;
@@ -23,16 +25,29 @@ interface FolderCardProps {
 }
 
 export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProps) => {
+  const { isFavorite, toggleFavorite } = useFavoriteFolders();
+  const isFolderFavorite = isFavorite(folder._id);
+
   const handleCardClick = useCallback(() => {
     onClick(folder._id);
   }, [folder._id, onClick]);
+
+  const handleFavoriteClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation(); // Prevenir que o clique na estrela dispare o clique do card
+      toggleFavorite(folder._id);
+      onToggleFavorite(folder._id);
+    },
+    [folder._id, toggleFavorite, onToggleFavorite]
+  );
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     return dayjs(dateString).format('DD/MM/YYYY');
   };
 
-  const folderIconColor = folder.isDefault ? '#1877F2' : '#fbbf24';
+  const isPlanco = folder.name?.toLowerCase().includes('planco');
+  const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
 
   return (
     <Card
@@ -47,6 +62,7 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
+        position: 'relative',
         '&:hover': {
           boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
           transform: 'translateY(-2px)'
@@ -73,7 +89,7 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
           {/* Ícone da pasta */}
           <Box
             sx={{
-              backgroundColor: folderIconColor === '#1877F2' ? '#dbeafe' : '#fef3c7',
+              backgroundColor: isPlanco ? '#dbeafe' : '#fef3c7',
               borderRadius: 2.5,
               p: 1.5,
               display: 'flex',
@@ -91,7 +107,7 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
           </Box>
 
           {/* Indicadores */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
             {folder.isDefault && (
               <Tooltip title='Pasta Padrão do Sistema'>
                 <IconButton
@@ -99,28 +115,66 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
                   sx={{
                     color: '#1877F2',
                     cursor: 'default',
+                    padding: 0.75,
+                    minWidth: 'auto',
+                    width: 36,
+                    height: 36,
                     '&:hover': {
                       backgroundColor: 'transparent'
                     }
                   }}
                 >
-                  <PushPinIcon sx={{ fontSize: 20 }} />
+                  <PushPinIcon sx={{ fontSize: 22 }} />
                 </IconButton>
               </Tooltip>
             )}
             {!folder.isDefault && folder.isPermanent && (
-              <Tooltip title='Pasta Permanente'>
+              <Tooltip title='Pasta Fixa'>
                 <IconButton
                   size='small'
                   sx={{
-                    color: '#64748b',
+                    color: isPlanco ? '#1877F2' : '#64748b',
                     cursor: 'default',
+                    padding: 0.75,
+                    minWidth: 'auto',
+                    width: 36,
+                    height: 36,
                     '&:hover': {
                       backgroundColor: 'transparent'
                     }
                   }}
                 >
-                  <InfoIcon sx={{ fontSize: 20 }} />
+                  <PushPinIcon sx={{ fontSize: 22 }} />
+                </IconButton>
+              </Tooltip>
+            )}
+            {!folder.isPermanent && (
+              <Tooltip title={isFolderFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}>
+                <IconButton
+                  onClick={handleFavoriteClick}
+                  size='small'
+                  sx={{
+                    padding: 0.75,
+                    minWidth: 'auto',
+                    width: 36,
+                    height: 36,
+                    color: isFolderFavorite ? '#fbbf24' : '#94a3b8',
+                    '&:hover': {
+                      backgroundColor: 'transparent',
+                      color: '#fbbf24'
+                    },
+                    transition: 'all 0.2s ease-in-out'
+                  }}
+                >
+                  <StarIcon
+                    sx={{
+                      fontSize: 22,
+                      fill: isFolderFavorite ? '#fbbf24' : 'transparent',
+                      stroke: isFolderFavorite ? '#fbbf24' : '#cbd5e1',
+                      strokeWidth: isFolderFavorite ? 0 : 1.5,
+                      transition: 'all 0.2s ease-in-out'
+                    }}
+                  />
                 </IconButton>
               </Tooltip>
             )}
