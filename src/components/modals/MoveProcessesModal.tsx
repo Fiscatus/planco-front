@@ -203,13 +203,11 @@ export const MoveProcessesModal = ({
                   backgroundColor: '#ffffff',
                   border: '1px solid #e2e8f0',
                   '&:hover': {
-                    borderColor: '#cbd5e1',
-                    backgroundColor: '#ffffff'
+                    borderColor: '#cbd5e1'
                   },
                   '&.Mui-focused': {
                     borderColor: '#1877F2',
-                    boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.15)',
-                    backgroundColor: '#ffffff'
+                    boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.15)'
                   }
                 }
               }}
@@ -241,16 +239,9 @@ export const MoveProcessesModal = ({
                   borderRadius: 2.5,
                   backgroundColor: '#ffffff',
                   border: '1px solid #e2e8f0',
-                  '&:hover': {
-                    backgroundColor: '#ffffff'
-                  },
                   '&.Mui-focused': {
                     borderColor: '#1877F2',
-                    boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.15)',
-                    backgroundColor: '#ffffff'
-                  },
-                  '& .MuiSelect-icon': {
-                    color: '#64748b'
+                    boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.15)'
                   }
                 }}
               >
@@ -274,9 +265,6 @@ export const MoveProcessesModal = ({
                       key={f._id} 
                       value={f._id}
                       sx={{
-                        '&:hover': {
-                          backgroundColor: '#f8fafc'
-                        },
                         '&.Mui-selected': {
                           backgroundColor: '#f1f5f9',
                           '&:hover': {

@@ -552,15 +552,6 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                           height: 28, 
                           fontSize: '0.75rem',
                           backgroundColor: '#ffffff',
-                          '&:hover': {
-                            backgroundColor: '#ffffff'
-                          },
-                          '&.Mui-focused': {
-                            backgroundColor: '#ffffff'
-                          },
-                          '& .MuiSelect-icon': {
-                            color: '#64748b'
-                          }
                         }}
                       >
                         {[5, 10, 25, 50].map((limit) => (

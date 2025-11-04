@@ -708,7 +708,6 @@ export const ManageFolderModal = ({
                         backgroundColor: '#ffffff',
                         width: { xs: '100%', sm: 'auto' },
                         '&:hover': {
-                          backgroundColor: '#f8fafc',
                           borderColor: '#cbd5e1'
                         },
                         transition: 'all 0.2s ease-in-out'
@@ -802,22 +801,19 @@ export const ManageFolderModal = ({
                         '&:hover': {
                           '& .MuiOutlinedInput-notchedOutline': {
                             borderColor: '#cbd5e1'
-                          },
-                          backgroundColor: '#ffffff'
+                          }
                         },
                         '&.Mui-focused': {
                           '& .MuiOutlinedInput-notchedOutline': {
                             borderColor: '#1877F2',
                             boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                          },
-                          backgroundColor: '#ffffff'
+                          }
                         },
                         '& .MuiSelect-select': {
                           py: { xs: 1.125, sm: 1.25 },
                           px: { xs: 1.25, sm: 1.5 }
                         },
                         '& .MuiSelect-icon': {
-                          color: '#64748b',
                           fontSize: { xs: 20, sm: 24 }
                         }
                       }}
@@ -825,11 +821,6 @@ export const ManageFolderModal = ({
                       <MenuItem 
                         value='' 
                         disabled
-                        sx={{
-                          '&:hover': {
-                            backgroundColor: '#f8fafc'
-                          }
-                        }}
                       >
                         {loadingFolders ? 'Carregando pastas...' : availableFolders.length === 0 ? 'Nenhuma pasta disponível' : 'Selecione a pasta destino...'}
                       </MenuItem>
@@ -842,9 +833,6 @@ export const ManageFolderModal = ({
                             key={f._id} 
                             value={f._id}
                             sx={{
-                              '&:hover': {
-                                backgroundColor: '#f8fafc'
-                              },
                               '&.Mui-selected': {
                                 backgroundColor: '#f1f5f9',
                                 '&:hover': {
@@ -946,15 +934,13 @@ export const ManageFolderModal = ({
                         '&:hover': {
                           '& .MuiOutlinedInput-notchedOutline': {
                             borderColor: '#cbd5e1'
-                          },
-                          backgroundColor: '#ffffff'
+                          }
                         },
                         '&.Mui-focused': {
                           '& .MuiOutlinedInput-notchedOutline': {
                             borderColor: '#1877F2',
                             boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                          },
-                          backgroundColor: '#ffffff'
+                          }
                         }
                       },
                       '& .MuiInputBase-input::placeholder': {
@@ -1215,7 +1201,6 @@ export const ManageFolderModal = ({
                       backgroundColor: '#ffffff',
                       width: { xs: '100%', sm: 'auto' },
                       '&:hover': {
-                        backgroundColor: '#f8fafc',
                         borderColor: '#cbd5e1'
                       },
                       transition: 'all 0.2s ease-in-out'

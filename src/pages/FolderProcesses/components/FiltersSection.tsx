@@ -157,8 +157,7 @@ export const FiltersSection = ({
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#cbd5e1'
-                    },
-                    backgroundColor: '#ffffff'
+                    }
                   },
                   '&.Mui-focused': {
                     '& .MuiOutlinedInput-notchedOutline': {
@@ -193,15 +192,13 @@ export const FiltersSection = ({
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#cbd5e1'
-                    },
-                    backgroundColor: '#ffffff'
+                    }
                   },
                   '&.Mui-focused': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: theme.palette.primary.main,
                       borderWidth: '1.5px'
-                    },
-                    backgroundColor: '#ffffff'
+                    }
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#e2e8f0'
@@ -212,9 +209,6 @@ export const FiltersSection = ({
                     py: 1.25,
                     px: 1.5
                   },
-                  '& .MuiSelect-icon': {
-                    color: '#64748b'
-                  }
                 }}
               >
                 <MenuItem 
@@ -272,15 +266,13 @@ export const FiltersSection = ({
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#cbd5e1'
-                    },
-                    backgroundColor: '#ffffff'
+                    }
                   },
                   '&.Mui-focused': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: theme.palette.primary.main,
                       borderWidth: '1.5px'
-                    },
-                    backgroundColor: '#ffffff'
+                    }
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#e2e8f0'
@@ -291,9 +283,6 @@ export const FiltersSection = ({
                     py: 1.25,
                     px: 1.5
                   },
-                  '& .MuiSelect-icon': {
-                    color: '#64748b'
-                  }
                 }}
               >
                 <MenuItem 
@@ -351,15 +340,13 @@ export const FiltersSection = ({
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#cbd5e1'
-                    },
-                    backgroundColor: '#ffffff'
+                    }
                   },
                   '&.Mui-focused': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: theme.palette.primary.main,
                       borderWidth: '1.5px'
-                    },
-                    backgroundColor: '#ffffff'
+                    }
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#e2e8f0'
@@ -370,9 +357,6 @@ export const FiltersSection = ({
                     py: 1.25,
                     px: 1.5
                   },
-                  '& .MuiSelect-icon': {
-                    color: '#64748b'
-                  }
                 }}
               >
                 <MenuItem 
@@ -430,15 +414,13 @@ export const FiltersSection = ({
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#cbd5e1'
-                    },
-                    backgroundColor: '#ffffff'
+                    }
                   },
                   '&.Mui-focused': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: theme.palette.primary.main,
                       borderWidth: '1.5px'
-                    },
-                    backgroundColor: '#ffffff'
+                    }
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#e2e8f0'
@@ -449,9 +431,6 @@ export const FiltersSection = ({
                     py: 1.25,
                     px: 1.5
                   },
-                  '& .MuiSelect-icon': {
-                    color: '#64748b'
-                  }
                 }}
               >
                 <MenuItem 

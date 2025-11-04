@@ -551,15 +551,13 @@ const FolderManagement = () => {
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: '#cbd5e1'
-                        },
-                        backgroundColor: '#ffffff'
+                        }
                       },
                       '&.Mui-focused': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: theme.palette.primary.main,
                           borderWidth: '1.5px'
-                        },
-                        backgroundColor: '#ffffff'
+                        }
                       }
                     },
                     '& .MuiOutlinedInput-notchedOutline': {
@@ -589,15 +587,13 @@ const FolderManagement = () => {
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: '#cbd5e1'
-                        },
-                        backgroundColor: '#ffffff'
+                        }
                       },
                       '&.Mui-focused': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: theme.palette.primary.main,
                           borderWidth: '1.5px'
-                        },
-                        backgroundColor: '#ffffff'
+                        }
                       },
                       '& .MuiOutlinedInput-notchedOutline': {
                         borderColor: '#e2e8f0'
@@ -687,15 +683,13 @@ const FolderManagement = () => {
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: '#cbd5e1'
-                        },
-                        backgroundColor: '#ffffff'
+                        }
                       },
                       '&.Mui-focused': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: theme.palette.primary.main,
                           borderWidth: '1.5px'
-                        },
-                        backgroundColor: '#ffffff'
+                        }
                       },
                       '& .MuiOutlinedInput-notchedOutline': {
                         borderColor: '#e2e8f0'

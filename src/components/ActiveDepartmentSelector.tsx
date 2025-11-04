@@ -101,13 +101,11 @@ export const ActiveDepartmentSelector = ({
               border: '1px solid',
               borderColor: 'divider',
               '&:hover': {
-                borderColor: 'primary.main',
-                backgroundColor: 'background.paper'
+                borderColor: 'primary.main'
               },
               '&.Mui-focused': {
                 borderColor: 'primary.main',
-                boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.2)',
-                backgroundColor: 'background.paper'
+                boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.2)'
               }
             }
           }}
@@ -132,15 +130,11 @@ export const ActiveDepartmentSelector = ({
           IconComponent={ExpandMore}
           sx={{
             fontSize: '0.875rem',
-            backgroundColor: '#ffffff',
             '& .MuiSelect-select': {
               display: 'flex',
               alignItems: 'center',
               gap: 1,
               py: 1
-            },
-            '& .MuiSelect-icon': {
-              color: '#64748b'
             }
           }}
         >
@@ -153,9 +147,6 @@ export const ActiveDepartmentSelector = ({
                 alignItems: 'center',
                 gap: 1,
                 py: 1.5,
-                '&:hover': {
-                  backgroundColor: '#f8fafc'
-                },
                 '&.Mui-selected': {
                   backgroundColor: '#f1f5f9',
                   '&:hover': {

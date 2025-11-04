@@ -409,11 +409,86 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                               : value;
                     }}
                   >
-                    <MenuItem value='todos'>Todos</MenuItem>
-                    <MenuItem value='pendente'>Pendente</MenuItem>
-                    <MenuItem value='aceito'>Aceito</MenuItem>
-                    <MenuItem value='recusado'>Recusado</MenuItem>
-                    <MenuItem value='expirado'>Expirado</MenuItem>
+                    <MenuItem 
+                      value='todos'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Todos
+                    </MenuItem>
+                    <MenuItem 
+                      value='pendente'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Pendente
+                    </MenuItem>
+                    <MenuItem 
+                      value='aceito'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Aceito
+                    </MenuItem>
+                    <MenuItem 
+                      value='recusado'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Recusado
+                    </MenuItem>
+                    <MenuItem 
+                      value='expirado'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Expirado
+                    </MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -460,7 +535,20 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                       return role ? role.name : value;
                     }}
                   >
-                    <MenuItem value=''>
+                    <MenuItem 
+                      value=''
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
                       <em>Todas as roles</em>
                     </MenuItem>
                     {!rolesData ? (
@@ -475,6 +563,17 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                         <MenuItem
                           key={role._id}
                           value={role._id}
+                          sx={{
+                            '&:hover': {
+                              backgroundColor: '#f8fafc'
+                            },
+                            '&.Mui-selected': {
+                              backgroundColor: '#f1f5f9',
+                              '&:hover': {
+                                backgroundColor: '#f1f5f9'
+                              }
+                            }
+                          }}
                         >
                           {role.name}
                         </MenuItem>
@@ -1121,7 +1220,21 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                 sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
               >
                 {[5, 10, 25, 50].map((limit) => (
-                  <MenuItem key={limit} value={limit}>
+                  <MenuItem 
+                    key={limit} 
+                    value={limit}
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: '#f8fafc'
+                      },
+                      '&.Mui-selected': {
+                        backgroundColor: '#f1f5f9',
+                        '&:hover': {
+                          backgroundColor: '#f1f5f9'
+                        }
+                      }
+                    }}
+                  >
                     {limit} por página
                   </MenuItem>
                 ))}
@@ -1371,6 +1484,17 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                       <MenuItem
                         key={dept._id}
                         value={dept._id}
+                        sx={{
+                          '&:hover': {
+                            backgroundColor: '#f8fafc'
+                          },
+                          '&.Mui-selected': {
+                            backgroundColor: '#f1f5f9',
+                            '&:hover': {
+                              backgroundColor: '#f1f5f9'
+                            }
+                          }
+                        }}
                       >
                         {dept.department_name}
                       </MenuItem>

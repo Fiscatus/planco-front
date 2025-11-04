@@ -412,22 +412,17 @@ export const EditGerenciaModal = ({
                         '&:hover': {
                           '& .MuiOutlinedInput-notchedOutline': {
                             borderColor: '#cbd5e1'
-                          },
-                          backgroundColor: '#ffffff'
+                          }
                         },
                         '&.Mui-focused': {
                           '& .MuiOutlinedInput-notchedOutline': {
                             borderColor: '#1877F2',
                             boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                          },
-                          backgroundColor: '#ffffff'
+                          }
                         },
                         '& .MuiSelect-select': {
                           color: gerenciaForm.responsavelUserId ? '#0f172a' : '#9ca3af'
                         },
-                        '& .MuiSelect-icon': {
-                          color: '#64748b'
-                        }
                       }}
                       renderValue={(value) => {
                         if (!value) {
@@ -448,9 +443,6 @@ export const EditGerenciaModal = ({
                       <MenuItem 
                         value=''
                         sx={{
-                          '&:hover': {
-                            backgroundColor: '#f8fafc'
-                          },
                           '&.Mui-selected': {
                             backgroundColor: '#f1f5f9',
                             '&:hover': {
@@ -466,9 +458,6 @@ export const EditGerenciaModal = ({
                           key={user._id}
                           value={user._id}
                           sx={{
-                            '&:hover': {
-                              backgroundColor: '#f8fafc'
-                            },
                             '&.Mui-selected': {
                               backgroundColor: '#f1f5f9',
                               '&:hover': {

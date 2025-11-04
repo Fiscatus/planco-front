@@ -269,7 +269,18 @@ export const MembersSection = ({
                   sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
                 >
                   {[5, 10, 25, 50].map((limit) => (
-                    <MenuItem key={limit} value={limit}>
+                    <MenuItem 
+                      key={limit} 
+                      value={limit}
+                      sx={{
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
                       {limit} por página
                     </MenuItem>
                   ))}

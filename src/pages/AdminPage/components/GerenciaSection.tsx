@@ -633,6 +633,17 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
                           <MenuItem
                             key={limit}
                             value={limit}
+                            sx={{
+                              '&:hover': {
+                                backgroundColor: '#f8fafc'
+                              },
+                              '&.Mui-selected': {
+                                backgroundColor: '#f1f5f9',
+                                '&:hover': {
+                                  backgroundColor: '#f1f5f9'
+                                }
+                              }
+                            }}
                           >
                             {limit} por página
                           </MenuItem>
@@ -994,6 +1005,17 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
                               <MenuItem
                                 key={limit}
                                 value={limit}
+                                sx={{
+                                  '&:hover': {
+                                    backgroundColor: '#f8fafc'
+                                  },
+                                  '&.Mui-selected': {
+                                    backgroundColor: '#f1f5f9',
+                                    '&:hover': {
+                                      backgroundColor: '#f1f5f9'
+                                    }
+                                  }
+                                }}
                               >
                                 {limit} por página
                               </MenuItem>

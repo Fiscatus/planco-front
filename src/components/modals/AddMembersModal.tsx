@@ -422,15 +422,6 @@ export const AddMembersModal = ({
                 height: 32, 
                 fontSize: '0.875rem',
                 backgroundColor: '#ffffff',
-                '&:hover': {
-                  backgroundColor: '#ffffff'
-                },
-                '&.Mui-focused': {
-                  backgroundColor: '#ffffff'
-                },
-                '& .MuiSelect-icon': {
-                  color: '#64748b'
-                }
               }}
             >
               {[5, 10, 25].map((limit) => (
@@ -438,9 +429,6 @@ export const AddMembersModal = ({
                   key={limit}
                   value={limit}
                   sx={{
-                    '&:hover': {
-                      backgroundColor: '#f8fafc'
-                    },
                     '&.Mui-selected': {
                       backgroundColor: '#f1f5f9',
                       '&:hover': {

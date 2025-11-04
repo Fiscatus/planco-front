@@ -1267,13 +1267,6 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                   minWidth: 120, 
                   height: 32, 
                   fontSize: '0.875rem',
-                  backgroundColor: '#ffffff',
-                  '&:hover': {
-                    backgroundColor: '#ffffff'
-                  },
-                  '&.Mui-focused': {
-                    backgroundColor: '#ffffff'
-                  },
                   '& .MuiSelect-icon': {
                     color: '#64748b'
                   }
