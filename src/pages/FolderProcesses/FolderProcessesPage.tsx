@@ -1,10 +1,12 @@
 import {
   ArrowBack as ArrowBackIcon,
-  Edit as EditIcon
+  Edit as EditIcon,
+  Info as InfoIcon
 } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Card,
   Typography
 } from '@mui/material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -175,84 +177,104 @@ const FolderProcessesPage = () => {
 
   const pageTitle = folder?.name || 'Processos';
   const pageSubtitle = folder?.description || 'Processos administrativos e licitatórios do exercício atual - Acompanhamento e gestão de demandas em andamento';
+  
+  const isPlancoFolder = folder?.isDefault || folder?.name?.toLowerCase().includes('planco');
 
   return (
     <Box
       sx={{
         width: '100%',
         minHeight: '100vh',
-        backgroundColor: '#f8fafc'
+        background: 'linear-gradient(180deg, #F7F9FB 0%, #F4F6F8 100%)',
+        pt: { xs: 3, sm: 4 },
+        px: { xs: 2, sm: 4 },
+        pb: 5,
+        '@media (max-width: 640px)': {
+          px: 2
+        }
       }}
     >
-      {/* Header */}
+      {/* Cabeçalho da Página */}
       <Box
         sx={{
-          py: { xs: 6, md: 8 },
-          px: { xs: 2, sm: 4, md: 6, lg: 8 },
-          '@media (max-width: 767px)': {
-            py: 4,
-            px: 1.5
-          },
-          backgroundColor: '#ffffff',
-          borderBottom: '1px solid #e2e8f0'
+          mb: 5,
+          px: { xs: 2, sm: 4 },
+          '@media (max-width: 640px)': {
+            px: 2
+          }
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <Button
-            startIcon={<ArrowBackIcon />}
-            onClick={() => navigate('/gerenciamento-pastas')}
-            sx={{
-              color: '#64748b',
-              textTransform: 'none',
-              '&:hover': {
-                backgroundColor: '#f1f5f9'
-              }
-            }}
-          >
-            Voltar
-          </Button>
-        </Box>
-
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 3 }}>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography
-              variant='h4'
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+            gap: 2
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
+            <Button
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate('/gerenciamento-pastas')}
               sx={{
-                fontWeight: 700,
-                fontSize: { xs: '1.5rem', md: '2rem' },
-                color: '#0f172a',
-                mb: 1
+                color: '#8A8D91',
+                textTransform: 'none',
+                minWidth: 'auto',
+                p: 1,
+                backgroundColor: 'transparent',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                  color: '#212121'
+                },
+                '&:focus': {
+                  backgroundColor: 'transparent'
+                },
+                '& .MuiSvgIcon-root': {
+                  fontSize: '24px'
+                }
               }}
-            >
-              {pageTitle}
-            </Typography>
-            <Typography
-              variant='body1'
-              sx={{
-                color: '#64748b',
-                fontSize: '0.9375rem',
-                lineHeight: 1.6
-              }}
-            >
-              {pageSubtitle}
-            </Typography>
+            />
+            <Box>
+              <Typography
+                variant='h4'
+                sx={{
+                  fontWeight: 700,
+                  fontSize: { xs: '1.5rem', md: '1.875rem' },
+                  color: '#212121',
+                  mb: 0.5
+                }}
+              >
+                {pageTitle}
+              </Typography>
+              <Typography
+                variant='body1'
+                sx={{
+                  color: '#8A8D91',
+                  fontSize: '1rem'
+                }}
+              >
+                {pageSubtitle}
+              </Typography>
+            </Box>
           </Box>
 
           <Button
-            variant='contained'
+            variant='outlined'
             startIcon={<EditIcon />}
             onClick={handleManageFolder}
             sx={{
-              borderRadius: 2.5,
+              borderRadius: 2,
               px: 3,
-              py: 1.5,
-              textTransform: 'none',
+              py: 1.25,
+              fontSize: '0.875rem',
               fontWeight: 600,
-              backgroundColor: '#1877F2',
-              boxShadow: '0 2px 4px rgba(24, 119, 242, 0.2)',
+              textTransform: 'none',
+              borderColor: '#1877F2',
+              color: '#1877F2',
               '&:hover': {
-                backgroundColor: '#166fe5',
-                boxShadow: '0 4px 8px rgba(24, 119, 242, 0.3)'
+                borderColor: '#166fe5',
+                backgroundColor: '#f0f9ff'
               }
             }}
           >
@@ -264,16 +286,79 @@ const FolderProcessesPage = () => {
       {/* Content */}
       <Box
         sx={{
-          py: { xs: 4, md: 6 },
-          px: { xs: 2, sm: 4, md: 6, lg: 8 },
-          '@media (max-width: 767px)': {
-            py: 3,
-            px: 1.5
+          px: { xs: 2, sm: 4 },
+          '@media (max-width: 640px)': {
+            px: 2
           }
         }}
       >
         {/* Cards de Estatísticas */}
         {stats && <StatsCards stats={stats} />}
+
+        {/* Banner Informativo - Pasta Planco */}
+        {isPlancoFolder && (
+          <Box sx={{ mb: 3 }}>
+            <Card
+              sx={{
+                borderRadius: '12px',
+                border: '1px solid #BFDBFE',
+                backgroundColor: '#EFF6FF',
+                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                p: 2.5
+              }}
+            >
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '50%',
+                    backgroundColor: '#DBEAFE',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}
+                >
+                  <InfoIcon sx={{ fontSize: 20, color: '#2563EB' }} />
+                </Box>
+                <Box sx={{ flex: 1 }}>
+                  <Typography
+                    variant='subtitle1'
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: '14px',
+                      color: '#1E3A8A',
+                      mb: 1
+                    }}
+                  >
+                    Pasta Padrão do Sistema
+                  </Typography>
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      fontSize: '14px',
+                      color: '#1E40AF',
+                      lineHeight: 1.6
+                    }}
+                  >
+                    Esta é a{' '}
+                    <Box
+                      component='span'
+                      sx={{
+                        fontWeight: 600,
+                        color: '#2563EB'
+                      }}
+                    >
+                      Pasta Planco
+                    </Box>
+                    , pasta inicial do sistema. Processos administrativos criados sem pasta específica são automaticamente direcionados para este repositório. Processos oriundos de pastas excluídas também são preservados neste local, garantindo a integridade documental. Esta pasta é permanente e sempre estará disponível no sistema.
+                  </Typography>
+                </Box>
+              </Box>
+            </Card>
+          </Box>
+        )}
 
         {/* Filtros */}
         <FiltersSection

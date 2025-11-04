@@ -231,6 +231,13 @@ const FolderManagement = () => {
     setUrlParams(newParams, { replace: true });
   }, [setUrlParams]);
 
+  const hasActiveFilters = !!(
+    (urlParams.get('year') && urlParams.get('year') !== '') ||
+    (urlParams.get('sortBy') && urlParams.get('sortBy') !== 'name') ||
+    (urlParams.get('sortOrder') && urlParams.get('sortOrder') !== 'asc') ||
+    (folderSearch && folderSearch.trim() !== '')
+  );
+
   const handlePageChange = useCallback(
     (page: number) => {
       const newParams = new URLSearchParams(urlParams);
@@ -469,7 +476,7 @@ const FolderManagement = () => {
                 Filtros de Pesquisa
               </Typography>
             </Box>
-            {(urlParams.get('year') || urlParams.get('sortBy') !== 'name' || urlParams.get('sortOrder') !== 'asc' || folderSearch) && (
+            {hasActiveFilters && (
               <Button
                 variant='outlined'
                 size='small'
