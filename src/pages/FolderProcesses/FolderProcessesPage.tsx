@@ -186,9 +186,9 @@ const FolderProcessesPage = () => {
         width: '100%',
         minHeight: '100vh',
         background: 'linear-gradient(180deg, #F7F9FB 0%, #F4F6F8 100%)',
-        pt: { xs: 2, sm: 3 },
-        px: { xs: 2, sm: 4 },
-        pb: 5,
+        pt: { xs: 2, sm: 3, md: 3.5 },
+        px: { xs: 2, sm: 3, md: 4, lg: 5 },
+        pb: { xs: 4, sm: 5, md: 6 },
         '@media (max-width: 640px)': {
           px: 2
         }
@@ -197,10 +197,10 @@ const FolderProcessesPage = () => {
       {/* Cabeçalho da Página */}
       <Box
         sx={{
-          mb: 5,
-          px: { xs: 2, sm: 4 },
+          mb: { xs: 3, sm: 4, md: 5 },
+          px: { xs: 0, sm: 0, md: 0 },
           '@media (max-width: 640px)': {
-            px: 2
+            px: 0
           }
         }}
       >
@@ -208,12 +208,20 @@ const FolderProcessesPage = () => {
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            flexWrap: 'wrap',
-            gap: 2
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            flexDirection: { xs: 'column', sm: 'row' },
+            flexWrap: { xs: 'nowrap', sm: 'wrap' },
+            gap: { xs: 2, sm: 2, md: 3 }
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1, minWidth: 0 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: { xs: 1.5, sm: 2, md: 2.5 }, 
+            flex: 1, 
+            minWidth: 0,
+            width: { xs: '100%', sm: 'auto' }
+          }}>
             <Button
               startIcon={<ArrowBackIcon />}
               onClick={() => navigate('/gerenciamento-pastas')}
@@ -221,8 +229,9 @@ const FolderProcessesPage = () => {
                 color: '#8A8D91',
                 textTransform: 'none',
                 minWidth: 'auto',
-                p: 1,
+                p: { xs: 0.75, sm: 1 },
                 backgroundColor: 'transparent',
+                flexShrink: 0,
                 '&:hover': {
                   backgroundColor: 'transparent',
                   color: '#212121'
@@ -231,18 +240,20 @@ const FolderProcessesPage = () => {
                   backgroundColor: 'transparent'
                 },
                 '& .MuiSvgIcon-root': {
-                  fontSize: '24px'
+                  fontSize: { xs: '20px', sm: '24px' }
                 }
               }}
             />
-            <Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography
                 variant='h4'
                 sx={{
                   fontWeight: 700,
-                  fontSize: { xs: '1.5rem', md: '1.875rem' },
+                  fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem', lg: '1.875rem' },
                   color: '#212121',
-                  mb: 0.5
+                  mb: { xs: 0.25, sm: 0.5 },
+                  lineHeight: { xs: 1.3, sm: 1.2 },
+                  wordBreak: 'break-word'
                 }}
               >
                 {pageTitle}
@@ -251,7 +262,9 @@ const FolderProcessesPage = () => {
                 variant='body1'
                 sx={{
                   color: '#8A8D91',
-                  fontSize: '1rem'
+                  fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' },
+                  lineHeight: { xs: 1.4, sm: 1.5 },
+                  display: { xs: 'none', sm: 'block' }
                 }}
               >
                 {pageSubtitle}
@@ -265,13 +278,15 @@ const FolderProcessesPage = () => {
             onClick={handleManageFolder}
             sx={{
               borderRadius: 2,
-              px: 3,
-              py: 1.25,
-              fontSize: '0.875rem',
+              px: { xs: 2.5, sm: 3, md: 3.5 },
+              py: { xs: 1, sm: 1.125, md: 1.25 },
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600,
               textTransform: 'none',
               borderColor: '#1877F2',
               color: '#1877F2',
+              width: { xs: '100%', sm: 'auto' },
+              mt: { xs: 1, sm: 0 },
               '&:hover': {
                 borderColor: '#166fe5',
                 backgroundColor: '#f0f9ff'
@@ -286,9 +301,9 @@ const FolderProcessesPage = () => {
       {/* Content */}
       <Box
         sx={{
-          px: { xs: 2, sm: 4 },
+          px: { xs: 0, sm: 0, md: 0 },
           '@media (max-width: 640px)': {
-            px: 2
+            px: 0
           }
         }}
       >
@@ -297,25 +312,25 @@ const FolderProcessesPage = () => {
 
         {/* Banner Informativo - Pasta Planco */}
         {isPlancoFolder && (
-          <Box sx={{ mb: 4, mt: 3 }}>
+          <Box sx={{ mb: { xs: 3, sm: 4, md: 4 }, mt: { xs: 2, sm: 3, md: 3 } }}>
             <Card
               sx={{
-                borderRadius: '12px',
+                borderRadius: { xs: '10px', sm: '12px' },
                 border: '1px solid #BFDBFE',
                 backgroundColor: '#EFF6FF',
                 boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-                p: 3,
+                p: { xs: 2, sm: 2.5, md: 3 },
                 transition: 'box-shadow 0.2s ease-in-out',
                 '&:hover': {
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
                 }
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2.5 }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: { xs: 2, sm: 2.5, md: 2.5 } }}>
                 <Box
                   sx={{
-                    width: 44,
-                    height: 44,
+                    width: { xs: 40, sm: 44 },
+                    height: { xs: 40, sm: 44 },
                     borderRadius: '50%',
                     backgroundColor: '#DBEAFE',
                     display: 'flex',
@@ -325,16 +340,16 @@ const FolderProcessesPage = () => {
                     boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
                   }}
                 >
-                  <InfoIcon sx={{ fontSize: 22, color: '#2563EB' }} />
+                  <InfoIcon sx={{ fontSize: { xs: 20, sm: 22 }, color: '#2563EB' }} />
                 </Box>
-                <Box sx={{ flex: 1, pt: 0.25 }}>
+                <Box sx={{ flex: 1, pt: 0.25, minWidth: 0 }}>
                   <Typography
                     variant='subtitle1'
                     sx={{
                       fontWeight: 700,
-                      fontSize: '15px',
+                      fontSize: { xs: '14px', sm: '15px' },
                       color: '#1E3A8A',
-                      mb: 1.25,
+                      mb: { xs: 1, sm: 1.25 },
                       lineHeight: 1.4
                     }}
                   >
@@ -343,10 +358,11 @@ const FolderProcessesPage = () => {
                   <Typography
                     variant='body2'
                     sx={{
-                      fontSize: '14px',
+                      fontSize: { xs: '13px', sm: '14px' },
                       color: '#1E40AF',
-                      lineHeight: 1.65,
-                      letterSpacing: '0.01em'
+                      lineHeight: { xs: 1.5, sm: 1.65 },
+                      letterSpacing: '0.01em',
+                      wordBreak: 'break-word'
                     }}
                   >
                     Esta é a{' '}

@@ -349,17 +349,17 @@ const FolderManagement = () => {
       {/* Header */}
       <Box
         sx={{
-          py: { xs: 2, md: 3 },
-          px: { xs: 2, sm: 4, md: 6, lg: 8 },
+          py: { xs: 2, sm: 2.5, md: 3 },
+          px: { xs: 2, sm: 3, md: 6, lg: 8 },
           '@media (max-width: 767px)': {
             py: 2,
             px: 1.5
           },
           display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
+          flexDirection: { xs: 'column', sm: 'row' },
           justifyContent: 'space-between',
-          alignItems: { xs: 'flex-start', md: 'center' },
-          gap: { xs: 2, md: 3 }
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          gap: { xs: 2, sm: 2.5, md: 3 }
         }}
       >
         <Box sx={{ width: { xs: '100%', md: 'auto' } }}>
@@ -393,9 +393,9 @@ const FolderManagement = () => {
           sx={{ 
             display: 'flex', 
             gap: { xs: 1.5, sm: 2 }, 
-            flexWrap: 'wrap',
+            flexWrap: { xs: 'wrap', sm: 'nowrap' },
             width: { xs: '100%', sm: 'auto' },
-            mt: { xs: 2, md: 0 }
+            mt: { xs: 2, sm: 0 }
           }}
         >
           <Button
@@ -413,6 +413,7 @@ const FolderManagement = () => {
               boxShadow: 'none',
               width: { xs: '100%', sm: 'auto' },
               minWidth: { xs: '100%', sm: '140px' },
+              flexShrink: 0,
               '&:hover': {
                 backgroundColor: '#166fe5',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
@@ -436,6 +437,7 @@ const FolderManagement = () => {
               color: '#1877F2',
               width: { xs: '100%', sm: 'auto' },
               minWidth: { xs: '100%', sm: '160px' },
+              flexShrink: 0,
               '&:hover': {
                 borderColor: '#166fe5',
                 backgroundColor: '#f0f9ff'
@@ -450,8 +452,8 @@ const FolderManagement = () => {
       {/* Filtros de Pesquisa */}
       <Box
         sx={{
-          px: { xs: 2, sm: 4, md: 6, lg: 8 },
-          mb: 4,
+          px: { xs: 2, sm: 3, md: 6, lg: 8 },
+          mb: { xs: 3, sm: 4, md: 4 },
           '@media (max-width: 767px)': {
             px: 1.5
           }
@@ -527,10 +529,10 @@ const FolderManagement = () => {
               </Button>
             )}
           </Box>
-          <Box sx={{ p: { xs: 2, sm: 3 } }}>
-            <Grid container spacing={{ xs: 2, sm: 2.5 }}>
+          <Box sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
+            <Grid container spacing={{ xs: 2, sm: 2.5, md: 2.5 }}>
               {/* Campo de busca */}
-              <Grid size={{ xs: 12, md: 6 }}>
+              <Grid size={{ xs: 12, sm: 12, md: 6 }}>
                 <TextField
                   fullWidth
                   placeholder='Buscar por nome da pasta, processo ou ano...'
@@ -763,7 +765,7 @@ const FolderManagement = () => {
       {foldersData?.folders && foldersData.folders.length > 0 && (
         <Box
           sx={{
-            px: { xs: 2, sm: 4, md: 6, lg: 8 },
+            px: { xs: 2, sm: 3, md: 6, lg: 8 },
             mb: { xs: 2, sm: 2.5 },
             mt: { xs: 0.5, sm: 1 },
             '@media (max-width: 767px)': {
@@ -787,8 +789,8 @@ const FolderManagement = () => {
       {/* Grid de Pastas */}
       <Box
         sx={{
-          px: { xs: 2, sm: 4, md: 6, lg: 8 },
-          mb: 4,
+          px: { xs: 2, sm: 3, md: 6, lg: 8 },
+          mb: { xs: 3, sm: 4, md: 4 },
           '@media (max-width: 767px)': {
             px: 1.5
           }
@@ -815,11 +817,11 @@ const FolderManagement = () => {
         ) : (
           <Card
             sx={{
-              borderRadius: 3,
+              borderRadius: { xs: 2, sm: 3 },
               border: '1px solid',
               borderColor: 'divider',
               boxShadow: 'none',
-              p: 6,
+              p: { xs: 4, sm: 5, md: 6 },
               textAlign: 'center'
             }}
           >
@@ -827,7 +829,7 @@ const FolderManagement = () => {
               variant='body1'
               sx={{
                 color: '#64748b',
-                fontSize: '1rem'
+                fontSize: { xs: '0.9375rem', sm: '1rem' }
               }}
             >
               Nenhuma pasta encontrada
@@ -840,18 +842,18 @@ const FolderManagement = () => {
       {foldersTotalPages > 1 && (
         <Box
           sx={{
-            px: { xs: 2, sm: 4, md: 6, lg: 8 },
+            px: { xs: 2, sm: 3, md: 6, lg: 8 },
             '@media (max-width: 767px)': {
               px: 1.5
             },
-            mt: { xs: 4, sm: 5, md: 6 },
+            mt: { xs: 3, sm: 4, md: 6 },
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
             alignItems: { xs: 'stretch', sm: 'center' },
             flexWrap: 'wrap',
-            gap: { xs: 2, sm: 3 },
-            pt: { xs: 3, sm: 4 },
+            gap: { xs: 2, sm: 2.5, md: 3 },
+            pt: { xs: 2.5, sm: 3, md: 4 },
             borderTop: '1px solid',
             borderColor: 'divider'
           }}

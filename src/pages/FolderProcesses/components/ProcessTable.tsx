@@ -118,23 +118,24 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
         sx={{
           display: 'flex',
           alignItems: 'center',
-          gap: 1.25,
-          mb: 2
+          gap: { xs: 1, sm: 1.25 },
+          mb: { xs: 1.5, sm: 2 }
         }}
       >
         <Box
           sx={{
-            width: 6,
-            height: 24,
+            width: { xs: 4, sm: 6 },
+            height: { xs: 20, sm: 24 },
             borderRadius: '6px',
-            backgroundColor: '#1877F2'
+            backgroundColor: '#1877F2',
+            flexShrink: 0
           }}
         />
         <Typography
           variant='h6'
           sx={{
             fontWeight: 700,
-            fontSize: '20px',
+            fontSize: { xs: '16px', sm: '18px', md: '20px' },
             color: '#212121'
           }}
         >
@@ -144,11 +145,12 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
 
       <TableContainer
         sx={{
-          borderRadius: '16px',
+          borderRadius: { xs: '12px', sm: '16px' },
           border: '1px solid #E4E6EB',
           boxShadow: '0 1px 3px rgba(16, 24, 40, 0.06)',
           overflowX: 'auto',
           backgroundColor: '#FFFFFF',
+          mb: { xs: 2, sm: 3 },
           '&::-webkit-scrollbar': {
             height: '8px'
           },

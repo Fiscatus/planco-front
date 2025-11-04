@@ -71,7 +71,7 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
     >
       <Box
         sx={{
-          p: 3,
+          p: { xs: 2, sm: 2.5, md: 3 },
           display: 'flex',
           flexDirection: 'column',
           height: '100%'
@@ -83,24 +83,25 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'space-between',
-            mb: 2.5
+            mb: { xs: 2, sm: 2.5 }
           }}
         >
           {/* Ícone da pasta */}
           <Box
             sx={{
               backgroundColor: isPlanco ? '#dbeafe' : '#fef3c7',
-              borderRadius: 2.5,
-              p: 1.5,
+              borderRadius: { xs: 2, sm: 2.5 },
+              p: { xs: 1.25, sm: 1.5 },
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+              boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+              flexShrink: 0
             }}
           >
             <FolderIcon
               sx={{
-                fontSize: 36,
+                fontSize: { xs: 32, sm: 34, md: 36 },
                 color: folderIconColor
               }}
             />
@@ -117,14 +118,14 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
                     cursor: 'default',
                     padding: 0.75,
                     minWidth: 'auto',
-                    width: 36,
-                    height: 36,
+                    width: { xs: 32, sm: 36 },
+                    height: { xs: 32, sm: 36 },
                     '&:hover': {
                       backgroundColor: 'transparent'
                     }
                   }}
                 >
-                  <PushPinIcon sx={{ fontSize: 22 }} />
+                  <PushPinIcon sx={{ fontSize: { xs: 20, sm: 22 } }} />
                 </IconButton>
               </Tooltip>
             )}
@@ -137,14 +138,14 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
                     cursor: 'default',
                     padding: 0.75,
                     minWidth: 'auto',
-                    width: 36,
-                    height: 36,
+                    width: { xs: 32, sm: 36 },
+                    height: { xs: 32, sm: 36 },
                     '&:hover': {
                       backgroundColor: 'transparent'
                     }
                   }}
                 >
-                  <PushPinIcon sx={{ fontSize: 22 }} />
+                  <PushPinIcon sx={{ fontSize: { xs: 20, sm: 22 } }} />
                 </IconButton>
               </Tooltip>
             )}
@@ -156,8 +157,8 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
                   sx={{
                     padding: 0.75,
                     minWidth: 'auto',
-                    width: 36,
-                    height: 36,
+                    width: { xs: 32, sm: 36 },
+                    height: { xs: 32, sm: 36 },
                     color: isFolderFavorite ? '#fbbf24' : '#94a3b8',
                     '&:hover': {
                       backgroundColor: 'transparent',
@@ -168,7 +169,7 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
                 >
                   <StarIcon
                     sx={{
-                      fontSize: 22,
+                      fontSize: { xs: 20, sm: 22 },
                       fill: isFolderFavorite ? '#fbbf24' : 'transparent',
                       stroke: isFolderFavorite ? '#fbbf24' : '#cbd5e1',
                       strokeWidth: isFolderFavorite ? 0 : 1.5,
@@ -186,8 +187,8 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
           variant='h6'
           sx={{
             fontWeight: 600,
-            fontSize: '1.25rem',
-            mb: 2,
+            fontSize: { xs: '1.0625rem', sm: '1.125rem', md: '1.25rem' },
+            mb: { xs: 1.5, sm: 2 },
             color: '#0f172a',
             lineHeight: 1.4,
             overflow: 'hidden',
@@ -201,13 +202,13 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
         </Typography>
 
         {/* Informações da pasta */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: { xs: 1.25, sm: 1.5 } }}>
           {/* Data de criação ou início */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <CalendarMonthIcon sx={{ fontSize: 20, color: '#1877F2' }} />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.25, sm: 1.5 } }}>
+            <CalendarMonthIcon sx={{ fontSize: { xs: 18, sm: 20 }, color: '#1877F2', flexShrink: 0 }} />
             <Typography
               variant='body2'
-              sx={{ fontSize: '0.9375rem', color: '#0f172a', fontWeight: 500 }}
+              sx={{ fontSize: { xs: '0.875rem', sm: '0.9375rem' }, color: '#0f172a', fontWeight: 500 }}
             >
               {folder.isDefault ? 'Padrão do Sistema' : folder.year ? folder.year : folder.createdAt ? formatDate(folder.createdAt) : 'N/A'}
             </Typography>
@@ -215,11 +216,11 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
 
           {/* Data de modificação ou fim */}
           {!folder.isDefault && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <ScheduleIcon sx={{ fontSize: 20, color: '#1877F2' }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.25, sm: 1.5 } }}>
+              <ScheduleIcon sx={{ fontSize: { xs: 18, sm: 20 }, color: '#1877F2', flexShrink: 0 }} />
               <Typography
                 variant='body2'
-                sx={{ fontSize: '0.9375rem', color: '#0f172a', fontWeight: 500 }}
+                sx={{ fontSize: { xs: '0.875rem', sm: '0.9375rem' }, color: '#0f172a', fontWeight: 500 }}
               >
                 {folder.isPermanent ? 'Permanente' : folder.updatedAt ? formatDate(folder.updatedAt) : 'N/A'}
               </Typography>
@@ -231,27 +232,27 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
         {(folder.description || folder.observations) && (
           <Box
             sx={{
-              mt: 3,
-              pt: 3,
+              mt: { xs: 2, sm: 2.5, md: 3 },
+              pt: { xs: 2, sm: 2.5, md: 3 },
               borderTop: '1px solid',
               borderColor: '#e2e8f0',
               display: 'flex',
               alignItems: 'flex-start',
-              gap: 1.5
+              gap: { xs: 1.25, sm: 1.5 }
             }}
           >
-            <InfoIcon sx={{ fontSize: 18, color: '#64748b', mt: 0.25, flexShrink: 0 }} />
+            <InfoIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: '#64748b', mt: 0.25, flexShrink: 0 }} />
             <Typography
               variant='body2'
               sx={{
-                fontSize: '0.875rem',
+                fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                 color: '#64748b',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',
-                lineHeight: 1.6
+                lineHeight: { xs: 1.5, sm: 1.6 }
               }}
             >
               {folder.description || folder.observations}

@@ -79,23 +79,25 @@ export const FiltersSection = ({
     >
       <Box
         sx={{
-          px: 3,
-          py: 2.5,
+          px: { xs: 2, sm: 2.5, md: 3 },
+          py: { xs: 2, sm: 2.25, md: 2.5 },
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          flexWrap: { xs: 'wrap', sm: 'nowrap' },
+          gap: { xs: 1.5, sm: 2 },
           borderBottom: '1px solid',
           borderColor: '#f1f5f9',
           backgroundColor: '#fafbfc'
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <FilterAltIcon sx={{ color: '#1877F2', fontSize: 20 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
+          <FilterAltIcon sx={{ color: '#1877F2', fontSize: { xs: 18, sm: 20 } }} />
           <Typography
             variant='subtitle1'
             sx={{
               fontWeight: 600,
-              fontSize: '0.9375rem',
+              fontSize: { xs: '0.875rem', sm: '0.9375rem' },
               color: '#0f172a',
               letterSpacing: '-0.01em'
             }}
@@ -107,13 +109,13 @@ export const FiltersSection = ({
           <Button
             variant='outlined'
             size='small'
-            startIcon={<ClearIcon sx={{ fontSize: 16 }} />}
+            startIcon={<ClearIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />}
             onClick={handleClearFilters}
             sx={{
               minWidth: 'auto',
-              px: 2,
-              py: 0.875,
-              fontSize: '0.8125rem',
+              px: { xs: 1.5, sm: 2 },
+              py: { xs: 0.75, sm: 0.875 },
+              fontSize: { xs: '0.75rem', sm: '0.8125rem' },
               fontWeight: 600,
               color: '#64748b',
               borderColor: '#cbd5e1',
@@ -133,8 +135,8 @@ export const FiltersSection = ({
           </Button>
         )}
       </Box>
-      <Box sx={{ p: 3 }}>
-        <Grid container spacing={2.5}>
+      <Box sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
+        <Grid container spacing={{ xs: 2, sm: 2.5, md: 2.5 }}>
           {/* Campo de busca */}
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField

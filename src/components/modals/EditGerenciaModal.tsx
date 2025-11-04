@@ -413,6 +413,7 @@ export const EditGerenciaModal = ({
                           '& .MuiOutlinedInput-notchedOutline': {
                             borderColor: '#cbd5e1'
                           }
+                          
                         },
                         '&.Mui-focused': {
                           '& .MuiOutlinedInput-notchedOutline': {
