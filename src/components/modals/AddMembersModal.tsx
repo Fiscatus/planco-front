@@ -417,12 +417,37 @@ export const AddMembersModal = ({
                 urlParams.set('modalPage', '1'); // reset page to 1 when limit changes
                 setUrlParams(urlParams, { replace: true });
               }}
-              sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+              sx={{ 
+                minWidth: 120, 
+                height: 32, 
+                fontSize: '0.875rem',
+                backgroundColor: '#ffffff',
+                '&:hover': {
+                  backgroundColor: '#ffffff'
+                },
+                '&.Mui-focused': {
+                  backgroundColor: '#ffffff'
+                },
+                '& .MuiSelect-icon': {
+                  color: '#64748b'
+                }
+              }}
             >
               {[5, 10, 25].map((limit) => (
                 <MenuItem
                   key={limit}
                   value={limit}
+                  sx={{
+                    '&:hover': {
+                      backgroundColor: '#f8fafc'
+                    },
+                    '&.Mui-selected': {
+                      backgroundColor: '#f1f5f9',
+                      '&:hover': {
+                        backgroundColor: '#f1f5f9'
+                      }
+                    }
+                  }}
                 >
                   {limit} por página
                 </MenuItem>

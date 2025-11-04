@@ -18,7 +18,8 @@ import {
   Tabs,
   Tab,
   TextField,
-  Typography
+  Typography,
+  Tooltip
 } from '@mui/material';
 import {
   CalendarToday as CalendarTodayIcon,
@@ -28,9 +29,11 @@ import {
   DriveFileMove as DriveFileMoveIcon,
   Edit as EditIcon,
   Folder as FolderIcon,
+  Info as InfoIcon,
   Search as SearchIcon,
   Star as StarIcon,
-  Warning as WarningIcon
+  Warning as WarningIcon,
+  SwapVert as SwapVertIcon
 } from '@mui/icons-material';
 import type { Folder, MoveProcessesDto, Process, UpdateFolderDto } from '@/globals/types';
 import { useState, useEffect, useCallback } from 'react';
@@ -102,6 +105,8 @@ export const ManageFolderModal = ({
   const [loadingProcesses, setLoadingProcesses] = useState(false);
   const [selectedProcesses, setSelectedProcesses] = useState<string[]>([]);
   const [targetFolder, setTargetFolder] = useState('');
+  const [processSortOrder, setProcessSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [deleteConfirmationModalOpen, setDeleteConfirmationModalOpen] = useState(false);
 
   // Inicializar formulário quando o modal abrir ou pasta mudar
   useEffect(() => {
@@ -144,6 +149,21 @@ export const ManageFolderModal = ({
     }
   };
 
+  const handleProcessSortToggle = () => {
+    setProcessSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+  };
+
+  const sortedProcesses = [...processes].sort((a, b) => {
+    const aValue = a.processNumber || '';
+    const bValue = b.processNumber || '';
+    
+    if (processSortOrder === 'asc') {
+      return aValue.localeCompare(bValue);
+    } else {
+      return bValue.localeCompare(aValue);
+    }
+  });
+
   const handleToggleProcess = (processId: string) => {
     setSelectedProcesses((prev) =>
       prev.includes(processId)
@@ -153,10 +173,10 @@ export const ManageFolderModal = ({
   };
 
   const handleSelectAll = () => {
-    if (selectedProcesses.length === processes.length) {
+    if (selectedProcesses.length === sortedProcesses.length) {
       setSelectedProcesses([]);
     } else {
-      setSelectedProcesses(processes.map((p) => p._id));
+      setSelectedProcesses(sortedProcesses.map((p) => p._id));
     }
   };
 
@@ -178,17 +198,28 @@ export const ManageFolderModal = ({
     }
   };
 
-  const handleDeleteFolder = async () => {
+  const handleDeleteFolderClick = () => {
+    // Abrir modal de confirmação
+    setDeleteConfirmationModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
     try {
       await onDelete();
+      setDeleteConfirmationModalOpen(false);
       handleClose();
     } catch (error) {
       console.error('Erro ao excluir pasta:', error);
     }
   };
 
+  const handleCancelDelete = () => {
+    setDeleteConfirmationModalOpen(false);
+  };
+
   const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
+    setDeleteConfirmationModalOpen(false); // Fechar modal de confirmação ao trocar de aba
   };
 
   const handleClose = () => {
@@ -202,6 +233,7 @@ export const ManageFolderModal = ({
     setSelectedProcesses([]);
     setTargetFolder('');
     setProcesses([]);
+    setDeleteConfirmationModalOpen(false);
     onClose();
   };
 
@@ -701,20 +733,37 @@ export const ManageFolderModal = ({
                           border: '2px solid #e2e8f0',
                           transition: 'all 0.2s ease-in-out'
                         },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#cbd5e1'
+                        '&:hover': {
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#cbd5e1'
+                          },
+                          backgroundColor: '#ffffff'
                         },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1877F2',
-                          boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                        '&.Mui-focused': {
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1877F2',
+                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          },
+                          backgroundColor: '#ffffff'
                         },
                         '& .MuiSelect-select': {
                           py: 1.25,
                           px: 1.5
+                        },
+                        '& .MuiSelect-icon': {
+                          color: '#64748b'
                         }
                       }}
                     >
-                      <MenuItem value='' disabled>
+                      <MenuItem 
+                        value='' 
+                        disabled
+                        sx={{
+                          '&:hover': {
+                            backgroundColor: '#f8fafc'
+                          }
+                        }}
+                      >
                         {loadingFolders ? 'Carregando pastas...' : availableFolders.length === 0 ? 'Nenhuma pasta disponível' : 'Selecione a pasta destino...'}
                       </MenuItem>
                       {availableFolders.map((f) => {
@@ -722,7 +771,21 @@ export const ManageFolderModal = ({
                         const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
                         
                         return (
-                          <MenuItem key={f._id} value={f._id}>
+                          <MenuItem 
+                            key={f._id} 
+                            value={f._id}
+                            sx={{
+                              '&:hover': {
+                                backgroundColor: '#f8fafc'
+                              },
+                              '&.Mui-selected': {
+                                backgroundColor: '#f1f5f9',
+                                '&:hover': {
+                                  backgroundColor: '#f1f5f9'
+                                }
+                              }
+                            }}
+                          >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
                               <FolderIcon sx={{ fontSize: 24, color: folderIconColor }} />
                               <Box sx={{ flex: 1 }}>
@@ -836,8 +899,8 @@ export const ManageFolderModal = ({
                             }}
                           >
                             <Checkbox
-                              indeterminate={selectedProcesses.length > 0 && selectedProcesses.length < processes.length}
-                              checked={processes.length > 0 && selectedProcesses.length === processes.length}
+                              indeterminate={selectedProcesses.length > 0 && selectedProcesses.length < sortedProcesses.length}
+                              checked={sortedProcesses.length > 0 && selectedProcesses.length === sortedProcesses.length}
                               onChange={handleSelectAll}
                               sx={{
                                 color: '#64748b',
@@ -857,7 +920,63 @@ export const ManageFolderModal = ({
                               py: 1.5
                             }}
                           >
-                            Processo
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                              <Typography component='span' sx={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                                Processo
+                              </Typography>
+                              <Tooltip
+                                title={processSortOrder === 'asc' ? 'Ordenar decrescente' : 'Ordenar crescente'}
+                                arrow
+                                placement='top'
+                                componentsProps={{
+                                  tooltip: {
+                                    sx: {
+                                      backgroundColor: '#212121',
+                                      color: '#FFFFFF',
+                                      border: 'none',
+                                      fontSize: '12px',
+                                      padding: '6px 12px',
+                                      borderRadius: '8px'
+                                    }
+                                  },
+                                  arrow: {
+                                    sx: {
+                                      color: '#212121'
+                                    }
+                                  }
+                                }}
+                              >
+                                <IconButton
+                                  size='small'
+                                  onClick={handleProcessSortToggle}
+                                  sx={{
+                                    p: 0.5,
+                                    borderRadius: '8px',
+                                    flexShrink: 0,
+                                    transition: 'all 200ms ease',
+                                    '&:hover': {
+                                      '& .sort-icon': {
+                                        color: '#1877F2',
+                                        transform: 'scale(1.1)'
+                                      }
+                                    },
+                                    '&:focus': {
+                                      outline: '2px solid rgba(24, 119, 242, 0.25)',
+                                      outlineOffset: '2px'
+                                    }
+                                  }}
+                                >
+                                  <SwapVertIcon
+                                    className='sort-icon'
+                                    sx={{
+                                      fontSize: '14px',
+                                      color: '#8A8D91',
+                                      transition: 'transform 200ms ease, color 200ms ease'
+                                    }}
+                                  />
+                                </IconButton>
+                              </Tooltip>
+                            </Box>
                           </TableCell>
                           <TableCell 
                             sx={{ 
@@ -899,7 +1018,7 @@ export const ManageFolderModal = ({
                             </TableCell>
                           </TableRow>
                         ) : (
-                          processes.map((process) => (
+                          sortedProcesses.map((process) => (
                             <TableRow 
                               key={process._id}
                               sx={{
@@ -1311,7 +1430,7 @@ export const ManageFolderModal = ({
                       Cancelar
                 </Button>
                 <Button
-                      onClick={handleDeleteFolder}
+                      onClick={handleDeleteFolderClick}
                       disabled={deletingLoading}
                   variant='contained'
                       startIcon={<DeleteIcon />}
@@ -1335,7 +1454,7 @@ export const ManageFolderModal = ({
                         transition: 'all 0.2s ease-in-out'
                       }}
                     >
-                      {deletingLoading ? 'Excluindo...' : 'Confirmar Exclusão'}
+                      {deletingLoading ? 'Excluindo...' : 'Excluir Pasta'}
                 </Button>
               </Box>
                 </Box>
@@ -1345,6 +1464,225 @@ export const ManageFolderModal = ({
         </DialogContent>
       </Dialog>
 
+      {/* Modal de Confirmação de Exclusão */}
+      <Dialog
+        open={deleteConfirmationModalOpen}
+        onClose={handleCancelDelete}
+        maxWidth='sm'
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          {/* Header */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 3,
+              borderBottom: '1px solid #e2e8f0'
+            }}
+          >
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: 700,
+                fontSize: '1.25rem',
+                color: '#0f172a'
+              }}
+            >
+              Excluir Pasta
+            </Typography>
+            <IconButton
+              onClick={handleCancelDelete}
+              size='small'
+              sx={{
+                color: '#64748b',
+                '&:hover': {
+                  backgroundColor: '#f1f5f9'
+                }
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+
+          {/* Content */}
+          <Box sx={{ p: 3 }}>
+            {/* Informativo de atenção */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                p: 2.5,
+                borderRadius: 2,
+                backgroundColor: '#FEF3C7',
+                border: '1px solid #FCD34D',
+                mb: 3
+              }}
+            >
+              <WarningIcon
+                sx={{
+                  color: '#92400E',
+                  fontSize: 24,
+                  mr: 1.5,
+                  mt: 0.25,
+                  flexShrink: 0
+                }}
+              />
+              <Box sx={{ flex: 1 }}>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: '#92400E',
+                    fontSize: '0.875rem',
+                    lineHeight: 1.6,
+                    fontWeight: 700,
+                    mb: 0.75
+                  }}
+                >
+                  Atenção: Esta ação não pode ser desfeita
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{
+                    color: '#92400E',
+                    fontSize: '0.875rem',
+                    lineHeight: 1.6,
+                    fontWeight: 400
+                  }}
+                >
+                  {folder?.processCount !== undefined && folder.processCount !== null
+                    ? `Todos os ${folder.processCount} processo${folder.processCount !== 1 ? 's' : ''} desta pasta serão automaticamente transferidos para a Pasta Planco após a exclusão.`
+                    : 'Todos os processos desta pasta serão automaticamente transferidos para a Pasta Planco após a exclusão.'}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* Informação sobre movimento dos processos */}
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                p: 2,
+                borderRadius: 2,
+                backgroundColor: '#EFF6FF',
+                border: '1px solid #BFDBFE',
+                mb: 3
+              }}
+            >
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  backgroundColor: '#DBEAFE',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <InfoIcon sx={{ fontSize: 18, color: '#2563EB' }} />
+              </Box>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: '#1E40AF',
+                  fontSize: '0.875rem',
+                  lineHeight: 1.6,
+                  fontWeight: 600
+                }}
+              >
+                Todos os processos serão automaticamente movidos para a Pasta Planco.
+              </Typography>
+            </Box>
+
+            {/* Mensagem de confirmação */}
+            <Typography
+              variant='body1'
+              sx={{
+                color: '#0f172a',
+                fontSize: '1rem',
+                lineHeight: 1.6,
+                textAlign: 'center',
+                fontWeight: 500,
+                mb: 1
+              }}
+            >
+              Tem certeza que deseja excluir permanentemente a pasta <Box component='span' sx={{ fontWeight: 700 }}>"{folder?.name}"</Box>?
+            </Typography>
+          </Box>
+
+          {/* Footer com botões */}
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 2,
+              p: 3,
+              borderTop: '1px solid #e2e8f0',
+              backgroundColor: '#fafbfc'
+            }}
+          >
+            <Button
+              onClick={handleCancelDelete}
+              disabled={deletingLoading}
+              sx={{
+                px: 3,
+                py: 1.25,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: '#64748b',
+                textTransform: 'none',
+                borderRadius: 2,
+                border: '1px solid #e2e8f0',
+                backgroundColor: '#ffffff',
+                '&:hover': {
+                  backgroundColor: '#f8fafc',
+                  borderColor: '#cbd5e1'
+                },
+                transition: 'all 0.2s ease-in-out'
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmDelete}
+              disabled={deletingLoading}
+              variant='contained'
+              startIcon={<DeleteIcon />}
+              sx={{
+                px: 3,
+                py: 1.25,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                backgroundColor: '#DC2626',
+                textTransform: 'none',
+                borderRadius: 2,
+                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                '&:hover': {
+                  backgroundColor: '#B91C1C',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                },
+                '&:disabled': {
+                  backgroundColor: '#9ca3af',
+                  boxShadow: 'none'
+                },
+                transition: 'all 0.2s ease-in-out'
+              }}
+            >
+              {deletingLoading ? 'Excluindo...' : 'Confirmar Exclusão'}
+            </Button>
+          </Box>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

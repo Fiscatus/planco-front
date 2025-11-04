@@ -15,9 +15,11 @@ import {
   AttachFile as AttachFileIcon,
   Visibility as VisibilityIcon,
   Assignment as AssignmentIcon,
-  ErrorOutline as ErrorOutlineIcon
+  WarningOutlined as WarningIcon,
+  SwapVert as SwapVertIcon
 } from '@mui/icons-material';
 import type { Process } from '@/globals/types';
+import { useState, useMemo } from 'react';
 
 interface ProcessTableProps {
   processes: Process[];
@@ -83,11 +85,32 @@ const getStatusColor = (status?: string) => {
 };
 
 export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) => {
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
   const handleProcessClick = (process: Process) => {
     if (onProcessClick) {
       onProcessClick(process);
     }
   };
+
+  const handleSortToggle = () => {
+    setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+  };
+
+  const sortedProcesses = useMemo(() => {
+    if (!processes || processes.length === 0) return processes;
+    
+    return [...processes].sort((a, b) => {
+      const aValue = a.processNumber || '';
+      const bValue = b.processNumber || '';
+      
+      if (sortOrder === 'asc') {
+        return aValue.localeCompare(bValue);
+      } else {
+        return bValue.localeCompare(aValue);
+      }
+    });
+  }, [processes, sortOrder]);
 
   return (
     <Box>
@@ -115,7 +138,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
             color: '#212121'
           }}
         >
-          {processes.length === 1 ? '1 Processo' : `${processes.length} Processos`}
+          {sortedProcesses.length === 1 ? '1 Processo' : `${sortedProcesses.length} Processos`}
         </Typography>
       </Box>
 
@@ -125,7 +148,21 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
           border: '1px solid #E4E6EB',
           boxShadow: '0 1px 3px rgba(16, 24, 40, 0.06)',
           overflowX: 'auto',
-          backgroundColor: '#FFFFFF'
+          backgroundColor: '#FFFFFF',
+          '&::-webkit-scrollbar': {
+            height: '8px'
+          },
+          '&::-webkit-scrollbar-track': {
+            backgroundColor: '#F7F9FB',
+            borderRadius: '4px'
+          },
+          '&::-webkit-scrollbar-thumb': {
+            backgroundColor: '#D1D5DB',
+            borderRadius: '4px',
+            '&:hover': {
+              backgroundColor: '#9CA3AF'
+            }
+          }
         }}
       >
         <Table>
@@ -135,27 +172,86 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                 background: 'linear-gradient(to bottom, #F7F9FC 0%, #F3F6FA 100%)',
                 '& th': {
                   fontWeight: 600,
-                  fontSize: '14px',
+                  fontSize: '0.875rem',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.03em',
+                  letterSpacing: '0.05em',
                   color: '#212121',
                   borderBottom: '1px solid #E4E6EB',
-                  py: 1.75,
-                  px: { xs: 1.5, md: 2.5 }
+                  py: 2,
+                  px: { xs: 1.5, md: 2.5 },
+                  verticalAlign: 'middle'
                 }
               }}
             >
-              <TableCell>Processo Nº</TableCell>
-              <TableCell>Objeto</TableCell>
+              <TableCell>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <Typography component='span' sx={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                    Processo
+                  </Typography>
+                  <Tooltip
+                    title={sortOrder === 'asc' ? 'Ordenar decrescente' : 'Ordenar crescente'}
+                    arrow
+                    placement='top'
+                    componentsProps={{
+                      tooltip: {
+                        sx: {
+                          backgroundColor: '#212121',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          fontSize: '12px',
+                          padding: '6px 12px',
+                          borderRadius: '8px'
+                        }
+                      },
+                      arrow: {
+                        sx: {
+                          color: '#212121'
+                        }
+                      }
+                    }}
+                  >
+                    <IconButton
+                      size='small'
+                      onClick={handleSortToggle}
+                      sx={{
+                        p: 0.5,
+                        borderRadius: '8px',
+                        flexShrink: 0,
+                        transition: 'all 200ms ease',
+                        '&:hover': {
+                          '& .sort-icon': {
+                            color: '#1877F2',
+                            transform: 'scale(1.1)'
+                          }
+                        },
+                        '&:focus': {
+                          outline: '2px solid rgba(24, 119, 242, 0.25)',
+                          outlineOffset: '2px'
+                        }
+                      }}
+                    >
+                      <SwapVertIcon
+                        className='sort-icon'
+                        sx={{
+                          fontSize: '14px',
+                          color: '#8A8D91',
+                          transition: 'transform 200ms ease, color 200ms ease'
+                        }}
+                      />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </TableCell>
+              <TableCell sx={{ minWidth: { xs: 200, sm: 300, md: 400, lg: 500 } }}>Objeto</TableCell>
               <TableCell>Etapa Atual</TableCell>
               <TableCell>Modalidade</TableCell>
               <TableCell>Prioridade</TableCell>
               <TableCell>Situação</TableCell>
-              <TableCell align='right'>Ações</TableCell>
+              <TableCell>Ações</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {processes.length === 0 ? (
+            {sortedProcesses.length === 0 ? (
               <TableRow>
                 <TableCell
                   colSpan={7}
@@ -195,9 +291,9 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                           fontSize: '20px',
                           color: '#212121',
                           mb: 1
-                        }}
-                      >
-                        Nenhum processo encontrado
+                  }}
+                >
+                  Nenhum processo encontrado
                       </Typography>
                       <Typography
                         variant='body2'
@@ -213,7 +309,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                 </TableCell>
               </TableRow>
             ) : (
-              processes.map((process, index) => (
+              sortedProcesses.map((process, index) => (
                 <TableRow
                   key={process._id}
                   sx={{
@@ -223,12 +319,14 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                     '&:hover': {
                       backgroundColor: '#E7F3FF',
                       boxShadow: '0 2px 6px rgba(16, 24, 40, 0.06)',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      transform: 'translateY(-1px)'
                     },
                     transition: 'all 200ms ease-in-out',
                     '& td': {
-                      py: 1.75,
-                      px: { xs: 1.5, md: 2.5 }
+                      py: 2,
+                      px: { xs: 1.5, md: 2.5 },
+                      verticalAlign: 'middle'
                     }
                   }}
                 >
@@ -239,13 +337,16 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                       sx={{
                         color: '#1877F2',
                         fontWeight: 700,
-                        fontSize: '0.95rem',
+                        fontSize: '1rem',
                         cursor: 'pointer',
                         textDecoration: 'none',
                         lineHeight: 1.5,
+                        display: 'inline-block',
+                        transition: 'all 0.2s ease',
                         '&:hover': {
                           color: '#105BBE',
-                          textDecoration: 'underline'
+                          textDecoration: 'underline',
+                          transform: 'translateX(2px)'
                         },
                         '&:focus': {
                           outline: '2px solid rgba(24, 119, 242, 0.25)',
@@ -257,10 +358,11 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                       {process.processNumber}
                     </Typography>
                   </TableCell>
-                  <TableCell>
+                  <TableCell sx={{ minWidth: { xs: 200, sm: 300, md: 400, lg: 500 } }}>
                     <Tooltip 
                       title={process.object} 
                       arrow
+                      placement='top'
                       componentsProps={{
                         tooltip: {
                           sx: {
@@ -268,141 +370,214 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                             color: '#FFFFFF',
                             border: 'none',
                             fontSize: '12px',
-                            maxWidth: '400px'
+                            maxWidth: '600px',
+                            padding: '8px 12px',
+                            borderRadius: '8px'
+                          }
+                        },
+                        arrow: {
+                          sx: {
+                            color: '#212121'
                           }
                         }
                       }}
                     >
-                      <Typography
+                    <Typography
                         component='span'
-                        sx={{
+                      sx={{
                           color: '#212121',
-                          fontSize: '0.9rem',
+                        fontSize: '0.875rem',
                           lineHeight: 1.6,
-                          maxWidth: { xs: 200, md: 400 },
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
+                          maxWidth: { xs: 300, sm: 500, md: 600, lg: 700 },
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
                           cursor: 'help',
-                          display: 'block'
+                          display: 'block',
+                          transition: 'color 0.2s ease',
+                          '&:hover': {
+                            color: '#105BBE'
+                          }
                         }}
-                      >
-                        {process.object}
-                      </Typography>
+                    >
+                      {process.object}
+                    </Typography>
                     </Tooltip>
                   </TableCell>
                   <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
                     <Chip
                       label={process.currentStage || 'N/A'}
                       size='small'
                       sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        padding: '4px 12px',
-                        borderRadius: '20px',
-                        whiteSpace: 'nowrap',
-                        backgroundColor: '#FFFFFF',
-                        color: '#3A3B3C',
-                        border: '1px solid #E4E6EB',
-                        boxShadow: 'none'
-                      }}
-                    />
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        fontSize: '0.75rem',
+                          fontWeight: 600,
+                          padding: '6px 12px',
+                          borderRadius: '20px',
+                          whiteSpace: 'nowrap',
+                          backgroundColor: '#FFFFFF',
+                          color: '#3A3B3C',
+                          border: '1px solid #E4E6EB',
+                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                          height: '28px',
+                          minWidth: 'fit-content',
+                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': {
+                            borderColor: '#D1D5DB',
+                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                            transform: 'translateY(-1px)'
+                          }
+                        }}
+                      />
+                    </Box>
                   </TableCell>
                   <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
                     <Chip
                       label={process.modality || 'N/A'}
                       size='small'
                       sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        padding: '4px 12px',
-                        borderRadius: '20px',
-                        whiteSpace: 'nowrap',
-                        boxShadow: 'none',
-                        ...getModalityColor(process.modality)
-                      }}
-                    />
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        fontSize: '0.75rem',
+                          fontWeight: 600,
+                          padding: '6px 12px',
+                          borderRadius: '20px',
+                          whiteSpace: 'nowrap',
+                          backgroundColor: '#FFFFFF',
+                          color: '#3A3B3C',
+                          border: '1px solid #E4E6EB',
+                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                          height: '28px',
+                          minWidth: 'fit-content',
+                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': {
+                            borderColor: '#D1D5DB',
+                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                            transform: 'translateY(-1px)'
+                          }
+                        }}
+                      />
+                    </Box>
                   </TableCell>
                   <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
                     <Chip
                       label={process.priority || 'N/A'}
                       size='small'
                       sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        fontSize: '12px',
-                        padding: '4px 12px',
-                        borderRadius: '16px',
-                        whiteSpace: 'nowrap',
-                        boxShadow: 'none',
-                        ...getPriorityColor(process.priority)
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <Chip
-                        label={process.status || 'N/A'}
-                        size='small'
-                        sx={{
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: '6px',
-                          fontSize: '12px',
-                          padding: '4px 12px',
+                          justifyContent: 'center',
+                        fontSize: '0.75rem',
+                          fontWeight: getPriorityColor(process.priority).fontWeight || 600,
+                          padding: '6px 12px',
                           borderRadius: '16px',
                           whiteSpace: 'nowrap',
-                          boxShadow: 'none',
-                          ...getStatusColor(process.status)
+                          backgroundColor: '#FFFFFF',
+                          color: getPriorityColor(process.priority).color,
+                          border: '1px solid #E4E6EB',
+                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                          height: '28px',
+                          minWidth: 'fit-content',
+                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': {
+                            borderColor: '#D1D5DB',
+                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                            transform: 'translateY(-1px)'
+                          }
+                        }}
+                      />
+                    </Box>
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-start' }}>
+                    <Chip
+                      label={process.status || 'N/A'}
+                      size='small'
+                      sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        fontSize: '0.75rem',
+                          fontWeight: getStatusColor(process.status).fontWeight || 600,
+                          padding: '6px 12px',
+                          borderRadius: '16px',
+                          whiteSpace: 'nowrap',
+                          backgroundColor: '#FFFFFF',
+                          color: getStatusColor(process.status).color,
+                          border: '1px solid #E4E6EB',
+                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                          height: '28px',
+                          minWidth: 'fit-content',
+                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          '&:hover': {
+                            borderColor: '#D1D5DB',
+                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                            transform: 'translateY(-1px)'
+                          }
                         }}
                       />
                       {(process.status === 'Em Atraso' || process.status === 'Atrasado') && (
                         <Box
                           sx={{
-                            width: 24,
-                            height: 24,
+                            width: 28,
+                            height: 28,
                             borderRadius: '50%',
-                            backgroundColor: 'rgba(184, 30, 52, 0.1)',
+                            backgroundColor: 'rgba(184, 30, 52, 0.12)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            filter: 'drop-shadow(0 1px 2px rgba(184, 30, 52, 0.2))',
+                            filter: 'drop-shadow(0 2px 3px rgba(184, 30, 52, 0.25))',
                             animation: 'pulseAlert 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                            flexShrink: 0,
+                            border: '1px solid rgba(184, 30, 52, 0.2)',
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                              backgroundColor: 'rgba(184, 30, 52, 0.18)',
+                              transform: 'scale(1.05)'
+                            },
                             '@keyframes pulseAlert': {
                               '0%, 100%': {
                                 opacity: 1,
                                 transform: 'scale(1)'
                               },
                               '50%': {
-                                opacity: 0.7,
-                                transform: 'scale(1.05)'
+                                opacity: 0.8,
+                                transform: 'scale(1.08)'
                               }
                             }
                           }}
                         >
-                          <ErrorOutlineIcon sx={{ fontSize: 16, color: '#B81E34', strokeWidth: 2.5 }} />
+                          <WarningIcon sx={{ fontSize: 18, color: '#B81E34' }} />
                         </Box>
                       )}
                     </Box>
                   </TableCell>
-                  <TableCell align='right'>
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-start', gap: 0.5, alignItems: 'center' }}>
                       <Tooltip
                         title='Ver anexos'
+                        arrow
+                        placement='top'
                         componentsProps={{
                           tooltip: {
                             sx: {
                               backgroundColor: '#212121',
                               color: '#FFFFFF',
                               border: 'none',
-                              fontSize: '12px'
+                              fontSize: '12px',
+                              padding: '6px 12px',
+                              borderRadius: '8px'
+                            }
+                          },
+                          arrow: {
+                            sx: {
+                              color: '#212121'
                             }
                           }
                         }}
@@ -418,14 +593,18 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                             transition: 'all 0.2s ease',
                             '&:hover': {
                               backgroundColor: 'rgba(24, 119, 242, 0.08)',
-                              color: '#1877F2'
+                              color: '#1877F2',
+                              transform: 'scale(1.05)'
+                            },
+                            '&:active': {
+                              transform: 'scale(0.95)'
                             },
                             '&:focus': {
                               outline: '2px solid rgba(24, 119, 242, 0.25)',
                               outlineOffset: '2px'
                             },
                             '& svg': {
-                              fontSize: 16
+                              fontSize: 20
                             }
                           }}
                         >
@@ -434,13 +613,22 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                       </Tooltip>
                       <Tooltip
                         title='Visualizar'
+                        arrow
+                        placement='top'
                         componentsProps={{
                           tooltip: {
                             sx: {
                               backgroundColor: '#212121',
                               color: '#FFFFFF',
                               border: 'none',
-                              fontSize: '12px'
+                              fontSize: '12px',
+                              padding: '6px 12px',
+                              borderRadius: '8px'
+                            }
+                          },
+                          arrow: {
+                            sx: {
+                              color: '#212121'
                             }
                           }
                         }}
@@ -457,14 +645,18 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                             transition: 'all 0.2s ease',
                             '&:hover': {
                               backgroundColor: 'rgba(24, 119, 242, 0.08)',
-                              color: '#1877F2'
+                              color: '#1877F2',
+                              transform: 'scale(1.05)'
+                            },
+                            '&:active': {
+                              transform: 'scale(0.95)'
                             },
                             '&:focus': {
                               outline: '2px solid rgba(24, 119, 242, 0.25)',
                               outlineOffset: '2px'
                             },
                             '& svg': {
-                              fontSize: 16
+                              fontSize: 20
                             }
                           }}
                         >

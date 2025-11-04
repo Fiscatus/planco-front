@@ -186,7 +186,7 @@ const FolderProcessesPage = () => {
         width: '100%',
         minHeight: '100vh',
         background: 'linear-gradient(180deg, #F7F9FB 0%, #F4F6F8 100%)',
-        pt: { xs: 3, sm: 4 },
+        pt: { xs: 2, sm: 3 },
         px: { xs: 2, sm: 4 },
         pb: 5,
         '@media (max-width: 640px)': {
@@ -297,39 +297,45 @@ const FolderProcessesPage = () => {
 
         {/* Banner Informativo - Pasta Planco */}
         {isPlancoFolder && (
-          <Box sx={{ mb: 3 }}>
+          <Box sx={{ mb: 4, mt: 3 }}>
             <Card
               sx={{
                 borderRadius: '12px',
                 border: '1px solid #BFDBFE',
                 backgroundColor: '#EFF6FF',
-                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                p: 2.5
+                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+                p: 3,
+                transition: 'box-shadow 0.2s ease-in-out',
+                '&:hover': {
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+                }
               }}
             >
-              <Box sx={{ display: 'flex', gap: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2.5 }}>
                 <Box
                   sx={{
-                    width: 40,
-                    height: 40,
+                    width: 44,
+                    height: 44,
                     borderRadius: '50%',
                     backgroundColor: '#DBEAFE',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    flexShrink: 0
+                    flexShrink: 0,
+                    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
                   }}
                 >
-                  <InfoIcon sx={{ fontSize: 20, color: '#2563EB' }} />
+                  <InfoIcon sx={{ fontSize: 22, color: '#2563EB' }} />
                 </Box>
-                <Box sx={{ flex: 1 }}>
+                <Box sx={{ flex: 1, pt: 0.25 }}>
                   <Typography
                     variant='subtitle1'
                     sx={{
                       fontWeight: 700,
-                      fontSize: '14px',
+                      fontSize: '15px',
                       color: '#1E3A8A',
-                      mb: 1
+                      mb: 1.25,
+                      lineHeight: 1.4
                     }}
                   >
                     Pasta Padrão do Sistema
@@ -339,14 +345,15 @@ const FolderProcessesPage = () => {
                     sx={{
                       fontSize: '14px',
                       color: '#1E40AF',
-                      lineHeight: 1.6
+                      lineHeight: 1.65,
+                      letterSpacing: '0.01em'
                     }}
                   >
                     Esta é a{' '}
                     <Box
                       component='span'
                       sx={{
-                        fontWeight: 600,
+                        fontWeight: 700,
                         color: '#2563EB'
                       }}
                     >

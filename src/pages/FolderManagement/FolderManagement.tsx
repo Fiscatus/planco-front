@@ -347,10 +347,10 @@ const FolderManagement = () => {
       {/* Header */}
       <Box
         sx={{
-          py: { xs: 3, md: 4 },
+          py: { xs: 2, md: 3 },
           px: { xs: 2, sm: 4, md: 6, lg: 8 },
           '@media (max-width: 767px)': {
-            py: 2.5,
+            py: 2,
             px: 1.5
           },
           display: 'flex',
@@ -566,13 +566,15 @@ const FolderManagement = () => {
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: '#cbd5e1'
-                        }
+                        },
+                        backgroundColor: '#ffffff'
                       },
                       '&.Mui-focused': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: theme.palette.primary.main,
                           borderWidth: '1.5px'
-                        }
+                        },
+                        backgroundColor: '#ffffff'
                       },
                       '& .MuiOutlinedInput-notchedOutline': {
                         borderColor: '#e2e8f0'
@@ -582,6 +584,9 @@ const FolderManagement = () => {
                         alignItems: 'center',
                         py: 1.25,
                         px: 1.5
+                      },
+                      '& .MuiSelect-icon': {
+                        color: '#64748b'
                       }
                     }}
                     renderValue={(value) => {
@@ -596,14 +601,43 @@ const FolderManagement = () => {
                       );
                     }}
                   >
-                    <MenuItem value='all' sx={{ fontSize: '0.875rem' }}>
+                    <MenuItem 
+                      value='all' 
+                      sx={{ 
+                        fontSize: '0.875rem',
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CalendarMonthIcon sx={{ fontSize: 18, color: '#64748b' }} />
                         <Typography component='span' sx={{ fontSize: '0.875rem' }}>Todos os anos</Typography>
                       </Box>
                     </MenuItem>
                     {years().slice(0, 10).map((year) => (
-                      <MenuItem key={year} value={year} sx={{ fontSize: '0.875rem' }}>
+                      <MenuItem 
+                        key={year} 
+                        value={year} 
+                        sx={{ 
+                          fontSize: '0.875rem',
+                          '&:hover': {
+                            backgroundColor: '#f8fafc'
+                          },
+                          '&.Mui-selected': {
+                            backgroundColor: '#f1f5f9',
+                            '&:hover': {
+                              backgroundColor: '#f1f5f9'
+                            }
+                          }
+                        }}
+                      >
                         {year}
                       </MenuItem>
                     ))}
@@ -629,13 +663,15 @@ const FolderManagement = () => {
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: '#cbd5e1'
-                        }
+                        },
+                        backgroundColor: '#ffffff'
                       },
                       '&.Mui-focused': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: theme.palette.primary.main,
                           borderWidth: '1.5px'
-                        }
+                        },
+                        backgroundColor: '#ffffff'
                       },
                       '& .MuiOutlinedInput-notchedOutline': {
                         borderColor: '#e2e8f0'
@@ -645,6 +681,9 @@ const FolderManagement = () => {
                         alignItems: 'center',
                         py: 1.25,
                         px: 1.5
+                      },
+                      '& .MuiSelect-icon': {
+                        color: '#64748b'
                       }
                     }}
                     renderValue={(value) => {
@@ -659,8 +698,40 @@ const FolderManagement = () => {
                       );
                     }}
                   >
-                    <MenuItem value='name-asc' sx={{ fontSize: '0.875rem' }}>Nome (A-Z)</MenuItem>
-                    <MenuItem value='name-desc' sx={{ fontSize: '0.875rem' }}>Nome (Z-A)</MenuItem>
+                    <MenuItem 
+                      value='name-asc' 
+                      sx={{ 
+                        fontSize: '0.875rem',
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Nome (A-Z)
+                    </MenuItem>
+                    <MenuItem 
+                      value='name-desc' 
+                      sx={{ 
+                        fontSize: '0.875rem',
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Nome (Z-A)
+                    </MenuItem>
                   </Select>
                 </FormControl>
               </Grid>

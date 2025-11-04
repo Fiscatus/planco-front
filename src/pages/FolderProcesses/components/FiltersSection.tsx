@@ -157,7 +157,8 @@ export const FiltersSection = ({
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#cbd5e1'
-                    }
+                    },
+                    backgroundColor: '#ffffff'
                   },
                   '&.Mui-focused': {
                     '& .MuiOutlinedInput-notchedOutline': {
@@ -192,13 +193,15 @@ export const FiltersSection = ({
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#cbd5e1'
-                    }
+                    },
+                    backgroundColor: '#ffffff'
                   },
                   '&.Mui-focused': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: theme.palette.primary.main,
                       borderWidth: '1.5px'
-                    }
+                    },
+                    backgroundColor: '#ffffff'
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#e2e8f0'
@@ -208,12 +211,46 @@ export const FiltersSection = ({
                     alignItems: 'center',
                     py: 1.25,
                     px: 1.5
+                  },
+                  '& .MuiSelect-icon': {
+                    color: '#64748b'
                   }
                 }}
               >
-                <MenuItem value='all' sx={{ fontSize: '0.875rem' }}>Todas as prioridades</MenuItem>
+                <MenuItem 
+                  value='all' 
+                  sx={{ 
+                    fontSize: '0.875rem',
+                    '&:hover': {
+                      backgroundColor: '#f8fafc'
+                    },
+                    '&.Mui-selected': {
+                      backgroundColor: '#f1f5f9',
+                      '&:hover': {
+                        backgroundColor: '#f1f5f9'
+                      }
+                    }
+                  }}
+                >
+                  Todas as prioridades
+                </MenuItem>
                 {PRIORITIES.map((priority) => (
-                  <MenuItem key={priority} value={priority} sx={{ fontSize: '0.875rem' }}>
+                  <MenuItem 
+                    key={priority} 
+                    value={priority} 
+                    sx={{ 
+                      fontSize: '0.875rem',
+                      '&:hover': {
+                        backgroundColor: '#f8fafc'
+                      },
+                      '&.Mui-selected': {
+                        backgroundColor: '#f1f5f9',
+                        '&:hover': {
+                          backgroundColor: '#f1f5f9'
+                        }
+                      }
+                    }}
+                  >
                     {priority}
                   </MenuItem>
                 ))}
@@ -235,13 +272,15 @@ export const FiltersSection = ({
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#cbd5e1'
-                    }
+                    },
+                    backgroundColor: '#ffffff'
                   },
                   '&.Mui-focused': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: theme.palette.primary.main,
                       borderWidth: '1.5px'
-                    }
+                    },
+                    backgroundColor: '#ffffff'
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#e2e8f0'
@@ -251,12 +290,46 @@ export const FiltersSection = ({
                     alignItems: 'center',
                     py: 1.25,
                     px: 1.5
+                  },
+                  '& .MuiSelect-icon': {
+                    color: '#64748b'
                   }
                 }}
               >
-                <MenuItem value='all' sx={{ fontSize: '0.875rem' }}>Todas as modalidades</MenuItem>
+                <MenuItem 
+                  value='all' 
+                  sx={{ 
+                    fontSize: '0.875rem',
+                    '&:hover': {
+                      backgroundColor: '#f8fafc'
+                    },
+                    '&.Mui-selected': {
+                      backgroundColor: '#f1f5f9',
+                      '&:hover': {
+                        backgroundColor: '#f1f5f9'
+                      }
+                    }
+                  }}
+                >
+                  Todas as modalidades
+                </MenuItem>
                 {MODALITIES.map((modality) => (
-                  <MenuItem key={modality} value={modality} sx={{ fontSize: '0.875rem' }}>
+                  <MenuItem 
+                    key={modality} 
+                    value={modality} 
+                    sx={{ 
+                      fontSize: '0.875rem',
+                      '&:hover': {
+                        backgroundColor: '#f8fafc'
+                      },
+                      '&.Mui-selected': {
+                        backgroundColor: '#f1f5f9',
+                        '&:hover': {
+                          backgroundColor: '#f1f5f9'
+                        }
+                      }
+                    }}
+                  >
                     {modality}
                   </MenuItem>
                 ))}
@@ -278,13 +351,15 @@ export const FiltersSection = ({
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#cbd5e1'
-                    }
+                    },
+                    backgroundColor: '#ffffff'
                   },
                   '&.Mui-focused': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: theme.palette.primary.main,
                       borderWidth: '1.5px'
-                    }
+                    },
+                    backgroundColor: '#ffffff'
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#e2e8f0'
@@ -294,12 +369,46 @@ export const FiltersSection = ({
                     alignItems: 'center',
                     py: 1.25,
                     px: 1.5
+                  },
+                  '& .MuiSelect-icon': {
+                    color: '#64748b'
                   }
                 }}
               >
-                <MenuItem value='all' sx={{ fontSize: '0.875rem' }}>Todas as etapas</MenuItem>
+                <MenuItem 
+                  value='all' 
+                  sx={{ 
+                    fontSize: '0.875rem',
+                    '&:hover': {
+                      backgroundColor: '#f8fafc'
+                    },
+                    '&.Mui-selected': {
+                      backgroundColor: '#f1f5f9',
+                      '&:hover': {
+                        backgroundColor: '#f1f5f9'
+                      }
+                    }
+                  }}
+                >
+                  Todas as etapas
+                </MenuItem>
                 {STAGES.map((stage) => (
-                  <MenuItem key={stage} value={stage} sx={{ fontSize: '0.875rem' }}>
+                  <MenuItem 
+                    key={stage} 
+                    value={stage} 
+                    sx={{ 
+                      fontSize: '0.875rem',
+                      '&:hover': {
+                        backgroundColor: '#f8fafc'
+                      },
+                      '&.Mui-selected': {
+                        backgroundColor: '#f1f5f9',
+                        '&:hover': {
+                          backgroundColor: '#f1f5f9'
+                        }
+                      }
+                    }}
+                  >
                     {stage}
                   </MenuItem>
                 ))}
@@ -321,13 +430,15 @@ export const FiltersSection = ({
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#cbd5e1'
-                    }
+                    },
+                    backgroundColor: '#ffffff'
                   },
                   '&.Mui-focused': {
                     '& .MuiOutlinedInput-notchedOutline': {
                       borderColor: theme.palette.primary.main,
                       borderWidth: '1.5px'
-                    }
+                    },
+                    backgroundColor: '#ffffff'
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
                     borderColor: '#e2e8f0'
@@ -337,12 +448,46 @@ export const FiltersSection = ({
                     alignItems: 'center',
                     py: 1.25,
                     px: 1.5
+                  },
+                  '& .MuiSelect-icon': {
+                    color: '#64748b'
                   }
                 }}
               >
-                <MenuItem value='all' sx={{ fontSize: '0.875rem' }}>Todas as situações</MenuItem>
+                <MenuItem 
+                  value='all' 
+                  sx={{ 
+                    fontSize: '0.875rem',
+                    '&:hover': {
+                      backgroundColor: '#f8fafc'
+                    },
+                    '&.Mui-selected': {
+                      backgroundColor: '#f1f5f9',
+                      '&:hover': {
+                        backgroundColor: '#f1f5f9'
+                      }
+                    }
+                  }}
+                >
+                  Todas as situações
+                </MenuItem>
                 {STATUSES.map((status) => (
-                  <MenuItem key={status} value={status} sx={{ fontSize: '0.875rem' }}>
+                  <MenuItem 
+                    key={status} 
+                    value={status} 
+                    sx={{ 
+                      fontSize: '0.875rem',
+                      '&:hover': {
+                        backgroundColor: '#f8fafc'
+                      },
+                      '&.Mui-selected': {
+                        backgroundColor: '#f1f5f9',
+                        '&:hover': {
+                          backgroundColor: '#f1f5f9'
+                        }
+                      }
+                    }}
+                  >
                     {status}
                   </MenuItem>
                 ))}

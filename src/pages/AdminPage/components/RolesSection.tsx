@@ -547,10 +547,38 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                         value={currentLimit}
                         onChange={(e) => handleLimitChange(Number(e.target.value))}
                         size='small'
-                        sx={{ minWidth: 100, height: 28, fontSize: '0.75rem' }}
+                        sx={{ 
+                          minWidth: 100, 
+                          height: 28, 
+                          fontSize: '0.75rem',
+                          backgroundColor: '#ffffff',
+                          '&:hover': {
+                            backgroundColor: '#ffffff'
+                          },
+                          '&.Mui-focused': {
+                            backgroundColor: '#ffffff'
+                          },
+                          '& .MuiSelect-icon': {
+                            color: '#64748b'
+                          }
+                        }}
                       >
                         {[5, 10, 25, 50].map((limit) => (
-                          <MenuItem key={limit} value={limit}>
+                          <MenuItem 
+                            key={limit} 
+                            value={limit}
+                            sx={{
+                              '&:hover': {
+                                backgroundColor: '#f8fafc'
+                              },
+                              '&.Mui-selected': {
+                                backgroundColor: '#f1f5f9',
+                                '&:hover': {
+                                  backgroundColor: '#f1f5f9'
+                                }
+                              }
+                            }}
+                          >
                             {limit} por página
                           </MenuItem>
                         ))}

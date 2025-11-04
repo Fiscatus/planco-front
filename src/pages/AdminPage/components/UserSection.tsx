@@ -361,15 +361,24 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                         border: '2px solid #e5e7eb',
                         transition: 'all 0.2s ease-in-out'
                       },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#d1d5db'
+                      '&:hover': {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#d1d5db'
+                        },
+                        backgroundColor: '#ffffff'
                       },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.primary.main,
-                        boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
+                      '&.Mui-focused': {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.primary.main,
+                          boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
+                        },
+                        backgroundColor: '#ffffff'
                       },
                       '& .MuiSelect-select': {
                         color: !urlParams.get('isActive') ? '#9ca3af' : '#374151'
+                      },
+                      '& .MuiSelect-icon': {
+                        color: '#64748b'
                       }
                     }}
                     renderValue={(value) => {
@@ -379,9 +388,54 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                       return value === 'true' ? 'Ativos' : 'Inativos';
                     }}
                   >
-                    <MenuItem value='todos'>Todos</MenuItem>
-                    <MenuItem value='true'>Ativos</MenuItem>
-                    <MenuItem value='false'>Inativos</MenuItem>
+                    <MenuItem 
+                      value='todos'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Todos
+                    </MenuItem>
+                    <MenuItem 
+                      value='true'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Ativos
+                    </MenuItem>
+                    <MenuItem 
+                      value='false'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Inativos
+                    </MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -1209,12 +1263,37 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
               <Select
                 value={urlParams.get('limit') || 10}
                 onChange={(e) => handleLimitChange(Number(e.target.value))}
-                sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+                sx={{ 
+                  minWidth: 120, 
+                  height: 32, 
+                  fontSize: '0.875rem',
+                  backgroundColor: '#ffffff',
+                  '&:hover': {
+                    backgroundColor: '#ffffff'
+                  },
+                  '&.Mui-focused': {
+                    backgroundColor: '#ffffff'
+                  },
+                  '& .MuiSelect-icon': {
+                    color: '#64748b'
+                  }
+                }}
               >
                 {[5, 10, 25, 50].map((limit) => (
                   <MenuItem
                     key={limit}
                     value={limit}
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: '#f8fafc'
+                      },
+                      '&.Mui-selected': {
+                        backgroundColor: '#f1f5f9',
+                        '&:hover': {
+                          backgroundColor: '#f1f5f9'
+                        }
+                      }
+                    }}
                   >
                     {limit} por página
                   </MenuItem>

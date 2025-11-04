@@ -409,15 +409,24 @@ export const EditGerenciaModal = ({
                           border: '2px solid #e2e8f0',
                           transition: 'all 0.2s ease-in-out'
                         },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#cbd5e1'
+                        '&:hover': {
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#cbd5e1'
+                          },
+                          backgroundColor: '#ffffff'
                         },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1877F2',
-                          boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                        '&.Mui-focused': {
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1877F2',
+                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          },
+                          backgroundColor: '#ffffff'
                         },
                         '& .MuiSelect-select': {
                           color: gerenciaForm.responsavelUserId ? '#0f172a' : '#9ca3af'
+                        },
+                        '& .MuiSelect-icon': {
+                          color: '#64748b'
                         }
                       }}
                       renderValue={(value) => {
@@ -436,13 +445,37 @@ export const EditGerenciaModal = ({
                         }
                       }}
                     >
-                      <MenuItem value=''>
+                      <MenuItem 
+                        value=''
+                        sx={{
+                          '&:hover': {
+                            backgroundColor: '#f8fafc'
+                          },
+                          '&.Mui-selected': {
+                            backgroundColor: '#f1f5f9',
+                            '&:hover': {
+                              backgroundColor: '#f1f5f9'
+                            }
+                          }
+                        }}
+                      >
                         <em>Nenhum</em>
                       </MenuItem>
                       {responsavelUsers.map((user) => (
                         <MenuItem
                           key={user._id}
                           value={user._id}
+                          sx={{
+                            '&:hover': {
+                              backgroundColor: '#f8fafc'
+                            },
+                            '&.Mui-selected': {
+                              backgroundColor: '#f1f5f9',
+                              '&:hover': {
+                                backgroundColor: '#f1f5f9'
+                              }
+                            }
+                          }}
                         >
                           <Box>
                             <Typography

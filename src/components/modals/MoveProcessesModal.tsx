@@ -203,11 +203,13 @@ export const MoveProcessesModal = ({
                   backgroundColor: '#ffffff',
                   border: '1px solid #e2e8f0',
                   '&:hover': {
-                    borderColor: '#cbd5e1'
+                    borderColor: '#cbd5e1',
+                    backgroundColor: '#ffffff'
                   },
                   '&.Mui-focused': {
                     borderColor: '#1877F2',
-                    boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.15)'
+                    boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.15)',
+                    backgroundColor: '#ffffff'
                   }
                 }
               }}
@@ -239,13 +241,28 @@ export const MoveProcessesModal = ({
                   borderRadius: 2.5,
                   backgroundColor: '#ffffff',
                   border: '1px solid #e2e8f0',
+                  '&:hover': {
+                    backgroundColor: '#ffffff'
+                  },
                   '&.Mui-focused': {
                     borderColor: '#1877F2',
-                    boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.15)'
+                    boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.15)',
+                    backgroundColor: '#ffffff'
+                  },
+                  '& .MuiSelect-icon': {
+                    color: '#64748b'
                   }
                 }}
               >
-                <MenuItem value='' disabled>
+                <MenuItem 
+                  value='' 
+                  disabled
+                  sx={{
+                    '&:hover': {
+                      backgroundColor: '#f8fafc'
+                    }
+                  }}
+                >
                   {loadingFolders ? 'Carregando pastas...' : availableFolders.length === 0 ? 'Nenhuma pasta disponível' : 'Selecione a pasta destino...'}
                 </MenuItem>
                 {availableFolders.map((f) => {
@@ -253,7 +270,21 @@ export const MoveProcessesModal = ({
                   const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
                   
                   return (
-                    <MenuItem key={f._id} value={f._id}>
+                    <MenuItem 
+                      key={f._id} 
+                      value={f._id}
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
                         <FolderIcon sx={{ fontSize: 24, color: folderIconColor }} />
                         <Box sx={{ flex: 1 }}>
