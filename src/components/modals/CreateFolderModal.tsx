@@ -75,9 +75,12 @@ export const CreateFolderModal = ({
       maxWidth='md'
       PaperProps={{
         sx: {
-          borderRadius: 3,
+          borderRadius: { xs: 2, sm: 3 },
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          margin: { xs: 1, sm: 2 },
+          maxWidth: { xs: 'calc(100% - 16px)', sm: '600px' },
+          width: '100%'
         }
       }}
     >
@@ -85,20 +88,21 @@ export const CreateFolderModal = ({
         {/* Header */}
         <Box
           sx={{
-            p: 3,
+            p: { xs: 2.5, sm: 3 },
             borderBottom: '1px solid #e2e8f0',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
           }}
         >
-          <Box>
+          <Box sx={{ width: '100%' }}>
             <Typography
               variant='h5'
               sx={{
                 fontWeight: 700,
                 color: '#0f172a',
-                fontSize: '1.5rem'
+                fontSize: { xs: '1.25rem', sm: '1.5rem' },
+                lineHeight: { xs: 1.3, sm: 1.2 }
               }}
             >
               Nova Pasta
@@ -107,8 +111,9 @@ export const CreateFolderModal = ({
               variant='body2'
               sx={{
                 color: '#64748b',
-                fontSize: '0.875rem',
-                mt: 0.5
+                fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                mt: { xs: 0.5, sm: 0.5 },
+                lineHeight: { xs: 1.4, sm: 1.5 }
               }}
             >
               Preencha os dados para criar uma nova pasta.
@@ -117,8 +122,8 @@ export const CreateFolderModal = ({
         </Box>
 
         {/* Form Content */}
-        <Box sx={{ p: 4 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Box sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2.5, sm: 3 } }}>
             {/* Nome da pasta */}
             <Box>
               <Typography
@@ -126,8 +131,8 @@ export const CreateFolderModal = ({
                 sx={{
                   fontWeight: 500,
                   color: '#64748b',
-                  mb: 1,
-                  fontSize: '0.875rem'
+                  mb: { xs: 0.75, sm: 1 },
+                  fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                 }}
               >
                 Nome da Pasta *
@@ -143,21 +148,30 @@ export const CreateFolderModal = ({
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: '#ffffff',
                     borderRadius: 2,
+                    height: { xs: 44, sm: 48 },
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
                     '& .MuiOutlinedInput-notchedOutline': {
                       border: '2px solid #e2e8f0',
                       transition: 'all 0.2s ease-in-out'
                     },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#cbd5e1'
+                    '&:hover': {
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#cbd5e1'
+                      },
+                      backgroundColor: '#ffffff'
                     },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1877F2',
-                      boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                    '&.Mui-focused': {
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#1877F2',
+                        boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                      },
+                      backgroundColor: '#ffffff'
                     }
                   },
                   '& .MuiInputBase-input::placeholder': {
                     color: '#9ca3af',
-                    opacity: 1
+                    opacity: 1,
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
                   }
                 }}
               />
@@ -170,8 +184,8 @@ export const CreateFolderModal = ({
                 sx={{
                   fontWeight: 500,
                   color: '#64748b',
-                  mb: 1,
-                  fontSize: '0.875rem'
+                  mb: { xs: 0.75, sm: 1 },
+                  fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                 }}
               >
                 Ano
@@ -191,21 +205,30 @@ export const CreateFolderModal = ({
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: '#ffffff',
                     borderRadius: 2,
+                    height: { xs: 44, sm: 48 },
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
                     '& .MuiOutlinedInput-notchedOutline': {
                       border: '2px solid #e2e8f0',
                       transition: 'all 0.2s ease-in-out'
                     },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#cbd5e1'
+                    '&:hover': {
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#cbd5e1'
+                      },
+                      backgroundColor: '#ffffff'
                     },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1877F2',
-                      boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                    '&.Mui-focused': {
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#1877F2',
+                        boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                      },
+                      backgroundColor: '#ffffff'
                     }
                   },
                   '& .MuiInputBase-input::placeholder': {
                     color: '#9ca3af',
-                    opacity: 1
+                    opacity: 1,
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
                   }
                 }}
               />
@@ -218,8 +241,8 @@ export const CreateFolderModal = ({
                 sx={{
                   fontWeight: 500,
                   color: '#64748b',
-                  mb: 1,
-                  fontSize: '0.875rem'
+                  mb: { xs: 0.75, sm: 1 },
+                  fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                 }}
               >
                 Descrição
@@ -236,21 +259,33 @@ export const CreateFolderModal = ({
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: '#ffffff',
                     borderRadius: 2,
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
                     '& .MuiOutlinedInput-notchedOutline': {
                       border: '2px solid #e2e8f0',
                       transition: 'all 0.2s ease-in-out'
                     },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#cbd5e1'
+                    '&:hover': {
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#cbd5e1'
+                      },
+                      backgroundColor: '#ffffff'
                     },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1877F2',
-                      boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                    '&.Mui-focused': {
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#1877F2',
+                        boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                      },
+                      backgroundColor: '#ffffff'
                     }
+                  },
+                  '& .MuiInputBase-input': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    padding: { xs: '12px 14px', sm: '14px 16px' }
                   },
                   '& .MuiInputBase-input::placeholder': {
                     color: '#9ca3af',
-                    opacity: 1
+                    opacity: 1,
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
                   }
                 }}
               />
@@ -261,29 +296,34 @@ export const CreateFolderModal = ({
         {/* Footer com botões */}
         <Box
           sx={{
-            p: 3,
+            p: { xs: 2, sm: 3 },
             backgroundColor: '#f8fafc',
             borderTop: '1px solid #e2e8f0',
             display: 'flex',
+            flexDirection: { xs: 'column-reverse', sm: 'row' },
             justifyContent: 'flex-end',
-            alignItems: 'center',
-            gap: 1
+            alignItems: 'stretch',
+            gap: { xs: 1.5, sm: 1 }
           }}
         >
           <Button
             onClick={handleClose}
             sx={{
-              px: 3,
-              py: 1.25,
-              fontSize: '0.875rem',
+              px: { xs: 2.5, sm: 3 },
+              py: { xs: 1.125, sm: 1.25 },
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600,
-              color: 'white',
+              color: { xs: '#64748b', sm: 'white' },
+              backgroundColor: { xs: '#ffffff', sm: 'transparent' },
+              border: { xs: '1px solid #e2e8f0', sm: 'none' },
               textTransform: 'uppercase',
               borderRadius: 2,
+              width: { xs: '100%', sm: 'auto' },
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                backgroundColor: '#f1f5f9',
-                color: 'gray'
+                backgroundColor: { xs: '#f8fafc', sm: '#f1f5f9' },
+                color: { xs: '#475569', sm: 'gray' },
+                borderColor: { xs: '#cbd5e1', sm: 'transparent' }
               }
             }}
           >
@@ -294,13 +334,14 @@ export const CreateFolderModal = ({
             variant='contained'
             disabled={loading}
             sx={{
-              px: 4,
-              py: 1.25,
-              fontSize: '0.875rem',
+              px: { xs: 2.5, sm: 4 },
+              py: { xs: 1.125, sm: 1.25 },
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600,
               backgroundColor: '#1877F2',
               textTransform: 'uppercase',
               borderRadius: 2,
+              width: { xs: '100%', sm: 'auto' },
               boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               transition: 'all 0.2s ease-in-out',
               '&:hover': {

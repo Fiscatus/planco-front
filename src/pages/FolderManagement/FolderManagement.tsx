@@ -20,6 +20,7 @@ import {
   Select,
   TextField,
   Typography,
+  useMediaQuery,
   useTheme
 } from '@mui/material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -33,6 +34,7 @@ import { years } from '@/globals/constants';
 
 const FolderManagement = () => {
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showNotification } = useNotification();
@@ -357,17 +359,18 @@ const FolderManagement = () => {
           flexDirection: { xs: 'column', md: 'row' },
           justifyContent: 'space-between',
           alignItems: { xs: 'flex-start', md: 'center' },
-          gap: 3
+          gap: { xs: 2, md: 3 }
         }}
       >
-        <Box>
+        <Box sx={{ width: { xs: '100%', md: 'auto' } }}>
           <Typography
             variant='h4'
             sx={{
               fontWeight: 700,
-              fontSize: { xs: '1.75rem', md: '2.25rem' },
+              fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' },
               color: '#0f172a',
-              mb: 1
+              mb: { xs: 0.75, md: 1 },
+              lineHeight: { xs: 1.3, md: 1.2 }
             }}
           >
             Gerenciamento de Pastas
@@ -376,28 +379,40 @@ const FolderManagement = () => {
             variant='body1'
             sx={{
               color: '#64748b',
-              fontSize: '1rem',
-              maxWidth: '600px'
+              fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' },
+              maxWidth: { xs: '100%', md: '600px' },
+              lineHeight: { xs: 1.5, md: 1.6 },
+              mt: { xs: 0.5, md: 0 }
             }}
           >
             Organize e acesse facilmente todos os processos da administração pública em um só lugar.
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            gap: { xs: 1.5, sm: 2 }, 
+            flexWrap: 'wrap',
+            width: { xs: '100%', sm: 'auto' },
+            mt: { xs: 2, md: 0 }
+          }}
+        >
           <Button
             variant='contained'
             startIcon={<AddIcon />}
             onClick={handleOpenCreate}
             sx={{
               borderRadius: 2,
-              px: 3,
-              py: 1.25,
-              fontSize: '0.875rem',
+              px: { xs: 2.5, sm: 3 },
+              py: { xs: 1.125, sm: 1.25 },
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600,
               textTransform: 'none',
               backgroundColor: '#1877F2',
               boxShadow: 'none',
+              width: { xs: '100%', sm: 'auto' },
+              minWidth: { xs: '100%', sm: '140px' },
               '&:hover': {
                 backgroundColor: '#166fe5',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
@@ -412,13 +427,15 @@ const FolderManagement = () => {
             onClick={handleOpenManage}
             sx={{
               borderRadius: 2,
-              px: 3,
-              py: 1.25,
-              fontSize: '0.875rem',
+              px: { xs: 2.5, sm: 3 },
+              py: { xs: 1.125, sm: 1.25 },
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600,
               textTransform: 'none',
               borderColor: '#1877F2',
               color: '#1877F2',
+              width: { xs: '100%', sm: 'auto' },
+              minWidth: { xs: '100%', sm: '160px' },
               '&:hover': {
                 borderColor: '#166fe5',
                 backgroundColor: '#f0f9ff'
@@ -452,23 +469,25 @@ const FolderManagement = () => {
         >
           <Box
             sx={{
-              px: 3,
-              py: 2.5,
+              px: { xs: 2, sm: 3 },
+              py: { xs: 2, sm: 2.5 },
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               borderBottom: '1px solid',
               borderColor: '#f1f5f9',
-              backgroundColor: '#fafbfc'
+              backgroundColor: '#fafbfc',
+              flexWrap: { xs: 'wrap', sm: 'nowrap' },
+              gap: { xs: 1.5, sm: 0 }
             }}
           >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <FilterAltIcon sx={{ color: '#1877F2', fontSize: 20 }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
+              <FilterAltIcon sx={{ color: '#1877F2', fontSize: { xs: 18, sm: 20 } }} />
               <Typography
                 variant='subtitle1'
                 sx={{
                   fontWeight: 600,
-                  fontSize: '0.9375rem',
+                  fontSize: { xs: '0.875rem', sm: '0.9375rem' },
                   color: '#0f172a',
                   letterSpacing: '-0.01em'
                 }}
@@ -480,13 +499,13 @@ const FolderManagement = () => {
               <Button
                 variant='outlined'
                 size='small'
-                startIcon={<ClearIcon sx={{ fontSize: 16 }} />}
+                startIcon={<ClearIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />}
                 onClick={handleClearFilters}
                 sx={{
                   minWidth: 'auto',
-                  px: 2,
-                  py: 0.875,
-                  fontSize: '0.8125rem',
+                  px: { xs: 1.5, sm: 2 },
+                  py: { xs: 0.75, sm: 0.875 },
+                  fontSize: { xs: '0.75rem', sm: '0.8125rem' },
                   fontWeight: 600,
                   color: '#64748b',
                   borderColor: '#cbd5e1',
@@ -494,6 +513,8 @@ const FolderManagement = () => {
                   borderRadius: 2,
                   backgroundColor: '#ffffff',
                   transition: 'all 0.2s ease-in-out',
+                  width: { xs: '100%', sm: 'auto' },
+                  mt: { xs: 1, sm: 0 },
                   '&:hover': {
                     backgroundColor: '#f8fafc',
                     borderColor: '#94a3b8',
@@ -506,8 +527,8 @@ const FolderManagement = () => {
               </Button>
             )}
           </Box>
-          <Box sx={{ p: 3 }}>
-            <Grid container spacing={2.5}>
+          <Box sx={{ p: { xs: 2, sm: 3 } }}>
+            <Grid container spacing={{ xs: 2, sm: 2.5 }}>
               {/* Campo de busca */}
               <Grid size={{ xs: 12, md: 6 }}>
                 <TextField
@@ -517,26 +538,28 @@ const FolderManagement = () => {
                   onChange={(e) => handleFolderSearchChange(e.target.value)}
                   InputProps={{
                     startAdornment: (
-                      <SearchIcon sx={{ color: '#94a3b8', fontSize: 20, mr: 1.5 }} />
+                      <SearchIcon sx={{ color: '#94a3b8', fontSize: { xs: 18, sm: 20 }, mr: { xs: 1, sm: 1.5 } }} />
                     )
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      height: 42,
+                      height: { xs: 40, sm: 42 },
                       borderRadius: 2,
                       backgroundColor: '#ffffff',
-                      fontSize: '0.875rem',
+                      fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                       transition: 'all 0.2s ease-in-out',
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: '#cbd5e1'
-                        }
+                        },
+                        backgroundColor: '#ffffff'
                       },
                       '&.Mui-focused': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: theme.palette.primary.main,
                           borderWidth: '1.5px'
-                        }
+                        },
+                        backgroundColor: '#ffffff'
                       }
                     },
                     '& .MuiOutlinedInput-notchedOutline': {
@@ -545,7 +568,7 @@ const FolderManagement = () => {
                     '& .MuiInputBase-input::placeholder': {
                       color: '#94a3b8',
                       opacity: 1,
-                      fontSize: '0.875rem'
+                      fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                     }
                   }}
                 />
@@ -559,9 +582,9 @@ const FolderManagement = () => {
                     onChange={(e) => handleYearChange(e.target.value)}
                     displayEmpty
                     sx={{
-                      height: 42,
+                      height: { xs: 40, sm: 42 },
                       borderRadius: 2,
-                      fontSize: '0.875rem',
+                      fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                       backgroundColor: '#ffffff',
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
@@ -582,19 +605,20 @@ const FolderManagement = () => {
                       '& .MuiSelect-select': {
                         display: 'flex',
                         alignItems: 'center',
-                        py: 1.25,
-                        px: 1.5
+                        py: { xs: 1.125, sm: 1.25 },
+                        px: { xs: 1.25, sm: 1.5 }
                       },
                       '& .MuiSelect-icon': {
-                        color: '#64748b'
+                        color: '#64748b',
+                        fontSize: { xs: 20, sm: 24 }
                       }
                     }}
                     renderValue={(value) => {
                       const selectedYear = value === 'all' ? 'Todos os anos' : value;
                       return (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CalendarMonthIcon sx={{ fontSize: 18, color: '#64748b' }} />
-                          <Typography component='span' sx={{ fontSize: '0.875rem', color: '#0f172a' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1 } }}>
+                          <CalendarMonthIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: '#64748b' }} />
+                          <Typography component='span' sx={{ fontSize: { xs: '0.8125rem', sm: '0.875rem' }, color: '#0f172a' }}>
                             {selectedYear}
                           </Typography>
                         </Box>
@@ -604,7 +628,7 @@ const FolderManagement = () => {
                     <MenuItem 
                       value='all' 
                       sx={{ 
-                        fontSize: '0.875rem',
+                        fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                         '&:hover': {
                           backgroundColor: '#f8fafc'
                         },
@@ -616,9 +640,9 @@ const FolderManagement = () => {
                         }
                       }}
                     >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <CalendarMonthIcon sx={{ fontSize: 18, color: '#64748b' }} />
-                        <Typography component='span' sx={{ fontSize: '0.875rem' }}>Todos os anos</Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1 } }}>
+                        <CalendarMonthIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: '#64748b' }} />
+                        <Typography component='span' sx={{ fontSize: { xs: '0.8125rem', sm: '0.875rem' } }}>Todos os anos</Typography>
                       </Box>
                     </MenuItem>
                     {years().slice(0, 10).map((year) => (
@@ -626,7 +650,7 @@ const FolderManagement = () => {
                         key={year} 
                         value={year} 
                         sx={{ 
-                          fontSize: '0.875rem',
+                          fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                           '&:hover': {
                             backgroundColor: '#f8fafc'
                           },
@@ -656,9 +680,9 @@ const FolderManagement = () => {
                       handleSortOrderChange(sortOrder);
                     }}
                     sx={{
-                      height: 42,
+                      height: { xs: 40, sm: 42 },
                       borderRadius: 2,
-                      fontSize: '0.875rem',
+                      fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                       backgroundColor: '#ffffff',
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
@@ -679,19 +703,20 @@ const FolderManagement = () => {
                       '& .MuiSelect-select': {
                         display: 'flex',
                         alignItems: 'center',
-                        py: 1.25,
-                        px: 1.5
+                        py: { xs: 1.125, sm: 1.25 },
+                        px: { xs: 1.25, sm: 1.5 }
                       },
                       '& .MuiSelect-icon': {
-                        color: '#64748b'
+                        color: '#64748b',
+                        fontSize: { xs: 20, sm: 24 }
                       }
                     }}
                     renderValue={(value) => {
                       const sortText = value === 'name-asc' ? 'Nome (A-Z)' : value === 'name-desc' ? 'Nome (Z-A)' : 'Nome (A-Z)';
                       return (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <SortIcon sx={{ fontSize: 18, color: '#64748b' }} />
-                          <Typography component='span' sx={{ fontSize: '0.875rem', color: '#0f172a' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1 } }}>
+                          <SortIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: '#64748b' }} />
+                          <Typography component='span' sx={{ fontSize: { xs: '0.8125rem', sm: '0.875rem' }, color: '#0f172a' }}>
                             {sortText}
                           </Typography>
                         </Box>
@@ -701,7 +726,7 @@ const FolderManagement = () => {
                     <MenuItem 
                       value='name-asc' 
                       sx={{ 
-                        fontSize: '0.875rem',
+                        fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                         '&:hover': {
                           backgroundColor: '#f8fafc'
                         },
@@ -718,7 +743,7 @@ const FolderManagement = () => {
                     <MenuItem 
                       value='name-desc' 
                       sx={{ 
-                        fontSize: '0.875rem',
+                        fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                         '&:hover': {
                           backgroundColor: '#f8fafc'
                         },
@@ -745,8 +770,8 @@ const FolderManagement = () => {
         <Box
           sx={{
             px: { xs: 2, sm: 4, md: 6, lg: 8 },
-            mb: 2.5,
-            mt: 1,
+            mb: { xs: 2, sm: 2.5 },
+            mt: { xs: 0.5, sm: 1 },
             '@media (max-width: 767px)': {
               px: 1.5
             }
@@ -756,7 +781,7 @@ const FolderManagement = () => {
             variant='body2'
             sx={{
               color: '#475569',
-              fontSize: '0.875rem',
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600
             }}
           >
@@ -778,7 +803,7 @@ const FolderManagement = () => {
         {sortedFolders && sortedFolders.length > 0 ? (
           <Grid
             container
-            spacing={3}
+            spacing={{ xs: 2, sm: 2.5, md: 3 }}
           >
               {sortedFolders.map((folder) => (
                 <Grid
@@ -825,38 +850,78 @@ const FolderManagement = () => {
             '@media (max-width: 767px)': {
               px: 1.5
             },
-            mt: 6,
+            mt: { xs: 4, sm: 5, md: 6 },
             display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'space-between',
-            alignItems: 'center',
+            alignItems: { xs: 'stretch', sm: 'center' },
             flexWrap: 'wrap',
-            gap: 3,
-            pt: 4,
+            gap: { xs: 2, sm: 3 },
+            pt: { xs: 3, sm: 4 },
             borderTop: '1px solid',
             borderColor: 'divider'
           }}
         >
           <Typography
             variant='body2'
-            sx={{ color: '#6b7280', fontSize: '0.875rem', fontWeight: 500 }}
+            sx={{ 
+              color: '#6b7280', 
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' }, 
+              fontWeight: 500,
+              textAlign: { xs: 'center', sm: 'left' },
+              mb: { xs: 1, sm: 0 }
+            }}
           >
             {((Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 12)) + 1}-
             {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 12), foldersTotal)} de {foldersTotal}
           </Typography>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box 
+            sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: { xs: 1.5, sm: 2 },
+              flexDirection: { xs: 'column', sm: 'row' },
+              width: { xs: '100%', sm: 'auto' }
+            }}
+          >
             <Select
               value={urlParams.get('limit') || 12}
               onChange={(e) => handleLimitChange(Number(e.target.value))}
               sx={{
-                minWidth: 140,
-                height: 36,
-                fontSize: '0.875rem',
-                borderRadius: 2
+                minWidth: { xs: '100%', sm: 140 },
+                height: { xs: 40, sm: 36 },
+                fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                borderRadius: 2,
+                backgroundColor: '#ffffff',
+                '&:hover': {
+                  backgroundColor: '#ffffff'
+                },
+                '&.Mui-focused': {
+                  backgroundColor: '#ffffff'
+                },
+                '& .MuiSelect-icon': {
+                  color: '#64748b'
+                }
               }}
             >
               {[12, 24, 48, 96].map((limit) => (
-                <MenuItem key={limit} value={limit}>
+                <MenuItem 
+                  key={limit} 
+                  value={limit}
+                  sx={{
+                    fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                    '&:hover': {
+                      backgroundColor: '#f8fafc'
+                    },
+                    '&.Mui-selected': {
+                      backgroundColor: '#f1f5f9',
+                      '&:hover': {
+                        backgroundColor: '#f1f5f9'
+                      }
+                    }
+                  }}
+                >
                   {limit} por página
                 </MenuItem>
               ))}
@@ -869,6 +934,14 @@ const FolderManagement = () => {
               variant='outlined'
               shape='rounded'
               color='primary'
+              size={isMobile ? 'small' : 'medium'}
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                  minWidth: { xs: 32, sm: 40 },
+                  height: { xs: 32, sm: 40 }
+                }
+              }}
             />
           </Box>
         </Box>

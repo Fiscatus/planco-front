@@ -19,7 +19,9 @@ import {
   Tab,
   TextField,
   Typography,
-  Tooltip
+  Tooltip,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import {
   CalendarToday as CalendarTodayIcon,
@@ -71,7 +73,7 @@ function TabPanel(props: TabPanelProps) {
       aria-labelledby={`manage-folder-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ px: { xs: 3, sm: 4 }, py: 3 }}>{children}</Box>}
+      {value === index && <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, py: { xs: 2, sm: 2.5, md: 3 } }}>{children}</Box>}
     </div>
   );
 }
@@ -89,6 +91,8 @@ export const ManageFolderModal = ({
   movingLoading = false,
   loadingFolders = false
 }: ManageFolderModalProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { fetchProcessesByFolder } = useProcesses();
   const { isFavorite } = useFavoriteFolders();
   const [currentTab, setCurrentTab] = useState(0);
@@ -282,9 +286,12 @@ export const ManageFolderModal = ({
         maxWidth='md'
         PaperProps={{
           sx: {
-            borderRadius: 3,
+            borderRadius: { xs: 2, sm: 3 },
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            margin: { xs: 1, sm: 2 },
+            maxWidth: { xs: 'calc(100% - 16px)', sm: '600px', md: '900px' },
+            width: '100%'
           }
         }}
       >
@@ -292,8 +299,8 @@ export const ManageFolderModal = ({
           {/* Header - 3 faixas organizadas */}
           <Box
             sx={{
-              px: { xs: 3, sm: 4 },
-              py: 3,
+              px: { xs: 2, sm: 3, md: 4 },
+              py: { xs: 2, sm: 2.5, md: 3 },
               borderBottom: '1px solid #e2e8f0',
               backgroundColor: '#ffffff'
             }}
@@ -304,7 +311,8 @@ export const ManageFolderModal = ({
               display: 'flex',
               justifyContent: 'space-between',
                 alignItems: 'flex-start',
-                mb: 1.5
+                mb: { xs: 1, sm: 1.5 },
+                gap: 1
             }}
           >
               <Typography
@@ -312,8 +320,10 @@ export const ManageFolderModal = ({
                 sx={{
                   fontWeight: 700,
                   color: '#0f172a',
-                  fontSize: '1.5rem',
-                  lineHeight: 1.2
+                  fontSize: { xs: '1.25rem', sm: '1.375rem', md: '1.5rem' },
+                  lineHeight: { xs: 1.3, sm: 1.2 },
+                  flex: 1,
+                  minWidth: 0
                 }}
               >
                 Gerenciar Pasta
@@ -321,16 +331,17 @@ export const ManageFolderModal = ({
               <IconButton
                 onClick={handleClose}
                 sx={{
-                  width: 40,
-                  height: 40,
+                  width: { xs: 36, sm: 40 },
+                  height: { xs: 36, sm: 40 },
                   color: '#64748b',
                   backgroundColor: 'transparent',
+                  flexShrink: 0,
                   '&:hover': {
                     backgroundColor: '#f1f5f9'
                   }
                 }}
               >
-                <CloseIcon sx={{ fontSize: 20 }} />
+                <CloseIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
               </IconButton>
             </Box>
 
@@ -339,9 +350,9 @@ export const ManageFolderModal = ({
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1.5,
+                gap: { xs: 1, sm: 1.5 },
                 flexWrap: 'wrap',
-                mb: 1.5
+                mb: { xs: 1, sm: 1.5 }
               }}
             >
               <Typography
@@ -349,27 +360,30 @@ export const ManageFolderModal = ({
                 sx={{
                   fontWeight: 600,
                   color: '#0f172a',
-                  fontSize: '1rem',
-                  lineHeight: 1.4
+                  fontSize: { xs: '0.9375rem', sm: '1rem' },
+                  lineHeight: 1.4,
+                  wordBreak: 'break-word',
+                  flex: { xs: '1 1 100%', sm: '0 1 auto' },
+                  minWidth: 0
                 }}
               >
                 {folder.name}
               </Typography>
               {/* Chips de status */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 0.75 }, flexWrap: 'wrap' }}>
                 {folder.isDefault && (
                   <Chip
                     label='Pasta Padrão'
                     size='small'
                     sx={{
-                      height: 24,
-                      fontSize: '0.75rem',
+                      height: { xs: 22, sm: 24 },
+                      fontSize: { xs: '0.6875rem', sm: '0.75rem' },
                       fontWeight: 600,
                       backgroundColor: '#dbeafe',
                       color: '#1877F2',
                       border: '1px solid #bfdbfe',
                       '& .MuiChip-label': {
-                        px: 1.25,
+                        px: { xs: 1, sm: 1.25 },
                         py: 0
                       }
                     }}
@@ -377,21 +391,21 @@ export const ManageFolderModal = ({
                 )}
                 {isFolderFavorite && !folder.isPermanent && (
                   <Chip
-                    icon={<StarIcon sx={{ fontSize: 14, color: '#f59e0b' }} />}
+                    icon={<StarIcon sx={{ fontSize: { xs: 12, sm: 14 }, color: '#f59e0b' }} />}
                     label='Favorita'
                     size='small'
               sx={{
-                      height: 24,
-                      fontSize: '0.75rem',
+                      height: { xs: 22, sm: 24 },
+                      fontSize: { xs: '0.6875rem', sm: '0.75rem' },
                       fontWeight: 600,
                       backgroundColor: '#fef3c7',
                       color: '#92400e',
                       border: '1px solid #fde68a',
                       '& .MuiChip-icon': {
-                        marginLeft: '6px'
+                        marginLeft: { xs: '4px', sm: '6px' }
                       },
                       '& .MuiChip-label': {
-                        px: 1.25,
+                        px: { xs: 1, sm: 1.25 },
                         py: 0
                       }
                     }}
@@ -405,8 +419,8 @@ export const ManageFolderModal = ({
               variant='body2'
               sx={{
                 color: '#64748b',
-                fontSize: '0.875rem',
-                lineHeight: 1.5,
+                fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                lineHeight: { xs: 1.4, sm: 1.5 },
                 fontWeight: 400
               }}
             >
@@ -415,18 +429,20 @@ export const ManageFolderModal = ({
           </Box>
 
           {/* Tabs */}
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', px: { xs: 3, sm: 4 } }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider', px: { xs: 2, sm: 3, md: 4 }, overflowX: 'auto' }}>
             <Tabs
               value={currentTab}
               onChange={handleChangeTab}
+              variant='scrollable'
+              scrollButtons='auto'
               sx={{
-                minHeight: 56,
+                minHeight: { xs: 48, sm: 56 },
                 '& .MuiTab-root': {
                   textTransform: 'none',
                   fontWeight: 600,
-                  fontSize: '0.875rem',
-                  minHeight: 56,
-                  px: 2,
+                  fontSize: { xs: '0.75rem', sm: '0.8125rem', md: '0.875rem' },
+                  minHeight: { xs: 48, sm: 56 },
+                  px: { xs: 1.5, sm: 2 },
                   '&.Mui-selected': {
                     color: '#1877F2'
                   },
@@ -434,27 +450,36 @@ export const ManageFolderModal = ({
                     backgroundColor: 'rgba(24, 119, 242, 0.04)'
                   }
                 },
+                '& .MuiTab-iconWrapper': {
+                  fontSize: { xs: 18, sm: 20 }
+                },
                 '& .MuiTabs-indicator': {
                   backgroundColor: '#1877F2',
                   height: 3,
                   borderRadius: '3px 3px 0 0'
+                },
+                '& .MuiTabs-scrollButtons': {
+                  width: { xs: 32, sm: 40 },
+                  '&.Mui-disabled': {
+                    opacity: 0.3
+                  }
                 }
               }}
             >
               <Tab
                 label='Editar Pasta'
-                icon={<EditIcon sx={{ fontSize: 20 }} />}
+                icon={<EditIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
                 iconPosition='start'
                 disabled={isProtected}
               />
               <Tab
                 label='Mover Processos'
-                icon={<DriveFileMoveIcon sx={{ fontSize: 20 }} />}
+                icon={<DriveFileMoveIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
                 iconPosition='start'
               />
               <Tab
                 label='Excluir Pasta'
-                icon={<DeleteIcon sx={{ fontSize: 20 }} />}
+                icon={<DeleteIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
                 iconPosition='start'
                 disabled={isProtected}
               />
@@ -468,29 +493,29 @@ export const ManageFolderModal = ({
               {isProtected ? (
                 <Box
                   sx={{
-                    p: 2.5,
+                    p: { xs: 2, sm: 2.5 },
                     borderRadius: 2,
                     backgroundColor: '#fef3c7',
                     border: '1px solid #fcd34d',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1.5
+                    gap: { xs: 1, sm: 1.5 }
                   }}
                 >
-                  <WarningIcon sx={{ color: '#92400e', fontSize: 20, flexShrink: 0 }} />
+                  <WarningIcon sx={{ color: '#92400e', fontSize: { xs: 18, sm: 20 }, flexShrink: 0 }} />
                 <Typography
                     variant='body2'
                     sx={{
                       color: '#92400e',
-                      fontSize: '0.875rem',
-                      lineHeight: 1.5
+                      fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                      lineHeight: { xs: 1.4, sm: 1.5 }
                     }}
                   >
                     Esta pasta não pode ser editada por ser protegida do sistema.
                   </Typography>
                 </Box>
               ) : (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2.5 } }}>
                   {/* Nome da pasta */}
                   <Box>
                     <Typography
@@ -498,8 +523,8 @@ export const ManageFolderModal = ({
                   sx={{
                     fontWeight: 600,
                         color: '#0f172a',
-                        mb: 1,
-                        fontSize: '0.875rem'
+                        mb: { xs: 0.75, sm: 1 },
+                        fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                   }}
                 >
                       Nome da Pasta
@@ -515,21 +540,30 @@ export const ManageFolderModal = ({
                         '& .MuiOutlinedInput-root': {
                           backgroundColor: '#ffffff',
                           borderRadius: 2,
+                          height: { xs: 44, sm: 48 },
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
                           '& .MuiOutlinedInput-notchedOutline': {
                             border: '2px solid #e2e8f0',
                             transition: 'all 0.2s ease-in-out'
                           },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
+                          '&:hover': {
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#cbd5e1'
+                            },
+                            backgroundColor: '#ffffff'
                           },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
-                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          '&.Mui-focused': {
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#1877F2',
+                              boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                            },
+                            backgroundColor: '#ffffff'
                           }
                         },
                         '& .MuiInputBase-input::placeholder': {
                           color: '#9ca3af',
-                          opacity: 1
+                          opacity: 1,
+                          fontSize: { xs: '0.875rem', sm: '1rem' }
                         }
                       }}
                     />
@@ -542,8 +576,8 @@ export const ManageFolderModal = ({
                   sx={{
                     fontWeight: 600,
                         color: '#0f172a',
-                        mb: 1,
-                        fontSize: '0.875rem'
+                        mb: { xs: 0.75, sm: 1 },
+                        fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                   }}
                 >
                       Ano
@@ -563,21 +597,30 @@ export const ManageFolderModal = ({
                         '& .MuiOutlinedInput-root': {
                           backgroundColor: '#ffffff',
                           borderRadius: 2,
+                          height: { xs: 44, sm: 48 },
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
                           '& .MuiOutlinedInput-notchedOutline': {
                             border: '2px solid #e2e8f0',
                             transition: 'all 0.2s ease-in-out'
                           },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
+                          '&:hover': {
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#cbd5e1'
+                            },
+                            backgroundColor: '#ffffff'
                           },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
-                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          '&.Mui-focused': {
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#1877F2',
+                              boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                            },
+                            backgroundColor: '#ffffff'
                           }
                         },
                         '& .MuiInputBase-input::placeholder': {
                           color: '#9ca3af',
-                          opacity: 1
+                          opacity: 1,
+                          fontSize: { xs: '0.875rem', sm: '1rem' }
                         }
                       }}
                     />
@@ -590,8 +633,8 @@ export const ManageFolderModal = ({
                   sx={{
                         fontWeight: 600,
                         color: '#0f172a',
-                        mb: 1,
-                        fontSize: '0.875rem'
+                        mb: { xs: 0.75, sm: 1 },
+                        fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                       }}
                     >
                       Descrição
@@ -608,41 +651,62 @@ export const ManageFolderModal = ({
                         '& .MuiOutlinedInput-root': {
                           backgroundColor: '#ffffff',
                           borderRadius: 2,
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
                           '& .MuiOutlinedInput-notchedOutline': {
                             border: '2px solid #e2e8f0',
                             transition: 'all 0.2s ease-in-out'
                           },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
+                          '&:hover': {
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#cbd5e1'
+                            },
+                            backgroundColor: '#ffffff'
                           },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
-                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          '&.Mui-focused': {
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#1877F2',
+                              boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                            },
+                            backgroundColor: '#ffffff'
                           }
+                        },
+                        '& .MuiInputBase-input': {
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                          padding: { xs: '12px 14px', sm: '14px 16px' }
                         },
                         '& .MuiInputBase-input::placeholder': {
                           color: '#9ca3af',
-                          opacity: 1
+                          opacity: 1,
+                          fontSize: { xs: '0.875rem', sm: '1rem' }
                         }
                       }}
                     />
                   </Box>
 
                   {/* Botões */}
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 1, pt: 2, borderTop: '1px solid #e2e8f0' }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column-reverse', sm: 'row' },
+                    justifyContent: 'flex-end', 
+                    gap: { xs: 1.5, sm: 2 }, 
+                    mt: 1, 
+                    pt: 2, 
+                    borderTop: '1px solid #e2e8f0' 
+                  }}>
                 <Button
                       onClick={handleClose}
                       disabled={editingLoading}
                       sx={{
-                        px: 3,
-                        py: 1.25,
-                        fontSize: '0.875rem',
+                        px: { xs: 2.5, sm: 3 },
+                        py: { xs: 1.125, sm: 1.25 },
+                        fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                         fontWeight: 600,
                         color: '#64748b',
                         textTransform: 'none',
                         borderRadius: 2,
                         border: '1px solid #e2e8f0',
                         backgroundColor: '#ffffff',
+                        width: { xs: '100%', sm: 'auto' },
                         '&:hover': {
                           backgroundColor: '#f8fafc',
                           borderColor: '#cbd5e1'
@@ -657,14 +721,15 @@ export const ManageFolderModal = ({
                       disabled={editingLoading || !folderForm.name?.trim()}
                   variant='contained'
                   sx={{
-                    px: 3,
-                    py: 1.25,
-                    fontSize: '0.875rem',
+                    px: { xs: 2.5, sm: 3 },
+                    py: { xs: 1.125, sm: 1.25 },
+                    fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                     fontWeight: 600,
                     backgroundColor: '#1877F2',
                     textTransform: 'none',
                     borderRadius: 2,
                         boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                        width: { xs: '100%', sm: 'auto' },
                     '&:hover': {
                           backgroundColor: '#166fe5',
                           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
@@ -684,7 +749,7 @@ export const ManageFolderModal = ({
             </TabPanel>
 
             <TabPanel value={currentTab} index={1}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2.5 } }}>
                 {/* Seletor de pasta destino */}
                 <Box>
                   <Typography
@@ -692,8 +757,8 @@ export const ManageFolderModal = ({
                     sx={{
                       fontWeight: 600,
                       color: '#0f172a',
-                      mb: 1,
-                      fontSize: '0.875rem'
+                      mb: { xs: 0.75, sm: 1 },
+                      fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                     }}
                   >
                     Pasta Destino
@@ -717,18 +782,19 @@ export const ManageFolderModal = ({
                         const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
                         
                         return (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <FolderIcon sx={{ fontSize: 20, color: folderIconColor }} />
-                            <Typography sx={{ color: '#0f172a', fontSize: '0.875rem', fontWeight: 400 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
+                            <FolderIcon sx={{ fontSize: { xs: 18, sm: 20 }, color: folderIconColor }} />
+                            <Typography sx={{ color: '#0f172a', fontSize: { xs: '0.8125rem', sm: '0.875rem' }, fontWeight: 400 }}>
                               {selectedFolder.name}
                             </Typography>
               </Box>
                         );
                       }}
                       sx={{
-                        height: 44,
+                        height: { xs: 44, sm: 48 },
                         borderRadius: 2,
                         backgroundColor: '#ffffff',
+                        fontSize: { xs: '0.875rem', sm: '1rem' },
                         '& .MuiOutlinedInput-notchedOutline': {
                           border: '2px solid #e2e8f0',
                           transition: 'all 0.2s ease-in-out'
@@ -747,11 +813,12 @@ export const ManageFolderModal = ({
                           backgroundColor: '#ffffff'
                         },
                         '& .MuiSelect-select': {
-                          py: 1.25,
-                          px: 1.5
+                          py: { xs: 1.125, sm: 1.25 },
+                          px: { xs: 1.25, sm: 1.5 }
                         },
                         '& .MuiSelect-icon': {
-                          color: '#64748b'
+                          color: '#64748b',
+                          fontSize: { xs: 20, sm: 24 }
                         }
                       }}
                     >
@@ -786,15 +853,16 @@ export const ManageFolderModal = ({
                               }
                             }}
                           >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
-                              <FolderIcon sx={{ fontSize: 24, color: folderIconColor }} />
-                              <Box sx={{ flex: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, width: '100%' }}>
+                              <FolderIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: folderIconColor, flexShrink: 0 }} />
+                              <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography
                                   variant='body2'
                                   sx={{
                                     fontWeight: 500,
                                     color: '#0f172a',
-                                    fontSize: '0.875rem'
+                                    fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                                    wordBreak: 'break-word'
                                   }}
                                 >
                                   {f.name} {f.year ? `(${f.year})` : ''}
@@ -810,13 +878,20 @@ export const ManageFolderModal = ({
 
                 {/* Processos */}
                 <Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'space-between', 
+                    alignItems: { xs: 'flex-start', sm: 'center' }, 
+                    mb: { xs: 1, sm: 1.5 },
+                    gap: { xs: 0.5, sm: 0 }
+                  }}>
                     <Typography
                       variant='body2'
                   sx={{
                     fontWeight: 600,
                         color: '#0f172a',
-                        fontSize: '0.875rem'
+                        fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                   }}
                 >
                       Processos
@@ -827,7 +902,7 @@ export const ManageFolderModal = ({
                   sx={{
                           fontWeight: 500,
                           color: '#1877F2',
-                          fontSize: '0.875rem'
+                          fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                   }}
                 >
                         {selectedProcesses.length} selecionado(s)
@@ -848,31 +923,44 @@ export const ManageFolderModal = ({
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            mr: 1.25,
-                            width: 20,
-                            height: 20
+                            mr: { xs: 1, sm: 1.25 },
+                            width: { xs: 18, sm: 20 },
+                            height: { xs: 18, sm: 20 }
                           }}
                         >
-                          <SearchIcon sx={{ color: '#94a3b8', fontSize: '1.25rem' }} />
+                          <SearchIcon sx={{ color: '#94a3b8', fontSize: { xs: '1.125rem', sm: '1.25rem' } }} />
                         </Box>
                       )
                     }}
                     sx={{
-                      mb: 1.5,
+                      mb: { xs: 1, sm: 1.5 },
                       '& .MuiOutlinedInput-root': {
                         borderRadius: 2,
                         backgroundColor: '#ffffff',
+                        height: { xs: 44, sm: 48 },
+                        fontSize: { xs: '0.875rem', sm: '1rem' },
                         '& .MuiOutlinedInput-notchedOutline': {
                           border: '2px solid #e2e8f0',
                           transition: 'all 0.2s ease-in-out'
                         },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#cbd5e1'
+                        '&:hover': {
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#cbd5e1'
+                          },
+                          backgroundColor: '#ffffff'
                         },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1877F2',
-                          boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                        '&.Mui-focused': {
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#1877F2',
+                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                          },
+                          backgroundColor: '#ffffff'
                         }
+                      },
+                      '& .MuiInputBase-input::placeholder': {
+                        color: '#9ca3af',
+                        opacity: 1,
+                        fontSize: { xs: '0.875rem', sm: '1rem' }
                       }
                     }}
                   />
@@ -882,12 +970,20 @@ export const ManageFolderModal = ({
                     sx={{
                       borderRadius: 2,
                       border: '1px solid #e2e8f0',
-                      maxHeight: 400,
+                      maxHeight: { xs: 300, sm: 400 },
                       overflow: 'auto',
-                      backgroundColor: '#ffffff'
+                      backgroundColor: '#ffffff',
+                      '&::-webkit-scrollbar': {
+                        width: '8px',
+                        height: '8px'
+                      },
+                      '&::-webkit-scrollbar-thumb': {
+                        backgroundColor: '#cbd5e1',
+                        borderRadius: '4px'
+                      }
                     }}
                   >
-                    <Table stickyHeader>
+                    <Table stickyHeader sx={{ minWidth: { xs: 600, sm: 'auto' } }}>
                       <TableHead>
                         <TableRow>
                           <TableCell 
@@ -895,13 +991,17 @@ export const ManageFolderModal = ({
                             sx={{ 
                               backgroundColor: '#f8fafc',
                               borderBottom: '1px solid #e2e8f0',
-                              py: 1.5
+                              py: { xs: 1, sm: 1.5 },
+                              position: 'sticky',
+                              left: 0,
+                              zIndex: 10
                             }}
                           >
                             <Checkbox
                               indeterminate={selectedProcesses.length > 0 && selectedProcesses.length < sortedProcesses.length}
                               checked={sortedProcesses.length > 0 && selectedProcesses.length === sortedProcesses.length}
                               onChange={handleSelectAll}
+                              size={isMobile ? 'small' : 'medium'}
                               sx={{
                                 color: '#64748b',
                                 '&.Mui-checked': {
@@ -915,13 +1015,17 @@ export const ManageFolderModal = ({
                               backgroundColor: '#f8fafc', 
                               fontWeight: 600,
                               color: '#0f172a',
-                              fontSize: '0.875rem',
+                              fontSize: { xs: '0.75rem', sm: '0.875rem' },
                               borderBottom: '1px solid #e2e8f0',
-                              py: 1.5
+                              py: { xs: 1, sm: 1.5 },
+                              position: 'sticky',
+                              left: { xs: 48, sm: 58 },
+                              zIndex: 10,
+                              backgroundColor: '#f8fafc'
                             }}
                           >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                              <Typography component='span' sx={{ fontSize: '0.875rem', fontWeight: 600 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 0.75 } }}>
+                              <Typography component='span' sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: 600 }}>
                                 Processo
                               </Typography>
                               <Tooltip
@@ -934,8 +1038,8 @@ export const ManageFolderModal = ({
                                       backgroundColor: '#212121',
                                       color: '#FFFFFF',
                                       border: 'none',
-                                      fontSize: '12px',
-                                      padding: '6px 12px',
+                                      fontSize: { xs: '11px', sm: '12px' },
+                                      padding: { xs: '4px 8px', sm: '6px 12px' },
                                       borderRadius: '8px'
                                     }
                                   },
@@ -950,7 +1054,7 @@ export const ManageFolderModal = ({
                                   size='small'
                                   onClick={handleProcessSortToggle}
                                   sx={{
-                                    p: 0.5,
+                                    p: { xs: 0.375, sm: 0.5 },
                                     borderRadius: '8px',
                                     flexShrink: 0,
                                     transition: 'all 200ms ease',
@@ -969,7 +1073,7 @@ export const ManageFolderModal = ({
                                   <SwapVertIcon
                                     className='sort-icon'
                                     sx={{
-                                      fontSize: '14px',
+                                      fontSize: { xs: '12px', sm: '14px' },
                                       color: '#8A8D91',
                                       transition: 'transform 200ms ease, color 200ms ease'
                                     }}
@@ -983,9 +1087,9 @@ export const ManageFolderModal = ({
                               backgroundColor: '#f8fafc', 
                               fontWeight: 600,
                               color: '#0f172a',
-                              fontSize: '0.875rem',
+                              fontSize: { xs: '0.75rem', sm: '0.875rem' },
                               borderBottom: '1px solid #e2e8f0',
-                              py: 1.5
+                              py: { xs: 1, sm: 1.5 }
                             }}
                           >
                             Objeto
@@ -995,9 +1099,9 @@ export const ManageFolderModal = ({
                               backgroundColor: '#f8fafc', 
                               fontWeight: 600,
                               color: '#0f172a',
-                              fontSize: '0.875rem',
+                              fontSize: { xs: '0.75rem', sm: '0.875rem' },
                               borderBottom: '1px solid #e2e8f0',
-                              py: 1.5
+                              py: { xs: 1, sm: 1.5 }
                             }}
                           >
                             Situação
@@ -1037,10 +1141,20 @@ export const ManageFolderModal = ({
                                 }
                               }}
                             >
-                              <TableCell padding='checkbox' sx={{ py: 1.5 }}>
+                              <TableCell 
+                                padding='checkbox' 
+                                sx={{ 
+                                  py: { xs: 1, sm: 1.5 },
+                                  position: 'sticky',
+                                  left: 0,
+                                  zIndex: 5,
+                                  backgroundColor: '#ffffff'
+                                }}
+                              >
                                 <Checkbox
                                   checked={selectedProcesses.includes(process._id)}
                                   onChange={() => handleToggleProcess(process._id)}
+                                  size={isMobile ? 'small' : 'medium'}
                                   sx={{
                                     color: '#64748b',
                                     '&.Mui-checked': {
@@ -1049,13 +1163,23 @@ export const ManageFolderModal = ({
                                   }}
                                 />
                               </TableCell>
-                              <TableCell sx={{ py: 1.5, color: '#0f172a', fontSize: '0.875rem' }}>
+                              <TableCell 
+                                sx={{ 
+                                  py: { xs: 1, sm: 1.5 }, 
+                                  color: '#0f172a', 
+                                  fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                                  position: 'sticky',
+                                  left: { xs: 48, sm: 58 },
+                                  zIndex: 5,
+                                  backgroundColor: '#ffffff'
+                                }}
+                              >
                                 {process.processNumber}
                               </TableCell>
-                              <TableCell sx={{ py: 1.5, color: '#475569', fontSize: '0.875rem' }}>
+                              <TableCell sx={{ py: { xs: 1, sm: 1.5 }, color: '#475569', fontSize: { xs: '0.8125rem', sm: '0.875rem' } }}>
                                 {process.object}
                               </TableCell>
-                              <TableCell sx={{ py: 1.5, color: '#64748b', fontSize: '0.875rem' }}>
+                              <TableCell sx={{ py: { xs: 1, sm: 1.5 }, color: '#64748b', fontSize: { xs: '0.8125rem', sm: '0.875rem' } }}>
                                 {process.status || 'N/A'}
                               </TableCell>
                             </TableRow>
@@ -1067,20 +1191,29 @@ export const ManageFolderModal = ({
                 </Box>
 
                 {/* Botões */}
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 1, pt: 2, borderTop: '1px solid #e2e8f0' }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: { xs: 'column-reverse', sm: 'row' },
+                  justifyContent: 'flex-end', 
+                  gap: { xs: 1.5, sm: 2 }, 
+                  mt: 1, 
+                  pt: 2, 
+                  borderTop: '1px solid #e2e8f0' 
+                }}>
                 <Button
                     onClick={handleClose}
                     disabled={movingLoading}
                     sx={{
-                      px: 3,
-                      py: 1.25,
-                      fontSize: '0.875rem',
+                      px: { xs: 2.5, sm: 3 },
+                      py: { xs: 1.125, sm: 1.25 },
+                      fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                       fontWeight: 600,
                       color: '#64748b',
                       textTransform: 'none',
                       borderRadius: 2,
                       border: '1px solid #e2e8f0',
                       backgroundColor: '#ffffff',
+                      width: { xs: '100%', sm: 'auto' },
                       '&:hover': {
                         backgroundColor: '#f8fafc',
                         borderColor: '#cbd5e1'
@@ -1090,21 +1223,22 @@ export const ManageFolderModal = ({
                   >
                     Cancelar
                   </Button>
-                <Button
+                  <Button
                     onClick={handleMoveProcesses}
                     disabled={movingLoading || !targetFolder || selectedProcesses.length === 0}
-                  variant='contained'
-                    startIcon={<DriveFileMoveIcon />}
-                  sx={{
-                    px: 3,
-                    py: 1.25,
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    backgroundColor: '#1877F2',
-                    textTransform: 'none',
-                    borderRadius: 2,
+                    variant='contained'
+                    startIcon={<DriveFileMoveIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+                    sx={{
+                      px: { xs: 2.5, sm: 3 },
+                      py: { xs: 1.125, sm: 1.25 },
+                      fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                      fontWeight: 600,
+                      backgroundColor: '#1877F2',
+                      textTransform: 'none',
+                      borderRadius: 2,
                       boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                    '&:hover': {
+                      width: { xs: '100%', sm: 'auto' },
+                      '&:hover': {
                         backgroundColor: '#166fe5',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                       },
@@ -1116,7 +1250,7 @@ export const ManageFolderModal = ({
                     }}
                   >
                     {movingLoading ? 'Movendo...' : `Mover ${selectedProcesses.length} Processo(s)`}
-                </Button>
+                  </Button>
                 </Box>
               </Box>
             </TabPanel>
@@ -1125,22 +1259,22 @@ export const ManageFolderModal = ({
               {isProtected ? (
                 <Box
                   sx={{
-                    p: 2.5,
+                    p: { xs: 2, sm: 2.5 },
                     borderRadius: 2,
                     backgroundColor: '#fef3c7',
                     border: '1px solid #fcd34d',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 1.5
+                    gap: { xs: 1, sm: 1.5 }
                   }}
                 >
-                  <WarningIcon sx={{ color: '#92400e', fontSize: 20, flexShrink: 0 }} />
+                  <WarningIcon sx={{ color: '#92400e', fontSize: { xs: 18, sm: 20 }, flexShrink: 0 }} />
                   <Typography
                     variant='body2'
                     sx={{
                       color: '#92400e',
-                      fontSize: '0.875rem',
-                      lineHeight: 1.5
+                      fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                      lineHeight: { xs: 1.4, sm: 1.5 }
                     }}
                   >
                     Esta pasta não pode ser excluída por ser protegida do sistema.
@@ -1165,7 +1299,8 @@ export const ManageFolderModal = ({
                         borderBottom: '1px solid #e2e8f0',
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 2
+                        gap: { xs: 1.5, sm: 2 },
+                        flexWrap: { xs: 'wrap', sm: 'nowrap' }
                       }}
                     >
                       {(() => {
@@ -1178,17 +1313,18 @@ export const ManageFolderModal = ({
                             sx={{
                               backgroundColor: folderBgColor,
                               borderRadius: 2,
-                              p: 1.5,
+                              p: { xs: 1.25, sm: 1.5 },
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              width: 56,
-                              height: 56
+                              width: { xs: 48, sm: 56 },
+                              height: { xs: 48, sm: 56 },
+                              flexShrink: 0
                             }}
                           >
                             <FolderIcon
                               sx={{
-                                fontSize: 28,
+                                fontSize: { xs: 24, sm: 28 },
                                 color: folderIconColor
                               }}
                             />
@@ -1201,8 +1337,9 @@ export const ManageFolderModal = ({
                           sx={{
                             fontWeight: 600,
                             color: '#0f172a',
-                            fontSize: '1.125rem',
-                            lineHeight: 1.3
+                            fontSize: { xs: '1rem', sm: '1.125rem' },
+                            lineHeight: 1.3,
+                            wordBreak: 'break-word'
                           }}
                         >
                           {folder.name}
@@ -1212,7 +1349,7 @@ export const ManageFolderModal = ({
                             variant='body2'
                             sx={{
                               color: '#64748b',
-                              fontSize: '0.875rem',
+                              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                               mt: 0.5
                             }}
                           >
@@ -1223,8 +1360,8 @@ export const ManageFolderModal = ({
                     </Box>
 
                     {/* Conteúdo do card */}
-                    <Box sx={{ p: 2.5 }}>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                    <Box sx={{ p: { xs: 2, sm: 2.5 } }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2.5 } }}>
                         {/* Descrição */}
                         {(folder.description || folder.observations) && (
                           <Box>
@@ -1233,8 +1370,8 @@ export const ManageFolderModal = ({
                               sx={{
                                 fontWeight: 600,
                                 color: '#0f172a',
-                                fontSize: '0.875rem',
-                    mb: 1
+                                fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                    mb: { xs: 0.75, sm: 1 }
                   }}
                 >
                               Descrição
@@ -1243,8 +1380,9 @@ export const ManageFolderModal = ({
                   variant='body2'
                   sx={{
                                 color: '#475569',
-                                fontSize: '0.875rem',
-                                lineHeight: 1.6
+                                fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                                lineHeight: { xs: 1.5, sm: 1.6 },
+                                wordBreak: 'break-word'
                   }}
                 >
                               {folder.description || folder.observations}
@@ -1257,8 +1395,8 @@ export const ManageFolderModal = ({
                           sx={{
                             display: 'grid',
                             gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
-                            gap: 2.5,
-                            pt: 2.5,
+                            gap: { xs: 2, sm: 2.5 },
+                            pt: { xs: 2, sm: 2.5 },
                             borderTop: '1px solid #e2e8f0'
                           }}
                         >
@@ -1270,8 +1408,8 @@ export const ManageFolderModal = ({
                                 sx={{
                                   fontWeight: 600,
                                   color: '#0f172a',
-                                  fontSize: '0.875rem',
-                                  mb: 0.75
+                                  fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                                  mb: { xs: 0.5, sm: 0.75 }
                                 }}
                               >
                                 Processos
@@ -1280,7 +1418,7 @@ export const ManageFolderModal = ({
                                 variant='body2'
                                 sx={{
                                   color: '#475569',
-                                  fontSize: '0.875rem'
+                                  fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                                 }}
                               >
                                 {folder.processCount === 0
@@ -1300,8 +1438,8 @@ export const ManageFolderModal = ({
                                 sx={{
                                   fontWeight: 600,
                                   color: '#0f172a',
-                                  fontSize: '0.875rem',
-                                  mb: 0.75
+                                  fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                                  mb: { xs: 0.5, sm: 0.75 }
                                 }}
                               >
                                 Criada em
@@ -1310,7 +1448,7 @@ export const ManageFolderModal = ({
                                 variant='body2'
                                 sx={{
                                   color: '#475569',
-                                  fontSize: '0.875rem'
+                                  fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                                 }}
                               >
                                 {new Date(folder.createdAt).toLocaleDateString('pt-BR', {
@@ -1330,8 +1468,8 @@ export const ManageFolderModal = ({
                                 sx={{
                                   fontWeight: 600,
                                   color: '#0f172a',
-                                  fontSize: '0.875rem',
-                                  mb: 0.75
+                                  fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                                  mb: { xs: 0.5, sm: 0.75 }
                                 }}
                               >
                                 Atualizada em
@@ -1340,7 +1478,7 @@ export const ManageFolderModal = ({
                                 variant='body2'
                                 sx={{
                                   color: '#475569',
-                                  fontSize: '0.875rem'
+                                  fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                                 }}
                               >
                                 {new Date(folder.updatedAt).toLocaleDateString('pt-BR', {
@@ -1361,7 +1499,7 @@ export const ManageFolderModal = ({
                     sx={{
                       display: 'flex',
                       alignItems: 'flex-start',
-                      p: 2.5,
+                      p: { xs: 2, sm: 2.5 },
                       borderRadius: 2,
                       backgroundColor: '#FEF3C7',
                       border: '1px solid #FCD34D'
@@ -1406,20 +1544,29 @@ export const ManageFolderModal = ({
                   </Box>
 
                   {/* Botões */}
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 1, pt: 2, borderTop: '1px solid #e2e8f0' }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: { xs: 'column-reverse', sm: 'row' },
+                    justifyContent: 'flex-end', 
+                    gap: { xs: 1.5, sm: 2 }, 
+                    mt: 1, 
+                    pt: 2, 
+                    borderTop: '1px solid #e2e8f0' 
+                  }}>
                 <Button
                       onClick={handleClose}
                       disabled={deletingLoading}
                   sx={{
-                    px: 3,
-                    py: 1.25,
-                    fontSize: '0.875rem',
+                    px: { xs: 2.5, sm: 3 },
+                    py: { xs: 1.125, sm: 1.25 },
+                    fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                     fontWeight: 600,
                         color: '#64748b',
                     textTransform: 'none',
                         borderRadius: 2,
                         border: '1px solid #e2e8f0',
                         backgroundColor: '#ffffff',
+                        width: { xs: '100%', sm: 'auto' },
                     '&:hover': {
                           backgroundColor: '#f8fafc',
                           borderColor: '#cbd5e1'
@@ -1433,16 +1580,17 @@ export const ManageFolderModal = ({
                       onClick={handleDeleteFolderClick}
                       disabled={deletingLoading}
                   variant='contained'
-                      startIcon={<DeleteIcon />}
+                      startIcon={<DeleteIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
                     sx={{
-                    px: 3,
-                    py: 1.25,
-                    fontSize: '0.875rem',
+                    px: { xs: 2.5, sm: 3 },
+                    py: { xs: 1.125, sm: 1.25 },
+                    fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                     fontWeight: 600,
                     backgroundColor: '#DC2626',
                         textTransform: 'none',
                     borderRadius: 2,
                         boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                        width: { xs: '100%', sm: 'auto' },
                     '&:hover': {
                           backgroundColor: '#B91C1C',
                           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
@@ -1472,8 +1620,11 @@ export const ManageFolderModal = ({
         fullWidth
         PaperProps={{
           sx: {
-            borderRadius: 3,
-            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)'
+            borderRadius: { xs: 2, sm: 3 },
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+            margin: { xs: 1, sm: 2 },
+            maxWidth: { xs: 'calc(100% - 16px)', sm: '500px' },
+            width: '100%'
           }
         }}
       >
@@ -1484,7 +1635,7 @@ export const ManageFolderModal = ({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              p: 3,
+              p: { xs: 2, sm: 3 },
               borderBottom: '1px solid #e2e8f0'
             }}
           >
@@ -1492,8 +1643,9 @@ export const ManageFolderModal = ({
               variant='h6'
               sx={{
                 fontWeight: 700,
-                fontSize: '1.25rem',
-                color: '#0f172a'
+                fontSize: { xs: '1.125rem', sm: '1.25rem' },
+                color: '#0f172a',
+                lineHeight: { xs: 1.3, sm: 1.2 }
               }}
             >
               Excluir Pasta
@@ -1503,47 +1655,49 @@ export const ManageFolderModal = ({
               size='small'
               sx={{
                 color: '#64748b',
+                width: { xs: 32, sm: 40 },
+                height: { xs: 32, sm: 40 },
                 '&:hover': {
                   backgroundColor: '#f1f5f9'
                 }
               }}
             >
-              <CloseIcon />
+              <CloseIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
             </IconButton>
           </Box>
 
           {/* Content */}
-          <Box sx={{ p: 3 }}>
+          <Box sx={{ p: { xs: 2, sm: 3 } }}>
             {/* Informativo de atenção */}
             <Box
               sx={{
                 display: 'flex',
                 alignItems: 'flex-start',
-                p: 2.5,
+                p: { xs: 2, sm: 2.5 },
                 borderRadius: 2,
                 backgroundColor: '#FEF3C7',
                 border: '1px solid #FCD34D',
-                mb: 3
+                mb: { xs: 2, sm: 3 },
+                gap: { xs: 1, sm: 1.5 }
               }}
             >
               <WarningIcon
                 sx={{
                   color: '#92400E',
-                  fontSize: 24,
-                  mr: 1.5,
+                  fontSize: { xs: 20, sm: 24 },
                   mt: 0.25,
                   flexShrink: 0
                 }}
               />
-              <Box sx={{ flex: 1 }}>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
                 <Typography
                   variant='body2'
                   sx={{
                     color: '#92400E',
-                    fontSize: '0.875rem',
-                    lineHeight: 1.6,
+                    fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                    lineHeight: { xs: 1.5, sm: 1.6 },
                     fontWeight: 700,
-                    mb: 0.75
+                    mb: { xs: 0.5, sm: 0.75 }
                   }}
                 >
                   Atenção: Esta ação não pode ser desfeita
@@ -1552,9 +1706,10 @@ export const ManageFolderModal = ({
                   variant='body2'
                   sx={{
                     color: '#92400E',
-                    fontSize: '0.875rem',
-                    lineHeight: 1.6,
-                    fontWeight: 400
+                    fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                    lineHeight: { xs: 1.5, sm: 1.6 },
+                    fontWeight: 400,
+                    wordBreak: 'break-word'
                   }}
                 >
                   {folder?.processCount !== undefined && folder.processCount !== null
@@ -1569,18 +1724,18 @@ export const ManageFolderModal = ({
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1.5,
-                p: 2,
+                gap: { xs: 1, sm: 1.5 },
+                p: { xs: 1.5, sm: 2 },
                 borderRadius: 2,
                 backgroundColor: '#EFF6FF',
                 border: '1px solid #BFDBFE',
-                mb: 3
+                mb: { xs: 2, sm: 3 }
               }}
             >
               <Box
                 sx={{
-                  width: 32,
-                  height: 32,
+                  width: { xs: 28, sm: 32 },
+                  height: { xs: 28, sm: 32 },
                   borderRadius: '50%',
                   backgroundColor: '#DBEAFE',
                   display: 'flex',
@@ -1589,15 +1744,16 @@ export const ManageFolderModal = ({
                   flexShrink: 0
                 }}
               >
-                <InfoIcon sx={{ fontSize: 18, color: '#2563EB' }} />
+                <InfoIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: '#2563EB' }} />
               </Box>
               <Typography
                 variant='body2'
                 sx={{
                   color: '#1E40AF',
-                  fontSize: '0.875rem',
-                  lineHeight: 1.6,
-                  fontWeight: 600
+                  fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                  lineHeight: { xs: 1.5, sm: 1.6 },
+                  fontWeight: 600,
+                  wordBreak: 'break-word'
                 }}
               >
                 Todos os processos serão automaticamente movidos para a Pasta Planco.
@@ -1609,11 +1765,12 @@ export const ManageFolderModal = ({
               variant='body1'
               sx={{
                 color: '#0f172a',
-                fontSize: '1rem',
-                lineHeight: 1.6,
+                fontSize: { xs: '0.9375rem', sm: '1rem' },
+                lineHeight: { xs: 1.5, sm: 1.6 },
                 textAlign: 'center',
                 fontWeight: 500,
-                mb: 1
+                mb: 1,
+                wordBreak: 'break-word'
               }}
             >
               Tem certeza que deseja excluir permanentemente a pasta <Box component='span' sx={{ fontWeight: 700 }}>"{folder?.name}"</Box>?
@@ -1624,9 +1781,10 @@ export const ManageFolderModal = ({
           <Box
             sx={{
               display: 'flex',
+              flexDirection: { xs: 'column-reverse', sm: 'row' },
               justifyContent: 'flex-end',
-              gap: 2,
-              p: 3,
+              gap: { xs: 1.5, sm: 2 },
+              p: { xs: 2, sm: 3 },
               borderTop: '1px solid #e2e8f0',
               backgroundColor: '#fafbfc'
             }}
@@ -1635,15 +1793,16 @@ export const ManageFolderModal = ({
               onClick={handleCancelDelete}
               disabled={deletingLoading}
               sx={{
-                px: 3,
-                py: 1.25,
-                fontSize: '0.875rem',
+                px: { xs: 2.5, sm: 3 },
+                py: { xs: 1.125, sm: 1.25 },
+                fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                 fontWeight: 600,
                 color: '#64748b',
                 textTransform: 'none',
                 borderRadius: 2,
                 border: '1px solid #e2e8f0',
                 backgroundColor: '#ffffff',
+                width: { xs: '100%', sm: 'auto' },
                 '&:hover': {
                   backgroundColor: '#f8fafc',
                   borderColor: '#cbd5e1'
@@ -1657,16 +1816,17 @@ export const ManageFolderModal = ({
               onClick={handleConfirmDelete}
               disabled={deletingLoading}
               variant='contained'
-              startIcon={<DeleteIcon />}
+              startIcon={<DeleteIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
               sx={{
-                px: 3,
-                py: 1.25,
-                fontSize: '0.875rem',
+                px: { xs: 2.5, sm: 3 },
+                py: { xs: 1.125, sm: 1.25 },
+                fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                 fontWeight: 600,
                 backgroundColor: '#DC2626',
                 textTransform: 'none',
                 borderRadius: 2,
                 boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                width: { xs: '100%', sm: 'auto' },
                 '&:hover': {
                   backgroundColor: '#B91C1C',
                   boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
