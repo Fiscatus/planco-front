@@ -8,6 +8,7 @@ export const useProcesses = () => {
     async (folderId: string, filters: FilterProcessesDto = {}) => {
       const params: {
         processNumber?: string;
+        object?: string;
         currentStage?: string;
         status?: string;
         priority?: string;
@@ -15,6 +16,7 @@ export const useProcesses = () => {
       } = {};
 
       if (filters.processNumber) params.processNumber = filters.processNumber;
+      if (filters.object) params.object = filters.object;
       if (filters.currentStage) params.currentStage = filters.currentStage;
       if (filters.status) params.status = filters.status;
       if (filters.priority) params.priority = filters.priority;

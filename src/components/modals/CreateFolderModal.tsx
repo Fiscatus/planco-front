@@ -4,9 +4,11 @@ import {
   Dialog,
   DialogContent,
   Grid,
+  IconButton,
   TextField,
   Typography
 } from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import type { CreateFolderDto } from '@/globals/types';
 import { useCallback, useEffect, useState } from 'react';
 
@@ -92,10 +94,11 @@ export const CreateFolderModal = ({
             borderBottom: '1px solid #e2e8f0',
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center'
+            alignItems: 'flex-start',
+            gap: 1
           }}
         >
-          <Box sx={{ width: '100%' }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography
               variant='h5'
               sx={{
@@ -119,6 +122,21 @@ export const CreateFolderModal = ({
               Preencha os dados para criar uma nova pasta.
             </Typography>
           </Box>
+          <IconButton
+            onClick={handleClose}
+            sx={{
+              width: { xs: 36, sm: 40 },
+              height: { xs: 36, sm: 40 },
+              color: '#64748b',
+              backgroundColor: 'transparent',
+              flexShrink: 0,
+              '&:hover': {
+                backgroundColor: '#f1f5f9'
+              }
+            }}
+          >
+            <CloseIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+          </IconButton>
         </Box>
 
         {/* Form Content */}

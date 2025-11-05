@@ -12,8 +12,9 @@ import {
   Folder as FolderIcon,
   Search as SearchIcon
 } from '@mui/icons-material';
-import type { Folder } from '@/globals/types';
 import { useCallback, useState } from 'react';
+
+import type { Folder } from '@/globals/types';
 import { useDebounce } from '@/hooks';
 
 interface SelectFolderModalProps {
@@ -50,7 +51,7 @@ export const SelectFolderModal = ({
   const filteredFolders = folders.filter((folder) =>
     debouncedSearch
       ? folder.name.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        folder.year?.toLowerCase().includes(debouncedSearch.toLowerCase())
+        (folder.year ? String(folder.year).toLowerCase().includes(debouncedSearch.toLowerCase()) : false)
       : true
   );
 
@@ -132,7 +133,7 @@ export const SelectFolderModal = ({
         >
           <TextField
             fullWidth
-            placeholder='Buscar pasta...'
+            placeholder='Buscar pasta por ano ou nome...'
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             InputProps={{

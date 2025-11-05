@@ -28,6 +28,7 @@ export type FilterProcessesDto = {
   page?: number;
   limit?: number;
   processNumber?: string;
+  object?: string;
   currentStage?: string;
   status?: string;
   priority?: string;

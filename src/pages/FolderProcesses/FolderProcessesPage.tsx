@@ -80,9 +80,11 @@ const FolderProcessesPage = () => {
       if (!folderId) return { processes: [], total: 0 };
       const processFilters: FilterProcessesDto = {};
       
-      // Se houver busca, usar processNumber
+      // Se houver busca, buscar tanto por processNumber quanto por object
+      // A API provavelmente faz busca OR (número OU objeto)
       if (debouncedProcessSearch) {
         processFilters.processNumber = debouncedProcessSearch;
+        processFilters.object = debouncedProcessSearch;
       }
       
       // Adicionar filtros da URL

@@ -21,7 +21,7 @@ import {
   Folder as FolderIcon,
   Search as SearchIcon
 } from '@mui/icons-material';
-import type { Folder, MoveProcessesDto, Process } from '@/globals/types';
+import type { Folder, FilterProcessesDto, MoveProcessesDto, Process } from '@/globals/types';
 import { useCallback, useEffect, useState } from 'react';
 import { useDebounce } from '@/hooks';
 import { useProcesses } from '@/hooks/useProcesses';
@@ -71,9 +71,14 @@ export const MoveProcessesModal = ({
     if (!folder?._id) return;
     setLoadingProcesses(true);
     try {
-      const result = await fetchProcessesByFolder(folder._id, {
-        processNumber: debouncedSearch || undefined
-      });
+      const filters: FilterProcessesDto = {};
+      // Se houver busca, buscar tanto por processNumber quanto por object
+      // A API provavelmente faz busca OR (número OU objeto)
+      if (debouncedSearch) {
+        filters.processNumber = debouncedSearch;
+        filters.object = debouncedSearch;
+      }
+      const result = await fetchProcessesByFolder(folder._id, filters);
       setProcesses(result.processes);
     } catch (error) {
       console.error('Erro ao carregar processos:', error);
