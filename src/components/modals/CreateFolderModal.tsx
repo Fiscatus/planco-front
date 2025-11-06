@@ -147,13 +147,13 @@ export const CreateFolderModal = ({
               <Typography
                 variant='body2'
                 sx={{
-                  fontWeight: 500,
-                  color: '#64748b',
+                  fontWeight: 600,
+                  color: '#0f172a',
                   mb: { xs: 0.75, sm: 1 },
                   fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                 }}
               >
-                Nome da Pasta *
+                Nome da Pasta 
               </Typography>
               <TextField
                 fullWidth
@@ -200,8 +200,8 @@ export const CreateFolderModal = ({
               <Typography
                 variant='body2'
                 sx={{
-                  fontWeight: 500,
-                  color: '#64748b',
+                  fontWeight: 600,
+                  color: '#0f172a',
                   mb: { xs: 0.75, sm: 1 },
                   fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                 }}
@@ -257,8 +257,8 @@ export const CreateFolderModal = ({
               <Typography
                 variant='body2'
                 sx={{
-                  fontWeight: 500,
-                  color: '#64748b',
+                  fontWeight: 600,
+                  color: '#0f172a',
                   mb: { xs: 0.75, sm: 1 },
                   fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                 }}

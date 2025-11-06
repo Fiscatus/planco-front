@@ -283,7 +283,7 @@ export const ManageFolderModal = ({
       case 0:
         return 'Altere o nome, ano ou descrição desta pasta para melhor identificação.';
       case 1:
-        return 'Selecione os processos que deseja mover e escolha a pasta de destino. Os processos selecionados serão transferidos automaticamente.';
+        return 'Selecione primeiro a pasta de destino e, em seguida, escolha os processos que deseja mover. A transferência será realizada automaticamente.';
       case 2:
         return 'Exclua esta pasta permanentemente. Todos os processos serão automaticamente movidos para a Pasta Planco. Esta ação não pode ser desfeita.';
       default:
@@ -1800,7 +1800,7 @@ export const ManageFolderModal = ({
                   wordBreak: 'break-word'
                 }}
               >
-                Todos os processos serão automaticamente movidos para a Pasta Planco.
+                Os processos desta pasta não serão excluídos, serão movidos automaticamente para a Pasta Planco.
               </Typography>
             </Box>
 
