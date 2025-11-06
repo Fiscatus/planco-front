@@ -141,9 +141,9 @@ export const ManageFolderModal = ({
     if (!folder?._id) return;
     setLoadingProcesses(true);
     try {
+      setProcesses([]); // Limpa os processos existentes antes de carregar
       const filters: FilterProcessesDto = {};
       // Se houver busca, buscar tanto por processNumber quanto por object
-      // A API provavelmente faz busca OR (número OU objeto)
       if (debouncedSearch) {
         filters.processNumber = debouncedSearch;
         filters.object = debouncedSearch;
@@ -197,13 +197,22 @@ export const ManageFolderModal = ({
         processIds: selectedProcesses,
         targetFolderId: targetFolder
       });
-      // Limpar estados após mover
+      
+      // Remove os processos movidos do estado local imediatamente
+      const remainingProcesses = processes.filter(
+        process => !selectedProcesses.includes(process._id)
+      );
+      setProcesses(remainingProcesses);
+      
+      // Limpa os estados de seleção e busca
       setSelectedProcesses([]);
       setTargetFolder('');
       setSearchTerm('');
-      loadProcesses();
+      setLoadingProcesses(false);
     } catch (error) {
       console.error('Erro ao mover processos:', error);
+      // Em caso de erro, recarrega a lista para garantir sincronização
+      loadProcesses();
     }
   };
 
@@ -964,6 +973,22 @@ export const ManageFolderModal = ({
                       maxHeight: { xs: 300, sm: 400 },
                       overflow: 'auto',
                       backgroundColor: '#ffffff',
+                      '& .MuiTableHead-root': {
+                        '& .MuiTableCell-root': {
+                          bgcolor: '#f8fafc',
+                          borderBottom: '1px solid #e2e8f0',
+                          '&::before': {
+                            content: '""',
+                            position: 'absolute',
+                            left: 0,
+                            top: 0,
+                            width: '100%',
+                            height: '100%',
+                            bgcolor: '#f8fafc',
+                            zIndex: -1
+                          }
+                        }
+                      },
                       '&::-webkit-scrollbar': {
                         width: '8px',
                         height: '8px'
@@ -974,18 +999,38 @@ export const ManageFolderModal = ({
                       }
                     }}
                   >
-                    <Table stickyHeader sx={{ minWidth: { xs: 600, sm: 'auto' } }}>
-                      <TableHead>
-                        <TableRow>
+                    <Table stickyHeader sx={{ 
+                        minWidth: { xs: 600, sm: 'auto' },
+                        '& .MuiTableHead-root': {
+                          bgcolor: '#f8fafc'
+                        }
+                      }}>
+                      <TableHead sx={{
+                        bgcolor: '#f8fafc',
+                        '& .MuiTableRow-root': {
+                          bgcolor: '#f8fafc'
+                        }
+                      }}>
+                        <TableRow sx={{ bgcolor: '#f8fafc' }}>
                           <TableCell 
                             padding='checkbox' 
                             sx={{ 
-                              backgroundColor: '#f8fafc',
+                              bgcolor: '#f8fafc',
                               borderBottom: '1px solid #e2e8f0',
                               py: { xs: 1, sm: 1.5 },
                               position: 'sticky',
                               left: 0,
-                              zIndex: 10
+                              zIndex: 10,
+                              '&:before': {
+                                content: '""',
+                                position: 'absolute',
+                                left: 0,
+                                top: 0,
+                                width: '100%',
+                                height: '100%',
+                                bgcolor: '#f8fafc',
+                                zIndex: -1
+                              }
                             }}
                           >
                             <Checkbox
@@ -1003,7 +1048,7 @@ export const ManageFolderModal = ({
                           </TableCell>
                           <TableCell 
                             sx={{ 
-                              backgroundColor: '#f8fafc', 
+                              bgcolor: '#f8fafc', 
                               fontWeight: 600,
                               color: '#0f172a',
                               fontSize: { xs: '0.75rem', sm: '0.875rem' },
@@ -1012,7 +1057,16 @@ export const ManageFolderModal = ({
                               position: 'sticky',
                               left: { xs: 48, sm: 58 },
                               zIndex: 10,
-                              backgroundColor: '#f8fafc'
+                              '&:before': {
+                                content: '""',
+                                position: 'absolute',
+                                left: 0,
+                                top: 0,
+                                width: '100%',
+                                height: '100%',
+                                bgcolor: '#f8fafc',
+                                zIndex: -1
+                              }
                             }}
                           >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 0.75 } }}>
