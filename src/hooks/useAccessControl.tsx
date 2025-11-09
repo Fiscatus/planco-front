@@ -75,12 +75,42 @@ export const useAccessControl = () => {
     );
   }, [canAccessUsers, canAccessDepartments, canAccessInvites, canAccessRoles, hasPermission]);
 
+  const isAdminOnly = useMemo(() => {
+    // Verifica se o usuário tem APENAS a permissão "admin" e nenhuma outra permissão que daria acesso admin
+    if (!hasPermission("admin")) {
+      return false;
+    }
+
+    // Se tem admin, verifica se tem outras permissões que dariam acesso admin
+    const hasOtherAdminPermissions = 
+      hasPermission("users.create") ||
+      hasPermission("users.update") ||
+      hasPermission("users.delete") ||
+      hasPermission("users.manage") ||
+      hasPermission("departments.create") ||
+      hasPermission("departments.update") ||
+      hasPermission("departments.delete") ||
+      hasPermission("departments.manage") ||
+      hasPermission("invites.create") ||
+      hasPermission("invites.update") ||
+      hasPermission("invites.delete") ||
+      hasPermission("invites.manage") ||
+      hasPermission("roles.create") ||
+      hasPermission("roles.update") ||
+      hasPermission("roles.delete") ||
+      hasPermission("roles.manage");
+
+    // Se tem admin mas não tem outras permissões admin, é admin apenas
+    return !hasOtherAdminPermissions;
+  }, [hasPermission]);
+
   return {
     canAccessUsers,
     canAccessDepartments,
     canAccessInvites,
     canAccessRoles,
     canAccessAdmin,
+    isAdminOnly,
     hasPermission,
     userPermissions,
   };

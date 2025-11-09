@@ -87,7 +87,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
   const location = useLocation();
 
   const { user } = useAuth();
-  const { canAccessAdmin } = useAccessControl();
+  const { canAccessAdmin, isAdminOnly } = useAccessControl();
 
   useEffect(() => {
     function handleEsc(e: KeyboardEvent) {
@@ -336,7 +336,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
           Acesso Rápido
         </Typography>
 
-        {!canAccessAdmin && (
+        {!isAdminOnly && (
           <ListItemButton
             onClick={() =>
               handleModuleClick({
