@@ -326,22 +326,20 @@ export const CreateFolderModal = ({
         >
           <Button
             onClick={handleClose}
+            variant='outlined'
             sx={{
+              textTransform: 'none',
+              borderRadius: 2,
+              borderColor: '#E4E6EB',
+              color: '#212121',
               px: { xs: 2.5, sm: 3 },
               py: { xs: 1.125, sm: 1.25 },
               fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600,
-              color: { xs: '#64748b', sm: 'white' },
-              backgroundColor: { xs: '#ffffff', sm: 'transparent' },
-              border: { xs: '1px solid #e2e8f0', sm: 'none' },
-              textTransform: 'uppercase',
-              borderRadius: 2,
               width: { xs: '100%', sm: 'auto' },
-              transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                backgroundColor: { xs: '#f8fafc', sm: '#f1f5f9' },
-                color: { xs: '#475569', sm: 'gray' },
-                borderColor: { xs: '#cbd5e1', sm: 'transparent' }
+                borderColor: '#CBD5E1',
+                backgroundColor: '#F8F9FA'
               }
             }}
           >
@@ -352,28 +350,21 @@ export const CreateFolderModal = ({
             variant='contained'
             disabled={loading}
             sx={{
+              textTransform: 'none',
+              borderRadius: 2,
+              backgroundColor: '#1877F2',
+              color: '#FFFFFF',
               px: { xs: 2.5, sm: 4 },
               py: { xs: 1.125, sm: 1.25 },
               fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600,
-              backgroundColor: '#1877F2',
-              textTransform: 'uppercase',
-              borderRadius: 2,
               width: { xs: '100%', sm: 'auto' },
-              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-              transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                backgroundColor: '#166fe5',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-              },
-              '&:focus': {
-                outline: 'none',
-                boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                backgroundColor: '#166fe5'
               },
               '&:disabled': {
-                backgroundColor: '#e5e7eb',
-                color: '#9ca3af',
-                boxShadow: 'none'
+                backgroundColor: '#E4E6EB',
+                color: '#8A8D91'
               }
             }}
           >

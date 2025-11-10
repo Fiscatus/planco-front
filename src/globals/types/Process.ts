@@ -6,6 +6,8 @@ export type Process = {
   modality?: string;
   priority?: 'Baixa' | 'Média' | 'Alta';
   status?: 'Em Andamento' | 'Em Atraso' | 'Concluído';
+  dueDate?: string;
+  estimatedValue?: number;
   folder?: string | {
     _id: string;
     name: string;
@@ -27,6 +29,7 @@ export type PaginatedProcesses = {
 export type FilterProcessesDto = {
   page?: number;
   limit?: number;
+  departmentId?: string;
   processNumber?: string;
   object?: string;
   currentStage?: string;
@@ -40,19 +43,17 @@ export type CreateProcessDto = {
   object: string;
   currentStage?: string;
   modality?: string;
-  priority?: 'Baixa' | 'Média' | 'Alta';
-  status?: 'Em Andamento' | 'Em Atraso' | 'Concluído';
+  priority: 'Baixa' | 'Média' | 'Alta';
   folderId: string;
+  dueDate: string;
+  estimatedValue?: number;
 };
 
 export type UpdateProcessDto = {
-  processNumber?: string;
-  object?: string;
-  currentStage?: string;
-  modality?: string;
+  dueDate?: string;
   priority?: 'Baixa' | 'Média' | 'Alta';
-  status?: 'Em Andamento' | 'Em Atraso' | 'Concluído';
-  folderId?: string;
+  modality?: string;
+  participatingDepartments?: string[];
 };
 
 export type FolderStatsDto = {

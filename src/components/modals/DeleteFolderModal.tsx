@@ -188,27 +188,32 @@ export const DeleteFolderModal = ({
         {/* Botões de ação */}
         <Box
           sx={{
+            p: { xs: 2, sm: 3 },
+            backgroundColor: '#f8fafc',
+            borderTop: '1px solid #e2e8f0',
             display: 'flex',
+            flexDirection: { xs: 'column-reverse', sm: 'row' },
             justifyContent: 'flex-end',
-            gap: 2
+            alignItems: 'stretch',
+            gap: { xs: 1.5, sm: 1 }
           }}
         >
           <Button
             onClick={onClose}
+            variant='outlined'
             sx={{
-              px: 3,
-              py: 1.25,
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              color: '#1F2937',
-              textTransform: 'uppercase',
+              textTransform: 'none',
               borderRadius: 2,
-              border: '1px solid #E5E7EB',
-              backgroundColor: 'transparent',
-              transition: 'all 0.2s ease-in-out',
+              borderColor: '#E4E6EB',
+              color: '#212121',
+              px: { xs: 2.5, sm: 3 },
+              py: { xs: 1.125, sm: 1.25 },
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+              fontWeight: 600,
+              width: { xs: '100%', sm: 'auto' },
               '&:hover': {
-                backgroundColor: '#f3f4f6',
-                borderColor: '#D1D5DB'
+                borderColor: '#CBD5E1',
+                backgroundColor: '#F8F9FA'
               }
             }}
           >
@@ -217,22 +222,23 @@ export const DeleteFolderModal = ({
           <Button
             onClick={handleConfirm}
             disabled={loading}
+            variant='contained'
             sx={{
-              px: 3,
-              py: 1.25,
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              backgroundColor: '#DC2626',
-              textTransform: 'uppercase',
+              textTransform: 'none',
               borderRadius: 2,
-              color: 'white',
-              transition: 'all 0.2s ease-in-out',
+              backgroundColor: '#DC2626',
+              color: '#FFFFFF',
+              px: { xs: 2.5, sm: 4 },
+              py: { xs: 1.125, sm: 1.25 },
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+              fontWeight: 600,
+              width: { xs: '100%', sm: 'auto' },
               '&:hover': {
                 backgroundColor: '#B91C1C'
               },
               '&:disabled': {
-                backgroundColor: '#e5e7eb',
-                color: '#9ca3af'
+                backgroundColor: '#E4E6EB',
+                color: '#8A8D91'
               }
             }}
           >

@@ -24,8 +24,8 @@ const FolderProcessesPage = () => {
   const [urlParams, setUrlParams] = useSearchParams();
   const queryClient = useQueryClient();
   const { showNotification } = useNotification();
-  const { fetchFolderById, updateFolder, deleteFolder, moveProcesses, fetchFolders } = useFolders();
-  const { fetchProcessesByFolder, fetchFolderStats } = useProcesses();
+  const { fetchFolderById, updateFolder, deleteFolder, fetchFolders } = useFolders();
+  const { fetchProcessesByFolder, fetchFolderStats, moveProcesses } = useProcesses();
 
   const [manageModalOpen, setManageModalOpen] = useState(false);
 

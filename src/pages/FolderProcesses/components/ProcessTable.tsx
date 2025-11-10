@@ -104,10 +104,37 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
       const aValue = a.processNumber || '';
       const bValue = b.processNumber || '';
       
+      // Separar número e ano (formato: "001/2025")
+      const parseProcessNumber = (processNumber: string) => {
+        const parts = processNumber.split('/');
+        if (parts.length === 2) {
+          const number = parseInt(parts[0], 10) || 0;
+          const year = parseInt(parts[1], 10) || 0;
+          return { number, year, original: processNumber };
+        }
+        return { number: 0, year: 0, original: processNumber };
+      };
+      
+      const aParsed = parseProcessNumber(aValue);
+      const bParsed = parseProcessNumber(bValue);
+      
+      // Primeiro ordenar por ano, depois por número
       if (sortOrder === 'asc') {
-        return aValue.localeCompare(bValue);
+        if (aParsed.year !== bParsed.year) {
+          return aParsed.year - bParsed.year;
+        }
+        if (aParsed.number !== bParsed.number) {
+          return aParsed.number - bParsed.number;
+        }
+        return aParsed.original.localeCompare(bParsed.original);
       } else {
-        return bValue.localeCompare(aValue);
+        if (aParsed.year !== bParsed.year) {
+          return bParsed.year - aParsed.year;
+        }
+        if (aParsed.number !== bParsed.number) {
+          return bParsed.number - aParsed.number;
+        }
+        return bParsed.original.localeCompare(aParsed.original);
       }
     });
   }, [processes, sortOrder]);
@@ -249,7 +276,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
               <TableCell>Modalidade</TableCell>
               <TableCell>Prioridade</TableCell>
               <TableCell>Situação</TableCell>
-              <TableCell>Ações</TableCell>
+              <TableCell>Visualizar</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

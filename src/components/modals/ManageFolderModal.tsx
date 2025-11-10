@@ -699,32 +699,37 @@ export const ManageFolderModal = ({
 
                   {/* Botões */}
                   <Box sx={{ 
+                    p: { xs: 2, sm: 3 },
+                    backgroundColor: '#f8fafc',
+                    borderTop: '1px solid #e2e8f0',
                     display: 'flex', 
                     flexDirection: { xs: 'column-reverse', sm: 'row' },
-                    justifyContent: 'flex-end', 
-                    gap: { xs: 1.5, sm: 2 }, 
-                    mt: 1, 
-                    pt: 2, 
-                    borderTop: '1px solid #e2e8f0' 
+                    justifyContent: 'flex-end',
+                    alignItems: 'stretch',
+                    gap: { xs: 1.5, sm: 1 }
                   }}>
                 <Button
                       onClick={handleClose}
                       disabled={editingLoading}
+                      variant='outlined'
                       sx={{
+                        textTransform: 'none',
+                        borderRadius: 2,
+                        borderColor: '#E4E6EB',
+                        color: '#212121',
                         px: { xs: 2.5, sm: 3 },
                         py: { xs: 1.125, sm: 1.25 },
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                         fontWeight: 600,
-                        color: '#64748b',
-                        textTransform: 'none',
-                        borderRadius: 2,
-                        border: '1px solid #e2e8f0',
-                        backgroundColor: '#ffffff',
                         width: { xs: '100%', sm: 'auto' },
                         '&:hover': {
-                          borderColor: '#cbd5e1'
+                          borderColor: '#CBD5E1',
+                          backgroundColor: '#F8F9FA'
                         },
-                        transition: 'all 0.2s ease-in-out'
+                        '&:disabled': {
+                          opacity: 0.5,
+                          cursor: 'not-allowed'
+                        }
                       }}
                     >
                       Cancelar
@@ -734,24 +739,22 @@ export const ManageFolderModal = ({
                       disabled={editingLoading || !folderForm.name?.trim()}
                   variant='contained'
                   sx={{
-                    px: { xs: 2.5, sm: 3 },
+                    textTransform: 'none',
+                    borderRadius: 2,
+                    backgroundColor: '#1877F2',
+                    color: '#FFFFFF',
+                    px: { xs: 2.5, sm: 4 },
                     py: { xs: 1.125, sm: 1.25 },
                     fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                     fontWeight: 600,
-                    backgroundColor: '#1877F2',
-                    textTransform: 'none',
-                    borderRadius: 2,
-                        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-                        width: { xs: '100%', sm: 'auto' },
+                    width: { xs: '100%', sm: 'auto' },
                     '&:hover': {
-                          backgroundColor: '#166fe5',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                          backgroundColor: '#166fe5'
                     },
                     '&:disabled': {
-                          backgroundColor: '#9ca3af',
-                          boxShadow: 'none'
-                        },
-                        transition: 'all 0.2s ease-in-out'
+                          backgroundColor: '#E4E6EB',
+                          color: '#8A8D91'
+                        }
                       }}
                     >
                       {editingLoading ? 'Salvando...' : 'Salvar Alterações'}
@@ -1237,32 +1240,37 @@ export const ManageFolderModal = ({
 
                 {/* Botões */}
                 <Box sx={{ 
+                  p: { xs: 2, sm: 3 },
+                  backgroundColor: '#f8fafc',
+                  borderTop: '1px solid #e2e8f0',
                   display: 'flex', 
                   flexDirection: { xs: 'column-reverse', sm: 'row' },
-                  justifyContent: 'flex-end', 
-                  gap: { xs: 1.5, sm: 2 }, 
-                  mt: 1, 
-                  pt: 2, 
-                  borderTop: '1px solid #e2e8f0' 
+                  justifyContent: 'flex-end',
+                  alignItems: 'stretch',
+                  gap: { xs: 1.5, sm: 1 }
                 }}>
                 <Button
                     onClick={handleClose}
                     disabled={movingLoading}
+                    variant='outlined'
                     sx={{
+                      textTransform: 'none',
+                      borderRadius: 2,
+                      borderColor: '#E4E6EB',
+                      color: '#212121',
                       px: { xs: 2.5, sm: 3 },
                       py: { xs: 1.125, sm: 1.25 },
                       fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                       fontWeight: 600,
-                      color: '#64748b',
-                      textTransform: 'none',
-                      borderRadius: 2,
-                      border: '1px solid #e2e8f0',
-                      backgroundColor: '#ffffff',
                       width: { xs: '100%', sm: 'auto' },
                       '&:hover': {
-                        borderColor: '#cbd5e1'
+                        borderColor: '#CBD5E1',
+                        backgroundColor: '#F8F9FA'
                       },
-                      transition: 'all 0.2s ease-in-out'
+                      '&:disabled': {
+                        opacity: 0.5,
+                        cursor: 'not-allowed'
+                      }
                     }}
                   >
                     Cancelar
@@ -1273,24 +1281,22 @@ export const ManageFolderModal = ({
                     variant='contained'
                     startIcon={<DriveFileMoveIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
                     sx={{
-                      px: { xs: 2.5, sm: 3 },
+                      textTransform: 'none',
+                      borderRadius: 2,
+                      backgroundColor: '#1877F2',
+                      color: '#FFFFFF',
+                      px: { xs: 2.5, sm: 4 },
                       py: { xs: 1.125, sm: 1.25 },
                       fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                       fontWeight: 600,
-                      backgroundColor: '#1877F2',
-                      textTransform: 'none',
-                      borderRadius: 2,
-                      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                       width: { xs: '100%', sm: 'auto' },
                       '&:hover': {
-                        backgroundColor: '#166fe5',
-                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        backgroundColor: '#166fe5'
                       },
                       '&:disabled': {
-                        backgroundColor: '#9ca3af',
-                        boxShadow: 'none'
-                      },
-                      transition: 'all 0.2s ease-in-out'
+                        backgroundColor: '#E4E6EB',
+                        color: '#8A8D91'
+                      }
                     }}
                   >
                     {movingLoading ? 'Movendo...' : `Mover ${selectedProcesses.length} Processo(s)`}
@@ -1824,34 +1830,38 @@ export const ManageFolderModal = ({
           {/* Footer com botões */}
           <Box
             sx={{
+              p: { xs: 2, sm: 3 },
+              backgroundColor: '#f8fafc',
+              borderTop: '1px solid #e2e8f0',
               display: 'flex',
               flexDirection: { xs: 'column-reverse', sm: 'row' },
               justifyContent: 'flex-end',
-              gap: { xs: 1.5, sm: 2 },
-              p: { xs: 2, sm: 3 },
-              borderTop: '1px solid #e2e8f0',
-              backgroundColor: '#fafbfc'
+              alignItems: 'stretch',
+              gap: { xs: 1.5, sm: 1 }
             }}
           >
             <Button
               onClick={handleCancelDelete}
               disabled={deletingLoading}
+              variant='outlined'
               sx={{
+                textTransform: 'none',
+                borderRadius: 2,
+                borderColor: '#E4E6EB',
+                color: '#212121',
                 px: { xs: 2.5, sm: 3 },
                 py: { xs: 1.125, sm: 1.25 },
                 fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                 fontWeight: 600,
-                color: '#64748b',
-                textTransform: 'none',
-                borderRadius: 2,
-                border: '1px solid #e2e8f0',
-                backgroundColor: '#ffffff',
                 width: { xs: '100%', sm: 'auto' },
                 '&:hover': {
-                  backgroundColor: '#f8fafc',
-                  borderColor: '#cbd5e1'
+                  borderColor: '#CBD5E1',
+                  backgroundColor: '#F8F9FA'
                 },
-                transition: 'all 0.2s ease-in-out'
+                '&:disabled': {
+                  opacity: 0.5,
+                  cursor: 'not-allowed'
+                }
               }}
             >
               Cancelar
@@ -1862,24 +1872,22 @@ export const ManageFolderModal = ({
               variant='contained'
               startIcon={<DeleteIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
               sx={{
-                px: { xs: 2.5, sm: 3 },
+                textTransform: 'none',
+                borderRadius: 2,
+                backgroundColor: '#DC2626',
+                color: '#FFFFFF',
+                px: { xs: 2.5, sm: 4 },
                 py: { xs: 1.125, sm: 1.25 },
                 fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                 fontWeight: 600,
-                backgroundColor: '#DC2626',
-                textTransform: 'none',
-                borderRadius: 2,
-                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                 width: { xs: '100%', sm: 'auto' },
                 '&:hover': {
-                  backgroundColor: '#B91C1C',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                  backgroundColor: '#B91C1C'
                 },
                 '&:disabled': {
-                  backgroundColor: '#9ca3af',
-                  boxShadow: 'none'
-                },
-                transition: 'all 0.2s ease-in-out'
+                  backgroundColor: '#E4E6EB',
+                  color: '#8A8D91'
+                }
               }}
             >
               {deletingLoading ? 'Excluindo...' : 'Confirmar Exclusão'}

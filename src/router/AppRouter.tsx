@@ -18,6 +18,7 @@ const AdminPage = lazy(() => import('@/pages/AdminPage/AdminPage'));
 const MinhasGerencias = lazy(() => import('@/pages/MinhasGerencias/MinhasGerencias'));
 const FolderManagement = lazy(() => import('@/pages/FolderManagement/FolderManagement'));
 const FolderProcessesPage = lazy(() => import('@/pages/FolderProcesses/FolderProcessesPage'));
+const GerenciaProcessesPage = lazy(() => import('@/pages/GerenciaProcesses/GerenciaProcessesPage'));
 
 const withoutHeaderRoutes = ['/auth', '/privacy-policy'];
 
@@ -112,6 +113,10 @@ const AppRouter = () => {
                <Route
                  path='/pasta/:id'
                  element={<FolderProcessesPage />}
+               />
+               <Route
+                 path='/processos-gerencia'
+                 element={<GerenciaProcessesPage />}
                />
             </>
           )}

@@ -263,30 +263,33 @@ export const EditFolderModal = ({
         {/* Footer com botões */}
         <Box
           sx={{
-            p: 3,
+            p: { xs: 2, sm: 3 },
+            backgroundColor: '#f8fafc',
             borderTop: '1px solid #e2e8f0',
             display: 'flex',
+            flexDirection: { xs: 'column-reverse', sm: 'row' },
             justifyContent: 'flex-end',
-            gap: 2
+            alignItems: 'stretch',
+            gap: { xs: 1.5, sm: 1 }
           }}
         >
           <Button
             onClick={handleClose}
             disabled={loading}
+            variant='outlined'
             sx={{
-              px: 3,
-              py: 1.25,
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              color: '#64748b',
-              textTransform: 'uppercase',
+              textTransform: 'none',
               borderRadius: 2,
-              border: '1px solid #e2e8f0',
-              backgroundColor: 'transparent',
-              transition: 'all 0.2s ease-in-out',
+              borderColor: '#E4E6EB',
+              color: '#212121',
+              px: { xs: 2.5, sm: 3 },
+              py: { xs: 1.125, sm: 1.25 },
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+              fontWeight: 600,
+              width: { xs: '100%', sm: 'auto' },
               '&:hover': {
-                backgroundColor: '#f8fafc',
-                borderColor: '#cbd5e1'
+                borderColor: '#CBD5E1',
+                backgroundColor: '#F8F9FA'
               },
               '&:disabled': {
                 opacity: 0.5,
@@ -301,21 +304,21 @@ export const EditFolderModal = ({
             disabled={loading}
             variant='contained'
             sx={{
-              px: 3,
-              py: 1.25,
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              backgroundColor: '#1877F2',
-              textTransform: 'uppercase',
+              textTransform: 'none',
               borderRadius: 2,
-              color: 'white',
-              transition: 'all 0.2s ease-in-out',
+              backgroundColor: '#1877F2',
+              color: '#FFFFFF',
+              px: { xs: 2.5, sm: 4 },
+              py: { xs: 1.125, sm: 1.25 },
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+              fontWeight: 600,
+              width: { xs: '100%', sm: 'auto' },
               '&:hover': {
                 backgroundColor: '#166fe5'
               },
               '&:disabled': {
-                backgroundColor: '#9ca3af',
-                cursor: 'not-allowed'
+                backgroundColor: '#E4E6EB',
+                color: '#8A8D91'
               }
             }}
           >
