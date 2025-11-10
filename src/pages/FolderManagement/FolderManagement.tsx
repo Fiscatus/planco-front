@@ -24,7 +24,7 @@ import {
   useTheme
 } from '@mui/material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useState, useMemo } from 'react';
+import { useCallback, useState, useMemo, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Loading, useNotification } from '@/components';
 import type { CreateFolderDto, FilterFoldersDto, Folder, UpdateFolderDto, MoveProcessesDto } from '@/globals/types';
@@ -73,7 +73,7 @@ const FolderManagement = () => {
     queryKey: [
       'fetchFolders',
       `page:${urlParams.get('page') || 1}`,
-      `limit:${urlParams.get('limit') || 12}`,
+      `limit:${urlParams.get('limit') || 10}`,
       `search:${debouncedFolderSearch}`,
       `year:${urlParams.get('year') || ''}`,
       `sortBy:${urlParams.get('sortBy') || 'name'}`,
@@ -83,7 +83,7 @@ const FolderManagement = () => {
     queryFn: async () => {
       const filters: FilterFoldersDto = {
         page: Number(urlParams.get('page') || 1),
-        limit: Number(urlParams.get('limit') || 12),
+        limit: Number(urlParams.get('limit') || 10),
         search: debouncedFolderSearch || undefined,
         year: urlParams.get('year') || undefined,
         sortBy: urlParams.get('sortBy') || 'name',
@@ -230,8 +230,13 @@ const FolderManagement = () => {
 
   const handleClearFilters = useCallback(() => {
     const newParams = new URLSearchParams();
+    // Manter page e limit ao limpar filtros
+    const currentPage = urlParams.get('page') || '1';
+    const currentLimit = urlParams.get('limit') || '10';
+    newParams.set('page', currentPage);
+    newParams.set('limit', currentLimit);
     setUrlParams(newParams, { replace: true });
-  }, [setUrlParams]);
+  }, [urlParams, setUrlParams]);
 
   const hasActiveFilters = !!(
     (urlParams.get('year') && urlParams.get('year') !== '') ||
@@ -244,6 +249,10 @@ const FolderManagement = () => {
     (page: number) => {
       const newParams = new URLSearchParams(urlParams);
       newParams.set('page', String(page));
+      // Garantir que limit esteja presente
+      if (!newParams.get('limit')) {
+        newParams.set('limit', '10');
+      }
       setUrlParams(newParams, { replace: true });
     },
     [urlParams, setUrlParams]
@@ -268,6 +277,10 @@ const FolderManagement = () => {
         newParams.set('year', year);
       }
       newParams.set('page', '1');
+      // Garantir que limit esteja presente
+      if (!newParams.get('limit')) {
+        newParams.set('limit', '10');
+      }
       setUrlParams(newParams, { replace: true });
     },
     [urlParams, setUrlParams]
@@ -278,6 +291,10 @@ const FolderManagement = () => {
       const newParams = new URLSearchParams(urlParams);
       newParams.set('sortBy', sortBy);
       newParams.set('page', '1');
+      // Garantir que limit esteja presente
+      if (!newParams.get('limit')) {
+        newParams.set('limit', '10');
+      }
       setUrlParams(newParams, { replace: true });
     },
     [urlParams, setUrlParams]
@@ -288,6 +305,10 @@ const FolderManagement = () => {
       const newParams = new URLSearchParams(urlParams);
       newParams.set('sortOrder', sortOrder);
       newParams.set('page', '1');
+      // Garantir que limit esteja presente
+      if (!newParams.get('limit')) {
+        newParams.set('limit', '10');
+      }
       setUrlParams(newParams, { replace: true });
     },
     [urlParams, setUrlParams]
@@ -295,6 +316,24 @@ const FolderManagement = () => {
 
   const foldersTotal = foldersData?.total || 0;
   const foldersTotalPages = foldersData?.totalPages || 1;
+
+  // Garantir que page e limit sempre estejam na URL
+  useEffect(() => {
+    const currentPage = urlParams.get('page');
+    const currentLimit = urlParams.get('limit');
+    const needsUpdate = !currentPage || !currentLimit;
+
+    if (needsUpdate) {
+      const newParams = new URLSearchParams(urlParams);
+      if (!currentPage) {
+        newParams.set('page', '1');
+      }
+      if (!currentLimit) {
+        newParams.set('limit', '10');
+      }
+      setUrlParams(newParams, { replace: true });
+    }
+  }, [urlParams, setUrlParams]);
 
   if (foldersLoading) return <Loading isLoading={true} />;
 
@@ -839,7 +878,7 @@ const FolderManagement = () => {
       </Box>
 
       {/* Paginação */}
-      {foldersTotalPages > 1 && (
+      {foldersTotal > 0 && (
         <Box
           sx={{
             px: { xs: 2, sm: 3, md: 6, lg: 8 },
@@ -847,69 +886,37 @@ const FolderManagement = () => {
               px: 1.5
             },
             mt: { xs: 3, sm: 4, md: 6 },
+            p: 3,
             display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
+            flexDirection: { xs: 'column', md: 'row' },
             justifyContent: 'space-between',
-            alignItems: { xs: 'stretch', sm: 'center' },
-            flexWrap: 'wrap',
-            gap: { xs: 2, sm: 2.5, md: 3 },
-            pt: { xs: 2.5, sm: 3, md: 4 },
-            borderTop: '1px solid',
-            borderColor: 'divider'
+            alignItems: 'center',
+            gap: 2,
+            backgroundColor: '#f8fafc',
+            borderTop: '1px solid #e5e7eb'
           }}
         >
+          {/* Pagination Info */}
           <Typography
             variant='body2'
-            sx={{ 
-              color: '#6b7280', 
-              fontSize: { xs: '0.8125rem', sm: '0.875rem' }, 
-              fontWeight: 500,
-              textAlign: { xs: 'center', sm: 'left' },
-              mb: { xs: 1, sm: 0 }
-            }}
+            sx={{ color: '#6b7280', fontSize: '0.875rem' }}
           >
-            {((Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 12)) + 1}-
-            {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 12), foldersTotal)} de {foldersTotal}
+            {((Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10)) + 1}-
+            {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10), foldersTotal)} de {foldersTotal}
           </Typography>
 
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: { xs: 1.5, sm: 2 },
-              flexDirection: { xs: 'column', sm: 'row' },
-              width: { xs: '100%', sm: 'auto' }
-            }}
-          >
+          {/* Pagination Controls */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Select
-              value={urlParams.get('limit') || 12}
+              value={urlParams.get('limit') || 10}
               onChange={(e) => handleLimitChange(Number(e.target.value))}
-              sx={{
-                minWidth: { xs: '100%', sm: 140 },
-                height: { xs: 40, sm: 36 },
-                fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                borderRadius: 2,
-                backgroundColor: '#ffffff',
-                '&:hover': {
-                  backgroundColor: '#ffffff'
-                },
-                '&.Mui-focused': {
-                  backgroundColor: '#ffffff'
-                },
-                '& .MuiSelect-icon': {
-                  color: '#64748b'
-                }
-              }}
+              sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
             >
-              {[12, 24, 48, 96].map((limit) => (
+              {[5, 10, 25, 50].map((limit) => (
                 <MenuItem 
                   key={limit} 
                   value={limit}
                   sx={{
-                    fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                    '&:hover': {
-                      backgroundColor: '#f8fafc'
-                    },
                     '&.Mui-selected': {
                       backgroundColor: '#f1f5f9',
                       '&:hover': {
@@ -929,15 +936,6 @@ const FolderManagement = () => {
               onChange={(_e, value) => handlePageChange(value)}
               variant='outlined'
               shape='rounded'
-              color='primary'
-              size={isMobile ? 'small' : 'medium'}
-              sx={{
-                '& .MuiPaginationItem-root': {
-                  fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                  minWidth: { xs: 32, sm: 40 },
-                  height: { xs: 32, sm: 40 }
-                }
-              }}
             />
           </Box>
         </Box>

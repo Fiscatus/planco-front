@@ -77,16 +77,20 @@ export const CreateProcessModal = ({
   loading = false,
   folders
 }: CreateProcessModalProps) => {
+  // TODO: Será feito na parte de modelos de fluxo
+  // Por enquanto, usando um ID fictício mockado
+  const mockWorkflowModelId = '507f1f77bcf86cd799439011';
+
   const [formData, setFormData] = useState<Partial<CreateProcessDto> & { dueDate?: Dayjs; estimatedValueFormatted?: string }>({
     processNumber: '',
     object: '',
     folderId: '',
     priority: 'Média',
     dueDate: undefined,
-    currentStage: '',
     modality: '',
     estimatedValue: undefined,
-    estimatedValueFormatted: ''
+    estimatedValueFormatted: '',
+    workflowModelId: mockWorkflowModelId
   });
 
   useEffect(() => {
@@ -97,16 +101,16 @@ export const CreateProcessModal = ({
         folderId: folders[0]?._id || '',
         priority: 'Média',
         dueDate: undefined,
-        currentStage: '',
         modality: '',
         estimatedValue: undefined,
-        estimatedValueFormatted: ''
+        estimatedValueFormatted: '',
+        workflowModelId: mockWorkflowModelId
       });
     }
   }, [open, folders]);
 
   const handleSave = () => {
-    if (!formData.processNumber || !formData.object || !formData.folderId || !formData.priority || !formData.dueDate) {
+    if (!formData.processNumber || !formData.object || !formData.folderId || !formData.priority || !formData.dueDate || !formData.workflowModelId) {
       return;
     }
 
@@ -122,8 +126,9 @@ export const CreateProcessModal = ({
       folderId: formData.folderId,
       priority: formData.priority,
       dueDate: formData.dueDate.format('YYYY-MM-DD'),
+      // TODO: Será feito na parte de modelos de fluxo - substituir mockWorkflowModelId pela seleção do usuário
+      workflowModelId: formData.workflowModelId || mockWorkflowModelId,
       // Campos opcionais - só enviar se tiver valor
-      ...(formData.currentStage && formData.currentStage.trim() ? { currentStage: formData.currentStage.trim() } : {}),
       ...(formData.modality && formData.modality.trim() ? { modality: formData.modality.trim() } : {}),
       ...(estimatedValue !== undefined && estimatedValue !== null && estimatedValue >= 0 
         ? { estimatedValue: Number(estimatedValue) } : {})
@@ -139,15 +144,15 @@ export const CreateProcessModal = ({
       folderId: '',
       priority: 'Média',
       dueDate: undefined,
-      currentStage: '',
       modality: '',
       estimatedValue: undefined,
-      estimatedValueFormatted: ''
+      estimatedValueFormatted: '',
+      workflowModelId: mockWorkflowModelId
     });
     onClose();
   };
 
-  const isFormValid = formData.processNumber && formData.object && formData.folderId && formData.priority && formData.dueDate;
+  const isFormValid = formData.processNumber && formData.object && formData.folderId && formData.priority && formData.dueDate && formData.workflowModelId;
 
   return (
     <Dialog
@@ -439,16 +444,17 @@ export const CreateProcessModal = ({
                   </FormControl>
                 </Box>
 
-                {/* Etapa Atual */}
+                {/* Modelo do Fluxo */}
                 <Box>
                   <Typography variant='body2' sx={{ fontWeight: 600, mb: 1, color: '#212121' }}>
-                    Fase Atual do Processo
+                    Modelo do Fluxo
                   </Typography>
                   <FormControl fullWidth>
                     <Select
-                      value={formData.currentStage || ''}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, currentStage: e.target.value }))}
-                      displayEmpty
+                      value={formData.workflowModelId || mockWorkflowModelId}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, workflowModelId: e.target.value }))}
+                      required
+                      disabled
                       sx={{
                         borderRadius: 2,
                         '& .MuiOutlinedInput-notchedOutline': {
@@ -456,15 +462,8 @@ export const CreateProcessModal = ({
                         }
                       }}
                     >
-                      <MenuItem value=''>Selecione</MenuItem>
-                      <MenuItem value='Elaboração do DFD'>Elaboração do DFD</MenuItem>
-                      <MenuItem value='Aprovação do DFD'>Aprovação do DFD</MenuItem>
-                      <MenuItem value='Elaboração do ETP'>Elaboração do ETP</MenuItem>
-                      <MenuItem value='Elaboração do Termo de Referência (TR)'>Elaboração do Termo de Referência (TR)</MenuItem>
-                      <MenuItem value='Publicação do Edital'>Publicação do Edital</MenuItem>
-                      <MenuItem value='Abertura de Propostas'>Abertura de Propostas</MenuItem>
-                      <MenuItem value='Análise de Propostas'>Análise de Propostas</MenuItem>
-                      <MenuItem value='Homologação'>Homologação</MenuItem>
+                      {/* TODO: Será feito na parte de modelos de fluxo - substituir por lista de modelos reais */}
+                      <MenuItem value={mockWorkflowModelId}>Modelo Padrão (Mockado)</MenuItem>
                     </Select>
                   </FormControl>
                 </Box>

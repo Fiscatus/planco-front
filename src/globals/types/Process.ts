@@ -41,12 +41,13 @@ export type FilterProcessesDto = {
 export type CreateProcessDto = {
   processNumber: string;
   object: string;
-  currentStage?: string;
   modality?: string;
   priority: 'Baixa' | 'Média' | 'Alta';
   folderId: string;
   dueDate: string;
   estimatedValue?: number;
+  creatorDepartment?: string;
+  workflowModelId: string;
 };
 
 export type UpdateProcessDto = {

@@ -8,7 +8,8 @@ import {
   Grid,
   FormControl,
   MenuItem,
-  Select
+  Select,
+  Pagination
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -23,7 +24,7 @@ import {
   Clear as ClearIcon
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useState, useMemo } from 'react';
+import { useCallback, useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loading, useNotification } from '@/components';
 import { useProcesses, useSearchWithDebounce, useFolders } from '@/hooks';
@@ -64,7 +65,8 @@ const GerenciaProcessesPage = () => {
   const {
     data: processesData,
     isLoading: processesLoading,
-    error: processesError
+    error: processesError,
+    refetch: refetchProcesses
   } = useQuery({
     queryKey: [
       'fetchProcessesByDepartment',
@@ -75,14 +77,21 @@ const GerenciaProcessesPage = () => {
       `modality:${urlParams.get('modality') || ''}`,
       `currentStage:${urlParams.get('currentStage') || ''}`,
       `pending:${urlParams.get('pending') || ''}`,
-      `date:${selectedDate?.toISOString() || ''}`
+      `date:${selectedDate?.toISOString() || ''}`,
+      `page:${urlParams.get('page') || 1}`,
+      `limit:${urlParams.get('limit') || 10}`
     ],
     enabled: !!activeDepartment?._id,
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      if (!activeDepartment?._id) return { processes: [], total: 0 };
+      if (!activeDepartment?._id) {
+        return { processes: [], total: 0, page: 1, limit: 10, totalPages: 1 };
+      }
 
-      const processFilters: FilterProcessesDto = {};
+      const processFilters: FilterProcessesDto = {
+        page: Number(urlParams.get('page') || 1),
+        limit: Number(urlParams.get('limit') || 10)
+      };
 
       // Busca: enviar apenas processNumber (a API pode fazer busca em ambos os campos)
       if (debouncedProcessSearch) {
@@ -106,12 +115,12 @@ const GerenciaProcessesPage = () => {
           error?.response?.data?.message || error?.message || 'Erro ao buscar processos',
           'error'
         );
-        return { processes: [], total: 0 };
+        return { processes: [], total: 0, page: 1, limit: 10, totalPages: 1 };
       }
     }
   });
 
-  // Filtrar processos por data selecionada e pendência
+  // Filtrar processos por data selecionada e pendência (filtros do frontend)
   const filteredProcesses = useMemo(() => {
     if (!processesData?.processes) return [];
     
@@ -120,15 +129,14 @@ const GerenciaProcessesPage = () => {
     // Filtrar por pendência
     const pendingFilter = urlParams.get('pending');
     if (pendingFilter === 'yes') {
-      // Processos com pendência: status "Pendente" ou "Em Andamento" (precisa assinar)
+      // Processos com pendência: status "Em Andamento" (precisa assinar)
       filtered = filtered.filter((process: Process) => {
-        return process.status === 'Pendente' || process.status === 'Em Andamento';
+        return process.status === 'Em Andamento';
       });
     } else if (pendingFilter === 'no') {
-      // Processos sem pendência: status "Concluído" ou outros que não precisam de ação
+      // Processos sem pendência: status "Concluído" ou "Em Atraso"
       filtered = filtered.filter((process: Process) => {
-        return process.status === 'Concluído' || 
-               (process.status !== 'Pendente' && process.status !== 'Em Andamento');
+        return process.status === 'Concluído' || process.status === 'Em Atraso';
       });
     }
 
@@ -162,8 +170,13 @@ const GerenciaProcessesPage = () => {
   });
 
   const handleCreateProcess = useCallback((data: CreateProcessDto) => {
-    createProcessMutation(data);
-  }, [createProcessMutation]);
+    // Adicionar o departamento ativo como creatorDepartment
+    const processData: CreateProcessDto = {
+      ...data,
+      creatorDepartment: activeDepartment?._id
+    };
+    createProcessMutation(processData);
+  }, [createProcessMutation, activeDepartment]);
 
   const handleProcessClick = useCallback((process: Process) => {
     showNotification('Funcionalidade de visualizar processo em desenvolvimento', 'info');
@@ -187,6 +200,21 @@ const GerenciaProcessesPage = () => {
     handleProcessSearchChange('');
   }, [setUrlParams, handleProcessSearchChange]);
 
+  // Handlers de paginação
+  const handleProcessesPageChange = useCallback((_event: unknown, newPage: number) => {
+    const newParams = new URLSearchParams(urlParams);
+    newParams.set('page', String(newPage));
+    setUrlParams(newParams, { replace: true });
+  }, [urlParams, setUrlParams]);
+
+  const handleProcessesLimitChange = useCallback((event: any) => {
+    const newLimit = Number(event.target.value);
+    const newParams = new URLSearchParams(urlParams);
+    newParams.set('limit', String(newLimit));
+    newParams.set('page', '1');
+    setUrlParams(newParams, { replace: true });
+  }, [urlParams, setUrlParams]);
+
   if (!activeDepartment) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
@@ -198,7 +226,9 @@ const GerenciaProcessesPage = () => {
   }
 
   const processes = filteredProcesses;
-  const totalProcesses = processes.length;
+  const totalProcesses = processesData?.total || filteredProcesses.length;
+  const processesLimit = Number(urlParams.get('limit') || 10);
+  const processesTotalPages = processesData?.totalPages || Math.ceil(totalProcesses / processesLimit);
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -559,10 +589,73 @@ const GerenciaProcessesPage = () => {
               </Typography>
             </Card>
           ) : (
-            <ProcessTable
-              processes={processes}
-              onProcessClick={handleProcessClick}
-            />
+            <>
+              <ProcessTable
+                processes={processes}
+                onProcessClick={handleProcessClick}
+              />
+              
+              {/* Paginação */}
+              {totalProcesses > 0 && (
+                <Box
+                  sx={{
+                    p: 3,
+                    display: 'flex',
+                    flexDirection: { xs: 'column', md: 'row' },
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: 2,
+                    backgroundColor: '#f8fafc',
+                    borderTop: '1px solid #e5e7eb',
+                    borderRadius: '0 0 12px 12px',
+                    mt: 2
+                  }}
+                >
+                  {/* Pagination Info */}
+                  <Typography
+                    variant='body2'
+                    sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                  >
+                    {((Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10)) + 1}-
+                    {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10), totalProcesses)} de {totalProcesses}
+                  </Typography>
+
+                  {/* Pagination Controls */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Select
+                      value={processesLimit}
+                      onChange={handleProcessesLimitChange}
+                      sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+                    >
+                      {[5, 10, 25, 50].map((limit) => (
+                        <MenuItem 
+                          key={limit} 
+                          value={limit}
+                          sx={{
+                            '&.Mui-selected': {
+                              backgroundColor: '#f1f5f9',
+                              '&:hover': {
+                                backgroundColor: '#f1f5f9'
+                              }
+                            }
+                          }}
+                        >
+                          {limit} por página
+                        </MenuItem>
+                      ))}
+                    </Select>
+
+                    <Pagination
+                      count={processesTotalPages}
+                      page={Number(urlParams.get('page') || 1)}
+                      onChange={handleProcessesPageChange}
+                      variant='outlined'
+                      shape='rounded'
+                    />
+                  </Box>
+                </Box>
+              )}
+            </>
           )}
         </Box>
 
