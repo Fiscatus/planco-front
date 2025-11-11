@@ -13,6 +13,8 @@ export const useProcesses = () => {
         status?: string;
         priority?: string;
         modality?: string;
+        page?: number;
+        limit?: number;
       } = {};
 
       if (filters.processNumber) params.processNumber = filters.processNumber;
@@ -21,6 +23,8 @@ export const useProcesses = () => {
       if (filters.status) params.status = filters.status;
       if (filters.priority) params.priority = filters.priority;
       if (filters.modality) params.modality = filters.modality;
+      if (filters.page) params.page = filters.page;
+      if (filters.limit) params.limit = filters.limit;
 
       const response = await api.get<any>(`/folders/${folderId}/processes`, { params });
 

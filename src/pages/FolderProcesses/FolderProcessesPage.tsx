@@ -7,10 +7,13 @@ import {
   Box,
   Button,
   Card,
-  Typography
+  Typography,
+  Pagination,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Loading, useNotification } from '@/components';
 import { ManageFolderModal } from '@/components/modals';
@@ -72,13 +75,20 @@ const FolderProcessesPage = () => {
       `priority:${urlParams.get('priority') || ''}`,
       `modality:${urlParams.get('modality') || ''}`,
       `currentStage:${urlParams.get('currentStage') || ''}`,
-      `status:${urlParams.get('status') || ''}`
+      `status:${urlParams.get('status') || ''}`,
+      `page:${urlParams.get('page') || 1}`,
+      `limit:${urlParams.get('limit') || 10}`
     ],
     enabled: !!folderId,
     refetchOnWindowFocus: false,
     queryFn: async () => {
-      if (!folderId) return { processes: [], total: 0 };
-      const processFilters: FilterProcessesDto = {};
+      if (!folderId) {
+        return { processes: [], total: 0, page: 1, limit: 10, totalPages: 1 };
+      }
+      const processFilters: FilterProcessesDto = {
+        page: Number(urlParams.get('page') || 1),
+        limit: Number(urlParams.get('limit') || 10)
+      };
       
       // Se houver busca, buscar tanto por processNumber quanto por object
       // A API provavelmente faz busca OR (número OU objeto)
@@ -162,6 +172,43 @@ const FolderProcessesPage = () => {
   const handleManageFolder = useCallback(() => {
     setManageModalOpen(true);
   }, []);
+
+  // Handlers de paginação
+  const handleProcessesPageChange = useCallback((_event: unknown, newPage: number) => {
+    const newParams = new URLSearchParams(urlParams);
+    newParams.set('page', String(newPage));
+    // Garantir que limit esteja presente
+    if (!newParams.get('limit')) {
+      newParams.set('limit', '10');
+    }
+    setUrlParams(newParams, { replace: true });
+  }, [urlParams, setUrlParams]);
+
+  const handleProcessesLimitChange = useCallback((event: any) => {
+    const newLimit = Number(event.target.value);
+    const newParams = new URLSearchParams(urlParams);
+    newParams.set('limit', String(newLimit));
+    newParams.set('page', '1');
+    setUrlParams(newParams, { replace: true });
+  }, [urlParams, setUrlParams]);
+
+  // Garantir que page e limit sempre estejam na URL
+  useEffect(() => {
+    const currentPage = urlParams.get('page');
+    const currentLimit = urlParams.get('limit');
+    const needsUpdate = !currentPage || !currentLimit;
+
+    if (needsUpdate) {
+      const newParams = new URLSearchParams(urlParams);
+      if (!currentPage) {
+        newParams.set('page', '1');
+      }
+      if (!currentLimit) {
+        newParams.set('limit', '10');
+      }
+      setUrlParams(newParams, { replace: true });
+    }
+  }, [urlParams, setUrlParams]);
 
   if (!folderId) {
     return (
@@ -395,10 +442,73 @@ const FolderProcessesPage = () => {
         {processesLoading ? (
           <Loading isLoading={true} />
         ) : (
-          <ProcessTable
-            processes={processesData?.processes || []}
-            onProcessClick={handleProcessClick}
-          />
+          <>
+            <ProcessTable
+              processes={processesData?.processes || []}
+              onProcessClick={handleProcessClick}
+            />
+            
+            {/* Paginação */}
+            {processesData && (processesData.total || 0) > 0 && (
+              <Box
+                sx={{
+                  p: 3,
+                  display: 'flex',
+                  flexDirection: { xs: 'column', md: 'row' },
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  gap: 2,
+                  backgroundColor: '#f8fafc',
+                  borderTop: '1px solid #e5e7eb',
+                  borderRadius: '0 0 12px 12px',
+                  mt: 2
+                }}
+              >
+                {/* Pagination Info */}
+                <Typography
+                  variant='body2'
+                  sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                >
+                  {((Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10)) + 1}-
+                  {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10), processesData.total || 0)} de {processesData.total || 0}
+                </Typography>
+
+                {/* Pagination Controls */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <Select
+                    value={Number(urlParams.get('limit') || 10)}
+                    onChange={handleProcessesLimitChange}
+                    sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+                  >
+                    {[5, 10, 25, 50].map((limit) => (
+                      <MenuItem 
+                        key={limit} 
+                        value={limit}
+                        sx={{
+                          '&.Mui-selected': {
+                            backgroundColor: '#f1f5f9',
+                            '&:hover': {
+                              backgroundColor: '#f1f5f9'
+                            }
+                          }
+                        }}
+                      >
+                        {limit} por página
+                      </MenuItem>
+                    ))}
+                  </Select>
+
+                  <Pagination
+                    count={processesData?.totalPages || Math.ceil((processesData?.total || 0) / Number(urlParams.get('limit') || 10))}
+                    page={Number(urlParams.get('page') || 1)}
+                    onChange={handleProcessesPageChange}
+                    variant='outlined'
+                    shape='rounded'
+                  />
+                </Box>
+              </Box>
+            )}
+          </>
         )}
       </Box>
 

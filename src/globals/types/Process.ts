@@ -48,6 +48,7 @@ export type CreateProcessDto = {
   estimatedValue?: number;
   creatorDepartment?: string;
   workflowModelId: string;
+  participatingDepartments?: string[];
 };
 
 export type UpdateProcessDto = {

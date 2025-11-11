@@ -21,8 +21,10 @@ import {
 import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import type { CreateProcessDto, Folder } from '@/globals/types';
-import { useState, useEffect } from 'react';
+import type { CreateProcessDto, Folder, Department } from '@/globals/types';
+import { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useDepartments, useActiveDepartment } from '@/hooks';
 import dayjs, { type Dayjs } from 'dayjs';
 import 'dayjs/locale/pt-br';
 
@@ -90,8 +92,32 @@ export const CreateProcessModal = ({
     modality: '',
     estimatedValue: undefined,
     estimatedValueFormatted: '',
-    workflowModelId: mockWorkflowModelId
+    workflowModelId: mockWorkflowModelId,
+    participatingDepartments: []
   });
+
+  // Buscar departamentos quando o modal abrir
+  const { fetchDepartments } = useDepartments();
+  const { activeDepartment } = useActiveDepartment();
+  const { data: departmentsData } = useQuery({
+    queryKey: ['fetchDepartments', 'all'],
+    queryFn: async () => {
+      // Buscar todos os departamentos (usando um limite alto)
+      return await fetchDepartments(1, 100, '');
+    },
+    enabled: open
+  });
+
+  // Filtrar a gerência ativa da lista de departamentos disponíveis
+  const availableDepartments = useMemo(() => {
+    if (!departmentsData?.departments) return [];
+    if (!activeDepartment?._id) return departmentsData.departments;
+    
+    // Remover a gerência ativa da lista
+    return departmentsData.departments.filter(
+      (dept) => dept._id !== activeDepartment._id
+    );
+  }, [departmentsData?.departments, activeDepartment?._id]);
 
   useEffect(() => {
     if (open) {
@@ -104,7 +130,8 @@ export const CreateProcessModal = ({
         modality: '',
         estimatedValue: undefined,
         estimatedValueFormatted: '',
-        workflowModelId: mockWorkflowModelId
+        workflowModelId: mockWorkflowModelId,
+        participatingDepartments: []
       });
     }
   }, [open, folders]);
@@ -131,7 +158,9 @@ export const CreateProcessModal = ({
       // Campos opcionais - só enviar se tiver valor
       ...(formData.modality && formData.modality.trim() ? { modality: formData.modality.trim() } : {}),
       ...(estimatedValue !== undefined && estimatedValue !== null && estimatedValue >= 0 
-        ? { estimatedValue: Number(estimatedValue) } : {})
+        ? { estimatedValue: Number(estimatedValue) } : {}),
+      ...(formData.participatingDepartments && formData.participatingDepartments.length > 0
+        ? { participatingDepartments: formData.participatingDepartments } : {})
     };
 
     onSave(data);
@@ -147,7 +176,8 @@ export const CreateProcessModal = ({
       modality: '',
       estimatedValue: undefined,
       estimatedValueFormatted: '',
-      workflowModelId: mockWorkflowModelId
+      workflowModelId: mockWorkflowModelId,
+      participatingDepartments: []
     });
     onClose();
   };
@@ -467,6 +497,57 @@ export const CreateProcessModal = ({
                     </Select>
                   </FormControl>
                 </Box>
+              </Box>
+
+              {/* Gerencias Participantes */}
+              <Box>
+                <Typography variant='body2' sx={{ fontWeight: 600, mb: 1, color: '#212121' }}>
+                  Gerencias Participantes
+                </Typography>
+                <FormControl fullWidth>
+                  <Select
+                    multiple
+                    value={formData.participatingDepartments || []}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setFormData((prev) => ({
+                        ...prev,
+                        participatingDepartments: typeof value === 'string' ? value.split(',') : value
+                      }));
+                    }}
+                    displayEmpty
+                    renderValue={(selected) => {
+                      if (!selected || selected.length === 0) {
+                        return <Typography sx={{ color: '#8A8D91' }}>Selecione as gerencias participantes</Typography>;
+                      }
+                      const selectedNames = selected
+                        .map((id) => availableDepartments.find((dept) => dept._id === id)?.department_name)
+                        .filter(Boolean)
+                        .join(', ');
+                      return selectedNames || 'Selecionado(s)';
+                    }}
+                    sx={{
+                      borderRadius: 2,
+                      minHeight: 42,
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#E4E6EB'
+                      }
+                    }}
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          maxHeight: 300
+                        }
+                      }
+                    }}
+                  >
+                    {availableDepartments.map((department: Department) => (
+                      <MenuItem key={department._id} value={department._id}>
+                        {department.department_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Box>
             </Box>
 

@@ -93,9 +93,10 @@ const GerenciaProcessesPage = () => {
         limit: Number(urlParams.get('limit') || 10)
       };
 
-      // Busca: enviar apenas processNumber (a API pode fazer busca em ambos os campos)
+      // Busca: buscar tanto por processNumber quanto por object
       if (debouncedProcessSearch) {
         processFilters.processNumber = debouncedProcessSearch;
+        processFilters.object = debouncedProcessSearch;
       }
 
       // Aplicar filtro de status da URL
@@ -399,7 +400,7 @@ const GerenciaProcessesPage = () => {
                 <Grid size={{ xs: 12, sm: 12, md: 6 }}>
                   <TextField
                     fullWidth
-                    placeholder='Buscar por nº do processo'
+                    placeholder='Buscar por número ou objeto...'
                     value={processSearch}
                     onChange={(e) => handleProcessSearchChange(e.target.value)}
                     InputProps={{
