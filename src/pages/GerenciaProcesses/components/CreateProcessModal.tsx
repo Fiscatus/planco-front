@@ -24,7 +24,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import type { CreateProcessDto, Folder, Department } from '@/globals/types';
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useDepartments, useActiveDepartment } from '@/hooks';
+import { useDepartments, useActiveDepartment, useFlowModels } from '@/hooks';
 import dayjs, { type Dayjs } from 'dayjs';
 import 'dayjs/locale/pt-br';
 
@@ -79,9 +79,16 @@ export const CreateProcessModal = ({
   loading = false,
   folders
 }: CreateProcessModalProps) => {
-  // TODO: Será feito na parte de modelos de fluxo
-  // Por enquanto, usando um ID fictício mockado
-  const mockWorkflowModelId = '507f1f77bcf86cd799439011';
+  const { fetchFlowModels } = useFlowModels();
+  const { activeDepartment } = useActiveDepartment();
+
+  // Buscar modelos de fluxo ativos quando o modal abrir
+  const { data: flowModels = [], isLoading: flowModelsLoading } = useQuery({
+    queryKey: ['fetchFlowModels', 'active'],
+    queryFn: () => fetchFlowModels(true), // Buscar apenas modelos ativos
+    enabled: open, // Só buscar quando o modal estiver aberto
+    refetchOnWindowFocus: false
+  });
 
   const [formData, setFormData] = useState<Partial<CreateProcessDto> & { dueDate?: Dayjs; estimatedValueFormatted?: string }>({
     processNumber: '',
@@ -89,16 +96,15 @@ export const CreateProcessModal = ({
     folderId: '',
     priority: 'Média',
     dueDate: undefined,
+    workflowModelId: '',
     modality: '',
     estimatedValue: undefined,
     estimatedValueFormatted: '',
-    workflowModelId: mockWorkflowModelId,
     participatingDepartments: []
   });
 
   // Buscar departamentos quando o modal abrir
   const { fetchDepartments } = useDepartments();
-  const { activeDepartment } = useActiveDepartment();
   const { data: departmentsData } = useQuery({
     queryKey: ['fetchDepartments', 'all'],
     queryFn: async () => {
@@ -127,17 +133,22 @@ export const CreateProcessModal = ({
         folderId: folders[0]?._id || '',
         priority: 'Média',
         dueDate: undefined,
+        workflowModelId: '',
         modality: '',
         estimatedValue: undefined,
         estimatedValueFormatted: '',
-        workflowModelId: mockWorkflowModelId,
         participatingDepartments: []
       });
     }
   }, [open, folders]);
 
   const handleSave = () => {
-    if (!formData.processNumber || !formData.object || !formData.folderId || !formData.priority || !formData.dueDate || !formData.workflowModelId) {
+    if (!formData.processNumber || !formData.object || !formData.folderId || !formData.priority || !formData.dueDate) {
+      return;
+    }
+
+    if (!activeDepartment?._id) {
+      console.error('Departamento ativo não encontrado');
       return;
     }
 
@@ -153,9 +164,9 @@ export const CreateProcessModal = ({
       folderId: formData.folderId,
       priority: formData.priority,
       dueDate: formData.dueDate.format('YYYY-MM-DD'),
-      // TODO: Será feito na parte de modelos de fluxo - substituir mockWorkflowModelId pela seleção do usuário
-      workflowModelId: formData.workflowModelId || mockWorkflowModelId,
+      creatorDepartment: activeDepartment._id,
       // Campos opcionais - só enviar se tiver valor
+      ...(formData.workflowModelId && formData.workflowModelId.trim() ? { workflowModelId: formData.workflowModelId.trim() } : {}),
       ...(formData.modality && formData.modality.trim() ? { modality: formData.modality.trim() } : {}),
       ...(estimatedValue !== undefined && estimatedValue !== null && estimatedValue >= 0 
         ? { estimatedValue: Number(estimatedValue) } : {}),
@@ -173,16 +184,16 @@ export const CreateProcessModal = ({
       folderId: '',
       priority: 'Média',
       dueDate: undefined,
+      workflowModelId: '',
       modality: '',
       estimatedValue: undefined,
       estimatedValueFormatted: '',
-      workflowModelId: mockWorkflowModelId,
       participatingDepartments: []
     });
     onClose();
   };
 
-  const isFormValid = formData.processNumber && formData.object && formData.folderId && formData.priority && formData.dueDate && formData.workflowModelId;
+  const isFormValid = formData.processNumber && formData.object && formData.folderId && formData.priority && formData.dueDate;
 
   return (
     <Dialog
@@ -474,17 +485,17 @@ export const CreateProcessModal = ({
                   </FormControl>
                 </Box>
 
-                {/* Modelo do Fluxo */}
+                {/* Modelo de Fluxo */}
                 <Box>
                   <Typography variant='body2' sx={{ fontWeight: 600, mb: 1, color: '#212121' }}>
-                    Modelo do Fluxo
+                    Modelo de Fluxo
                   </Typography>
                   <FormControl fullWidth>
                     <Select
-                      value={formData.workflowModelId || mockWorkflowModelId}
+                      value={formData.workflowModelId || ''}
                       onChange={(e) => setFormData((prev) => ({ ...prev, workflowModelId: e.target.value }))}
-                      required
-                      disabled
+                      displayEmpty
+                      disabled={flowModelsLoading}
                       sx={{
                         borderRadius: 2,
                         '& .MuiOutlinedInput-notchedOutline': {
@@ -492,8 +503,12 @@ export const CreateProcessModal = ({
                         }
                       }}
                     >
-                      {/* TODO: Será feito na parte de modelos de fluxo - substituir por lista de modelos reais */}
-                      <MenuItem value={mockWorkflowModelId}>Modelo Padrão (Mockado)</MenuItem>
+                      <MenuItem value=''>Selecione</MenuItem>
+                      {flowModels.map((model) => (
+                        <MenuItem key={model._id} value={model._id}>
+                          {model.name}
+                        </MenuItem>
+                      ))}
                     </Select>
                   </FormControl>
                 </Box>

@@ -4,6 +4,7 @@ export { useAuth } from './useAuth';
 export { useDebounce } from './useDebounce';
 export { useDepartments } from './useDepartments';
 export { useFavoriteFolders } from './useFavoriteFolders';
+export { useFlowModels } from './useFlowModels';
 export { useFolders } from './useFolders';
 export { useInvites } from './useInvites';
 export { usePermissions } from './usePermissions';
