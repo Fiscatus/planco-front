@@ -19,6 +19,7 @@ const MinhasGerencias = lazy(() => import('@/pages/MinhasGerencias/MinhasGerenci
 const FolderManagement = lazy(() => import('@/pages/FolderManagement/FolderManagement'));
 const FolderProcessesPage = lazy(() => import('@/pages/FolderProcesses/FolderProcessesPage'));
 const GerenciaProcessesPage = lazy(() => import('@/pages/GerenciaProcesses/GerenciaProcessesPage'));
+const FlowModelsPage = lazy(() => import('@/pages/FlowModels/FlowModelsPage'));
 
 const withoutHeaderRoutes = ['/auth', '/privacy-policy'];
 
@@ -117,6 +118,10 @@ const AppRouter = () => {
                <Route
                  path='/processos-gerencia'
                  element={<GerenciaProcessesPage />}
+               />
+               <Route
+                 path='/modelos-fluxo'
+                 element={<FlowModelsPage />}
                />
             </>
           )}
