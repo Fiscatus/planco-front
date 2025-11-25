@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Card,
   TextField,
   Typography,
   Tabs,
@@ -16,13 +15,9 @@ import {
   Add as AddIcon,
   ContentCopy as ContentCopyIcon,
   Search as SearchIcon,
-  MoreVert as MoreVertIcon,
-  Star as StarIcon,
   Schedule as ScheduleIcon,
   Layers as LayersIcon,
-  Save as SaveIcon,
   Reorder as ReorderIcon,
-  Visibility as VisibilityIcon,
   Delete as DeleteIcon,
   Edit as EditIcon
 } from '@mui/icons-material';
@@ -31,7 +26,7 @@ import { useCallback, useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useNotification } from '@/components';
 import { useFlowModels, useSearchWithDebounce, useAuth } from '@/hooks';
-import type { FlowModel, CreateFlowModelDto, UpdateFlowModelDto } from '@/hooks/useFlowModels';
+import type { CreateFlowModelDto, UpdateFlowModelDto } from '@/hooks/useFlowModels';
 import { Breadcrumbs } from '@/components';
 import { CreateFlowModelModal } from './components/CreateFlowModelModal';
 import { FlowModelCard } from './components/FlowModelCard';
@@ -166,7 +161,7 @@ const FlowModelsPage = () => {
   });
 
   // Mutation para atualizar modelo
-  const { mutate: updateModelMutation, isPending: updatingModel } = useMutation({
+  const { isPending: updatingModel } = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateFlowModelDto }) => {
       return await updateFlowModel(id, data);
     },
@@ -291,9 +286,6 @@ const FlowModelsPage = () => {
     showNotification('Funcionalidade de reordenar cards em desenvolvimento', 'info');
   }, [showNotification]);
 
-  const handleSaveDraft = useCallback(() => {
-    showNotification('Funcionalidade de salvar rascunho em desenvolvimento', 'info');
-  }, [showNotification]);
 
   const handleViewDetails = useCallback((stageOrder: number) => {
     showNotification(`Visualizar detalhes da etapa ${stageOrder} em desenvolvimento`, 'info');

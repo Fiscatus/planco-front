@@ -2,7 +2,6 @@ import {
   Box,
   Button,
   Card,
-  LinearProgress,
   TextField,
   Typography,
   Grid,
@@ -14,17 +13,11 @@ import {
 import {
   Add as AddIcon,
   Search as SearchIcon,
-  CalendarToday as CalendarIcon,
-  Edit as EditIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  RemoveCircle as RemoveCircleIcon,
-  Visibility as VisibilityIcon,
   FilterAlt as FilterAltIcon,
   Clear as ClearIcon
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useState, useMemo, useEffect } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loading, useNotification } from '@/components';
 import { useProcesses, useSearchWithDebounce, useFolders } from '@/hooks';
@@ -65,8 +58,7 @@ const GerenciaProcessesPage = () => {
   const {
     data: processesData,
     isLoading: processesLoading,
-    error: processesError,
-    refetch: refetchProcesses
+    error: processesError
   } = useQuery({
     queryKey: [
       'fetchProcessesByDepartment',

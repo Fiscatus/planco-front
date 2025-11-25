@@ -17,9 +17,11 @@ import { useCallback, useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Loading, useNotification } from '@/components';
 import { ManageFolderModal } from '@/components/modals';
-import type { FilterProcessesDto, Folder, FolderStatsDto, MoveProcessesDto, UpdateFolderDto } from '@/globals/types';
+import type { FilterProcessesDto, FolderStatsDto, MoveProcessesDto, UpdateFolderDto } from '@/globals/types';
 import { useFolders, useProcesses, useSearchWithDebounce } from '@/hooks';
-import { StatsCards, FiltersSection, ProcessTable } from './components';
+import { StatsCards } from './components/StatsCards';
+import { FiltersSection } from './components/FiltersSection';
+import { ProcessTable } from './components/ProcessTable';
 
 const FolderProcessesPage = () => {
   const navigate = useNavigate();
@@ -108,7 +110,7 @@ const FolderProcessesPage = () => {
   });
 
   // Query para buscar todas as pastas (para mover processos)
-  const { data: allFoldersData, isLoading: allFoldersLoading, refetch: refetchAllFolders } = useQuery({
+  const { data: allFoldersData, isLoading: allFoldersLoading } = useQuery({
     queryKey: ['fetchAllFolders'],
     enabled: manageModalOpen, // Habilitar quando o modal abrir
     refetchOnWindowFocus: false,
