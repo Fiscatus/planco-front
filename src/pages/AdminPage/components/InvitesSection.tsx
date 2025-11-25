@@ -58,11 +58,18 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
 
   // Atualiza URL params apenas quando o debounce for processado
   useEffect(() => {
-    if (debouncedLocalSearch !== urlParams.get('name')) {
-      urlParams.set('name', debouncedLocalSearch);
-      urlParams.set('email', debouncedLocalSearch);
-      urlParams.set('page', '1');
-      setUrlParams(urlParams, { replace: true });
+    const currentName = urlParams.get('name') || '';
+    if (debouncedLocalSearch !== currentName) {
+      const newParams = new URLSearchParams(urlParams);
+      if (debouncedLocalSearch.trim() === '') {
+        newParams.delete('name');
+        newParams.delete('email');
+      } else {
+        newParams.set('name', debouncedLocalSearch);
+        newParams.set('email', debouncedLocalSearch);
+      }
+      newParams.set('page', '1');
+      setUrlParams(newParams, { replace: true });
     }
   }, [debouncedLocalSearch, urlParams, setUrlParams]);
 
@@ -76,6 +83,30 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
       setUrlParams({}, { replace: true });
     }
   }, [currentTab, setUrlParams]);
+
+  // Limpar parâmetros vazios da URL
+  useEffect(() => {
+    if (currentTab === 'invites') {
+      const newParams = new URLSearchParams(urlParams);
+      let hasChanges = false;
+
+      const status = newParams.get('status');
+      if (status === '') {
+        newParams.delete('status');
+        hasChanges = true;
+      }
+
+      const role = newParams.get('role');
+      if (role === '') {
+        newParams.delete('role');
+        hasChanges = true;
+      }
+
+      if (hasChanges) {
+        setUrlParams(newParams, { replace: true });
+      }
+    }
+  }, [currentTab, urlParams, setUrlParams]);
 
   const [rolesDropdownOpen, setRolesDropdownOpen] = useState(false);
   const [departmentsDropdownOpen, setDepartmentsDropdownOpen] = useState(false);
@@ -371,9 +402,15 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                     displayEmpty
                     onChange={(e) => {
                       const value = e.target.value;
-                      urlParams.set('status', value === 'todos' ? '' : value);
-                      urlParams.set('page', '1');
-                      setUrlParams(urlParams, { replace: true });
+                      const newParams = new URLSearchParams(urlParams);
+                      const statusValue = value === 'todos' ? '' : value;
+                      if (statusValue === '') {
+                        newParams.delete('status');
+                      } else {
+                        newParams.set('status', statusValue);
+                      }
+                      newParams.set('page', '1');
+                      setUrlParams(newParams, { replace: true });
                     }}
                     sx={{
                       height: 40,
@@ -502,9 +539,15 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                     value={urlParams.get('role') || ''}
                     displayEmpty
                     onChange={(e) => {
-                      urlParams.set('role', e.target.value);
-                      urlParams.set('page', '1');
-                      setUrlParams(urlParams, { replace: true });
+                      const newParams = new URLSearchParams(urlParams);
+                      const roleValue = e.target.value;
+                      if (roleValue === '') {
+                        newParams.delete('role');
+                      } else {
+                        newParams.set('role', roleValue);
+                      }
+                      newParams.set('page', '1');
+                      setUrlParams(newParams, { replace: true });
                     }}
                     onOpen={handleRolesDropdownOpen}
                     disabled={invitesLoading}

@@ -60,11 +60,18 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
 
   // Atualiza URL params apenas quando o debounce for processado
   useEffect(() => {
-    if (debouncedLocalSearch !== urlParams.get('name') && debouncedLocalSearch !== '') {
-      urlParams.set('name', debouncedLocalSearch);
-      urlParams.set('email', debouncedLocalSearch);
-      urlParams.set('page', '1');
-      setUrlParams(urlParams, { replace: true });
+    const currentName = urlParams.get('name') || '';
+    if (debouncedLocalSearch !== currentName) {
+      const newParams = new URLSearchParams(urlParams);
+      if (debouncedLocalSearch.trim() === '') {
+        newParams.delete('name');
+        newParams.delete('email');
+      } else {
+        newParams.set('name', debouncedLocalSearch);
+        newParams.set('email', debouncedLocalSearch);
+      }
+      newParams.set('page', '1');
+      setUrlParams(newParams, { replace: true });
     }
   }, [debouncedLocalSearch, urlParams, setUrlParams]);
 

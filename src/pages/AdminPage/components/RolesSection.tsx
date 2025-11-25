@@ -168,8 +168,31 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
 
   const [roleName, setRoleName] = useState('');
   const [permissions, setPermissions] = useState<string[]>([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(urlParams.get('search') || '');
   const debouncedSearch = useDebounce(search, 300);
+
+  // Sincronizar search com URL quando ela mudar
+  useEffect(() => {
+    const urlSearch = urlParams.get('search') || '';
+    if (search !== urlSearch) {
+      setSearch(urlSearch);
+    }
+  }, [urlParams]);
+
+  // Atualizar URL quando o debouncedSearch mudar
+  useEffect(() => {
+    const currentSearch = urlParams.get('search') || '';
+    if (debouncedSearch !== currentSearch) {
+      const newParams = new URLSearchParams(urlParams);
+      if (debouncedSearch.trim() === '') {
+        newParams.delete('search');
+      } else {
+        newParams.set('search', debouncedSearch);
+      }
+      newParams.set('page', '1');
+      setUrlParams(newParams, { replace: true });
+    }
+  }, [debouncedSearch, urlParams, setUrlParams]);
 
 
   const clearForms = useCallback(() => {

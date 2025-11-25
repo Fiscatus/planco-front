@@ -88,6 +88,24 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
     setUrlParams(newParams, { replace: true });
   }, [urlParams, setUrlParams]);
 
+  // Limpar parâmetros do modal quando nenhum modal estiver aberto
+  useEffect(() => {
+    const hasAnyModalOpen = createModalOpen || editModalOpen || deleteModalOpen || addMembersModalOpen;
+    if (!hasAnyModalOpen) {
+      setUrlParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        const hasModalParams = newParams.has('modalSearch') || newParams.has('modalPage') || newParams.has('modalLimit');
+        if (hasModalParams) {
+          newParams.delete('modalSearch');
+          newParams.delete('modalPage');
+          newParams.delete('modalLimit');
+          return newParams;
+        }
+        return prev;
+      });
+    }
+  }, [createModalOpen, editModalOpen, deleteModalOpen, addMembersModalOpen, setUrlParams]);
+
   const {
     data: departmentsData,
     isLoading: departmentsLoading,
@@ -238,6 +256,7 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
       setCreateModalOpen(false);
       setEditModalOpen(false);
       setSelectedGerencia(null);
+      clearModalParams();
       refetchDepartments();
       refetchUsers();
     }
@@ -255,6 +274,7 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
       showNotification('Gerência excluída com sucesso!', 'success');
       setDeleteModalOpen(false);
       setSelectedGerencia(null);
+      clearModalParams();
       refetchDepartments();
       refetchUsers();
     }
@@ -308,10 +328,11 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
 
   const openMembersDialog = useCallback(async (dept: Department) => {
     setSelectedGerencia(dept);
-    urlParams.delete('modalSearch');
-    urlParams.set('modalPage', '1');
-    urlParams.set('modalLimit', '5');
-    setUrlParams(urlParams, { replace: true });
+    const newParams = new URLSearchParams(urlParams);
+    newParams.delete('modalSearch');
+    newParams.set('modalPage', '1');
+    newParams.set('modalLimit', '5');
+    setUrlParams(newParams, { replace: true });
     
     if (!usersData) {
       await refetchUsers();
@@ -1047,6 +1068,7 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
           setCreateModalOpen(false);
           setEditModalOpen(false);
           setSelectedGerencia(null);
+          clearModalParams();
         }}
         onSave={handleSaveGerencia}
         gerencia={selectedGerencia}
@@ -1059,6 +1081,7 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
         onClose={() => {
           setDeleteModalOpen(false);
           setSelectedGerencia(null);
+          clearModalParams();
         }}
         onConfirm={handleDeleteGerencia}
         gerencia={selectedGerencia}

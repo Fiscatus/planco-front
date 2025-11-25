@@ -52,16 +52,36 @@ export const AddMembersModal = ({
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [savingMembers, setSavingMembers] = useState(false);
   const [urlParams, setUrlParams] = useSearchParams();
-  const [localSearch, setLocalSearch] = useState(urlParams.get('modalSearch') || '');
-  const debouncedLocalSearch = useDebounce(localSearch, 150);
+  const [localSearch, setLocalSearch] = useState('');
+  const debouncedLocalSearch = useDebounce(localSearch, 500);
 
+  // Sincronizar localSearch com URL quando o modal abrir
   useEffect(() => {
-    if (debouncedLocalSearch !== urlParams.get('modalSearch')) {
-      urlParams.set('modalSearch', debouncedLocalSearch);
-      urlParams.set('modalPage', '1');
-      setUrlParams(urlParams, { replace: true });
+    if (open) {
+      const urlSearch = urlParams.get('modalSearch') || '';
+      setLocalSearch(urlSearch);
+    } else {
+      // Limpar busca quando o modal fechar
+      setLocalSearch('');
     }
-  }, [debouncedLocalSearch, urlParams, setUrlParams]);
+  }, [open, urlParams]);
+
+  // Atualizar URL apenas quando o modal estiver aberto e houver mudança na busca
+  useEffect(() => {
+    if (!open) return;
+    
+    const currentSearch = urlParams.get('modalSearch') || '';
+    if (debouncedLocalSearch !== currentSearch) {
+      const newParams = new URLSearchParams(urlParams);
+      if (debouncedLocalSearch.trim() === '') {
+        newParams.delete('modalSearch');
+      } else {
+        newParams.set('modalSearch', debouncedLocalSearch);
+      }
+      newParams.set('modalPage', '1');
+      setUrlParams(newParams, { replace: true });
+    }
+  }, [debouncedLocalSearch, open, urlParams, setUrlParams]);
 
   const toggleUserSelection = useCallback(
     (userId: string) => {
