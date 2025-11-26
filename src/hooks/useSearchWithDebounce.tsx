@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { useDebounce } from './useDebounce';
 import { useSearchParams } from 'react-router-dom';
@@ -12,11 +12,14 @@ export const useSearchWithDebounce = (paramName: string, delay: number = 300) =>
   // Sincronizar o search com a URL quando ela mudar externamente (não por digitação)
   useEffect(() => {
     const urlValue = urlParams.get(paramName) || '';
-    // Só sincronizar se não estivermos digitando e o valor da URL for diferente
-    if (!isUserTypingRef.current && search !== urlValue) {
+    // Só sincronizar se:
+    // 1. Não estivermos digitando
+    // 2. O valor da URL for diferente do search atual
+    // 3. O search atual já está sincronizado com o debouncedSearch (usuário parou de digitar)
+    if (!isUserTypingRef.current && search !== urlValue && search === debouncedSearch) {
       setSearch(urlValue);
     }
-  }, [urlParams, paramName]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [urlParams, paramName, search, debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSearchChange = useCallback((value: string) => {
     isUserTypingRef.current = true;
@@ -27,23 +30,23 @@ export const useSearchWithDebounce = (paramName: string, delay: number = 300) =>
 
   // Atualizar URL apenas quando o debouncedSearch mudar (após delay)
   useEffect(() => {
-    const currentValue = urlParams.get(paramName) || '';
-    if (debouncedSearch !== currentValue) {
-      const newParams = new URLSearchParams(urlParams);
-      if (debouncedSearch.trim() === '') {
-        newParams.delete(paramName);
-      } else {
-        newParams.set(paramName, debouncedSearch);
+    setUrlParams((prev) => {
+      const currentValue = prev.get(paramName) || '';
+      if (debouncedSearch !== currentValue) {
+        const newParams = new URLSearchParams(prev);
+        if (debouncedSearch.trim() === '') {
+          newParams.delete(paramName);
+        } else {
+          newParams.set(paramName, debouncedSearch);
+        }
+        newParams.set('page', '1');
+        // Marcar que não estamos mais digitando após atualizar a URL
+        isUserTypingRef.current = false;
+        return newParams;
       }
-      newParams.set('page', '1');
-      if (paramName === 'deptSearch') {
-        newParams.set('deptPage', '1');
-      }
-      setUrlParams(newParams, { replace: true });
-      // Marcar que não estamos mais digitando após atualizar a URL
-      isUserTypingRef.current = false;
-    }
-  }, [debouncedSearch, urlParams, setUrlParams, paramName]);
+      return prev;
+    });
+  }, [debouncedSearch, setUrlParams, paramName]);
 
   return {
     search,

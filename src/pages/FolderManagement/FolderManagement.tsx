@@ -54,6 +54,20 @@ const FolderManagement = () => {
   const [manageModalOpen, setManageModalOpen] = useState(false);
   const [selectedFolder, setSelectedFolder] = useState<Folder | null>(null);
 
+  // Memoizar valores dos parâmetros da URL para evitar re-renders desnecessários
+  // Usar toString() para criar uma chave estável baseada apenas nos parâmetros relevantes
+  const pageParam = urlParams.get('page') || '1';
+  const limitParam = urlParams.get('limit') || '10';
+  const yearParam = urlParams.get('year') || '';
+  const sortByParam = urlParams.get('sortBy') || 'name';
+  const sortOrderParam = urlParams.get('sortOrder') || 'asc';
+  
+  const page = useMemo(() => Number(pageParam), [pageParam]);
+  const limit = useMemo(() => Number(limitParam), [limitParam]);
+  const year = useMemo(() => yearParam, [yearParam]);
+  const sortBy = useMemo(() => sortByParam, [sortByParam]);
+  const sortOrder = useMemo(() => sortOrderParam as 'asc' | 'desc', [sortOrderParam]);
+
   // Query para buscar todas as pastas (para mover processos)
   const { data: allFoldersData, isLoading: allFoldersLoading } = useQuery({
     queryKey: ['fetchAllFolders'],
@@ -73,22 +87,23 @@ const FolderManagement = () => {
   } = useQuery({
     queryKey: [
       'fetchFolders',
-      `page:${urlParams.get('page') || 1}`,
-      `limit:${urlParams.get('limit') || 10}`,
+      `page:${page}`,
+      `limit:${limit}`,
       `search:${debouncedFolderSearch}`,
-      `year:${urlParams.get('year') || ''}`,
-      `sortBy:${urlParams.get('sortBy') || 'name'}`,
-      `sortOrder:${urlParams.get('sortOrder') || 'asc'}`
+      `year:${year}`,
+      `sortBy:${sortBy}`,
+      `sortOrder:${sortOrder}`
     ],
     refetchOnWindowFocus: false,
+    placeholderData: (previousData) => previousData, // Manter dados anteriores enquanto carrega
     queryFn: async () => {
       const filters: FilterFoldersDto = {
-        page: Number(urlParams.get('page') || 1),
-        limit: Number(urlParams.get('limit') || 10),
+        page,
+        limit,
         search: debouncedFolderSearch || undefined,
-        year: urlParams.get('year') || undefined,
-        sortBy: urlParams.get('sortBy') || 'name',
-        sortOrder: (urlParams.get('sortOrder') as 'asc' | 'desc') || 'asc'
+        year: year || undefined,
+        sortBy,
+        sortOrder
       };
       return await fetchFolders(filters);
     }
@@ -230,111 +245,117 @@ const FolderManagement = () => {
   }, [navigate]);
 
   const handleClearFilters = useCallback(() => {
-    const newParams = new URLSearchParams();
-    // Manter page e limit ao limpar filtros
-    const currentPage = urlParams.get('page') || '1';
-    const currentLimit = urlParams.get('limit') || '10';
-    newParams.set('page', currentPage);
-    newParams.set('limit', currentLimit);
-    setUrlParams(newParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+    setUrlParams((prev) => {
+      const newParams = new URLSearchParams();
+      // Manter page e limit ao limpar filtros
+      const currentPage = prev.get('page') || '1';
+      const currentLimit = prev.get('limit') || '10';
+      newParams.set('page', currentPage);
+      newParams.set('limit', currentLimit);
+      return newParams;
+    }, { replace: true });
+  }, [setUrlParams]);
 
-  const hasActiveFilters = !!(
-    (urlParams.get('year') && urlParams.get('year') !== '') ||
-    (urlParams.get('sortBy') && urlParams.get('sortBy') !== 'name') ||
-    (urlParams.get('sortOrder') && urlParams.get('sortOrder') !== 'asc') ||
+  const hasActiveFilters = useMemo(() => !!(
+    (year && year !== '') ||
+    (sortBy && sortBy !== 'name') ||
+    (sortOrder && sortOrder !== 'asc') ||
     (folderSearch && folderSearch.trim() !== '')
-  );
+  ), [year, sortBy, sortOrder, folderSearch]);
 
   const handlePageChange = useCallback(
-    (page: number) => {
-      const newParams = new URLSearchParams(urlParams);
-      newParams.set('page', String(page));
-      // Garantir que limit esteja presente
-      if (!newParams.get('limit')) {
-        newParams.set('limit', '10');
-      }
-      setUrlParams(newParams, { replace: true });
+    (newPage: number) => {
+      setUrlParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set('page', String(newPage));
+        if (!newParams.get('limit')) {
+          newParams.set('limit', '10');
+        }
+        return newParams;
+      }, { replace: true });
     },
-    [urlParams, setUrlParams]
+    [setUrlParams]
   );
 
   const handleLimitChange = useCallback(
-    (limit: number) => {
-      const newParams = new URLSearchParams(urlParams);
-      newParams.set('limit', String(limit));
-      newParams.set('page', '1');
-      setUrlParams(newParams, { replace: true });
+    (newLimit: number) => {
+      setUrlParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set('limit', String(newLimit));
+        newParams.set('page', '1');
+        return newParams;
+      }, { replace: true });
     },
-    [urlParams, setUrlParams]
+    [setUrlParams]
   );
 
   const handleYearChange = useCallback(
-    (year: string) => {
-      const newParams = new URLSearchParams(urlParams);
-      if (year === 'all') {
-        newParams.delete('year');
-      } else {
-        newParams.set('year', year);
-      }
-      newParams.set('page', '1');
-      // Garantir que limit esteja presente
-      if (!newParams.get('limit')) {
-        newParams.set('limit', '10');
-      }
-      setUrlParams(newParams, { replace: true });
+    (newYear: string) => {
+      setUrlParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        if (newYear === 'all') {
+          newParams.delete('year');
+        } else {
+          newParams.set('year', newYear);
+        }
+        newParams.set('page', '1');
+        if (!newParams.get('limit')) {
+          newParams.set('limit', '10');
+        }
+        return newParams;
+      }, { replace: true });
     },
-    [urlParams, setUrlParams]
+    [setUrlParams]
   );
 
   const handleSortByChange = useCallback(
-    (sortBy: string) => {
-      const newParams = new URLSearchParams(urlParams);
-      newParams.set('sortBy', sortBy);
-      newParams.set('page', '1');
-      // Garantir que limit esteja presente
-      if (!newParams.get('limit')) {
-        newParams.set('limit', '10');
-      }
-      setUrlParams(newParams, { replace: true });
+    (newSortBy: string) => {
+      setUrlParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set('sortBy', newSortBy);
+        newParams.set('page', '1');
+        if (!newParams.get('limit')) {
+          newParams.set('limit', '10');
+        }
+        return newParams;
+      }, { replace: true });
     },
-    [urlParams, setUrlParams]
+    [setUrlParams]
   );
 
   const handleSortOrderChange = useCallback(
-    (sortOrder: string) => {
-      const newParams = new URLSearchParams(urlParams);
-      newParams.set('sortOrder', sortOrder);
-      newParams.set('page', '1');
-      // Garantir que limit esteja presente
-      if (!newParams.get('limit')) {
-        newParams.set('limit', '10');
-      }
-      setUrlParams(newParams, { replace: true });
+    (newSortOrder: string) => {
+      setUrlParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        newParams.set('sortOrder', newSortOrder);
+        newParams.set('page', '1');
+        if (!newParams.get('limit')) {
+          newParams.set('limit', '10');
+        }
+        return newParams;
+      }, { replace: true });
     },
-    [urlParams, setUrlParams]
+    [setUrlParams]
   );
 
   const foldersTotal = foldersData?.total || 0;
   const foldersTotalPages = foldersData?.totalPages || 1;
 
-  // Garantir que page e limit sempre estejam na URL
+  // Garantir que page e limit sempre estejam na URL (apenas na montagem inicial)
   useEffect(() => {
-    const currentPage = urlParams.get('page');
-    const currentLimit = urlParams.get('limit');
-    const needsUpdate = !currentPage || !currentLimit;
-
-    if (needsUpdate) {
-      const newParams = new URLSearchParams(urlParams);
-      if (!currentPage) {
-        newParams.set('page', '1');
-      }
-      if (!currentLimit) {
-        newParams.set('limit', '10');
-      }
-      setUrlParams(newParams, { replace: true });
+    if (!pageParam || !limitParam) {
+      setUrlParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        if (!pageParam) {
+          newParams.set('page', '1');
+        }
+        if (!limitParam) {
+          newParams.set('limit', '10');
+        }
+        return newParams;
+      }, { replace: true });
     }
-  }, [urlParams, setUrlParams]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (foldersLoading) return <Loading isLoading={true} />;
 
@@ -618,7 +639,7 @@ const FolderManagement = () => {
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <FormControl fullWidth>
                   <Select
-                    value={urlParams.get('year') || 'all'}
+                    value={year || 'all'}
                     onChange={(e) => handleYearChange(e.target.value)}
                     displayEmpty
                     sx={{
@@ -711,7 +732,7 @@ const FolderManagement = () => {
               <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <FormControl fullWidth>
                   <Select
-                    value={`${urlParams.get('sortBy') || 'name'}-${urlParams.get('sortOrder') || 'asc'}`}
+                    value={`${sortBy}-${sortOrder}`}
                     onChange={(e) => {
                       const [sortBy, sortOrder] = e.target.value.split('-');
                       handleSortByChange(sortBy);
@@ -902,14 +923,14 @@ const FolderManagement = () => {
             variant='body2'
             sx={{ color: '#6b7280', fontSize: '0.875rem' }}
           >
-            {((Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10)) + 1}-
-            {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10), foldersTotal)} de {foldersTotal}
+            {((page - 1) * limit) + 1}-
+            {Math.min(page * limit, foldersTotal)} de {foldersTotal}
           </Typography>
 
           {/* Pagination Controls */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Select
-              value={urlParams.get('limit') || 10}
+              value={limit}
               onChange={(e) => handleLimitChange(Number(e.target.value))}
               sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
             >
@@ -933,7 +954,7 @@ const FolderManagement = () => {
 
             <Pagination
               count={foldersTotalPages}
-              page={Number(urlParams.get('page') || 1)}
+              page={page}
               onChange={(_e, value) => handlePageChange(value)}
               variant='outlined'
               shape='rounded'
@@ -965,9 +986,15 @@ const FolderManagement = () => {
         }}
         folder={selectedFolder}
         availableFolders={allFoldersData?.folders || []}
-        onEdit={editFolder}
-        onDelete={removeFolder}
-        onMoveProcesses={moveProcessesMutation}
+        onEdit={async (data) => {
+          editFolder(data);
+        }}
+        onDelete={async () => {
+          removeFolder();
+        }}
+        onMoveProcesses={async (data) => {
+          moveProcessesMutation(data);
+        }}
         editingLoading={editingFolder}
         deletingLoading={deletingFolder}
         movingLoading={movingProcesses}
