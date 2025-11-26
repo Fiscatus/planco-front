@@ -52,15 +52,25 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
     search: deptSearch,
     debouncedSearch: debouncedDeptSearch,
     handleSearchChange: handleDeptSearchChange 
-  } = useSearchWithDebounce('deptSearch');
+  } = useSearchWithDebounce('search');
   const modalSearch = urlParams.get('modalSearch') || '';
   const debouncedModalSearch = useDebounce(modalSearch, 150);
 
   useEffect(() => {
     if (currentTab !== 'gerencias') {
       setUrlParams({}, { replace: true });
+    } else {
+      // Inicializar page e limit se não existirem (para paginação de departamentos)
+      const hasPage = urlParams.has('page');
+      const hasLimit = urlParams.has('limit');
+      if (!hasPage || !hasLimit) {
+        const newParams = new URLSearchParams(urlParams);
+        if (!hasPage) newParams.set('page', '1');
+        if (!hasLimit) newParams.set('limit', '5');
+        setUrlParams(newParams, { replace: true });
+      }
     }
-  }, [currentTab, setUrlParams]);
+  }, [currentTab, urlParams, setUrlParams]);
 
   const {
     fetchDepartments,
@@ -113,15 +123,15 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
     refetch: refetchDepartments
   } = useQuery({
     queryKey: ['fetchDepartments', 
-      `page:${urlParams.get('deptPage') || 1}`,
-      `limit:${urlParams.get('deptLimit') || 5}`,
+      `page:${urlParams.get('page') || 1}`,
+      `limit:${urlParams.get('limit') || 5}`,
       `search:${debouncedDeptSearch}`
     ],
     refetchOnWindowFocus: false,
     queryFn: async () => {
       return await fetchDepartments(
-        Number(urlParams.get('deptPage') || 1),
-        Number(urlParams.get('deptLimit') || 5),
+        Number(urlParams.get('page') || 1),
+        Number(urlParams.get('limit') || 5),
         debouncedDeptSearch
       );
     }
@@ -342,13 +352,13 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
   }, [urlParams, setUrlParams, usersData, refetchUsers]);
 
   const handleDeptPageChange = useCallback((page: number) => {
-    urlParams.set('deptPage', String(page));
+    urlParams.set('page', String(page));
     setUrlParams(urlParams, { replace: true });
   }, [urlParams, setUrlParams]);
 
   const handleDeptLimitChange = useCallback((limit: number) => {
-    urlParams.set('deptLimit', String(limit));
-    urlParams.set('deptPage', '1');
+    urlParams.set('limit', String(limit));
+    urlParams.set('page', '1');
     setUrlParams(urlParams, { replace: true });
   }, [urlParams, setUrlParams]);
 
@@ -401,7 +411,7 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
 
   const departments = (departmentsData?.departments || departmentsData || []) as Department[];
   const departmentsTotal = departmentsData?.total || departments.length;
-  const departmentsTotalPages = departmentsData?.totalPages || Math.ceil(departments.length / Number(urlParams.get('deptLimit') || 5));
+  const departmentsTotalPages = departmentsData?.totalPages || Math.ceil(departments.length / Number(urlParams.get('limit') || 5));
   const selectedDeptId = urlParams.get('selectedDept');
   const selected = departments.find((d) => d._id === selectedDeptId) || null;
   const effectiveUsersForCounts: User[] = usersData?.users || [];
@@ -639,14 +649,14 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
                       variant='body2'
                       sx={{ color: '#6b7280', fontSize: '0.875rem' }}
                     >
-                      {((Number(urlParams.get('deptPage') || 1) - 1) * Number(urlParams.get('deptLimit') || 5)) + 1}-
-                      {Math.min(Number(urlParams.get('deptPage') || 1) * Number(urlParams.get('deptLimit') || 5), departmentsTotal)} de {departmentsTotal}
+                      {((Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 5)) + 1}-
+                      {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 5), departmentsTotal)} de {departmentsTotal}
                     </Typography>
 
                     {/* Pagination Controls */}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       <Select
-                        value={urlParams.get('deptLimit') || 5}
+                        value={urlParams.get('limit') || 5}
                         onChange={(e) => handleDeptLimitChange(Number(e.target.value))}
                         sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
                       >
@@ -673,7 +683,7 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
 
                       <Pagination
                         count={departmentsTotalPages}
-                        page={Number(urlParams.get('deptPage') || 1)}
+                        page={Number(urlParams.get('page') || 1)}
                         onChange={(_e, value) => handleDeptPageChange(value)}
                         variant='outlined'
                         shape='rounded'

@@ -81,8 +81,18 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
   useEffect(() => {
     if (currentTab !== 'invites') {
       setUrlParams({}, { replace: true });
+    } else {
+      // Inicializar page e limit se não existirem
+      const hasPage = urlParams.has('page');
+      const hasLimit = urlParams.has('limit');
+      if (!hasPage || !hasLimit) {
+        const newParams = new URLSearchParams(urlParams);
+        if (!hasPage) newParams.set('page', '1');
+        if (!hasLimit) newParams.set('limit', '10');
+        setUrlParams(newParams, { replace: true });
+      }
     }
-  }, [currentTab, setUrlParams]);
+  }, [currentTab, urlParams, setUrlParams]);
 
   // Limpar parâmetros vazios da URL
   useEffect(() => {

@@ -8,7 +8,9 @@ import {
   FormControl,
   IconButton,
   MenuItem,
+  Pagination,
   Select,
+  Tab,
   Table,
   TableBody,
   TableCell,
@@ -16,10 +18,9 @@ import {
   TableHead,
   TableRow,
   Tabs,
-  Tab,
   TextField,
-  Typography,
   Tooltip,
+  Typography,
   useMediaQuery,
   useTheme
 } from '@mui/material';
@@ -34,13 +35,15 @@ import {
   Info as InfoIcon,
   Search as SearchIcon,
   Star as StarIcon,
-  Warning as WarningIcon,
-  SwapVert as SwapVertIcon
+  SwapVert as SwapVertIcon,
+  Warning as WarningIcon
 } from '@mui/icons-material';
-import type { Folder, FilterProcessesDto, MoveProcessesDto, Process, UpdateFolderDto } from '@/globals/types';
-import { useState, useEffect, useCallback } from 'react';
+import type { FilterProcessesDto, Folder, MoveProcessesDto, Process, UpdateFolderDto } from '@/globals/types';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDebounce, useFavoriteFolders } from '@/hooks';
+
 import { useProcesses } from '@/hooks/useProcesses';
+import { useSearchParams } from 'react-router-dom';
 
 interface ManageFolderModalProps {
   open: boolean;
@@ -95,6 +98,7 @@ export const ManageFolderModal = ({
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { fetchProcessesByFolder } = useProcesses();
   const { isFavorite } = useFavoriteFolders();
+  const [urlParams, setUrlParams] = useSearchParams();
   const [currentTab, setCurrentTab] = useState(0);
   const [folderForm, setFolderForm] = useState<Partial<UpdateFolderDto> & { year?: string | number }>({
     name: '',
@@ -102,15 +106,27 @@ export const ManageFolderModal = ({
     year: undefined
   });
   
+  // Filtrar a pasta atual da lista de pastas disponíveis
+  const filteredAvailableFolders = useMemo(() => {
+    if (!folder?._id) return availableFolders;
+    return availableFolders.filter((f) => f._id !== folder._id);
+  }, [availableFolders, folder?._id]);
+  
   // Estados para mover processos
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(urlParams.get('modalSearch') || '');
   const debouncedSearch = useDebounce(searchTerm, 300);
   const [processes, setProcesses] = useState<Process[]>([]);
+  const [processesTotal, setProcessesTotal] = useState(0);
+  const [processesTotalPages, setProcessesTotalPages] = useState(1);
   const [loadingProcesses, setLoadingProcesses] = useState(false);
   const [selectedProcesses, setSelectedProcesses] = useState<string[]>([]);
   const [targetFolder, setTargetFolder] = useState('');
   const [processSortOrder, setProcessSortOrder] = useState<'asc' | 'desc'>('asc');
   const [deleteConfirmationModalOpen, setDeleteConfirmationModalOpen] = useState(false);
+  
+  // Paginação do modal
+  const modalPage = Number(urlParams.get('modalPage') || 1);
+  const modalLimit = Number(urlParams.get('modalLimit') || 10);
 
   // Inicializar formulário quando o modal abrir ou pasta mudar
   useEffect(() => {
@@ -120,29 +136,63 @@ export const ManageFolderModal = ({
         observations: folder.description || folder.observations || '',
         year: folder.year ? Number(folder.year) : undefined
       });
+      // Inicializar searchTerm com o valor da URL se existir (apenas na abertura)
+      const urlSearch = urlParams.get('modalSearch') || '';
+      setSearchTerm(urlSearch);
+      
+      // Inicializar modalPage e modalLimit se não existirem (apenas na aba de mover processos)
+      if (currentTab === 1) {
+        const hasModalPage = urlParams.has('modalPage');
+        const hasModalLimit = urlParams.has('modalLimit');
+        if (!hasModalPage || !hasModalLimit) {
+          const newParams = new URLSearchParams(urlParams);
+          if (!hasModalPage) newParams.set('modalPage', '1');
+          if (!hasModalLimit) newParams.set('modalLimit', '10');
+          setUrlParams(newParams, { replace: true });
+        }
+      }
+    } else if (!open) {
+      // Limpar quando o modal fechar
+      setSearchTerm('');
     }
-  }, [open, folder]);
+  }, [open, folder, currentTab, urlParams, setUrlParams]);
+
+  // Atualizar query params quando o debouncedSearch mudar (após delay)
+  useEffect(() => {
+    if (!open || currentTab !== 1) return;
+    
+    const currentValue = urlParams.get('modalSearch') || '';
+    // Só atualizar se realmente mudou
+    if (debouncedSearch !== currentValue) {
+      setUrlParams((prev) => {
+        const newParams = new URLSearchParams(prev);
+        if (debouncedSearch.trim() === '') {
+          newParams.delete('modalSearch');
+        } else {
+          newParams.set('modalSearch', debouncedSearch);
+        }
+        newParams.set('modalPage', '1');
+        return newParams;
+      });
+    }
+  }, [debouncedSearch, open, currentTab, setUrlParams]);
 
   // Carregar processos quando a aba de mover processos estiver ativa
   useEffect(() => {
     if (open && folder?._id && currentTab === 1) {
       loadProcesses();
     }
-  }, [open, folder?._id, currentTab]);
-
-  // Recarregar processos quando o termo de busca mudar
-  useEffect(() => {
-    if (open && folder?._id && currentTab === 1) {
-      loadProcesses();
-    }
-  }, [debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, folder?._id, currentTab, modalPage, modalLimit, debouncedSearch]);
 
   const loadProcesses = async () => {
     if (!folder?._id) return;
     setLoadingProcesses(true);
     try {
       setProcesses([]); // Limpa os processos existentes antes de carregar
-      const filters: FilterProcessesDto = {};
+      const filters: FilterProcessesDto = {
+        page: modalPage,
+        limit: modalLimit
+      };
       // Se houver busca, buscar tanto por processNumber quanto por object
       if (debouncedSearch) {
         filters.processNumber = debouncedSearch;
@@ -150,13 +200,30 @@ export const ManageFolderModal = ({
       }
       const result = await fetchProcessesByFolder(folder._id, filters);
       setProcesses(result.processes);
+      setProcessesTotal(result.total || 0);
+      setProcessesTotalPages(result.totalPages || 1);
     } catch (error) {
       console.error('Erro ao carregar processos:', error);
       setProcesses([]);
+      setProcessesTotal(0);
+      setProcessesTotalPages(1);
     } finally {
       setLoadingProcesses(false);
     }
   };
+  
+  const handleModalPageChange = useCallback((_event: unknown, newPage: number) => {
+    const newParams = new URLSearchParams(urlParams);
+    newParams.set('modalPage', String(newPage));
+    setUrlParams(newParams, { replace: true });
+  }, [urlParams, setUrlParams]);
+  
+  const handleModalLimitChange = useCallback((newLimit: number) => {
+    const newParams = new URLSearchParams(urlParams);
+    newParams.set('modalLimit', String(newLimit));
+    newParams.set('modalPage', '1');
+    setUrlParams(newParams, { replace: true });
+  }, [urlParams, setUrlParams]);
 
   const handleProcessSortToggle = () => {
     setProcessSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -252,6 +319,12 @@ export const ManageFolderModal = ({
     setTargetFolder('');
     setProcesses([]);
     setDeleteConfirmationModalOpen(false);
+    // Limpar query params do modal
+    const newParams = new URLSearchParams(urlParams);
+    newParams.delete('modalSearch');
+    newParams.delete('modalPage');
+    newParams.delete('modalLimit');
+    setUrlParams(newParams, { replace: true });
     onClose();
   };
 
@@ -264,7 +337,7 @@ export const ManageFolderModal = ({
       const dataToSave: UpdateFolderDto = {
         name: folderForm.name,
         ...(folderForm.observations && folderForm.observations.trim() ? { observations: folderForm.observations.trim() } : {}),
-        ...(folderForm.year && folderForm.year.toString().trim() ? { year: Number(folderForm.year) } : {})
+        ...(folderForm.year !== undefined && (typeof folderForm.year === 'string' ? folderForm.year !== '' : folderForm.year !== 0) ? { year: Number(folderForm.year) } : {})
       };
       await onEdit(dataToSave);
     } catch (error) {
@@ -603,7 +676,7 @@ export const ManageFolderModal = ({
                       value={folderForm.year || ''}
                       onChange={(e) => {
                         const yearValue = e.target.value;
-                        setFolderForm((prev) => ({ ...prev, year: yearValue ? yearValue : undefined }));
+                        setFolderForm((prev) => ({ ...prev, year: yearValue ? (yearValue as string | number) : undefined } as Partial<UpdateFolderDto> & { year?: string | number }));
                       }}
                       variant='outlined'
                       inputProps={{ min: 2000, max: new Date().getFullYear() }}
@@ -788,7 +861,7 @@ export const ManageFolderModal = ({
                         if (!value) {
                           return (
                             <Typography sx={{ color: '#9ca3af', fontSize: '0.875rem' }}>
-                              {loadingFolders ? 'Carregando pastas...' : availableFolders.length === 0 ? 'Nenhuma pasta disponível' : 'Selecione a pasta destino...'}
+                              {loadingFolders ? 'Carregando pastas...' : filteredAvailableFolders.length === 0 ? 'Nenhuma pasta disponível' : 'Selecione a pasta destino...'}
                             </Typography>
                           );
                         }
@@ -839,9 +912,9 @@ export const ManageFolderModal = ({
                         value='' 
                         disabled
                       >
-                        {loadingFolders ? 'Carregando pastas...' : availableFolders.length === 0 ? 'Nenhuma pasta disponível' : 'Selecione a pasta destino...'}
+                        {loadingFolders ? 'Carregando pastas...' : filteredAvailableFolders.length === 0 ? 'Nenhuma pasta disponível' : 'Selecione a pasta destino...'}
                       </MenuItem>
-                      {availableFolders.map((f) => {
+                      {filteredAvailableFolders.map((f) => {
                         const isPlanco = f.name?.toLowerCase().includes('planco');
                         const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
                         
@@ -1236,6 +1309,72 @@ export const ManageFolderModal = ({
                       </TableBody>
                     </Table>
                   </TableContainer>
+                  
+                  {/* Paginação */}
+                  {processesTotal > 0 && (
+                    <Box
+                      sx={{
+                        p: 2,
+                        display: 'flex',
+                        flexDirection: { xs: 'column', md: 'row' },
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 2,
+                        backgroundColor: '#f8fafc',
+                        borderTop: '1px solid #e2e8f0',
+                        mt: 2,
+                        borderRadius: '0 0 12px 12px'
+                      }}
+                    >
+                      {/* Pagination Info */}
+                      <Typography
+                        variant='body2'
+                        sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                      >
+                        {((modalPage - 1) * modalLimit) + 1}-
+                        {Math.min(modalPage * modalLimit, processesTotal)} de {processesTotal}
+                      </Typography>
+
+                      {/* Pagination Controls */}
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Select
+                          value={modalLimit}
+                          onChange={(e) => handleModalLimitChange(Number(e.target.value))}
+                          sx={{ 
+                            minWidth: 120, 
+                            height: 32, 
+                            fontSize: '0.875rem',
+                            backgroundColor: '#ffffff',
+                          }}
+                        >
+                          {[5, 10, 25, 50].map((limit) => (
+                            <MenuItem 
+                              key={limit} 
+                              value={limit}
+                              sx={{
+                                '&.Mui-selected': {
+                                  backgroundColor: '#f1f5f9',
+                                  '&:hover': {
+                                    backgroundColor: '#f1f5f9'
+                                  }
+                                }
+                              }}
+                            >
+                              {limit} por página
+                            </MenuItem>
+                          ))}
+                        </Select>
+
+                        <Pagination
+                          count={processesTotalPages}
+                          page={modalPage}
+                          onChange={handleModalPageChange}
+                          variant='outlined'
+                          shape='rounded'
+                        />
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
 
                 {/* Botões */}

@@ -1,14 +1,4 @@
 import {
-  CalendarMonth as CalendarMonthIcon,
-  Clear as ClearIcon,
-  CreateNewFolder as CreateNewFolderIcon,
-  FilterAlt as FilterAltIcon,
-  Edit as EditIcon,
-  Search as SearchIcon,
-  Sort as SortIcon
-} from '@mui/icons-material';
-import { CreateFolderModal, ManageFolderModal, SelectFolderModal } from '@/components/modals';
-import {
   Box,
   Button,
   Card,
@@ -23,12 +13,23 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useState, useMemo, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import {
+  CalendarMonth as CalendarMonthIcon,
+  Clear as ClearIcon,
+  CreateNewFolder as CreateNewFolderIcon,
+  Edit as EditIcon,
+  FilterAlt as FilterAltIcon,
+  Search as SearchIcon,
+  Sort as SortIcon
+} from '@mui/icons-material';
+import type { CreateFolderDto, FilterFoldersDto, Folder, MoveProcessesDto, UpdateFolderDto } from '@/globals/types';
+import { CreateFolderModal, ManageFolderModal, SelectFolderModal } from '@/components/modals';
 import { Loading, useNotification } from '@/components';
-import type { CreateFolderDto, FilterFoldersDto, Folder, UpdateFolderDto, MoveProcessesDto } from '@/globals/types';
-import { useFolders, useSearchWithDebounce, useFavoriteFolders } from '@/hooks';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useFavoriteFolders, useFolders, useSearchWithDebounce } from '@/hooks';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import { FolderCard } from './components/FolderCard';
 import { years } from '@/globals/constants';
 
@@ -44,7 +45,7 @@ const FolderManagement = () => {
     search: folderSearch,
     debouncedSearch: debouncedFolderSearch,
     handleSearchChange: handleFolderSearchChange
-  } = useSearchWithDebounce('folderSearch');
+  } = useSearchWithDebounce('search');
 
   const { fetchFolders, createFolder, updateFolder, deleteFolder, moveProcesses } = useFolders();
 

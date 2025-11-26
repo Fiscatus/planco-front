@@ -55,8 +55,18 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
   useEffect(() => {
     if (currentTab !== 'roles') {
       setUrlParams({}, { replace: true });
+    } else {
+      // Inicializar page e limit se não existirem
+      const hasPage = urlParams.has('page');
+      const hasLimit = urlParams.has('limit');
+      if (!hasPage || !hasLimit) {
+        const newParams = new URLSearchParams(urlParams);
+        if (!hasPage) newParams.set('page', '1');
+        if (!hasLimit) newParams.set('limit', '5');
+        setUrlParams(newParams, { replace: true });
+      }
     }
-  }, [currentTab, setUrlParams]);
+  }, [currentTab, urlParams, setUrlParams]);
 
   const rolesQueryKey = useMemo(() => ['fetchRoles'], []);
   const permissionsQueryKey = useMemo(() => ['fetchPermissions'], []);

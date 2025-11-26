@@ -55,16 +55,26 @@ export const AddMembersModal = ({
   const [localSearch, setLocalSearch] = useState('');
   const debouncedLocalSearch = useDebounce(localSearch, 500);
 
-  // Sincronizar localSearch com URL quando o modal abrir
+  // Sincronizar localSearch com URL quando o modal abrir e inicializar parâmetros de paginação
   useEffect(() => {
     if (open) {
       const urlSearch = urlParams.get('modalSearch') || '';
       setLocalSearch(urlSearch);
+      
+      // Inicializar modalPage e modalLimit se não existirem
+      const hasModalPage = urlParams.has('modalPage');
+      const hasModalLimit = urlParams.has('modalLimit');
+      if (!hasModalPage || !hasModalLimit) {
+        const newParams = new URLSearchParams(urlParams);
+        if (!hasModalPage) newParams.set('modalPage', '1');
+        if (!hasModalLimit) newParams.set('modalLimit', '5');
+        setUrlParams(newParams, { replace: true });
+      }
     } else {
       // Limpar busca quando o modal fechar
       setLocalSearch('');
     }
-  }, [open, urlParams]);
+  }, [open, urlParams, setUrlParams]);
 
   // Atualizar URL apenas quando o modal estiver aberto e houver mudança na busca
   useEffect(() => {
