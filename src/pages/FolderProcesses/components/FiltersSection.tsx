@@ -21,6 +21,7 @@ import { useSearchParams } from 'react-router-dom';
 interface FiltersSectionProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
+  onClearSearch?: () => void;
 }
 
 const PRIORITIES = ['Baixa', 'Média', 'Alta'];
@@ -38,7 +39,8 @@ const STAGES = [
 
 export const FiltersSection = ({
   searchValue,
-  onSearchChange
+  onSearchChange,
+  onClearSearch
 }: FiltersSectionProps) => {
   const theme = useTheme();
   const [urlParams, setUrlParams] = useSearchParams();
@@ -54,9 +56,14 @@ export const FiltersSection = ({
   }, [urlParams, setUrlParams]);
 
   const handleClearFilters = useCallback(() => {
+    // Limpar o campo de busca
+    if (onClearSearch) {
+      onClearSearch();
+    }
+    
     const newParams = new URLSearchParams();
     setUrlParams(newParams, { replace: true });
-  }, [setUrlParams]);
+  }, [setUrlParams, onClearSearch]);
 
   const hasActiveFilters =
     urlParams.get('priority') ||

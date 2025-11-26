@@ -44,7 +44,8 @@ const FolderManagement = () => {
   const {
     search: folderSearch,
     debouncedSearch: debouncedFolderSearch,
-    handleSearchChange: handleFolderSearchChange
+    handleSearchChange: handleFolderSearchChange,
+    clearSearch: clearFolderSearch
   } = useSearchWithDebounce('search');
 
   const { fetchFolders, createFolder, updateFolder, deleteFolder, moveProcesses } = useFolders();
@@ -245,6 +246,8 @@ const FolderManagement = () => {
   }, [navigate]);
 
   const handleClearFilters = useCallback(() => {
+    clearFolderSearch();
+    
     setUrlParams((prev) => {
       const newParams = new URLSearchParams();
       // Manter page e limit ao limpar filtros
@@ -254,7 +257,7 @@ const FolderManagement = () => {
       newParams.set('limit', currentLimit);
       return newParams;
     }, { replace: true });
-  }, [setUrlParams]);
+  }, [setUrlParams, clearFolderSearch]);
 
   const hasActiveFilters = useMemo(() => !!(
     (year && year !== '') ||

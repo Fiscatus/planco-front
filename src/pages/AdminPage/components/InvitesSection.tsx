@@ -39,7 +39,7 @@ import {
 } from '@mui/material';
 import type { CreateInviteDto, FilterInvitesDto, Invite, InviteStatus } from '@/globals/types';
 import { Loading, useNotification } from '@/components';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDebounce, useDepartments, useInvites, useRoles, useScreen } from '@/hooks';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
@@ -55,9 +55,13 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
   const [urlParams, setUrlParams] = useSearchParams();
   const [localSearch, setLocalSearch] = useState(urlParams.get('name') || '');
   const debouncedLocalSearch = useDebounce(localSearch, 300);
+  const isClearingRef = useRef(false);
 
   // Atualiza URL params apenas quando o debounce for processado
   useEffect(() => {
+    // Ignorar se estamos limpando programaticamente
+    if (isClearingRef.current) return;
+    
     const currentName = urlParams.get('name') || '';
     if (debouncedLocalSearch !== currentName) {
       const newParams = new URLSearchParams(urlParams);
@@ -244,7 +248,18 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
   }, [departmentsData, refetchDepartments]);
 
   const handleClearFilters = useCallback(() => {
+    // Ativar flag para evitar conflito com debounce
+    isClearingRef.current = true;
+    
+    // Limpar o campo de busca local
+    setLocalSearch('');
+    
     setUrlParams({}, { replace: true });
+    
+    // Resetar flag após o debounce
+    setTimeout(() => {
+      isClearingRef.current = false;
+    }, 400);
   }, [setUrlParams]);
 
   const handlePageChange = useCallback(

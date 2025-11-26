@@ -8,9 +8,11 @@ export const useSearchWithDebounce = (paramName: string, delay: number = 300) =>
   const [search, setSearch] = useState(urlParams.get(paramName) || '');
   const debouncedSearch = useDebounce(search, delay);
   const isUserTypingRef = useRef(false);
+  const isClearingRef = useRef(false);
 
-  // Sincronizar o search com a URL quando ela mudar externamente (não por digitação)
   useEffect(() => {
+    if (isClearingRef.current) return;
+    
     const urlValue = urlParams.get(paramName) || '';
     // Só sincronizar se:
     // 1. Não estivermos digitando
@@ -19,17 +21,26 @@ export const useSearchWithDebounce = (paramName: string, delay: number = 300) =>
     if (!isUserTypingRef.current && search !== urlValue && search === debouncedSearch) {
       setSearch(urlValue);
     }
-  }, [urlParams, paramName, search, debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [urlParams, paramName, search, debouncedSearch]);
 
   const handleSearchChange = useCallback((value: string) => {
+    isClearingRef.current = false;
     isUserTypingRef.current = true;
     setSearch(value);
-    // Não atualizar URL imediatamente, apenas atualizar o estado local
-    // A URL será atualizada pelo useEffect com debouncedSearch
   }, []);
 
-  // Atualizar URL apenas quando o debouncedSearch mudar (após delay)
+  const clearSearch = useCallback(() => {
+    isClearingRef.current = true;
+    isUserTypingRef.current = false;
+    setSearch('');
+    setTimeout(() => {
+      isClearingRef.current = false;
+    }, delay + 100);
+  }, [delay]);
+
   useEffect(() => {
+    if (isClearingRef.current) return;
+    
     setUrlParams((prev) => {
       const currentValue = prev.get(paramName) || '';
       if (debouncedSearch !== currentValue) {
@@ -51,6 +62,7 @@ export const useSearchWithDebounce = (paramName: string, delay: number = 300) =>
   return {
     search,
     debouncedSearch,
-    handleSearchChange
+    handleSearchChange,
+    clearSearch
   };
 };

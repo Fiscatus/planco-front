@@ -41,7 +41,7 @@ import {
   useTheme
 } from '@mui/material';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loading, useNotification } from '@/components';
 import type { FilterUsersDto, User } from '@/globals/types';
@@ -57,9 +57,13 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
   const [urlParams, setUrlParams] = useSearchParams();
   const [localSearch, setLocalSearch] = useState(urlParams.get('name') || '');
   const debouncedLocalSearch = useDebounce(localSearch, 300);
+  const isClearingRef = useRef(false);
 
   // Atualiza URL params apenas quando o debounce for processado
   useEffect(() => {
+    // Ignorar se estamos limpando programaticamente
+    if (isClearingRef.current) return;
+    
     const currentName = urlParams.get('name') || '';
     if (debouncedLocalSearch !== currentName) {
       const newParams = new URLSearchParams(urlParams);
@@ -191,6 +195,12 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
   }, [departmentsData, refetchDepartments]);
 
   const handleClearFilters = useCallback(() => {
+    // Ativar flag para evitar conflito com debounce
+    isClearingRef.current = true;
+    
+    // Limpar o campo de busca local
+    setLocalSearch('');
+    
     urlParams.delete('name');
     urlParams.delete('email');
     urlParams.delete('isActive');
@@ -198,6 +208,11 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
     urlParams.delete('departments');
     urlParams.set('page', '1');
     setUrlParams(urlParams, { replace: true });
+    
+    // Resetar flag após o debounce
+    setTimeout(() => {
+      isClearingRef.current = false;
+    }, 400);
   }, [urlParams, setUrlParams]);
 
   const handlePageChange = useCallback(

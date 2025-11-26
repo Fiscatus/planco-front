@@ -37,7 +37,8 @@ const FolderProcessesPage = () => {
   const {
     search: processSearch,
     debouncedSearch: debouncedProcessSearch,
-    handleSearchChange: handleProcessSearchChange
+    handleSearchChange: handleProcessSearchChange,
+    clearSearch: clearProcessSearch
   } = useSearchWithDebounce('search');
 
   // Buscar informações da pasta
@@ -438,6 +439,7 @@ const FolderProcessesPage = () => {
         <FiltersSection
           searchValue={processSearch}
           onSearchChange={handleProcessSearchChange}
+          onClearSearch={clearProcessSearch}
         />
 
         {/* Tabela de Processos */}

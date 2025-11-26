@@ -75,8 +75,27 @@ function TabPanel(props: TabPanelProps) {
       id={`manage-folder-tabpanel-${index}`}
       aria-labelledby={`manage-folder-tab-${index}`}
       {...other}
+      style={{ 
+        display: value === index ? 'flex' : 'none',
+        flexDirection: 'column',
+        flex: 1,
+        minHeight: 0,
+        overflow: 'hidden'
+      }}
     >
-      {value === index && <Box sx={{ px: { xs: 2, sm: 3, md: 4 }, py: { xs: 2, sm: 2.5, md: 3 } }}>{children}</Box>}
+      {value === index && (
+        <Box sx={{ 
+          px: { xs: 2, sm: 3, md: 4 }, 
+          py: { xs: 2, sm: 2.5, md: 3 },
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0,
+          overflow: 'hidden'
+        }}>
+          {children}
+        </Box>
+      )}
     </div>
   );
 }
@@ -378,17 +397,28 @@ export const ManageFolderModal = ({
             overflow: 'hidden',
             margin: { xs: 1, sm: 2 },
             maxWidth: { xs: 'calc(100% - 16px)', sm: '600px', md: '900px' },
-            width: '100%'
+            width: '100%',
+            maxHeight: { xs: 'calc(100vh - 32px)', sm: 'calc(100vh - 64px)' },
+            display: 'flex',
+            flexDirection: 'column'
           }
         }}
       >
-        <DialogContent sx={{ p: 0 }}>
+        <DialogContent sx={{ 
+          p: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0,
+          overflow: 'hidden'
+        }}>
           {/* Header - 3 faixas organizadas */}
           <Box
             sx={{
               px: { xs: 2, sm: 3, md: 4 },
               py: { xs: 2, sm: 2.5, md: 3 },
               borderBottom: '1px solid #e2e8f0',
+              flexShrink: 0,
               backgroundColor: '#ffffff'
             }}
           >
@@ -516,7 +546,13 @@ export const ManageFolderModal = ({
           </Box>
 
           {/* Tabs */}
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', px: { xs: 2, sm: 3, md: 4 }, overflowX: 'auto' }}>
+          <Box sx={{ 
+            borderBottom: 1, 
+            borderColor: 'divider', 
+            px: { xs: 2, sm: 3, md: 4 }, 
+            overflowX: 'auto',
+            flexShrink: 0
+          }}>
             <Tabs
               value={currentTab}
               onChange={handleChangeTab}
@@ -574,7 +610,13 @@ export const ManageFolderModal = ({
           </Box>
 
           {/* Tab Content */}
-          <Box>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column',
+            minHeight: 0,
+            flex: 1,
+            overflow: 'hidden'
+          }}>
             <TabPanel value={currentTab} index={0}>
               {/* Formulário de edição */}
               {isProtected ? (
@@ -838,9 +880,35 @@ export const ManageFolderModal = ({
             </TabPanel>
 
             <TabPanel value={currentTab} index={1}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2.5 } }}>
-                {/* Seletor de pasta destino */}
-                <Box>
+              <Box sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                height: '100%',
+                minHeight: 0,
+                overflow: 'hidden'
+              }}>
+                {/* Conteúdo scrollável */}
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: { xs: 2, sm: 2.5 },
+                  flex: 1,
+                  overflow: 'auto',
+                  minHeight: 0,
+                  pb: 1,
+                  '&::-webkit-scrollbar': {
+                    width: '8px'
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: '#cbd5e1',
+                    borderRadius: '4px'
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    backgroundColor: '#f1f5f9'
+                  }
+                }}>
+                  {/* Seletor de pasta destino */}
+                  <Box>
                   <Typography
                     variant='body2'
                     sx={{
@@ -1046,9 +1114,8 @@ export const ManageFolderModal = ({
                     sx={{
                       borderRadius: 2,
                       border: '1px solid #e2e8f0',
-                      maxHeight: { xs: 300, sm: 400 },
-                      overflow: 'auto',
                       backgroundColor: '#ffffff',
+                      overflow: 'visible',
                       '& .MuiTableHead-root': {
                         '& .MuiTableCell-root': {
                           bgcolor: '#f8fafc',
@@ -1064,18 +1131,10 @@ export const ManageFolderModal = ({
                             zIndex: -1
                           }
                         }
-                      },
-                      '&::-webkit-scrollbar': {
-                        width: '8px',
-                        height: '8px'
-                      },
-                      '&::-webkit-scrollbar-thumb': {
-                        backgroundColor: '#cbd5e1',
-                        borderRadius: '4px'
                       }
                     }}
                   >
-                    <Table stickyHeader sx={{ 
+                    <Table sx={{ 
                         minWidth: { xs: 600, sm: 'auto' },
                         '& .MuiTableHead-root': {
                           bgcolor: '#f8fafc'
@@ -1376,8 +1435,9 @@ export const ManageFolderModal = ({
                     </Box>
                   )}
                 </Box>
+                </Box>
 
-                {/* Botões */}
+                {/* Botões fixos no final */}
                 <Box sx={{ 
                   p: { xs: 2, sm: 3 },
                   backgroundColor: '#f8fafc',
@@ -1386,7 +1446,8 @@ export const ManageFolderModal = ({
                   flexDirection: { xs: 'column-reverse', sm: 'row' },
                   justifyContent: 'flex-end',
                   alignItems: 'stretch',
-                  gap: { xs: 1.5, sm: 1 }
+                  gap: { xs: 1.5, sm: 1 },
+                  flexShrink: 0
                 }}>
                 <Button
                     onClick={handleClose}
