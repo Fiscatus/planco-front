@@ -39,7 +39,7 @@ import {
 } from '@mui/material';
 import type { CreateInviteDto, FilterInvitesDto, Invite, InviteStatus } from '@/globals/types';
 import { Loading, useNotification } from '@/components';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDebounce, useDepartments, useInvites, useRoles, useScreen } from '@/hooks';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
@@ -55,14 +55,25 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
   const [urlParams, setUrlParams] = useSearchParams();
   const [localSearch, setLocalSearch] = useState(urlParams.get('name') || '');
   const debouncedLocalSearch = useDebounce(localSearch, 300);
+  const isClearingRef = useRef(false);
 
   // Atualiza URL params apenas quando o debounce for processado
   useEffect(() => {
-    if (debouncedLocalSearch !== urlParams.get('name')) {
-      urlParams.set('name', debouncedLocalSearch);
-      urlParams.set('email', debouncedLocalSearch);
-      urlParams.set('page', '1');
-      setUrlParams(urlParams, { replace: true });
+    // Ignorar se estamos limpando programaticamente
+    if (isClearingRef.current) return;
+    
+    const currentName = urlParams.get('name') || '';
+    if (debouncedLocalSearch !== currentName) {
+      const newParams = new URLSearchParams(urlParams);
+      if (debouncedLocalSearch.trim() === '') {
+        newParams.delete('name');
+        newParams.delete('email');
+      } else {
+        newParams.set('name', debouncedLocalSearch);
+        newParams.set('email', debouncedLocalSearch);
+      }
+      newParams.set('page', '1');
+      setUrlParams(newParams, { replace: true });
     }
   }, [debouncedLocalSearch, urlParams, setUrlParams]);
 
@@ -74,8 +85,42 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
   useEffect(() => {
     if (currentTab !== 'invites') {
       setUrlParams({}, { replace: true });
+    } else {
+      // Inicializar page e limit se não existirem
+      const hasPage = urlParams.has('page');
+      const hasLimit = urlParams.has('limit');
+      if (!hasPage || !hasLimit) {
+        const newParams = new URLSearchParams(urlParams);
+        if (!hasPage) newParams.set('page', '1');
+        if (!hasLimit) newParams.set('limit', '10');
+        setUrlParams(newParams, { replace: true });
+      }
     }
-  }, [currentTab, setUrlParams]);
+  }, [currentTab, urlParams, setUrlParams]);
+
+  // Limpar parâmetros vazios da URL
+  useEffect(() => {
+    if (currentTab === 'invites') {
+      const newParams = new URLSearchParams(urlParams);
+      let hasChanges = false;
+
+      const status = newParams.get('status');
+      if (status === '') {
+        newParams.delete('status');
+        hasChanges = true;
+      }
+
+      const role = newParams.get('role');
+      if (role === '') {
+        newParams.delete('role');
+        hasChanges = true;
+      }
+
+      if (hasChanges) {
+        setUrlParams(newParams, { replace: true });
+      }
+    }
+  }, [currentTab, urlParams, setUrlParams]);
 
   const [rolesDropdownOpen, setRolesDropdownOpen] = useState(false);
   const [departmentsDropdownOpen, setDepartmentsDropdownOpen] = useState(false);
@@ -203,7 +248,18 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
   }, [departmentsData, refetchDepartments]);
 
   const handleClearFilters = useCallback(() => {
+    // Ativar flag para evitar conflito com debounce
+    isClearingRef.current = true;
+    
+    // Limpar o campo de busca local
+    setLocalSearch('');
+    
     setUrlParams({}, { replace: true });
+    
+    // Resetar flag após o debounce
+    setTimeout(() => {
+      isClearingRef.current = false;
+    }, 400);
   }, [setUrlParams]);
 
   const handlePageChange = useCallback(
@@ -371,9 +427,15 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                     displayEmpty
                     onChange={(e) => {
                       const value = e.target.value;
-                      urlParams.set('status', value === 'todos' ? '' : value);
-                      urlParams.set('page', '1');
-                      setUrlParams(urlParams, { replace: true });
+                      const newParams = new URLSearchParams(urlParams);
+                      const statusValue = value === 'todos' ? '' : value;
+                      if (statusValue === '') {
+                        newParams.delete('status');
+                      } else {
+                        newParams.set('status', statusValue);
+                      }
+                      newParams.set('page', '1');
+                      setUrlParams(newParams, { replace: true });
                     }}
                     sx={{
                       height: 40,
@@ -409,11 +471,86 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                               : value;
                     }}
                   >
-                    <MenuItem value='todos'>Todos</MenuItem>
-                    <MenuItem value='pendente'>Pendente</MenuItem>
-                    <MenuItem value='aceito'>Aceito</MenuItem>
-                    <MenuItem value='recusado'>Recusado</MenuItem>
-                    <MenuItem value='expirado'>Expirado</MenuItem>
+                    <MenuItem 
+                      value='todos'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Todos
+                    </MenuItem>
+                    <MenuItem 
+                      value='pendente'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Pendente
+                    </MenuItem>
+                    <MenuItem 
+                      value='aceito'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Aceito
+                    </MenuItem>
+                    <MenuItem 
+                      value='recusado'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Recusado
+                    </MenuItem>
+                    <MenuItem 
+                      value='expirado'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Expirado
+                    </MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -427,9 +564,15 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                     value={urlParams.get('role') || ''}
                     displayEmpty
                     onChange={(e) => {
-                      urlParams.set('role', e.target.value);
-                      urlParams.set('page', '1');
-                      setUrlParams(urlParams, { replace: true });
+                      const newParams = new URLSearchParams(urlParams);
+                      const roleValue = e.target.value;
+                      if (roleValue === '') {
+                        newParams.delete('role');
+                      } else {
+                        newParams.set('role', roleValue);
+                      }
+                      newParams.set('page', '1');
+                      setUrlParams(newParams, { replace: true });
                     }}
                     onOpen={handleRolesDropdownOpen}
                     disabled={invitesLoading}
@@ -460,7 +603,20 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                       return role ? role.name : value;
                     }}
                   >
-                    <MenuItem value=''>
+                    <MenuItem 
+                      value=''
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
                       <em>Todas as roles</em>
                     </MenuItem>
                     {!rolesData ? (
@@ -475,6 +631,17 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                         <MenuItem
                           key={role._id}
                           value={role._id}
+                          sx={{
+                            '&:hover': {
+                              backgroundColor: '#f8fafc'
+                            },
+                            '&.Mui-selected': {
+                              backgroundColor: '#f1f5f9',
+                              '&:hover': {
+                                backgroundColor: '#f1f5f9'
+                              }
+                            }
+                          }}
                         >
                           {role.name}
                         </MenuItem>
@@ -1121,7 +1288,21 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                 sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
               >
                 {[5, 10, 25, 50].map((limit) => (
-                  <MenuItem key={limit} value={limit}>
+                  <MenuItem 
+                    key={limit} 
+                    value={limit}
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: '#f8fafc'
+                      },
+                      '&.Mui-selected': {
+                        backgroundColor: '#f1f5f9',
+                        '&:hover': {
+                          backgroundColor: '#f1f5f9'
+                        }
+                      }
+                    }}
+                  >
                     {limit} por página
                   </MenuItem>
                 ))}
@@ -1371,6 +1552,17 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                       <MenuItem
                         key={dept._id}
                         value={dept._id}
+                        sx={{
+                          '&:hover': {
+                            backgroundColor: '#f8fafc'
+                          },
+                          '&.Mui-selected': {
+                            backgroundColor: '#f1f5f9',
+                            '&:hover': {
+                              backgroundColor: '#f1f5f9'
+                            }
+                          }
+                        }}
                       >
                         {dept.department_name}
                       </MenuItem>

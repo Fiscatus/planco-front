@@ -55,8 +55,18 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
   useEffect(() => {
     if (currentTab !== 'roles') {
       setUrlParams({}, { replace: true });
+    } else {
+      // Inicializar page e limit se não existirem
+      const hasPage = urlParams.has('page');
+      const hasLimit = urlParams.has('limit');
+      if (!hasPage || !hasLimit) {
+        const newParams = new URLSearchParams(urlParams);
+        if (!hasPage) newParams.set('page', '1');
+        if (!hasLimit) newParams.set('limit', '5');
+        setUrlParams(newParams, { replace: true });
+      }
     }
-  }, [currentTab, setUrlParams]);
+  }, [currentTab, urlParams, setUrlParams]);
 
   const rolesQueryKey = useMemo(() => ['fetchRoles'], []);
   const permissionsQueryKey = useMemo(() => ['fetchPermissions'], []);
@@ -168,8 +178,31 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
 
   const [roleName, setRoleName] = useState('');
   const [permissions, setPermissions] = useState<string[]>([]);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(urlParams.get('search') || '');
   const debouncedSearch = useDebounce(search, 300);
+
+  // Sincronizar search com URL quando ela mudar
+  useEffect(() => {
+    const urlSearch = urlParams.get('search') || '';
+    if (search !== urlSearch) {
+      setSearch(urlSearch);
+    }
+  }, [urlParams]);
+
+  // Atualizar URL quando o debouncedSearch mudar
+  useEffect(() => {
+    const currentSearch = urlParams.get('search') || '';
+    if (debouncedSearch !== currentSearch) {
+      const newParams = new URLSearchParams(urlParams);
+      if (debouncedSearch.trim() === '') {
+        newParams.delete('search');
+      } else {
+        newParams.set('search', debouncedSearch);
+      }
+      newParams.set('page', '1');
+      setUrlParams(newParams, { replace: true });
+    }
+  }, [debouncedSearch, urlParams, setUrlParams]);
 
 
   const clearForms = useCallback(() => {
@@ -547,10 +580,29 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                         value={currentLimit}
                         onChange={(e) => handleLimitChange(Number(e.target.value))}
                         size='small'
-                        sx={{ minWidth: 100, height: 28, fontSize: '0.75rem' }}
+                        sx={{ 
+                          minWidth: 100, 
+                          height: 28, 
+                          fontSize: '0.75rem',
+                          backgroundColor: '#ffffff',
+                        }}
                       >
                         {[5, 10, 25, 50].map((limit) => (
-                          <MenuItem key={limit} value={limit}>
+                          <MenuItem 
+                            key={limit} 
+                            value={limit}
+                            sx={{
+                              '&:hover': {
+                                backgroundColor: '#f8fafc'
+                              },
+                              '&.Mui-selected': {
+                                backgroundColor: '#f1f5f9',
+                                '&:hover': {
+                                  backgroundColor: '#f1f5f9'
+                                }
+                              }
+                            }}
+                          >
                             {limit} por página
                           </MenuItem>
                         ))}

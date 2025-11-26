@@ -41,7 +41,7 @@ import {
   useTheme
 } from '@mui/material';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loading, useNotification } from '@/components';
 import type { FilterUsersDto, User } from '@/globals/types';
@@ -57,14 +57,25 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
   const [urlParams, setUrlParams] = useSearchParams();
   const [localSearch, setLocalSearch] = useState(urlParams.get('name') || '');
   const debouncedLocalSearch = useDebounce(localSearch, 300);
+  const isClearingRef = useRef(false);
 
   // Atualiza URL params apenas quando o debounce for processado
   useEffect(() => {
-    if (debouncedLocalSearch !== urlParams.get('name') && debouncedLocalSearch !== '') {
-      urlParams.set('name', debouncedLocalSearch);
-      urlParams.set('email', debouncedLocalSearch);
-      urlParams.set('page', '1');
-      setUrlParams(urlParams, { replace: true });
+    // Ignorar se estamos limpando programaticamente
+    if (isClearingRef.current) return;
+    
+    const currentName = urlParams.get('name') || '';
+    if (debouncedLocalSearch !== currentName) {
+      const newParams = new URLSearchParams(urlParams);
+      if (debouncedLocalSearch.trim() === '') {
+        newParams.delete('name');
+        newParams.delete('email');
+      } else {
+        newParams.set('name', debouncedLocalSearch);
+        newParams.set('email', debouncedLocalSearch);
+      }
+      newParams.set('page', '1');
+      setUrlParams(newParams, { replace: true });
     }
   }, [debouncedLocalSearch, urlParams, setUrlParams]);
 
@@ -73,8 +84,18 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
   useEffect(() => {
     if (currentTab !== 'users') {
       setUrlParams({}, { replace: true });
+    } else {
+      // Inicializar page e limit se não existirem
+      const hasPage = urlParams.has('page');
+      const hasLimit = urlParams.has('limit');
+      if (!hasPage || !hasLimit) {
+        const newParams = new URLSearchParams(urlParams);
+        if (!hasPage) newParams.set('page', '1');
+        if (!hasLimit) newParams.set('limit', '5');
+        setUrlParams(newParams, { replace: true });
+      }
     }
-  }, [currentTab, setUrlParams]);
+  }, [currentTab, urlParams, setUrlParams]);
   const { fetchUsers, updateUserRole, updateUserDepartments, toggleUserStatus } = useUsers();
 
   const { user: currentUser } = useAuth();
@@ -174,6 +195,12 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
   }, [departmentsData, refetchDepartments]);
 
   const handleClearFilters = useCallback(() => {
+    // Ativar flag para evitar conflito com debounce
+    isClearingRef.current = true;
+    
+    // Limpar o campo de busca local
+    setLocalSearch('');
+    
     urlParams.delete('name');
     urlParams.delete('email');
     urlParams.delete('isActive');
@@ -181,6 +208,11 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
     urlParams.delete('departments');
     urlParams.set('page', '1');
     setUrlParams(urlParams, { replace: true });
+    
+    // Resetar flag após o debounce
+    setTimeout(() => {
+      isClearingRef.current = false;
+    }, 400);
   }, [urlParams, setUrlParams]);
 
   const handlePageChange = useCallback(
@@ -361,15 +393,24 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                         border: '2px solid #e5e7eb',
                         transition: 'all 0.2s ease-in-out'
                       },
-                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#d1d5db'
+                      '&:hover': {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: '#d1d5db'
+                        },
+                        backgroundColor: '#ffffff'
                       },
-                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: theme.palette.primary.main,
-                        boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
+                      '&.Mui-focused': {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: theme.palette.primary.main,
+                          boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
+                        },
+                        backgroundColor: '#ffffff'
                       },
                       '& .MuiSelect-select': {
                         color: !urlParams.get('isActive') ? '#9ca3af' : '#374151'
+                      },
+                      '& .MuiSelect-icon': {
+                        color: '#64748b'
                       }
                     }}
                     renderValue={(value) => {
@@ -379,9 +420,54 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                       return value === 'true' ? 'Ativos' : 'Inativos';
                     }}
                   >
-                    <MenuItem value='todos'>Todos</MenuItem>
-                    <MenuItem value='true'>Ativos</MenuItem>
-                    <MenuItem value='false'>Inativos</MenuItem>
+                    <MenuItem 
+                      value='todos'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Todos
+                    </MenuItem>
+                    <MenuItem 
+                      value='true'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Ativos
+                    </MenuItem>
+                    <MenuItem 
+                      value='false'
+                      sx={{
+                        '&:hover': {
+                          backgroundColor: '#f8fafc'
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: '#f1f5f9',
+                          '&:hover': {
+                            backgroundColor: '#f1f5f9'
+                          }
+                        }
+                      }}
+                    >
+                      Inativos
+                    </MenuItem>
                   </Select>
                 </FormControl>
               </Grid>
@@ -1209,12 +1295,30 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
               <Select
                 value={urlParams.get('limit') || 10}
                 onChange={(e) => handleLimitChange(Number(e.target.value))}
-                sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+                sx={{ 
+                  minWidth: 120, 
+                  height: 32, 
+                  fontSize: '0.875rem',
+                  '& .MuiSelect-icon': {
+                    color: '#64748b'
+                  }
+                }}
               >
                 {[5, 10, 25, 50].map((limit) => (
                   <MenuItem
                     key={limit}
                     value={limit}
+                    sx={{
+                      '&:hover': {
+                        backgroundColor: '#f8fafc'
+                      },
+                      '&.Mui-selected': {
+                        backgroundColor: '#f1f5f9',
+                        '&:hover': {
+                          backgroundColor: '#f1f5f9'
+                        }
+                      }
+                    }}
                   >
                     {limit} por página
                   </MenuItem>

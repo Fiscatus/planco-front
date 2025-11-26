@@ -6,6 +6,19 @@ const api = axios.create({ baseURL: BASE_URL });
 
 api.interceptors.request.use(
   (config) => {
+    // Adicionar token de autenticação se disponível
+    const userData = localStorage.getItem('@planco:user');
+    if (userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        if (parsedUser.access_token) {
+          config.headers.Authorization = `Bearer ${parsedUser.access_token}`;
+        }
+      } catch (error) {
+        console.warn('Erro ao parsear dados do usuário:', error);
+      }
+    }
+
     const activeDepartment = localStorage.getItem('@planco:activeDepartment');
     if (activeDepartment) {
       try {
@@ -43,7 +56,7 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
   (response) => {
-    return response
+    return response;
   },
   (error) => {
     if (error.response?.data?.message) {

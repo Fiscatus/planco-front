@@ -1,3 +1,9 @@
 export { EditGerenciaModal } from './EditGerenciaModal';
 export { AddMembersModal } from './AddMembersModal';
 export { DeleteGerenciaModal } from './DeleteGerenciaModal';
+export { CreateFolderModal } from './CreateFolderModal';
+export { DeleteFolderModal } from './DeleteFolderModal';
+export { EditFolderModal } from './EditFolderModal';
+export { MoveProcessesModal } from './MoveProcessesModal';
+export { ManageFolderModal } from './ManageFolderModal';
+export { SelectFolderModal } from './SelectFolderModal';

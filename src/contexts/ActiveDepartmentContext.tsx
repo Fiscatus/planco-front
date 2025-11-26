@@ -13,10 +13,16 @@ type ApiDepartment = {
     _id: string;
     name: string;
     email: string;
-  };
+  } | null;
 };
 
 const mapApiDepartmentToDepartment = (apiDept: ApiDepartment): Department => {
+  const responsavel = apiDept.responsavel || {
+    _id: '',
+    name: '',
+    email: ''
+  };
+
   return {
     _id: apiDept._id,
     department_name: apiDept.name,
@@ -24,13 +30,13 @@ const mapApiDepartmentToDepartment = (apiDept: ApiDepartment): Department => {
     description: apiDept.description,
     deparment_email: apiDept.email || '',
     department_phone: apiDept.phone || '',
-    email_owner: apiDept.responsavel.email,
-    responsavelUserId: apiDept.responsavel._id,
+    email_owner: responsavel.email,
+    responsavelUserId: responsavel._id,
     responsavelUserId_details: {
-      _id: apiDept.responsavel._id,
-      firstName: apiDept.responsavel.name.split(' ')[0] || '',
-      lastName: apiDept.responsavel.name.split(' ').slice(1).join(' ') || '',
-      email: apiDept.responsavel.email
+      _id: responsavel._id,
+      firstName: responsavel.name.split(' ')[0] || '',
+      lastName: responsavel.name.split(' ').slice(1).join(' ') || '',
+      email: responsavel.email
     },
     org: '',
     isActive: true

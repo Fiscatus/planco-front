@@ -93,22 +93,22 @@ export const ActiveDepartmentSelector = ({
       
       <FormControl 
         size="small" 
-        sx={{ 
-          minWidth: variant === 'full' ? 250 : 200,
-          '& .MuiOutlinedInput-root': {
-            borderRadius: 2,
-            backgroundColor: 'background.paper',
-            border: '1px solid',
-            borderColor: 'divider',
-            '&:hover': {
-              borderColor: 'primary.main'
-            },
-            '&.Mui-focused': {
-              borderColor: 'primary.main',
-              boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.2)'
+          sx={{ 
+            minWidth: variant === 'full' ? 250 : 200,
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2,
+              backgroundColor: 'background.paper',
+              border: '1px solid',
+              borderColor: 'divider',
+              '&:hover': {
+                borderColor: 'primary.main'
+              },
+              '&.Mui-focused': {
+                borderColor: 'primary.main',
+                boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.2)'
+              }
             }
-          }
-        }}
+          }}
       >
         <InputLabel 
           id="active-department-select-label"
@@ -147,12 +147,10 @@ export const ActiveDepartmentSelector = ({
                 alignItems: 'center',
                 gap: 1,
                 py: 1.5,
-                '&:hover': {
-                  backgroundColor: 'primary.main',
-                  color: 'white',
-                  '& .MuiChip-root': {
-                    backgroundColor: 'white',
-                    color: 'primary.main'
+                '&.Mui-selected': {
+                  backgroundColor: '#f1f5f9',
+                  '&:hover': {
+                    backgroundColor: '#f1f5f9'
                   }
                 }
               }}

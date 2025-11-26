@@ -13,7 +13,7 @@ import { MembersSection } from './components/MembersSection';
 
 const MinhasGerencias = () => {
   const { user: currentUser } = useAuth();
-  const { canAccessAdmin } = useAccessControl();
+  const { canAccessAdmin, isAdminOnly } = useAccessControl();
   const { showNotification } = useNotification();
   const navigate = useNavigate();
   const [urlParams, setUrlParams] = useSearchParams();
@@ -180,7 +180,7 @@ const MinhasGerencias = () => {
   }, [urlParams, setUrlParams]);
 
 
-  if (canAccessAdmin) {
+  if (isAdminOnly) {
     return (
       <Box sx={{ minHeight: '100%', p: 3, bgcolor: 'background.default' }}>
         <Box sx={{ maxWidth: 600, mx: 'auto', mt: 8 }}>

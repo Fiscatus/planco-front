@@ -52,16 +52,46 @@ export const AddMembersModal = ({
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [savingMembers, setSavingMembers] = useState(false);
   const [urlParams, setUrlParams] = useSearchParams();
-  const [localSearch, setLocalSearch] = useState(urlParams.get('modalSearch') || '');
-  const debouncedLocalSearch = useDebounce(localSearch, 150);
+  const [localSearch, setLocalSearch] = useState('');
+  const debouncedLocalSearch = useDebounce(localSearch, 500);
 
+  // Sincronizar localSearch com URL quando o modal abrir e inicializar parâmetros de paginação
   useEffect(() => {
-    if (debouncedLocalSearch !== urlParams.get('modalSearch')) {
-      urlParams.set('modalSearch', debouncedLocalSearch);
-      urlParams.set('modalPage', '1');
-      setUrlParams(urlParams, { replace: true });
+    if (open) {
+      const urlSearch = urlParams.get('modalSearch') || '';
+      setLocalSearch(urlSearch);
+      
+      // Inicializar modalPage e modalLimit se não existirem
+      const hasModalPage = urlParams.has('modalPage');
+      const hasModalLimit = urlParams.has('modalLimit');
+      if (!hasModalPage || !hasModalLimit) {
+        const newParams = new URLSearchParams(urlParams);
+        if (!hasModalPage) newParams.set('modalPage', '1');
+        if (!hasModalLimit) newParams.set('modalLimit', '5');
+        setUrlParams(newParams, { replace: true });
+      }
+    } else {
+      // Limpar busca quando o modal fechar
+      setLocalSearch('');
     }
-  }, [debouncedLocalSearch, urlParams, setUrlParams]);
+  }, [open, urlParams, setUrlParams]);
+
+  // Atualizar URL apenas quando o modal estiver aberto e houver mudança na busca
+  useEffect(() => {
+    if (!open) return;
+    
+    const currentSearch = urlParams.get('modalSearch') || '';
+    if (debouncedLocalSearch !== currentSearch) {
+      const newParams = new URLSearchParams(urlParams);
+      if (debouncedLocalSearch.trim() === '') {
+        newParams.delete('modalSearch');
+      } else {
+        newParams.set('modalSearch', debouncedLocalSearch);
+      }
+      newParams.set('modalPage', '1');
+      setUrlParams(newParams, { replace: true });
+    }
+  }, [debouncedLocalSearch, open, urlParams, setUrlParams]);
 
   const toggleUserSelection = useCallback(
     (userId: string) => {
@@ -417,12 +447,25 @@ export const AddMembersModal = ({
                 urlParams.set('modalPage', '1'); // reset page to 1 when limit changes
                 setUrlParams(urlParams, { replace: true });
               }}
-              sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+              sx={{ 
+                minWidth: 120, 
+                height: 32, 
+                fontSize: '0.875rem',
+                backgroundColor: '#ffffff',
+              }}
             >
               {[5, 10, 25].map((limit) => (
                 <MenuItem
                   key={limit}
                   value={limit}
+                  sx={{
+                    '&.Mui-selected': {
+                      backgroundColor: '#f1f5f9',
+                      '&:hover': {
+                        backgroundColor: '#f1f5f9'
+                      }
+                    }
+                  }}
                 >
                   {limit} por página
                 </MenuItem>
