@@ -1,16 +1,7 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogContent,
-  Grid,
-  IconButton,
-  TextField,
-  Typography
-} from '@mui/material';
 import { Close as CloseIcon } from '@mui/icons-material';
-import type { CreateFolderDto } from '@/globals/types';
+import { Box, Button, Dialog, DialogContent, IconButton, TextField, Typography } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
+import type { CreateFolderDto } from '@/globals/types';
 
 interface CreateFolderModalProps {
   open: boolean;
@@ -19,12 +10,7 @@ interface CreateFolderModalProps {
   loading?: boolean;
 }
 
-export const CreateFolderModal = ({
-  open,
-  onClose,
-  onSave,
-  loading = false
-}: CreateFolderModalProps) => {
+export const CreateFolderModal = ({ open, onClose, onSave, loading = false }: CreateFolderModalProps) => {
   const [folderForm, setFolderForm] = useState<Partial<CreateFolderDto> & { year?: string | number }>({
     name: '',
     observations: '',
@@ -50,7 +36,9 @@ export const CreateFolderModal = ({
       // Preparar dados para enviar
       const dataToSave: CreateFolderDto = {
         name: folderForm.name,
-        ...(folderForm.observations && folderForm.observations.trim() ? { observations: folderForm.observations.trim() } : {}),
+        ...(folderForm.observations && folderForm.observations.trim()
+          ? { observations: folderForm.observations.trim() }
+          : {}),
         ...(folderForm.year && folderForm.year.toString().trim() ? { year: Number(folderForm.year) } : {})
       };
       await onSave(dataToSave);
@@ -153,7 +141,7 @@ export const CreateFolderModal = ({
                   fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                 }}
               >
-                Nome da Pasta 
+                Nome da Pasta
               </Typography>
               <TextField
                 fullWidth
@@ -212,13 +200,16 @@ export const CreateFolderModal = ({
                 fullWidth
                 type='number'
                 placeholder='Ex: 2025'
-                value={folderForm.year || ''}
+                value={folderForm.year ?? ''}
                 onChange={(e) => {
                   const yearValue = e.target.value;
-                  setFolderForm((prev) => ({ ...prev, year: yearValue ? yearValue : undefined }));
+                  setFolderForm((prev) => ({
+                    ...prev,
+                    year: yearValue ? Number(yearValue) : undefined
+                  }));
                 }}
                 variant='outlined'
-                inputProps={{ min: 2000, max: new Date().getFullYear() }}
+                slotProps={{ htmlInput: { min: 2000, max: new Date().getFullYear() } }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: '#ffffff',
@@ -375,4 +366,3 @@ export const CreateFolderModal = ({
     </Dialog>
   );
 };
-

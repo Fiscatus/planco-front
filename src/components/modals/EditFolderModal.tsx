@@ -1,14 +1,6 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogContent,
-  Grid,
-  TextField,
-  Typography
-} from '@mui/material';
-import type { Folder, UpdateFolderDto } from '@/globals/types';
+import { Box, Button, Dialog, DialogContent, TextField, Typography } from '@mui/material';
 import { useCallback, useEffect, useState } from 'react';
+import type { Folder, UpdateFolderDto } from '@/globals/types';
 
 interface EditFolderModalProps {
   open: boolean;
@@ -18,13 +10,7 @@ interface EditFolderModalProps {
   loading?: boolean;
 }
 
-export const EditFolderModal = ({
-  open,
-  onClose,
-  onSave,
-  folder,
-  loading = false
-}: EditFolderModalProps) => {
+export const EditFolderModal = ({ open, onClose, onSave, folder, loading = false }: EditFolderModalProps) => {
   const [folderForm, setFolderForm] = useState<Partial<UpdateFolderDto> & { year?: string | number }>({
     name: '',
     observations: '',
@@ -50,7 +36,9 @@ export const EditFolderModal = ({
       // Preparar dados para enviar
       const dataToSave: UpdateFolderDto = {
         name: folderForm.name,
-        ...(folderForm.observations && folderForm.observations.trim() ? { observations: folderForm.observations.trim() } : {}),
+        ...(folderForm.observations && folderForm.observations.trim()
+          ? { observations: folderForm.observations.trim() }
+          : {}),
         ...(folderForm.year && folderForm.year.toString().trim() ? { year: Number(folderForm.year) } : {})
       };
       await onSave(dataToSave);
@@ -182,13 +170,16 @@ export const EditFolderModal = ({
                 fullWidth
                 type='number'
                 placeholder='Ex: 2025'
-                value={folderForm.year || ''}
+                value={folderForm.year ?? ''}
                 onChange={(e) => {
                   const yearValue = e.target.value;
-                  setFolderForm((prev) => ({ ...prev, year: yearValue ? yearValue : undefined }));
+                  setFolderForm((prev) => ({
+                    ...prev,
+                    year: yearValue ? Number(yearValue) : undefined
+                  }));
                 }}
                 variant='outlined'
-                inputProps={{ min: 2000, max: new Date().getFullYear() }}
+                slotProps={{ htmlInput: { min: 2000, max: new Date().getFullYear() } }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     backgroundColor: '#ffffff',
@@ -329,4 +320,3 @@ export const EditFolderModal = ({
     </Dialog>
   );
 };
-

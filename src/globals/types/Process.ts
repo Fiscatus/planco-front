@@ -5,7 +5,7 @@ export type Process = {
   currentStage?: string;
   modality?: string;
   priority?: 'Baixa' | 'Média' | 'Alta';
-  status?: 'Em Andamento' | 'Em Atraso' | 'Concluído';
+  status?: 'Em Andamento' | 'Em Atraso' | 'Concluído' | 'Pendente';
   dueDate?: string;
   estimatedValue?: number;
   folder?: string | {

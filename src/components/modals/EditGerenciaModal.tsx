@@ -10,8 +10,8 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import type { CreateDepartmentDto, Department, UpdateDepartmentDto, User } from '@/globals/types';
 import { useCallback, useEffect, useState } from 'react';
+import type { CreateDepartmentDto, Department, UpdateDepartmentDto, User } from '@/globals/types';
 
 import { useUsers } from '@/hooks';
 
@@ -413,7 +413,6 @@ export const EditGerenciaModal = ({
                           '& .MuiOutlinedInput-notchedOutline': {
                             borderColor: '#cbd5e1'
                           }
-                          
                         },
                         '&.Mui-focused': {
                           '& .MuiOutlinedInput-notchedOutline': {
@@ -423,7 +422,7 @@ export const EditGerenciaModal = ({
                         },
                         '& .MuiSelect-select': {
                           color: gerenciaForm.responsavelUserId ? '#0f172a' : '#9ca3af'
-                        },
+                        }
                       }}
                       renderValue={(value) => {
                         if (!value) {
@@ -441,7 +440,7 @@ export const EditGerenciaModal = ({
                         }
                       }}
                     >
-                      <MenuItem 
+                      <MenuItem
                         value=''
                         sx={{
                           '&.Mui-selected': {

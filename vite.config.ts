@@ -1,13 +1,14 @@
-// @ts-ignore
-
-import { defineConfig, loadEnv } from 'vite';
+import react from '@vitejs/plugin-react';
 
 import path from 'path';
-import react from '@vitejs/plugin-react';
+import { defineConfig, loadEnv } from 'vite';
 
 export default ({ mode }: { mode: string }) => {
   process.env = { ...loadEnv(mode, process.cwd()) };
   return defineConfig({
+    server: {
+      port: 5174
+    },
     plugins: [
       react({
         babel: {
@@ -17,7 +18,6 @@ export default ({ mode }: { mode: string }) => {
     ],
     resolve: {
       alias: {
-        // @ts-ignore
         '@': path.resolve(__dirname, './src')
       }
     },

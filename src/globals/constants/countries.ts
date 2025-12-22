@@ -1,6 +1,5 @@
-import type { Country } from '../types';
 
-const countries: Country[] = [
+const countries: string[] = [
   'United States',
   'Afghanistan',
   'Albania',

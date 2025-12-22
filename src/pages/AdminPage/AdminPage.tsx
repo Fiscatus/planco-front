@@ -199,7 +199,7 @@ const AdminPage = () => {
     if (currentTab && pages.some((p) => p.value === currentTab)) {
       setActiveTabValue(currentTab);
     }
-  }, [location.pathname, pages, getCurrentTabFromUrl]);
+  }, [ pages, getCurrentTabFromUrl]);
 
   // Redirecionar /admin para /admin/users se não houver aba específica
   useEffect(() => {
@@ -239,7 +239,7 @@ const AdminPage = () => {
             Carregando permissões...
           </Typography>
         </Box>
-      );
+      )
     }
 
     const Component = currentPage.component;
@@ -250,7 +250,7 @@ const AdminPage = () => {
         </Suspense>
       </TabErrorBoundary>
     );
-  }, [currentPage]);
+  }, [currentPage, activeTabValue]);
 
   return (
     <Box

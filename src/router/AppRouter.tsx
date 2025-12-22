@@ -1,6 +1,6 @@
 import { Box, CircularProgress } from '@mui/material';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
-import { Suspense, lazy, useEffect, useState } from 'react';
 
 import { AppLayout } from '@/components';
 import { useAccessControl } from '@/hooks/useAccessControl';
@@ -34,7 +34,7 @@ const AppRouter = () => {
     if (!user) {
       window.history.replaceState({}, '', isDesktop ? '/auth' : '/');
     }
-  }, [user]);
+  }, [user, isDesktop]);
 
   useEffect(() => {
     setRouteWithoutHeader(withoutHeaderRoutes.includes(pathname));
@@ -83,46 +83,46 @@ const AppRouter = () => {
                   element={<OrganizationHome />}
                 />
               )}
-               <Route
-                 path='/admin'
-                 element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
-               />
-               <Route
-                 path='/admin/users'
-                 element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
-               />
-               <Route
-                 path='/admin/gerencias'
-                 element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
-               />
-               <Route
-                 path='/admin/invites'
-                 element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
-               />
-               <Route
-                 path='/admin/roles'
-                 element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
-               />
-               <Route
-                 path='/minhas-gerencias'
-                 element={<MinhasGerencias />}
-               />
-               <Route
-                 path='/gerenciamento-pastas'
-                 element={<FolderManagement />}
-               />
-               <Route
-                 path='/pasta/:id'
-                 element={<FolderProcessesPage />}
-               />
-               <Route
-                 path='/processos-gerencia'
-                 element={<GerenciaProcessesPage />}
-               />
-               <Route
-                 path='/modelos-fluxo'
-                 element={<FlowModelsPage />}
-               />
+              <Route
+                path='/admin'
+                element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
+              />
+              <Route
+                path='/admin/users'
+                element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
+              />
+              <Route
+                path='/admin/gerencias'
+                element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
+              />
+              <Route
+                path='/admin/invites'
+                element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
+              />
+              <Route
+                path='/admin/roles'
+                element={canAccessAdmin ? <AdminPage /> : <NotAccess />}
+              />
+              <Route
+                path='/minhas-gerencias'
+                element={<MinhasGerencias />}
+              />
+              <Route
+                path='/gerenciamento-pastas'
+                element={<FolderManagement />}
+              />
+              <Route
+                path='/pasta/:id'
+                element={<FolderProcessesPage />}
+              />
+              <Route
+                path='/processos-gerencia'
+                element={<GerenciaProcessesPage />}
+              />
+              <Route
+                path='/modelos-fluxo'
+                element={<FlowModelsPage />}
+              />
             </>
           )}
 
