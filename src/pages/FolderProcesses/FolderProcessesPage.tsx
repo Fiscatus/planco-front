@@ -1,27 +1,15 @@
-import {
-  ArrowBack as ArrowBackIcon,
-  Edit as EditIcon,
-  Info as InfoIcon
-} from '@mui/icons-material';
-import {
-  Box,
-  Button,
-  Card,
-  Typography,
-  Pagination,
-  Select,
-  MenuItem
-} from '@mui/material';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useState, useEffect } from 'react';
+import { ArrowBack as ArrowBackIcon, Edit as EditIcon, Info as InfoIcon } from '@mui/icons-material';
+import { Box, Button, Card, MenuItem, Pagination, Select, Typography } from '@mui/material';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Loading, useNotification } from '@/components';
 import { ManageFolderModal } from '@/components/modals';
-import type { FilterProcessesDto, FolderStatsDto, MoveProcessesDto, UpdateFolderDto } from '@/globals/types';
+import type { FilterProcessesDto, MoveProcessesDto, UpdateFolderDto } from '@/globals/types';
 import { useFolders, useProcesses, useSearchWithDebounce } from '@/hooks';
-import { StatsCards } from './components/StatsCards';
 import { FiltersSection } from './components/FiltersSection';
 import { ProcessTable } from './components/ProcessTable';
+import { StatsCards } from './components/StatsCards';
 
 const FolderProcessesPage = () => {
   const navigate = useNavigate();
@@ -53,10 +41,7 @@ const FolderProcessesPage = () => {
   });
 
   // Buscar estatísticas da pasta
-  const {
-    data: stats,
-    isLoading: statsLoading
-  } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ['fetchFolderStats', folderId],
     enabled: !!folderId,
     refetchOnWindowFocus: false,
@@ -67,10 +52,7 @@ const FolderProcessesPage = () => {
   });
 
   // Buscar processos da pasta
-  const {
-    data: processesData,
-    isLoading: processesLoading
-  } = useQuery({
+  const { data: processesData, isLoading: processesLoading } = useQuery({
     queryKey: [
       'fetchProcessesByFolder',
       folderId,
@@ -92,20 +74,20 @@ const FolderProcessesPage = () => {
         page: Number(urlParams.get('page') || 1),
         limit: Number(urlParams.get('limit') || 10)
       };
-      
+
       // Se houver busca, buscar tanto por processNumber quanto por object
       // A API provavelmente faz busca OR (número OU objeto)
       if (debouncedProcessSearch) {
         processFilters.processNumber = debouncedProcessSearch;
         processFilters.object = debouncedProcessSearch;
       }
-      
+
       // Adicionar filtros da URL
       if (urlParams.get('priority')) processFilters.priority = urlParams.get('priority') as string;
       if (urlParams.get('modality')) processFilters.modality = urlParams.get('modality') as string;
       if (urlParams.get('currentStage')) processFilters.currentStage = urlParams.get('currentStage') as string;
       if (urlParams.get('status')) processFilters.status = urlParams.get('status') as string;
-      
+
       return await fetchProcessesByFolder(folderId, processFilters);
     }
   });
@@ -167,33 +149,42 @@ const FolderProcessesPage = () => {
     }
   });
 
-  const handleProcessClick = useCallback((process: any) => {
-    // Navegar para detalhes do processo ou abrir modal
-    showNotification('Funcionalidade de visualizar processo em desenvolvimento', 'info');
-  }, [showNotification]);
+  const handleProcessClick = useCallback(
+    (process: any) => {
+      // Navegar para detalhes do processo ou abrir modal
+      showNotification('Funcionalidade de visualizar processo em desenvolvimento', 'info');
+    },
+    [showNotification]
+  );
 
   const handleManageFolder = useCallback(() => {
     setManageModalOpen(true);
   }, []);
 
   // Handlers de paginação
-  const handleProcessesPageChange = useCallback((_event: unknown, newPage: number) => {
-    const newParams = new URLSearchParams(urlParams);
-    newParams.set('page', String(newPage));
-    // Garantir que limit esteja presente
-    if (!newParams.get('limit')) {
-      newParams.set('limit', '10');
-    }
-    setUrlParams(newParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const handleProcessesPageChange = useCallback(
+    (_event: unknown, newPage: number) => {
+      const newParams = new URLSearchParams(urlParams);
+      newParams.set('page', String(newPage));
+      // Garantir que limit esteja presente
+      if (!newParams.get('limit')) {
+        newParams.set('limit', '10');
+      }
+      setUrlParams(newParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
-  const handleProcessesLimitChange = useCallback((event: any) => {
-    const newLimit = Number(event.target.value);
-    const newParams = new URLSearchParams(urlParams);
-    newParams.set('limit', String(newLimit));
-    newParams.set('page', '1');
-    setUrlParams(newParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const handleProcessesLimitChange = useCallback(
+    (event: any) => {
+      const newLimit = Number(event.target.value);
+      const newParams = new URLSearchParams(urlParams);
+      newParams.set('limit', String(newLimit));
+      newParams.set('page', '1');
+      setUrlParams(newParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
   // Garantir que page e limit sempre estejam na URL
   useEffect(() => {
@@ -216,7 +207,10 @@ const FolderProcessesPage = () => {
   if (!folderId) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant='h6' color='error'>
+        <Typography
+          variant='h6'
+          color='error'
+        >
           Pasta não encontrada
         </Typography>
       </Box>
@@ -228,8 +222,10 @@ const FolderProcessesPage = () => {
   }
 
   const pageTitle = folder?.name || 'Processos';
-  const pageSubtitle = folder?.description || 'Processos administrativos e licitatórios do exercício atual - Acompanhamento e gestão de demandas em andamento';
-  
+  const pageSubtitle =
+    folder?.description ||
+    'Processos administrativos e licitatórios do exercício atual - Acompanhamento e gestão de demandas em andamento';
+
   const isPlancoFolder = folder?.isDefault || folder?.name?.toLowerCase().includes('planco');
 
   return (
@@ -266,14 +262,16 @@ const FolderProcessesPage = () => {
             gap: { xs: 2, sm: 2, md: 3 }
           }}
         >
-          <Box sx={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: { xs: 1.5, sm: 2, md: 2.5 }, 
-            flex: 1, 
-            minWidth: 0,
-            width: { xs: '100%', sm: 'auto' }
-          }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: { xs: 1.5, sm: 2, md: 2.5 },
+              flex: 1,
+              minWidth: 0,
+              width: { xs: '100%', sm: 'auto' }
+            }}
+          >
             <Button
               startIcon={<ArrowBackIcon />}
               onClick={() => navigate('/gerenciamento-pastas')}
@@ -427,7 +425,10 @@ const FolderProcessesPage = () => {
                     >
                       Pasta Planco
                     </Box>
-                    , pasta inicial do sistema. Processos administrativos criados sem pasta específica são automaticamente direcionados para este repositório. Processos oriundos de pastas excluídas também são preservados neste local, garantindo a integridade documental. Esta pasta é permanente e sempre estará disponível no sistema.
+                    , pasta inicial do sistema. Processos administrativos criados sem pasta específica são
+                    automaticamente direcionados para este repositório. Processos oriundos de pastas excluídas também
+                    são preservados neste local, garantindo a integridade documental. Esta pasta é permanente e sempre
+                    estará disponível no sistema.
                   </Typography>
                 </Box>
               </Box>
@@ -451,7 +452,7 @@ const FolderProcessesPage = () => {
               processes={processesData?.processes || []}
               onProcessClick={handleProcessClick}
             />
-            
+
             {/* Paginação */}
             {processesData && (processesData.total || 0) > 0 && (
               <Box
@@ -473,8 +474,12 @@ const FolderProcessesPage = () => {
                   variant='body2'
                   sx={{ color: '#6b7280', fontSize: '0.875rem' }}
                 >
-                  {((Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10)) + 1}-
-                  {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10), processesData.total || 0)} de {processesData.total || 0}
+                  {(Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10) + 1}-
+                  {Math.min(
+                    Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10),
+                    processesData.total || 0
+                  )}{' '}
+                  de {processesData.total || 0}
                 </Typography>
 
                 {/* Pagination Controls */}
@@ -485,8 +490,8 @@ const FolderProcessesPage = () => {
                     sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
                   >
                     {[5, 10, 25, 50].map((limit) => (
-                      <MenuItem 
-                        key={limit} 
+                      <MenuItem
+                        key={limit}
                         value={limit}
                         sx={{
                           '&.Mui-selected': {
@@ -503,7 +508,10 @@ const FolderProcessesPage = () => {
                   </Select>
 
                   <Pagination
-                    count={processesData?.totalPages || Math.ceil((processesData?.total || 0) / Number(urlParams.get('limit') || 10))}
+                    count={
+                      processesData?.totalPages ||
+                      Math.ceil((processesData?.total || 0) / Number(urlParams.get('limit') || 10))
+                    }
                     page={Number(urlParams.get('page') || 1)}
                     onChange={handleProcessesPageChange}
                     variant='outlined'
@@ -522,9 +530,30 @@ const FolderProcessesPage = () => {
         onClose={() => setManageModalOpen(false)}
         folder={folder}
         availableFolders={allFoldersData?.folders || []}
-        onEdit={editFolder}
-        onDelete={removeFolder}
-        onMoveProcesses={moveProcessesMutation}
+        onEdit={async (data) => {
+          await new Promise((resolve, reject) => {
+            editFolder(data, {
+              onSuccess: () => resolve(undefined),
+              onError: reject
+            });
+          });
+        }}
+        onDelete={async () => {
+          await new Promise<void>((resolve, reject) => {
+            removeFolder(undefined, {
+              onSuccess: () => resolve(undefined),
+              onError: reject
+            });
+          });
+        }}
+        onMoveProcesses={async (data) => {
+          await new Promise<void>((resolve, reject) => {
+            moveProcessesMutation(data, {
+              onSuccess: () => resolve(undefined),
+              onError: reject
+            });
+          });
+        }}
         editingLoading={editingFolder}
         deletingLoading={deletingFolder}
         movingLoading={movingProcesses}
@@ -535,4 +564,3 @@ const FolderProcessesPage = () => {
 };
 
 export default FolderProcessesPage;
-

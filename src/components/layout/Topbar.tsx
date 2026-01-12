@@ -1,8 +1,6 @@
-import { useAuth } from '@/hooks';
+import { Headphones, Logout, Menu as MenuIcon, Notifications, Search, Settings } from '@mui/icons-material';
 import {
   AppBar,
-  Avatar,
-  Badge,
   Box,
   Divider,
   IconButton,
@@ -14,9 +12,9 @@ import {
   Toolbar,
   Typography
 } from '@mui/material';
-import { Headphones, Logout, Menu as MenuIcon, Notifications, Search, Settings } from '@mui/icons-material';
 import { type MouseEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks';
 
 import logo from '/assets/isologo.svg';
 
@@ -135,15 +133,15 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
           >
             <MenuIcon sx={{ fontSize: 24 }} />
           </IconButton>
-          
-          <img 
-            src={logo} 
-            alt="Planco Logo" 
-            style={{ 
-              width: '30px', 
+
+          <img
+            src={logo}
+            alt='Planco Logo'
+            style={{
+              width: '30px',
               height: '30px',
               objectFit: 'contain'
-            }} 
+            }}
           />
           <Typography
             variant='h6'

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --debug",
     "dev-host": "vite --debug --host",
-    "build": "vite build",
+    "build": "vite build && tsc --noEmit -p tsconfig.app.json",
     "build-with-types": "tsc -b && vite build",
     "lint": "biome check src",
     "format": "biome check src --write",

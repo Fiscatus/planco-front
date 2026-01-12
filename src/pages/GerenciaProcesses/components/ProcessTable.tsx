@@ -1,4 +1,14 @@
 import {
+  Assignment as AssignmentIcon,
+  AttachFile as AttachFileIcon,
+  CalendarToday as CalendarIcon,
+  CheckCircle as CheckCircleIcon,
+  Edit as EditIcon,
+  SwapVert as SwapVertIcon,
+  Visibility as VisibilityIcon,
+  Warning as WarningIcon
+} from '@mui/icons-material';
+import {
   Box,
   Button,
   Chip,
@@ -12,19 +22,9 @@ import {
   Tooltip,
   Typography
 } from '@mui/material';
-import {
-  Visibility as VisibilityIcon,
-  Edit as EditIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  CalendarToday as CalendarIcon,
-  Assignment as AssignmentIcon,
-  AttachFile as AttachFileIcon,
-  SwapVert as SwapVertIcon
-} from '@mui/icons-material';
-import type { Process } from '@/globals/types';
 import dayjs from 'dayjs';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import type { Process } from '@/globals/types';
 
 interface ProcessTableProps {
   processes: Process[];
@@ -51,7 +51,7 @@ const getStatusColor = (status?: string) => {
 
 const getActionButton = (process: Process, onProcessClick?: (process: Process) => void) => {
   const status = process.status || '';
-  
+
   if (status === 'Em Andamento') {
     return (
       <Button
@@ -74,7 +74,7 @@ const getActionButton = (process: Process, onProcessClick?: (process: Process) =
       </Button>
     );
   }
-  
+
   if (status === 'Pendente') {
     return (
       <Box sx={{ display: 'flex', gap: 0.5 }}>
@@ -117,7 +117,7 @@ const getActionButton = (process: Process, onProcessClick?: (process: Process) =
       </Box>
     );
   }
-  
+
   return (
     <Chip
       icon={<CheckCircleIcon sx={{ fontSize: '16px !important', color: '#1F7A37' }} />}
@@ -174,11 +174,11 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
 
   const sortedProcesses = useMemo(() => {
     if (!processes || processes.length === 0) return processes;
-    
+
     return [...processes].sort((a, b) => {
       const aValue = a.processNumber || '';
       const bValue = b.processNumber || '';
-      
+
       // Separar número e ano (formato: "001/2025")
       const parseProcessNumber = (processNumber: string) => {
         const parts = processNumber.split('/');
@@ -189,10 +189,10 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
         }
         return { number: 0, year: 0, original: processNumber };
       };
-      
+
       const aParsed = parseProcessNumber(aValue);
       const bParsed = parseProcessNumber(bValue);
-      
+
       // Primeiro ordenar por ano, depois por número
       if (sortOrder === 'asc') {
         if (aParsed.year !== bParsed.year) {
@@ -307,67 +307,70 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                   backgroundColor: '#F7F9FC'
                 }
               }}
-          >
-            <TableCell>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                <Typography component='span' sx={{ fontSize: '0.875rem', fontWeight: 600 }}>
-                  Processo
-                </Typography>
-                <Tooltip
-                  title={sortOrder === 'asc' ? 'Ordenar decrescente' : 'Ordenar crescente'}
-                  arrow
-                  placement='top'
-                  componentsProps={{
-                    tooltip: {
-                      sx: {
-                        backgroundColor: '#212121',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        fontSize: '12px',
-                        padding: '6px 12px',
-                        borderRadius: '8px'
-                      }
-                    },
-                    arrow: {
-                      sx: {
-                        color: '#212121'
-                      }
-                    }
-                  }}
-                >
-                  <IconButton
-                    size='small'
-                    onClick={handleSortToggle}
-                    sx={{
-                      p: 0.5,
-                      borderRadius: '8px',
-                      flexShrink: 0,
-                      transition: 'all 200ms ease',
-                      '&:hover': {
-                        '& .sort-icon': {
-                          color: '#1877F2',
-                          transform: 'scale(1.1)'
+            >
+              <TableCell>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <Typography
+                    component='span'
+                    sx={{ fontSize: '0.875rem', fontWeight: 600 }}
+                  >
+                    Processo
+                  </Typography>
+                  <Tooltip
+                    title={sortOrder === 'asc' ? 'Ordenar decrescente' : 'Ordenar crescente'}
+                    arrow
+                    placement='top'
+                    componentsProps={{
+                      tooltip: {
+                        sx: {
+                          backgroundColor: '#212121',
+                          color: '#FFFFFF',
+                          border: 'none',
+                          fontSize: '12px',
+                          padding: '6px 12px',
+                          borderRadius: '8px'
                         }
                       },
-                      '&:focus': {
-                        outline: '2px solid rgba(24, 119, 242, 0.25)',
-                        outlineOffset: '2px'
+                      arrow: {
+                        sx: {
+                          color: '#212121'
+                        }
                       }
                     }}
                   >
-                    <SwapVertIcon
-                      className='sort-icon'
+                    <IconButton
+                      size='small'
+                      onClick={handleSortToggle}
                       sx={{
-                        fontSize: '14px',
-                        color: '#8A8D91',
-                        transition: 'transform 200ms ease, color 200ms ease'
+                        p: 0.5,
+                        borderRadius: '8px',
+                        flexShrink: 0,
+                        transition: 'all 200ms ease',
+                        '&:hover': {
+                          '& .sort-icon': {
+                            color: '#1877F2',
+                            transform: 'scale(1.1)'
+                          }
+                        },
+                        '&:focus': {
+                          outline: '2px solid rgba(24, 119, 242, 0.25)',
+                          outlineOffset: '2px'
+                        }
                       }}
-                    />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-            </TableCell>
-            <TableCell sx={{ minWidth: { xs: 200, sm: 300, md: 400, lg: 500 } }}>Objeto</TableCell>
+                    >
+                      <SwapVertIcon
+                        className='sort-icon'
+                        sx={{
+                          fontSize: '14px',
+                          color: '#8A8D91',
+                          transition: 'transform 200ms ease, color 200ms ease'
+                        }}
+                      />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </TableCell>
+              <TableCell sx={{ minWidth: { xs: 200, sm: 300, md: 400, lg: 500 } }}>Objeto</TableCell>
               <TableCell>Etapa Atual</TableCell>
               <TableCell>Prazo Final da Etapa</TableCell>
               <TableCell sx={{ minWidth: { xs: 140, sm: 160 } }}>Situação</TableCell>
@@ -488,8 +491,8 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ minWidth: { xs: 200, sm: 300, md: 400, lg: 500 } }}>
-                      <Tooltip 
-                        title={process.object} 
+                      <Tooltip
+                        title={process.object}
                         arrow
                         placement='top'
                         componentsProps={{
@@ -567,18 +570,32 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                       {deadline ? (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                           <CalendarIcon sx={{ fontSize: 16, color: '#8A8D91' }} />
-                          <Typography variant='body2' sx={{ color: '#212121' }}>
+                          <Typography
+                            variant='body2'
+                            sx={{ color: '#212121' }}
+                          >
                             {dayjs(deadline).format('DD/MM/YYYY')}
                           </Typography>
                         </Box>
                       ) : (
-                        <Typography variant='body2' sx={{ color: '#8A8D91' }}>
+                        <Typography
+                          variant='body2'
+                          sx={{ color: '#8A8D91' }}
+                        >
                           N/A
                         </Typography>
                       )}
                     </TableCell>
                     <TableCell sx={{ minWidth: { xs: 140, sm: 160 }, overflow: 'visible' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-start', flexWrap: 'nowrap' }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          justifyContent: 'flex-start',
+                          flexWrap: 'nowrap'
+                        }}
+                      >
                         <Chip
                           label={process.status || 'N/A'}
                           size='small'
@@ -607,7 +624,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                             }
                           }}
                         />
-                        {(process.status === 'Em Atraso' || process.status === 'Atrasado') && (
+                        {process.status === 'Em Atraso' && (
                           <Box
                             sx={{
                               width: 28,
@@ -654,7 +671,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                           title='Ver anexos'
                           arrow
                           placement='top'
-                          componentsProps={{
+                          slotProps={{
                             tooltip: {
                               sx: {
                                 backgroundColor: '#212121',

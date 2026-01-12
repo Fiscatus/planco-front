@@ -1,4 +1,16 @@
 import {
+  Close as CloseIcon,
+  Delete as DeleteIcon,
+  DriveFileMove as DriveFileMoveIcon,
+  Edit as EditIcon,
+  Folder as FolderIcon,
+  Info as InfoIcon,
+  Search as SearchIcon,
+  Star as StarIcon,
+  SwapVert as SwapVertIcon,
+  Warning as WarningIcon
+} from '@mui/icons-material';
+import {
   Box,
   Button,
   Checkbox,
@@ -24,26 +36,11 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
-import {
-  CalendarToday as CalendarTodayIcon,
-  Close as CloseIcon,
-  Delete as DeleteIcon,
-  Description as DescriptionIcon,
-  DriveFileMove as DriveFileMoveIcon,
-  Edit as EditIcon,
-  Folder as FolderIcon,
-  Info as InfoIcon,
-  Search as SearchIcon,
-  Star as StarIcon,
-  SwapVert as SwapVertIcon,
-  Warning as WarningIcon
-} from '@mui/icons-material';
-import type { FilterProcessesDto, Folder, MoveProcessesDto, Process, UpdateFolderDto } from '@/globals/types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useDebounce, useFavoriteFolders } from '@/hooks';
-
-import { useProcesses } from '@/hooks/useProcesses';
 import { useSearchParams } from 'react-router-dom';
+import type { FilterProcessesDto, Folder, MoveProcessesDto, Process, UpdateFolderDto } from '@/globals/types';
+import { useDebounce, useFavoriteFolders } from '@/hooks';
+import { useProcesses } from '@/hooks/useProcesses';
 
 interface ManageFolderModalProps {
   open: boolean;
@@ -75,7 +72,7 @@ function TabPanel(props: TabPanelProps) {
       id={`manage-folder-tabpanel-${index}`}
       aria-labelledby={`manage-folder-tab-${index}`}
       {...other}
-      style={{ 
+      style={{
         display: value === index ? 'flex' : 'none',
         flexDirection: 'column',
         flex: 1,
@@ -84,15 +81,17 @@ function TabPanel(props: TabPanelProps) {
       }}
     >
       {value === index && (
-        <Box sx={{ 
-          px: { xs: 2, sm: 3, md: 4 }, 
-          py: { xs: 2, sm: 2.5, md: 3 },
-          display: 'flex',
-          flexDirection: 'column',
-          flex: 1,
-          minHeight: 0,
-          overflow: 'hidden'
-        }}>
+        <Box
+          sx={{
+            px: { xs: 2, sm: 3, md: 4 },
+            py: { xs: 2, sm: 2.5, md: 3 },
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            minHeight: 0,
+            overflow: 'hidden'
+          }}
+        >
           {children}
         </Box>
       )}
@@ -124,13 +123,13 @@ export const ManageFolderModal = ({
     observations: '',
     year: undefined
   });
-  
+
   // Filtrar a pasta atual da lista de pastas disponíveis
   const filteredAvailableFolders = useMemo(() => {
     if (!folder?._id) return availableFolders;
     return availableFolders.filter((f) => f._id !== folder._id);
   }, [availableFolders, folder?._id]);
-  
+
   // Estados para mover processos
   const [searchTerm, setSearchTerm] = useState(urlParams.get('modalSearch') || '');
   const debouncedSearch = useDebounce(searchTerm, 300);
@@ -142,7 +141,7 @@ export const ManageFolderModal = ({
   const [targetFolder, setTargetFolder] = useState('');
   const [processSortOrder, setProcessSortOrder] = useState<'asc' | 'desc'>('asc');
   const [deleteConfirmationModalOpen, setDeleteConfirmationModalOpen] = useState(false);
-  
+
   // Paginação do modal
   const modalPage = Number(urlParams.get('modalPage') || 1);
   const modalLimit = Number(urlParams.get('modalLimit') || 10);
@@ -158,7 +157,7 @@ export const ManageFolderModal = ({
       // Inicializar searchTerm com o valor da URL se existir (apenas na abertura)
       const urlSearch = urlParams.get('modalSearch') || '';
       setSearchTerm(urlSearch);
-      
+
       // Inicializar modalPage e modalLimit se não existirem (apenas na aba de mover processos)
       if (currentTab === 1) {
         const hasModalPage = urlParams.has('modalPage');
@@ -179,7 +178,7 @@ export const ManageFolderModal = ({
   // Atualizar query params quando o debouncedSearch mudar (após delay)
   useEffect(() => {
     if (!open || currentTab !== 1) return;
-    
+
     const currentValue = urlParams.get('modalSearch') || '';
     // Só atualizar se realmente mudou
     if (debouncedSearch !== currentValue) {
@@ -194,7 +193,7 @@ export const ManageFolderModal = ({
         return newParams;
       });
     }
-  }, [debouncedSearch, open, currentTab, setUrlParams]);
+  }, [debouncedSearch, open, currentTab, setUrlParams, urlParams]);
 
   // Carregar processos quando a aba de mover processos estiver ativa
   useEffect(() => {
@@ -230,19 +229,25 @@ export const ManageFolderModal = ({
       setLoadingProcesses(false);
     }
   };
-  
-  const handleModalPageChange = useCallback((_event: unknown, newPage: number) => {
-    const newParams = new URLSearchParams(urlParams);
-    newParams.set('modalPage', String(newPage));
-    setUrlParams(newParams, { replace: true });
-  }, [urlParams, setUrlParams]);
-  
-  const handleModalLimitChange = useCallback((newLimit: number) => {
-    const newParams = new URLSearchParams(urlParams);
-    newParams.set('modalLimit', String(newLimit));
-    newParams.set('modalPage', '1');
-    setUrlParams(newParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+
+  const handleModalPageChange = useCallback(
+    (_event: unknown, newPage: number) => {
+      const newParams = new URLSearchParams(urlParams);
+      newParams.set('modalPage', String(newPage));
+      setUrlParams(newParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
+
+  const handleModalLimitChange = useCallback(
+    (newLimit: number) => {
+      const newParams = new URLSearchParams(urlParams);
+      newParams.set('modalLimit', String(newLimit));
+      newParams.set('modalPage', '1');
+      setUrlParams(newParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
   const handleProcessSortToggle = () => {
     setProcessSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
@@ -251,7 +256,7 @@ export const ManageFolderModal = ({
   const sortedProcesses = [...processes].sort((a, b) => {
     const aValue = a.processNumber || '';
     const bValue = b.processNumber || '';
-    
+
     if (processSortOrder === 'asc') {
       return aValue.localeCompare(bValue);
     } else {
@@ -261,9 +266,7 @@ export const ManageFolderModal = ({
 
   const handleToggleProcess = (processId: string) => {
     setSelectedProcesses((prev) =>
-      prev.includes(processId)
-        ? prev.filter((id) => id !== processId)
-        : [...prev, processId]
+      prev.includes(processId) ? prev.filter((id) => id !== processId) : [...prev, processId]
     );
   };
 
@@ -283,13 +286,11 @@ export const ManageFolderModal = ({
         processIds: selectedProcesses,
         targetFolderId: targetFolder
       });
-      
+
       // Remove os processos movidos do estado local imediatamente
-      const remainingProcesses = processes.filter(
-        process => !selectedProcesses.includes(process._id)
-      );
+      const remainingProcesses = processes.filter((process) => !selectedProcesses.includes(process._id));
       setProcesses(remainingProcesses);
-      
+
       // Limpa os estados de seleção e busca
       setSelectedProcesses([]);
       setTargetFolder('');
@@ -355,8 +356,13 @@ export const ManageFolderModal = ({
     try {
       const dataToSave: UpdateFolderDto = {
         name: folderForm.name,
-        ...(folderForm.observations && folderForm.observations.trim() ? { observations: folderForm.observations.trim() } : {}),
-        ...(folderForm.year !== undefined && (typeof folderForm.year === 'string' ? folderForm.year !== '' : folderForm.year !== 0) ? { year: Number(folderForm.year) } : {})
+        ...(folderForm.observations && folderForm.observations.trim()
+          ? { observations: folderForm.observations.trim() }
+          : {}),
+        ...(folderForm.year !== undefined &&
+        (typeof folderForm.year === 'string' ? folderForm.year !== '' : folderForm.year !== 0)
+          ? { year: Number(folderForm.year) }
+          : {})
       };
       await onEdit(dataToSave);
     } catch (error) {
@@ -404,14 +410,16 @@ export const ManageFolderModal = ({
           }
         }}
       >
-        <DialogContent sx={{ 
-          p: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          flex: 1,
-          minHeight: 0,
-          overflow: 'hidden'
-        }}>
+        <DialogContent
+          sx={{
+            p: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            minHeight: 0,
+            overflow: 'hidden'
+          }}
+        >
           {/* Header - 3 faixas organizadas */}
           <Box
             sx={{
@@ -425,13 +433,13 @@ export const ManageFolderModal = ({
             {/* Faixa 1: Título principal + botão fechar */}
             <Box
               sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
+                display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'flex-start',
                 mb: { xs: 1, sm: 1.5 },
                 gap: 1
-            }}
-          >
+              }}
+            >
               <Typography
                 variant='h5'
                 sx={{
@@ -511,7 +519,7 @@ export const ManageFolderModal = ({
                     icon={<StarIcon sx={{ fontSize: { xs: 12, sm: 14 }, color: '#f59e0b' }} />}
                     label='Favorita'
                     size='small'
-              sx={{
+                    sx={{
                       height: { xs: 22, sm: 24 },
                       fontSize: { xs: '0.6875rem', sm: '0.75rem' },
                       fontWeight: 600,
@@ -528,7 +536,7 @@ export const ManageFolderModal = ({
                     }}
                   />
                 )}
-            </Box>
+              </Box>
             </Box>
 
             {/* Faixa 3: Descrição da ferramenta (dinâmica por aba) */}
@@ -546,13 +554,15 @@ export const ManageFolderModal = ({
           </Box>
 
           {/* Tabs */}
-          <Box sx={{ 
-            borderBottom: 1, 
-            borderColor: 'divider', 
-            px: { xs: 2, sm: 3, md: 4 }, 
-            overflowX: 'auto',
-            flexShrink: 0
-          }}>
+          <Box
+            sx={{
+              borderBottom: 1,
+              borderColor: 'divider',
+              px: { xs: 2, sm: 3, md: 4 },
+              overflowX: 'auto',
+              flexShrink: 0
+            }}
+          >
             <Tabs
               value={currentTab}
               onChange={handleChangeTab}
@@ -610,14 +620,19 @@ export const ManageFolderModal = ({
           </Box>
 
           {/* Tab Content */}
-          <Box sx={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            minHeight: 0,
-            flex: 1,
-            overflow: 'hidden'
-          }}>
-            <TabPanel value={currentTab} index={0}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: 0,
+              flex: 1,
+              overflow: 'hidden'
+            }}
+          >
+            <TabPanel
+              value={currentTab}
+              index={0}
+            >
               {/* Formulário de edição */}
               {isProtected ? (
                 <Box
@@ -649,15 +664,15 @@ export const ManageFolderModal = ({
                   <Box>
                     <Typography
                       variant='body2'
-                  sx={{
-                    fontWeight: 600,
+                      sx={{
+                        fontWeight: 600,
                         color: '#0f172a',
                         mb: { xs: 0.75, sm: 1 },
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' }
-                  }}
-                >
+                      }}
+                    >
                       Nome da Pasta
-                </Typography>
+                    </Typography>
                     <TextField
                       fullWidth
                       placeholder='Ex: Processos 2025'
@@ -700,17 +715,17 @@ export const ManageFolderModal = ({
 
                   {/* Ano */}
                   <Box>
-                <Typography
-                  variant='body2'
-                  sx={{
-                    fontWeight: 600,
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        fontWeight: 600,
                         color: '#0f172a',
                         mb: { xs: 0.75, sm: 1 },
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' }
-                  }}
-                >
+                      }}
+                    >
                       Ano
-                </Typography>
+                    </Typography>
                     <TextField
                       fullWidth
                       type='number'
@@ -718,7 +733,13 @@ export const ManageFolderModal = ({
                       value={folderForm.year || ''}
                       onChange={(e) => {
                         const yearValue = e.target.value;
-                        setFolderForm((prev) => ({ ...prev, year: yearValue ? (yearValue as string | number) : undefined } as Partial<UpdateFolderDto> & { year?: string | number }));
+                        setFolderForm(
+                          (prev) =>
+                            ({
+                              ...prev,
+                              year: yearValue ? (yearValue as string | number) : undefined
+                            }) as Partial<UpdateFolderDto> & { year?: string | number }
+                        );
                       }}
                       variant='outlined'
                       inputProps={{ min: 2000, max: new Date().getFullYear() }}
@@ -757,9 +778,9 @@ export const ManageFolderModal = ({
 
                   {/* Descrição */}
                   <Box>
-                <Typography
-                  variant='body2'
-                  sx={{
+                    <Typography
+                      variant='body2'
+                      sx={{
                         fontWeight: 600,
                         color: '#0f172a',
                         mb: { xs: 0.75, sm: 1 },
@@ -767,7 +788,7 @@ export const ManageFolderModal = ({
                       }}
                     >
                       Descrição
-                </Typography>
+                    </Typography>
                     <TextField
                       fullWidth
                       multiline
@@ -813,17 +834,19 @@ export const ManageFolderModal = ({
                   </Box>
 
                   {/* Botões */}
-                  <Box sx={{ 
-                    p: { xs: 2, sm: 3 },
-                    backgroundColor: '#f8fafc',
-                    borderTop: '1px solid #e2e8f0',
-                    display: 'flex', 
-                    flexDirection: { xs: 'column-reverse', sm: 'row' },
-                    justifyContent: 'flex-end',
-                    alignItems: 'stretch',
-                    gap: { xs: 1.5, sm: 1 }
-                  }}>
-                <Button
+                  <Box
+                    sx={{
+                      p: { xs: 2, sm: 3 },
+                      backgroundColor: '#f8fafc',
+                      borderTop: '1px solid #e2e8f0',
+                      display: 'flex',
+                      flexDirection: { xs: 'column-reverse', sm: 'row' },
+                      justifyContent: 'flex-end',
+                      alignItems: 'stretch',
+                      gap: { xs: 1.5, sm: 1 }
+                    }}
+                  >
+                    <Button
                       onClick={handleClose}
                       disabled={editingLoading}
                       variant='outlined'
@@ -849,567 +872,168 @@ export const ManageFolderModal = ({
                     >
                       Cancelar
                     </Button>
-                <Button
+                    <Button
                       onClick={handleSaveEdit}
                       disabled={editingLoading || !folderForm.name?.trim()}
-                  variant='contained'
-                  sx={{
-                    textTransform: 'none',
-                    borderRadius: 2,
-                    backgroundColor: '#1877F2',
-                    color: '#FFFFFF',
-                    px: { xs: 2.5, sm: 4 },
-                    py: { xs: 1.125, sm: 1.25 },
-                    fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                    fontWeight: 600,
-                    width: { xs: '100%', sm: 'auto' },
-                    '&:hover': {
+                      variant='contained'
+                      sx={{
+                        textTransform: 'none',
+                        borderRadius: 2,
+                        backgroundColor: '#1877F2',
+                        color: '#FFFFFF',
+                        px: { xs: 2.5, sm: 4 },
+                        py: { xs: 1.125, sm: 1.25 },
+                        fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                        fontWeight: 600,
+                        width: { xs: '100%', sm: 'auto' },
+                        '&:hover': {
                           backgroundColor: '#166fe5'
-                    },
-                    '&:disabled': {
+                        },
+                        '&:disabled': {
                           backgroundColor: '#E4E6EB',
                           color: '#8A8D91'
                         }
                       }}
                     >
                       {editingLoading ? 'Salvando...' : 'Salvar Alterações'}
-                </Button>
+                    </Button>
                   </Box>
                 </Box>
               )}
             </TabPanel>
 
-            <TabPanel value={currentTab} index={1}>
-              <Box sx={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                height: '100%',
-                minHeight: 0,
-                overflow: 'hidden'
-              }}>
-                {/* Conteúdo scrollável */}
-                <Box sx={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  gap: { xs: 2, sm: 2.5 },
-                  flex: 1,
-                  overflow: 'auto',
+            <TabPanel
+              value={currentTab}
+              index={1}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%',
                   minHeight: 0,
-                  pb: 1,
-                  '&::-webkit-scrollbar': {
-                    width: '8px'
-                  },
-                  '&::-webkit-scrollbar-thumb': {
-                    backgroundColor: '#cbd5e1',
-                    borderRadius: '4px'
-                  },
-                  '&::-webkit-scrollbar-track': {
-                    backgroundColor: '#f1f5f9'
-                  }
-                }}>
+                  overflow: 'hidden'
+                }}
+              >
+                {/* Conteúdo scrollável */}
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: { xs: 2, sm: 2.5 },
+                    flex: 1,
+                    overflow: 'auto',
+                    minHeight: 0,
+                    pb: 1,
+                    '&::-webkit-scrollbar': {
+                      width: '8px'
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      backgroundColor: '#cbd5e1',
+                      borderRadius: '4px'
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      backgroundColor: '#f1f5f9'
+                    }
+                  }}
+                >
                   {/* Seletor de pasta destino */}
                   <Box>
-                  <Typography
-                    variant='body2'
-                    sx={{
-                      fontWeight: 600,
-                      color: '#0f172a',
-                      mb: { xs: 0.75, sm: 1 },
-                      fontSize: { xs: '0.8125rem', sm: '0.875rem' }
-                    }}
-                  >
-                    Pasta Destino
-                  </Typography>
-                  <FormControl fullWidth>
-                    <Select
-                      value={targetFolder}
-                      onChange={(e) => setTargetFolder(e.target.value)}
-                      displayEmpty
-                      renderValue={(value) => {
-                        if (!value) {
-                          return (
-                            <Typography sx={{ color: '#9ca3af', fontSize: '0.875rem' }}>
-                              {loadingFolders ? 'Carregando pastas...' : filteredAvailableFolders.length === 0 ? 'Nenhuma pasta disponível' : 'Selecione a pasta destino...'}
-                            </Typography>
-                          );
-                        }
-                        const selectedFolder = availableFolders.find((f) => f._id === value);
-                        if (!selectedFolder) return null;
-                        const isPlanco = selectedFolder.name?.toLowerCase().includes('planco');
-                        const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
-                        
-                        return (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
-                            <FolderIcon sx={{ fontSize: { xs: 18, sm: 20 }, color: folderIconColor }} />
-                            <Typography sx={{ color: '#0f172a', fontSize: { xs: '0.8125rem', sm: '0.875rem' }, fontWeight: 400 }}>
-                              {selectedFolder.name}
-                            </Typography>
-              </Box>
-                        );
-                      }}
-                      sx={{
-                        height: { xs: 44, sm: 48 },
-                        borderRadius: 2,
-                        backgroundColor: '#ffffff',
-                        fontSize: { xs: '0.875rem', sm: '1rem' },
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          border: '2px solid #e2e8f0',
-                          transition: 'all 0.2s ease-in-out'
-                        },
-                        '&:hover': {
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
-                          }
-                        },
-                        '&.Mui-focused': {
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
-                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                          }
-                        },
-                        '& .MuiSelect-select': {
-                          py: { xs: 1.125, sm: 1.25 },
-                          px: { xs: 1.25, sm: 1.5 }
-                        },
-                        '& .MuiSelect-icon': {
-                          fontSize: { xs: 20, sm: 24 }
-                        }
-                      }}
-                    >
-                      <MenuItem 
-                        value='' 
-                        disabled
-                      >
-                        {loadingFolders ? 'Carregando pastas...' : filteredAvailableFolders.length === 0 ? 'Nenhuma pasta disponível' : 'Selecione a pasta destino...'}
-                      </MenuItem>
-                      {filteredAvailableFolders.map((f) => {
-                        const isPlanco = f.name?.toLowerCase().includes('planco');
-                        const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
-                        
-                        return (
-                          <MenuItem 
-                            key={f._id} 
-                            value={f._id}
-                            sx={{
-                              '&.Mui-selected': {
-                                backgroundColor: '#f1f5f9',
-                                '&:hover': {
-                                  backgroundColor: '#f1f5f9'
-                                }
-                              }
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, width: '100%' }}>
-                              <FolderIcon sx={{ fontSize: { xs: 20, sm: 24 }, color: folderIconColor, flexShrink: 0 }} />
-                              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography
-                                  variant='body2'
-                                  sx={{
-                                    fontWeight: 500,
-                                    color: '#0f172a',
-                                    fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                                    wordBreak: 'break-word'
-                                  }}
-                                >
-                                  {f.name} {f.year ? `(${f.year})` : ''}
-                                </Typography>
-                              </Box>
-                            </Box>
-                          </MenuItem>
-                        );
-                      })}
-                    </Select>
-                  </FormControl>
-                </Box>
-
-                {/* Processos */}
-                <Box>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    justifyContent: 'space-between', 
-                    alignItems: { xs: 'flex-start', sm: 'center' }, 
-                    mb: { xs: 1, sm: 1.5 },
-                    gap: { xs: 0.5, sm: 0 }
-                  }}>
                     <Typography
                       variant='body2'
-                  sx={{
-                    fontWeight: 600,
-                        color: '#0f172a',
-                        fontSize: { xs: '0.8125rem', sm: '0.875rem' }
-                  }}
-                >
-                      Processos
-                </Typography>
-                    {selectedProcesses.length > 0 && (
-                <Typography
-                  variant='body2'
-                  sx={{
-                          fontWeight: 500,
-                          color: '#1877F2',
-                          fontSize: { xs: '0.8125rem', sm: '0.875rem' }
-                  }}
-                >
-                        {selectedProcesses.length} selecionado(s)
-                </Typography>
-                    )}
-                  </Box>
-                  
-                  {/* Campo de busca */}
-                  <TextField
-                    fullWidth
-                    placeholder='Buscar por número ou objeto do processo...'
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    InputProps={{
-                      startAdornment: (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            mr: { xs: 1, sm: 1.25 },
-                            width: { xs: 18, sm: 20 },
-                            height: { xs: 18, sm: 20 }
-                          }}
-                        >
-                          <SearchIcon sx={{ color: '#94a3b8', fontSize: { xs: '1.125rem', sm: '1.25rem' } }} />
-                        </Box>
-                      )
-                    }}
-                    sx={{
-                      mb: { xs: 1, sm: 1.5 },
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: 2,
-                        backgroundColor: '#ffffff',
-                        height: { xs: 44, sm: 48 },
-                        fontSize: { xs: '0.875rem', sm: '1rem' },
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          border: '2px solid #e2e8f0',
-                          transition: 'all 0.2s ease-in-out'
-                        },
-                        '&:hover': {
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
-                          }
-                        },
-                        '&.Mui-focused': {
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
-                            boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
-                          }
-                        }
-                      },
-                      '& .MuiInputBase-input::placeholder': {
-                        color: '#9ca3af',
-                        opacity: 1,
-                        fontSize: { xs: '0.875rem', sm: '1rem' }
-                      }
-                    }}
-                  />
-                  
-                  {/* Tabela de processos */}
-                  <TableContainer
-                    sx={{
-                      borderRadius: 2,
-                      border: '1px solid #e2e8f0',
-                      backgroundColor: '#ffffff',
-                      overflow: 'visible',
-                      '& .MuiTableHead-root': {
-                        '& .MuiTableCell-root': {
-                          bgcolor: '#f8fafc',
-                          borderBottom: '1px solid #e2e8f0',
-                          '&::before': {
-                            content: '""',
-                            position: 'absolute',
-                            left: 0,
-                            top: 0,
-                            width: '100%',
-                            height: '100%',
-                            bgcolor: '#f8fafc',
-                            zIndex: -1
-                          }
-                        }
-                      }
-                    }}
-                  >
-                    <Table sx={{ 
-                        minWidth: { xs: 600, sm: 'auto' },
-                        '& .MuiTableHead-root': {
-                          bgcolor: '#f8fafc'
-                        }
-                      }}>
-                      <TableHead sx={{
-                        bgcolor: '#f8fafc',
-                        '& .MuiTableRow-root': {
-                          bgcolor: '#f8fafc'
-                        }
-                      }}>
-                        <TableRow sx={{ bgcolor: '#f8fafc' }}>
-                          <TableCell 
-                            padding='checkbox' 
-                            sx={{ 
-                              bgcolor: '#f8fafc',
-                              borderBottom: '1px solid #e2e8f0',
-                              py: { xs: 1, sm: 1.5 },
-                              position: 'sticky',
-                              left: 0,
-                              zIndex: 10,
-                              '&:before': {
-                                content: '""',
-                                position: 'absolute',
-                                left: 0,
-                                top: 0,
-                                width: '100%',
-                                height: '100%',
-                                bgcolor: '#f8fafc',
-                                zIndex: -1
-                              }
-                            }}
-                          >
-                            <Checkbox
-                              indeterminate={selectedProcesses.length > 0 && selectedProcesses.length < sortedProcesses.length}
-                              checked={sortedProcesses.length > 0 && selectedProcesses.length === sortedProcesses.length}
-                              onChange={handleSelectAll}
-                              size={isMobile ? 'small' : 'medium'}
-                              sx={{
-                                color: '#64748b',
-                                '&.Mui-checked': {
-                                  color: '#1877F2'
-                                }
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell 
-                            sx={{ 
-                              bgcolor: '#f8fafc', 
-                              fontWeight: 600,
-                              color: '#0f172a',
-                              fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                              borderBottom: '1px solid #e2e8f0',
-                              py: { xs: 1, sm: 1.5 },
-                              position: 'sticky',
-                              left: { xs: 48, sm: 58 },
-                              zIndex: 10,
-                              '&:before': {
-                                content: '""',
-                                position: 'absolute',
-                                left: 0,
-                                top: 0,
-                                width: '100%',
-                                height: '100%',
-                                bgcolor: '#f8fafc',
-                                zIndex: -1
-                              }
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 0.75 } }}>
-                              <Typography component='span' sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: 600 }}>
-                                Processo
-                              </Typography>
-                              <Tooltip
-                                title={processSortOrder === 'asc' ? 'Ordenar decrescente' : 'Ordenar crescente'}
-                                arrow
-                                placement='top'
-                                componentsProps={{
-                                  tooltip: {
-                                    sx: {
-                                      backgroundColor: '#212121',
-                                      color: '#FFFFFF',
-                                      border: 'none',
-                                      fontSize: { xs: '11px', sm: '12px' },
-                                      padding: { xs: '4px 8px', sm: '6px 12px' },
-                                      borderRadius: '8px'
-                                    }
-                                  },
-                                  arrow: {
-                                    sx: {
-                                      color: '#212121'
-                                    }
-                                  }
-                                }}
-                              >
-                                <IconButton
-                                  size='small'
-                                  onClick={handleProcessSortToggle}
-                                  sx={{
-                                    p: { xs: 0.375, sm: 0.5 },
-                                    borderRadius: '8px',
-                                    flexShrink: 0,
-                                    transition: 'all 200ms ease',
-                                    '&:hover': {
-                                      '& .sort-icon': {
-                                        color: '#1877F2',
-                                        transform: 'scale(1.1)'
-                                      }
-                                    },
-                                    '&:focus': {
-                                      outline: '2px solid rgba(24, 119, 242, 0.25)',
-                                      outlineOffset: '2px'
-                                    }
-                                  }}
-                                >
-                                  <SwapVertIcon
-                                    className='sort-icon'
-                                    sx={{
-                                      fontSize: { xs: '12px', sm: '14px' },
-                                      color: '#8A8D91',
-                                      transition: 'transform 200ms ease, color 200ms ease'
-                                    }}
-                                  />
-                                </IconButton>
-                              </Tooltip>
-                            </Box>
-                          </TableCell>
-                          <TableCell 
-                            sx={{ 
-                              backgroundColor: '#f8fafc', 
-                              fontWeight: 600,
-                              color: '#0f172a',
-                              fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                              borderBottom: '1px solid #e2e8f0',
-                              py: { xs: 1, sm: 1.5 }
-                            }}
-                          >
-                            Objeto
-                          </TableCell>
-                          <TableCell 
-                            sx={{ 
-                              backgroundColor: '#f8fafc', 
-                              fontWeight: 600,
-                              color: '#0f172a',
-                              fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                              borderBottom: '1px solid #e2e8f0',
-                              py: { xs: 1, sm: 1.5 }
-                            }}
-                          >
-                            Situação
-                          </TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {loadingProcesses ? (
-                          <TableRow>
-                            <TableCell colSpan={4} sx={{ textAlign: 'center', py: 4, color: '#64748b' }}>
-                              Carregando processos...
-                            </TableCell>
-                          </TableRow>
-                        ) : processes.length === 0 ? (
-                          <TableRow>
-                            <TableCell colSpan={4} sx={{ textAlign: 'center', py: 4, color: '#64748b' }}>
-                              Nenhum processo encontrado
-                            </TableCell>
-                          </TableRow>
-                        ) : (
-                          sortedProcesses.map((process) => (
-                            <TableRow 
-                              key={process._id}
-                              sx={{
-                                backgroundColor: '#ffffff',
-                                '&:hover': {
-                                  backgroundColor: '#f8fafc'
-                                },
-                                '&:last-child td': {
-                                  borderBottom: 'none'
-                                },
-                                '&.Mui-selected': {
-                                  backgroundColor: '#ffffff',
-                                  '&:hover': {
-                                    backgroundColor: '#f8fafc'
-                                  }
-                                }
-                              }}
-                            >
-                              <TableCell 
-                                padding='checkbox' 
-                                sx={{ 
-                                  py: { xs: 1, sm: 1.5 },
-                                  position: 'sticky',
-                                  left: 0,
-                                  zIndex: 5,
-                                  backgroundColor: '#ffffff'
-                                }}
-                              >
-                                <Checkbox
-                                  checked={selectedProcesses.includes(process._id)}
-                                  onChange={() => handleToggleProcess(process._id)}
-                                  size={isMobile ? 'small' : 'medium'}
-                                  sx={{
-                                    color: '#64748b',
-                                    '&.Mui-checked': {
-                                      color: '#1877F2'
-                                    }
-                                  }}
-                                />
-                              </TableCell>
-                              <TableCell 
-                                sx={{ 
-                                  py: { xs: 1, sm: 1.5 }, 
-                                  color: '#0f172a', 
-                                  fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                                  position: 'sticky',
-                                  left: { xs: 48, sm: 58 },
-                                  zIndex: 5,
-                                  backgroundColor: '#ffffff'
-                                }}
-                              >
-                                {process.processNumber}
-                              </TableCell>
-                              <TableCell sx={{ py: { xs: 1, sm: 1.5 }, color: '#475569', fontSize: { xs: '0.8125rem', sm: '0.875rem' } }}>
-                                {process.object}
-                              </TableCell>
-                              <TableCell sx={{ py: { xs: 1, sm: 1.5 }, color: '#64748b', fontSize: { xs: '0.8125rem', sm: '0.875rem' } }}>
-                                {process.status || 'N/A'}
-                              </TableCell>
-                            </TableRow>
-                          ))
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                  
-                  {/* Paginação */}
-                  {processesTotal > 0 && (
-                    <Box
                       sx={{
-                        p: 2,
-                        display: 'flex',
-                        flexDirection: { xs: 'column', md: 'row' },
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: 2,
-                        backgroundColor: '#f8fafc',
-                        borderTop: '1px solid #e2e8f0',
-                        mt: 2,
-                        borderRadius: '0 0 12px 12px'
+                        fontWeight: 600,
+                        color: '#0f172a',
+                        mb: { xs: 0.75, sm: 1 },
+                        fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                       }}
                     >
-                      {/* Pagination Info */}
-                      <Typography
-                        variant='body2'
-                        sx={{ color: '#6b7280', fontSize: '0.875rem' }}
-                      >
-                        {((modalPage - 1) * modalLimit) + 1}-
-                        {Math.min(modalPage * modalLimit, processesTotal)} de {processesTotal}
-                      </Typography>
+                      Pasta Destino
+                    </Typography>
+                    <FormControl fullWidth>
+                      <Select
+                        value={targetFolder}
+                        onChange={(e) => setTargetFolder(e.target.value)}
+                        displayEmpty
+                        renderValue={(value) => {
+                          if (!value) {
+                            return (
+                              <Typography sx={{ color: '#9ca3af', fontSize: '0.875rem' }}>
+                                {loadingFolders
+                                  ? 'Carregando pastas...'
+                                  : filteredAvailableFolders.length === 0
+                                    ? 'Nenhuma pasta disponível'
+                                    : 'Selecione a pasta destino...'}
+                              </Typography>
+                            );
+                          }
+                          const selectedFolder = availableFolders.find((f) => f._id === value);
+                          if (!selectedFolder) return null;
+                          const isPlanco = selectedFolder.name?.toLowerCase().includes('planco');
+                          const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
 
-                      {/* Pagination Controls */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                        <Select
-                          value={modalLimit}
-                          onChange={(e) => handleModalLimitChange(Number(e.target.value))}
-                          sx={{ 
-                            minWidth: 120, 
-                            height: 32, 
-                            fontSize: '0.875rem',
-                            backgroundColor: '#ffffff',
-                          }}
+                          return (
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
+                              <FolderIcon sx={{ fontSize: { xs: 18, sm: 20 }, color: folderIconColor }} />
+                              <Typography
+                                sx={{
+                                  color: '#0f172a',
+                                  fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                                  fontWeight: 400
+                                }}
+                              >
+                                {selectedFolder.name}
+                              </Typography>
+                            </Box>
+                          );
+                        }}
+                        sx={{
+                          height: { xs: 44, sm: 48 },
+                          borderRadius: 2,
+                          backgroundColor: '#ffffff',
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0',
+                            transition: 'all 0.2s ease-in-out'
+                          },
+                          '&:hover': {
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#cbd5e1'
+                            }
+                          },
+                          '&.Mui-focused': {
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#1877F2',
+                              boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                            }
+                          },
+                          '& .MuiSelect-select': {
+                            py: { xs: 1.125, sm: 1.25 },
+                            px: { xs: 1.25, sm: 1.5 }
+                          },
+                          '& .MuiSelect-icon': {
+                            fontSize: { xs: 20, sm: 24 }
+                          }
+                        }}
+                      >
+                        <MenuItem
+                          value=''
+                          disabled
                         >
-                          {[5, 10, 25, 50].map((limit) => (
-                            <MenuItem 
-                              key={limit} 
-                              value={limit}
+                          {loadingFolders
+                            ? 'Carregando pastas...'
+                            : filteredAvailableFolders.length === 0
+                              ? 'Nenhuma pasta disponível'
+                              : 'Selecione a pasta destino...'}
+                        </MenuItem>
+                        {filteredAvailableFolders.map((f) => {
+                          const isPlanco = f.name?.toLowerCase().includes('planco');
+                          const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
+
+                          return (
+                            <MenuItem
+                              key={f._id}
+                              value={f._id}
                               sx={{
                                 '&.Mui-selected': {
                                   backgroundColor: '#f1f5f9',
@@ -1419,37 +1043,494 @@ export const ManageFolderModal = ({
                                 }
                               }}
                             >
-                              {limit} por página
+                              <Box
+                                sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 }, width: '100%' }}
+                              >
+                                <FolderIcon
+                                  sx={{ fontSize: { xs: 20, sm: 24 }, color: folderIconColor, flexShrink: 0 }}
+                                />
+                                <Box sx={{ flex: 1, minWidth: 0 }}>
+                                  <Typography
+                                    variant='body2'
+                                    sx={{
+                                      fontWeight: 500,
+                                      color: '#0f172a',
+                                      fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                                      wordBreak: 'break-word'
+                                    }}
+                                  >
+                                    {f.name} {f.year ? `(${f.year})` : ''}
+                                  </Typography>
+                                </Box>
+                              </Box>
                             </MenuItem>
-                          ))}
-                        </Select>
+                          );
+                        })}
+                      </Select>
+                    </FormControl>
+                  </Box>
 
-                        <Pagination
-                          count={processesTotalPages}
-                          page={modalPage}
-                          onChange={handleModalPageChange}
-                          variant='outlined'
-                          shape='rounded'
-                        />
-                      </Box>
+                  {/* Processos */}
+                  <Box>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: { xs: 'column', sm: 'row' },
+                        justifyContent: 'space-between',
+                        alignItems: { xs: 'flex-start', sm: 'center' },
+                        mb: { xs: 1, sm: 1.5 },
+                        gap: { xs: 0.5, sm: 0 }
+                      }}
+                    >
+                      <Typography
+                        variant='body2'
+                        sx={{
+                          fontWeight: 600,
+                          color: '#0f172a',
+                          fontSize: { xs: '0.8125rem', sm: '0.875rem' }
+                        }}
+                      >
+                        Processos
+                      </Typography>
+                      {selectedProcesses.length > 0 && (
+                        <Typography
+                          variant='body2'
+                          sx={{
+                            fontWeight: 500,
+                            color: '#1877F2',
+                            fontSize: { xs: '0.8125rem', sm: '0.875rem' }
+                          }}
+                        >
+                          {selectedProcesses.length} selecionado(s)
+                        </Typography>
+                      )}
                     </Box>
-                  )}
-                </Box>
+
+                    {/* Campo de busca */}
+                    <TextField
+                      fullWidth
+                      placeholder='Buscar por número ou objeto do processo...'
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      InputProps={{
+                        startAdornment: (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              mr: { xs: 1, sm: 1.25 },
+                              width: { xs: 18, sm: 20 },
+                              height: { xs: 18, sm: 20 }
+                            }}
+                          >
+                            <SearchIcon sx={{ color: '#94a3b8', fontSize: { xs: '1.125rem', sm: '1.25rem' } }} />
+                          </Box>
+                        )
+                      }}
+                      sx={{
+                        mb: { xs: 1, sm: 1.5 },
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 2,
+                          backgroundColor: '#ffffff',
+                          height: { xs: 44, sm: 48 },
+                          fontSize: { xs: '0.875rem', sm: '1rem' },
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '2px solid #e2e8f0',
+                            transition: 'all 0.2s ease-in-out'
+                          },
+                          '&:hover': {
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#cbd5e1'
+                            }
+                          },
+                          '&.Mui-focused': {
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#1877F2',
+                              boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
+                            }
+                          }
+                        },
+                        '& .MuiInputBase-input::placeholder': {
+                          color: '#9ca3af',
+                          opacity: 1,
+                          fontSize: { xs: '0.875rem', sm: '1rem' }
+                        }
+                      }}
+                    />
+
+                    {/* Tabela de processos */}
+                    <TableContainer
+                      sx={{
+                        borderRadius: 2,
+                        border: '1px solid #e2e8f0',
+                        backgroundColor: '#ffffff',
+                        overflow: 'visible',
+                        '& .MuiTableHead-root': {
+                          '& .MuiTableCell-root': {
+                            bgcolor: '#f8fafc',
+                            borderBottom: '1px solid #e2e8f0',
+                            '&::before': {
+                              content: '""',
+                              position: 'absolute',
+                              left: 0,
+                              top: 0,
+                              width: '100%',
+                              height: '100%',
+                              bgcolor: '#f8fafc',
+                              zIndex: -1
+                            }
+                          }
+                        }
+                      }}
+                    >
+                      <Table
+                        sx={{
+                          minWidth: { xs: 600, sm: 'auto' },
+                          '& .MuiTableHead-root': {
+                            bgcolor: '#f8fafc'
+                          }
+                        }}
+                      >
+                        <TableHead
+                          sx={{
+                            bgcolor: '#f8fafc',
+                            '& .MuiTableRow-root': {
+                              bgcolor: '#f8fafc'
+                            }
+                          }}
+                        >
+                          <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                            <TableCell
+                              padding='checkbox'
+                              sx={{
+                                bgcolor: '#f8fafc',
+                                borderBottom: '1px solid #e2e8f0',
+                                py: { xs: 1, sm: 1.5 },
+                                position: 'sticky',
+                                left: 0,
+                                zIndex: 10,
+                                '&:before': {
+                                  content: '""',
+                                  position: 'absolute',
+                                  left: 0,
+                                  top: 0,
+                                  width: '100%',
+                                  height: '100%',
+                                  bgcolor: '#f8fafc',
+                                  zIndex: -1
+                                }
+                              }}
+                            >
+                              <Checkbox
+                                indeterminate={
+                                  selectedProcesses.length > 0 && selectedProcesses.length < sortedProcesses.length
+                                }
+                                checked={
+                                  sortedProcesses.length > 0 && selectedProcesses.length === sortedProcesses.length
+                                }
+                                onChange={handleSelectAll}
+                                size={isMobile ? 'small' : 'medium'}
+                                sx={{
+                                  color: '#64748b',
+                                  '&.Mui-checked': {
+                                    color: '#1877F2'
+                                  }
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                bgcolor: '#f8fafc',
+                                fontWeight: 600,
+                                color: '#0f172a',
+                                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                borderBottom: '1px solid #e2e8f0',
+                                py: { xs: 1, sm: 1.5 },
+                                position: 'sticky',
+                                left: { xs: 48, sm: 58 },
+                                zIndex: 10,
+                                '&:before': {
+                                  content: '""',
+                                  position: 'absolute',
+                                  left: 0,
+                                  top: 0,
+                                  width: '100%',
+                                  height: '100%',
+                                  bgcolor: '#f8fafc',
+                                  zIndex: -1
+                                }
+                              }}
+                            >
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 0.75 } }}>
+                                <Typography
+                                  component='span'
+                                  sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' }, fontWeight: 600 }}
+                                >
+                                  Processo
+                                </Typography>
+                                <Tooltip
+                                  title={processSortOrder === 'asc' ? 'Ordenar decrescente' : 'Ordenar crescente'}
+                                  arrow
+                                  placement='top'
+                                  componentsProps={{
+                                    tooltip: {
+                                      sx: {
+                                        backgroundColor: '#212121',
+                                        color: '#FFFFFF',
+                                        border: 'none',
+                                        fontSize: { xs: '11px', sm: '12px' },
+                                        padding: { xs: '4px 8px', sm: '6px 12px' },
+                                        borderRadius: '8px'
+                                      }
+                                    },
+                                    arrow: {
+                                      sx: {
+                                        color: '#212121'
+                                      }
+                                    }
+                                  }}
+                                >
+                                  <IconButton
+                                    size='small'
+                                    onClick={handleProcessSortToggle}
+                                    sx={{
+                                      p: { xs: 0.375, sm: 0.5 },
+                                      borderRadius: '8px',
+                                      flexShrink: 0,
+                                      transition: 'all 200ms ease',
+                                      '&:hover': {
+                                        '& .sort-icon': {
+                                          color: '#1877F2',
+                                          transform: 'scale(1.1)'
+                                        }
+                                      },
+                                      '&:focus': {
+                                        outline: '2px solid rgba(24, 119, 242, 0.25)',
+                                        outlineOffset: '2px'
+                                      }
+                                    }}
+                                  >
+                                    <SwapVertIcon
+                                      className='sort-icon'
+                                      sx={{
+                                        fontSize: { xs: '12px', sm: '14px' },
+                                        color: '#8A8D91',
+                                        transition: 'transform 200ms ease, color 200ms ease'
+                                      }}
+                                    />
+                                  </IconButton>
+                                </Tooltip>
+                              </Box>
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                backgroundColor: '#f8fafc',
+                                fontWeight: 600,
+                                color: '#0f172a',
+                                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                borderBottom: '1px solid #e2e8f0',
+                                py: { xs: 1, sm: 1.5 }
+                              }}
+                            >
+                              Objeto
+                            </TableCell>
+                            <TableCell
+                              sx={{
+                                backgroundColor: '#f8fafc',
+                                fontWeight: 600,
+                                color: '#0f172a',
+                                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                borderBottom: '1px solid #e2e8f0',
+                                py: { xs: 1, sm: 1.5 }
+                              }}
+                            >
+                              Situação
+                            </TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {loadingProcesses ? (
+                            <TableRow>
+                              <TableCell
+                                colSpan={4}
+                                sx={{ textAlign: 'center', py: 4, color: '#64748b' }}
+                              >
+                                Carregando processos...
+                              </TableCell>
+                            </TableRow>
+                          ) : processes.length === 0 ? (
+                            <TableRow>
+                              <TableCell
+                                colSpan={4}
+                                sx={{ textAlign: 'center', py: 4, color: '#64748b' }}
+                              >
+                                Nenhum processo encontrado
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            sortedProcesses.map((process) => (
+                              <TableRow
+                                key={process._id}
+                                sx={{
+                                  backgroundColor: '#ffffff',
+                                  '&:hover': {
+                                    backgroundColor: '#f8fafc'
+                                  },
+                                  '&:last-child td': {
+                                    borderBottom: 'none'
+                                  },
+                                  '&.Mui-selected': {
+                                    backgroundColor: '#ffffff',
+                                    '&:hover': {
+                                      backgroundColor: '#f8fafc'
+                                    }
+                                  }
+                                }}
+                              >
+                                <TableCell
+                                  padding='checkbox'
+                                  sx={{
+                                    py: { xs: 1, sm: 1.5 },
+                                    position: 'sticky',
+                                    left: 0,
+                                    zIndex: 5,
+                                    backgroundColor: '#ffffff'
+                                  }}
+                                >
+                                  <Checkbox
+                                    checked={selectedProcesses.includes(process._id)}
+                                    onChange={() => handleToggleProcess(process._id)}
+                                    size={isMobile ? 'small' : 'medium'}
+                                    sx={{
+                                      color: '#64748b',
+                                      '&.Mui-checked': {
+                                        color: '#1877F2'
+                                      }
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    py: { xs: 1, sm: 1.5 },
+                                    color: '#0f172a',
+                                    fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                                    position: 'sticky',
+                                    left: { xs: 48, sm: 58 },
+                                    zIndex: 5,
+                                    backgroundColor: '#ffffff'
+                                  }}
+                                >
+                                  {process.processNumber}
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    py: { xs: 1, sm: 1.5 },
+                                    color: '#475569',
+                                    fontSize: { xs: '0.8125rem', sm: '0.875rem' }
+                                  }}
+                                >
+                                  {process.object}
+                                </TableCell>
+                                <TableCell
+                                  sx={{
+                                    py: { xs: 1, sm: 1.5 },
+                                    color: '#64748b',
+                                    fontSize: { xs: '0.8125rem', sm: '0.875rem' }
+                                  }}
+                                >
+                                  {process.status || 'N/A'}
+                                </TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+
+                    {/* Paginação */}
+                    {processesTotal > 0 && (
+                      <Box
+                        sx={{
+                          p: 2,
+                          display: 'flex',
+                          flexDirection: { xs: 'column', md: 'row' },
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: 2,
+                          backgroundColor: '#f8fafc',
+                          borderTop: '1px solid #e2e8f0',
+                          mt: 2,
+                          borderRadius: '0 0 12px 12px'
+                        }}
+                      >
+                        {/* Pagination Info */}
+                        <Typography
+                          variant='body2'
+                          sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                        >
+                          {(modalPage - 1) * modalLimit + 1}-{Math.min(modalPage * modalLimit, processesTotal)} de{' '}
+                          {processesTotal}
+                        </Typography>
+
+                        {/* Pagination Controls */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                          <Select
+                            value={modalLimit}
+                            onChange={(e) => handleModalLimitChange(Number(e.target.value))}
+                            sx={{
+                              minWidth: 120,
+                              height: 32,
+                              fontSize: '0.875rem',
+                              backgroundColor: '#ffffff'
+                            }}
+                          >
+                            {[5, 10, 25, 50].map((limit) => (
+                              <MenuItem
+                                key={limit}
+                                value={limit}
+                                sx={{
+                                  '&.Mui-selected': {
+                                    backgroundColor: '#f1f5f9',
+                                    '&:hover': {
+                                      backgroundColor: '#f1f5f9'
+                                    }
+                                  }
+                                }}
+                              >
+                                {limit} por página
+                              </MenuItem>
+                            ))}
+                          </Select>
+
+                          <Pagination
+                            count={processesTotalPages}
+                            page={modalPage}
+                            onChange={handleModalPageChange}
+                            variant='outlined'
+                            shape='rounded'
+                          />
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
                 </Box>
 
                 {/* Botões fixos no final */}
-                <Box sx={{ 
-                  p: { xs: 2, sm: 3 },
-                  backgroundColor: '#f8fafc',
-                  borderTop: '1px solid #e2e8f0',
-                  display: 'flex', 
-                  flexDirection: { xs: 'column-reverse', sm: 'row' },
-                  justifyContent: 'flex-end',
-                  alignItems: 'stretch',
-                  gap: { xs: 1.5, sm: 1 },
-                  flexShrink: 0
-                }}>
-                <Button
+                <Box
+                  sx={{
+                    p: { xs: 2, sm: 3 },
+                    backgroundColor: '#f8fafc',
+                    borderTop: '1px solid #e2e8f0',
+                    display: 'flex',
+                    flexDirection: { xs: 'column-reverse', sm: 'row' },
+                    justifyContent: 'flex-end',
+                    alignItems: 'stretch',
+                    gap: { xs: 1.5, sm: 1 },
+                    flexShrink: 0
+                  }}
+                >
+                  <Button
                     onClick={handleClose}
                     disabled={movingLoading}
                     variant='outlined'
@@ -1505,7 +1586,10 @@ export const ManageFolderModal = ({
               </Box>
             </TabPanel>
 
-            <TabPanel value={currentTab} index={2}>
+            <TabPanel
+              value={currentTab}
+              index={2}
+            >
               {isProtected ? (
                 <Box
                   sx={{
@@ -1557,7 +1641,7 @@ export const ManageFolderModal = ({
                         const isPlanco = folder.name?.toLowerCase().includes('planco');
                         const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
                         const folderBgColor = isPlanco ? '#dbeafe' : '#fef3c7';
-                        
+
                         return (
                           <Box
                             sx={{
@@ -1621,22 +1705,22 @@ export const ManageFolderModal = ({
                                 fontWeight: 600,
                                 color: '#0f172a',
                                 fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                    mb: { xs: 0.75, sm: 1 }
-                  }}
-                >
+                                mb: { xs: 0.75, sm: 1 }
+                              }}
+                            >
                               Descrição
-                </Typography>
-                <Typography
-                  variant='body2'
-                  sx={{
+                            </Typography>
+                            <Typography
+                              variant='body2'
+                              sx={{
                                 color: '#475569',
                                 fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                                 lineHeight: { xs: 1.5, sm: 1.6 },
                                 wordBreak: 'break-word'
-                  }}
-                >
+                              }}
+                            >
                               {folder.description || folder.observations}
-                </Typography>
+                            </Typography>
                           </Box>
                         )}
 
@@ -1674,8 +1758,8 @@ export const ManageFolderModal = ({
                                 {folder.processCount === 0
                                   ? 'Nenhum processo'
                                   : folder.processCount === 1
-                                  ? '1 processo'
-                                  : `${folder.processCount} processos`}
+                                    ? '1 processo'
+                                    : `${folder.processCount} processos`}
                               </Typography>
                             </Box>
                           )}
@@ -1794,58 +1878,60 @@ export const ManageFolderModal = ({
                   </Box>
 
                   {/* Botões */}
-                  <Box sx={{ 
-                    display: 'flex', 
-                    flexDirection: { xs: 'column-reverse', sm: 'row' },
-                    justifyContent: 'flex-end', 
-                    gap: { xs: 1.5, sm: 2 }, 
-                    mt: 1, 
-                    pt: 2, 
-                    borderTop: '1px solid #e2e8f0' 
-                  }}>
-                <Button
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column-reverse', sm: 'row' },
+                      justifyContent: 'flex-end',
+                      gap: { xs: 1.5, sm: 2 },
+                      mt: 1,
+                      pt: 2,
+                      borderTop: '1px solid #e2e8f0'
+                    }}
+                  >
+                    <Button
                       onClick={handleClose}
                       disabled={deletingLoading}
-                  sx={{
-                    px: { xs: 2.5, sm: 3 },
-                    py: { xs: 1.125, sm: 1.25 },
-                    fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                    fontWeight: 600,
+                      sx={{
+                        px: { xs: 2.5, sm: 3 },
+                        py: { xs: 1.125, sm: 1.25 },
+                        fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                        fontWeight: 600,
                         color: '#64748b',
-                    textTransform: 'none',
+                        textTransform: 'none',
                         borderRadius: 2,
                         border: '1px solid #e2e8f0',
                         backgroundColor: '#ffffff',
                         width: { xs: '100%', sm: 'auto' },
-                    '&:hover': {
+                        '&:hover': {
                           backgroundColor: '#f8fafc',
                           borderColor: '#cbd5e1'
-                    },
+                        },
                         transition: 'all 0.2s ease-in-out'
-                  }}
-                >
+                      }}
+                    >
                       Cancelar
-                </Button>
-                <Button
+                    </Button>
+                    <Button
                       onClick={handleDeleteFolderClick}
                       disabled={deletingLoading}
-                  variant='contained'
+                      variant='contained'
                       startIcon={<DeleteIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
-                    sx={{
-                    px: { xs: 2.5, sm: 3 },
-                    py: { xs: 1.125, sm: 1.25 },
-                    fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                    fontWeight: 600,
-                    backgroundColor: '#DC2626',
+                      sx={{
+                        px: { xs: 2.5, sm: 3 },
+                        py: { xs: 1.125, sm: 1.25 },
+                        fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+                        fontWeight: 600,
+                        backgroundColor: '#DC2626',
                         textTransform: 'none',
-                    borderRadius: 2,
+                        borderRadius: 2,
                         boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                         width: { xs: '100%', sm: 'auto' },
-                    '&:hover': {
+                        '&:hover': {
                           backgroundColor: '#B91C1C',
                           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                    },
-                    '&:disabled': {
+                        },
+                        '&:disabled': {
                           backgroundColor: '#9ca3af',
                           boxShadow: 'none'
                         },
@@ -1853,8 +1939,8 @@ export const ManageFolderModal = ({
                       }}
                     >
                       {deletingLoading ? 'Excluindo...' : 'Excluir Pasta'}
-                </Button>
-              </Box>
+                    </Button>
+                  </Box>
                 </Box>
               )}
             </TabPanel>
@@ -2023,7 +2109,14 @@ export const ManageFolderModal = ({
                 wordBreak: 'break-word'
               }}
             >
-              Tem certeza que deseja excluir permanentemente a pasta <Box component='span' sx={{ fontWeight: 700 }}>"{folder?.name}"</Box>?
+              Tem certeza que deseja excluir permanentemente a pasta{' '}
+              <Box
+                component='span'
+                sx={{ fontWeight: 700 }}
+              >
+                "{folder?.name}"
+              </Box>
+              ?
             </Typography>
           </Box>
 
@@ -2098,4 +2191,3 @@ export const ManageFolderModal = ({
     </>
   );
 };
-

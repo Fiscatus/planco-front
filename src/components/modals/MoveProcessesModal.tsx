@@ -1,3 +1,4 @@
+import { DriveFileMove as DriveFileMoveIcon, Folder as FolderIcon, Search as SearchIcon } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -16,13 +17,8 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import {
-  DriveFileMove as DriveFileMoveIcon,
-  Folder as FolderIcon,
-  Search as SearchIcon
-} from '@mui/icons-material';
-import type { Folder, FilterProcessesDto, MoveProcessesDto, Process } from '@/globals/types';
 import { useCallback, useEffect, useState } from 'react';
+import type { FilterProcessesDto, Folder, MoveProcessesDto, Process } from '@/globals/types';
 import { useDebounce } from '@/hooks';
 import { useProcesses } from '@/hooks/useProcesses';
 
@@ -90,9 +86,7 @@ export const MoveProcessesModal = ({
 
   const handleToggleProcess = (processId: string) => {
     setSelectedProcesses((prev) =>
-      prev.includes(processId)
-        ? prev.filter((id) => id !== processId)
-        : [...prev, processId]
+      prev.includes(processId) ? prev.filter((id) => id !== processId) : [...prev, processId]
     );
   };
 
@@ -250,8 +244,8 @@ export const MoveProcessesModal = ({
                   }
                 }}
               >
-                <MenuItem 
-                  value='' 
+                <MenuItem
+                  value=''
                   disabled
                   sx={{
                     '&:hover': {
@@ -259,15 +253,19 @@ export const MoveProcessesModal = ({
                     }
                   }}
                 >
-                  {loadingFolders ? 'Carregando pastas...' : availableFolders.length === 0 ? 'Nenhuma pasta disponível' : 'Selecione a pasta destino...'}
+                  {loadingFolders
+                    ? 'Carregando pastas...'
+                    : availableFolders.length === 0
+                      ? 'Nenhuma pasta disponível'
+                      : 'Selecione a pasta destino...'}
                 </MenuItem>
                 {availableFolders.map((f) => {
                   const isPlanco = f.name?.toLowerCase().includes('planco');
                   const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
-                  
+
                   return (
-                    <MenuItem 
-                      key={f._id} 
+                    <MenuItem
+                      key={f._id}
                       value={f._id}
                       sx={{
                         '&.Mui-selected': {
@@ -338,40 +336,46 @@ export const MoveProcessesModal = ({
               <Table stickyHeader>
                 <TableHead>
                   <TableRow>
-                    <TableCell padding='checkbox' sx={{ backgroundColor: '#f8fafc' }}>
+                    <TableCell
+                      padding='checkbox'
+                      sx={{ backgroundColor: '#f8fafc' }}
+                    >
                       <Checkbox
                         indeterminate={selectedProcesses.length > 0 && selectedProcesses.length < processes.length}
                         checked={processes.length > 0 && selectedProcesses.length === processes.length}
                         onChange={handleSelectAll}
                       />
                     </TableCell>
-                    <TableCell sx={{ backgroundColor: '#f8fafc', fontWeight: 600 }}>
-                      Processo Nº
-                    </TableCell>
-                    <TableCell sx={{ backgroundColor: '#f8fafc', fontWeight: 600 }}>
-                      Objeto
-                    </TableCell>
-                    <TableCell sx={{ backgroundColor: '#f8fafc', fontWeight: 600 }}>
-                      Situação
-                    </TableCell>
+                    <TableCell sx={{ backgroundColor: '#f8fafc', fontWeight: 600 }}>Processo Nº</TableCell>
+                    <TableCell sx={{ backgroundColor: '#f8fafc', fontWeight: 600 }}>Objeto</TableCell>
+                    <TableCell sx={{ backgroundColor: '#f8fafc', fontWeight: 600 }}>Situação</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {loadingProcesses ? (
                     <TableRow>
-                      <TableCell colSpan={4} sx={{ textAlign: 'center', py: 4 }}>
+                      <TableCell
+                        colSpan={4}
+                        sx={{ textAlign: 'center', py: 4 }}
+                      >
                         Carregando processos...
                       </TableCell>
                     </TableRow>
                   ) : processes.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} sx={{ textAlign: 'center', py: 4 }}>
+                      <TableCell
+                        colSpan={4}
+                        sx={{ textAlign: 'center', py: 4 }}
+                      >
                         Nenhum processo encontrado
                       </TableCell>
                     </TableRow>
                   ) : (
                     processes.map((process) => (
-                      <TableRow key={process._id} hover>
+                      <TableRow
+                        key={process._id}
+                        hover
+                      >
                         <TableCell padding='checkbox'>
                           <Checkbox
                             checked={selectedProcesses.includes(process._id)}
@@ -448,4 +452,3 @@ export const MoveProcessesModal = ({
     </Dialog>
   );
 };
-

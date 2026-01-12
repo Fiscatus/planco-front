@@ -1,4 +1,15 @@
-import { useAccessControl, useAuth } from '@/hooks';
+import {
+  Assignment,
+  AssignmentTurnedIn,
+  BarChart,
+  Business,
+  Close,
+  FolderOpen,
+  Gavel,
+  Home,
+  Settings,
+  Shield
+} from '@mui/icons-material';
 import {
   Box,
   Drawer,
@@ -10,11 +21,10 @@ import {
   ListItemText,
   Typography
 } from '@mui/material';
-import { Assignment, AssignmentTurnedIn, BarChart, Business, Close, FolderOpen, Gavel, Home, Settings, Shield } from '@mui/icons-material';
 import { type ReactNode, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-
 import { version } from '@/../package.json';
+import { useAccessControl } from '@/hooks';
 
 import logo from '/assets/isologo.svg';
 
@@ -85,8 +95,6 @@ const modules: Module[] = [
 const Sidebar = ({ open, onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const { user } = useAuth();
   const { canAccessAdmin, isAdminOnly } = useAccessControl();
 
   useEffect(() => {
@@ -131,14 +139,14 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <img 
-            src={logo} 
-            alt="Planco Logo" 
-            style={{ 
-              width: '30px', 
+          <img
+            src={logo}
+            alt='Planco Logo'
+            style={{
+              width: '30px',
               height: '30px',
               objectFit: 'contain'
-            }} 
+            }}
           />
           <Typography
             variant='h6'
