@@ -1,47 +1,74 @@
 import { useCallback } from 'react';
 import { api } from '@/services';
 
-export type FlowModelStage = {
-  order: number;
-  name: string;
-  description?: string;
-  departmentId?: string;
-  departmentName?: string;
-  durationDays?: number;
-  components: FlowModelComponent[];
-};
+/**
+ * Tipos alinhados ao backend (FlowModel schema + DTOs)
+ */
+
+export type ComponentType =
+  | 'SIGNATURE'
+  | 'COMMENTS'
+  | 'FORM'
+  | 'APPROVAL'
+  | 'FILES_MANAGMENT'
+  | 'STAGE_PANEL'
+  | 'TIMELINE'
+  | 'FILE_VIEWER';
 
 export type FlowModelComponent = {
   order: number;
-  type: string;
+  type: ComponentType;
+  key: string;
+  label: string;
+  description?: string;
+  required: boolean;
+  config?: Record<string, any>;
+  visibilityRoles?: string[]; // backend usa ObjectId; no front tratamos como string
+  editableRoles?: string[];
+  lockedAfterCompletion?: boolean;
+};
+
+export type FlowModelStage = {
+  stageId: string;
+  order: number;
   name: string;
   description?: string;
-  required?: boolean;
-  data?: Record<string, any>;
+  components: FlowModelComponent[];
+  requiresApproval: boolean;
+  approverRoles?: string[];
+  approverDepartments?: string[];
+  canRepeat?: boolean;
+  repeatCondition?: string;
+  visibilityCondition?: string;
 };
 
 export type FlowModel = {
   _id: string;
   name: string;
   description?: string;
-  isActive: boolean;
-  isDefaultPlanco?: boolean;
-  stages?: FlowModelStage[];
   org?: string;
+  stages: FlowModelStage[];
+  isActive: boolean;
+  isDefaultPlanco: boolean;
+  isPublicTemplate?: boolean;
+  tags?: string[];
   createdBy?: {
     _id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
   };
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
 };
 
 export type CreateFlowModelDto = {
   name: string;
   description?: string;
-  stages?: FlowModelStage[];
+  stages: FlowModelStage[];
+  isActive?: boolean;
+  isPublicTemplate?: boolean;
+  tags?: string[];
 };
 
 export type UpdateFlowModelDto = {
@@ -49,152 +76,82 @@ export type UpdateFlowModelDto = {
   description?: string;
   stages?: FlowModelStage[];
   isActive?: boolean;
+  tags?: string[];
 };
 
 export const useFlowModels = () => {
   /**
-   * Listar modelos de fluxo da organização
-   * @param isActive - Filtrar por status ativo (opcional)
-   * @returns Promise<FlowModel[]> - Array de modelos de fluxo
+   * GET /flow-models?isActive=true|false
    */
-  const fetchFlowModels = useCallback(
-    async (isActive?: boolean): Promise<FlowModel[]> => {
-      try {
-        const params: { isActive?: boolean } = {};
-        if (isActive !== undefined) {
-          params.isActive = isActive;
-        }
+  const fetchFlowModels = useCallback(async (isActive?: boolean): Promise<FlowModel[]> => {
+    const params: { isActive?: boolean } = {};
+    if (isActive !== undefined) params.isActive = isActive;
 
-        const response = await api.get<FlowModel[]>('/flows/models', { params });
-
-        return Array.isArray(response.data) ? response.data : [];
-      } catch (error: any) {
-        console.error('Erro ao buscar modelos de fluxo:', error);
-        throw error;
-      }
-    },
-    []
-  );
+    const response = await api.get<FlowModel[]>('/flow-models', { params });
+    return Array.isArray(response.data) ? response.data : [];
+  }, []);
 
   /**
-   * Buscar modelo de fluxo por ID
-   * @param id - ID do modelo
-   * @returns Promise<FlowModel> - Dados do modelo
+   * GET /flow-models/:id
    */
-  const findFlowModelById = useCallback(
-    async (id: string): Promise<FlowModel> => {
-      try {
-        const response = await api.get<FlowModel>(`/flows/models/${id}`);
+  const findFlowModelById = useCallback(async (id: string): Promise<FlowModel> => {
+    const response = await api.get<FlowModel>(`/flow-models/${id}`);
 
-        if (!response.data) {
-          throw new Error('Resposta da API vazia ao buscar modelo de fluxo');
-        }
+    if (!response.data) {
+      throw new Error('Resposta da API vazia ao buscar modelo de fluxo');
+    }
 
-        return response.data;
-      } catch (error: any) {
-        console.error('Erro ao buscar modelo de fluxo:', error);
-        throw error;
-      }
-    },
-    []
-  );
+    return response.data;
+  }, []);
 
   /**
-   * Criar um novo modelo de fluxo
-   * @param data - Dados do modelo para criar
-   * @returns Promise<FlowModel> - Modelo criado
+   * POST /flow-models
    */
-  const createFlowModel = useCallback(
-    async (data: CreateFlowModelDto): Promise<FlowModel> => {
-      try {
-        const response = await api.post<FlowModel>('/flows/models', data);
+  const createFlowModel = useCallback(async (data: CreateFlowModelDto): Promise<FlowModel> => {
+    const response = await api.post<FlowModel>('/flow-models', data);
 
-        if (!response.data) {
-          throw new Error('Resposta da API vazia ao criar modelo de fluxo');
-        }
+    if (!response.data) {
+      throw new Error('Resposta da API vazia ao criar modelo de fluxo');
+    }
 
-        return response.data;
-      } catch (error: any) {
-        console.error('Erro ao criar modelo de fluxo:', error);
-        throw error;
-      }
-    },
-    []
-  );
+    return response.data;
+  }, []);
 
   /**
-   * Atualizar modelo de fluxo
-   * @param id - ID do modelo
-   * @param data - Dados para atualizar
-   * @returns Promise<FlowModel> - Modelo atualizado
+   * PUT /flow-models/:id
    */
-  const updateFlowModel = useCallback(
-    async (id: string, data: UpdateFlowModelDto): Promise<FlowModel> => {
-      try {
-        const response = await api.put<FlowModel>(`/flows/models/${id}`, data);
+  const updateFlowModel = useCallback(async (id: string, data: UpdateFlowModelDto): Promise<FlowModel> => {
+    const response = await api.put<FlowModel>(`/flow-models/${id}`, data);
 
-        if (!response.data) {
-          throw new Error('Resposta da API vazia ao atualizar modelo de fluxo');
-        }
+    if (!response.data) {
+      throw new Error('Resposta da API vazia ao atualizar modelo de fluxo');
+    }
 
-        return response.data;
-      } catch (error: any) {
-        console.error('Erro ao atualizar modelo de fluxo:', error);
-        throw error;
-      }
-    },
-    []
-  );
+    return response.data;
+  }, []);
 
   /**
-   * Deletar modelo de fluxo
-   * @param id - ID do modelo
-   * @returns Promise<{ message: string }> - Mensagem de sucesso
+   * DELETE /flow-models/:id
    */
-  const deleteFlowModel = useCallback(
-    async (id: string): Promise<{ message: string }> => {
-      try {
-        const response = await api.delete<{ message: string }>(`/flows/models/${id}`);
-        return response.data;
-      } catch (error: any) {
-        console.error('Erro ao deletar modelo de fluxo:', error);
-        throw error;
-      }
-    },
-    []
-  );
+  const deleteFlowModel = useCallback(async (id: string): Promise<any> => {
+    const response = await api.delete<any>(`/flow-models/${id}`);
+    return response.data;
+  }, []);
 
   /**
-   * Duplicar modelo de fluxo
-   * @param id - ID do modelo a ser duplicado
-   * @returns Promise<FlowModel> - Modelo duplicado
+   * ⚠️ ATENÇÃO:
+   * No controller que você mandou NÃO existe endpoint de duplicar.
+   * Então removi o método para não dar 404 no frontend.
+   *
+   * Se o seu dev tiver criado outro endpoint (ex: POST /flow-models/:id/duplicate),
+   * você me manda o controller/rota e eu recoloco.
    */
-  const duplicateFlowModel = useCallback(
-    async (id: string): Promise<FlowModel> => {
-      try {
-        const response = await api.post<FlowModel>(`/flows/models/${id}/duplicate`);
-
-        if (!response.data) {
-          throw new Error('Resposta da API vazia ao duplicar modelo de fluxo');
-        }
-
-        return response.data;
-      } catch (error: any) {
-        console.error('Erro ao duplicar modelo de fluxo:', error);
-        throw error;
-      }
-    },
-    []
-  );
 
   return {
     fetchFlowModels,
     findFlowModelById,
     createFlowModel,
     updateFlowModel,
-    deleteFlowModel,
-    duplicateFlowModel
+    deleteFlowModel
   };
 };
-
-
