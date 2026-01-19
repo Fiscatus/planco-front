@@ -27,20 +27,33 @@ import { useFlowModels, useSearchWithDebounce, useAuth } from "@/hooks";
 import type {
   CreateFlowModelDto,
   UpdateFlowModelDto,
+  FlowModel,
+  FlowModelStage,
 } from "@/hooks/useFlowModels";
 import { Breadcrumbs } from "@/components";
 import { CreateFlowModelModal } from "./components/CreateFlowModelModal";
 import { FlowModelCard } from "./components/FlowModelCard";
 import { StageCard } from "./components/StageCard";
-import type { FlowModel } from "@/hooks/useFlowModels";
+import { EditStageModal } from "./components/EditStageModal";
+import { CreateStageModal } from "./components/CreateStageModal";
+
+// ✅ FAVORITOS (Modelos de Fluxo)
+import { useFavoriteFlowModels } from "@/hooks/useFavoriteFlowModels";
 
 type TabValue = "all" | "system" | "mine";
+
+function deepClone<T>(v: T): T {
+  return JSON.parse(JSON.stringify(v)) as T;
+}
 
 const FlowModelsPage = () => {
   const { showNotification } = useNotification();
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [urlParams, setUrlParams] = useSearchParams();
+
+  // ✅ FAVORITOS
+  const { isFavorite } = useFavoriteFlowModels();
 
   const {
     fetchFlowModels,
@@ -56,10 +69,24 @@ const FlowModelsPage = () => {
   const [selectedModelId, setSelectedModelId] = useState<string | null>(
     urlParams.get("modelId") || null,
   );
+
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [menuModelId, setMenuModelId] = useState<string | null>(null);
+
+  // edição de etapa
+  const [editStageOpen, setEditStageOpen] = useState(false);
+  const [editingStageId, setEditingStageId] = useState<string | null>(null);
+  const [editingStageOriginalId, setEditingStageOriginalId] = useState<
+    string | null
+  >(null);
+
+  // criação de etapa
+  const [createStageOpen, setCreateStageOpen] = useState(false);
+
+  // edição do fluxo (draft)
   const [isEditMode, setIsEditMode] = useState(false);
+  const [draftStages, setDraftStages] = useState<FlowModelStage[] | null>(null);
 
   const {
     search: modelSearch,
@@ -75,23 +102,22 @@ const FlowModelsPage = () => {
   } = useQuery({
     queryKey: ["fetchFlowModels"],
     queryFn: async () => {
-      // Por enquanto, sem filtro ativo/inativo na UI
       return await fetchFlowModels(undefined);
     },
     refetchOnWindowFocus: false,
   });
 
   // Buscar modelo selecionado
-const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowModel | null>({
-  queryKey: ["findFlowModelById", selectedModelId],
-  queryFn: async () => {
-    if (!selectedModelId) return null;
-    return await findFlowModelById(selectedModelId);
-  },
-  enabled: !!selectedModelId,
-  refetchOnWindowFocus: false,
-});
-
+  const { data: selectedModel, isLoading: selectedModelLoading } =
+    useQuery<FlowModel | null>({
+      queryKey: ["findFlowModelById", selectedModelId],
+      queryFn: async () => {
+        if (!selectedModelId) return null;
+        return await findFlowModelById(selectedModelId);
+      },
+      enabled: !!selectedModelId,
+      refetchOnWindowFocus: false,
+    });
 
   // Filtrar modelos por busca e tab
   const filteredModels = useMemo(() => {
@@ -118,7 +144,6 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
         filtered = filtered.filter((model) => {
           if (model.isDefaultPlanco === true) return false;
 
-          // createdBy pode vir como string ou objeto (dependendo do populate no backend)
           const createdById =
             typeof (model as any).createdBy === "string"
               ? (model as any).createdBy
@@ -136,14 +161,50 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
     return filtered;
   }, [flowModels, debouncedModelSearch, selectedTab, user?._id]);
 
+  // ✅ Ordenar:
+  // 1) Sistema (fixado) sempre no topo
+  // 2) Favoritos (somente não-sistema)
+  // 3) Restante por nome (estável)
+  const sortedFilteredModels = useMemo(() => {
+    const copy = filteredModels.slice();
+
+    copy.sort((a, b) => {
+      const aSystem = a.isDefaultPlanco === true ? 1 : 0;
+      const bSystem = b.isDefaultPlanco === true ? 1 : 0;
+      if (bSystem !== aSystem) return bSystem - aSystem;
+
+      const aFav = !aSystem && isFavorite(a._id) ? 1 : 0;
+      const bFav = !bSystem && isFavorite(b._id) ? 1 : 0;
+      if (bFav !== aFav) return bFav - aFav;
+
+      return String(a.name || "").localeCompare(String(b.name || ""), "pt-BR", {
+        sensitivity: "base",
+      });
+    });
+
+    return copy;
+  }, [filteredModels, isFavorite]);
+
+  // Stages a renderizar (view = selectedModel.stages; edit = draftStages)
+  const stagesToRender = useMemo(() => {
+    if (!selectedModel) return [];
+    if (isEditMode) return draftStages || [];
+    return selectedModel.stages || [];
+  }, [selectedModel, isEditMode, draftStages]);
+
   // Total de componentes no modelo
   const totalComponents = useMemo(() => {
-    if (!selectedModel?.stages?.length) return 0;
-    return selectedModel.stages.reduce(
-      (acc: number, stage: any) => acc + (stage.components?.length || 0),
+    const baseStages = isEditMode
+      ? draftStages || []
+      : selectedModel?.stages || [];
+    if (!baseStages.length) return 0;
+
+    return baseStages.reduce(
+      (acc: number, stage: FlowModelStage) =>
+        acc + (stage.components?.length || 0),
       0,
     );
-  }, [selectedModel]);
+  }, [selectedModel?.stages, isEditMode, draftStages]);
 
   // Criar modelo
   const { mutate: createModelMutation, isPending: creatingModel } = useMutation(
@@ -155,6 +216,10 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
         queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
         showNotification("Modelo criado com sucesso!", "success");
         setCreateModalOpen(false);
+
+        setIsEditMode(false);
+        setDraftStages(null);
+
         setSelectedModelId(newModel._id);
 
         const newParams = new URLSearchParams();
@@ -165,7 +230,9 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
       },
       onError: (error: any) => {
         showNotification(
-          error?.response?.data?.message || "Erro ao criar modelo",
+          error?.message ||
+            error?.response?.data?.message ||
+            "Erro ao criar modelo",
           "error",
         );
       },
@@ -173,30 +240,37 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
   );
 
   // Atualizar modelo
-  const { isPending: updatingModel } = useMutation({
-    mutationFn: async ({
-      id,
-      data,
-    }: {
-      id: string;
-      data: UpdateFlowModelDto;
-    }) => {
-      return await updateFlowModel(id, data);
+  const { mutate: updateModelMutation, isPending: updatingModel } = useMutation(
+    {
+      mutationFn: async ({
+        id,
+        data,
+      }: {
+        id: string;
+        data: UpdateFlowModelDto;
+      }) => {
+        return await updateFlowModel(id, data);
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
+        queryClient.invalidateQueries({
+          queryKey: ["findFlowModelById", selectedModelId],
+        });
+
+        showNotification("Modelo atualizado com sucesso!", "success");
+        setIsEditMode(false);
+        setDraftStages(null);
+      },
+      onError: (error: any) => {
+        showNotification(
+          error?.message ||
+            error?.response?.data?.message ||
+            "Erro ao atualizar modelo",
+          "error",
+        );
+      },
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
-      queryClient.invalidateQueries({
-        queryKey: ["findFlowModelById", selectedModelId],
-      });
-      showNotification("Modelo atualizado com sucesso!", "success");
-    },
-    onError: (error: any) => {
-      showNotification(
-        error?.response?.data?.message || "Erro ao atualizar modelo",
-        "error",
-      );
-    },
-  });
+  );
 
   // Deletar modelo
   const { mutate: deleteModelMutation, isPending: deletingModel } = useMutation(
@@ -211,6 +285,9 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
         if (selectedModelId === menuModelId) {
           setSelectedModelId(null);
 
+          setIsEditMode(false);
+          setDraftStages(null);
+
           const newParams = new URLSearchParams(urlParams);
           newParams.delete("modelId");
           newParams.set("tab", selectedTab);
@@ -219,7 +296,9 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
       },
       onError: (error: any) => {
         showNotification(
-          error?.response?.data?.message || "Erro ao excluir modelo",
+          error?.message ||
+            error?.response?.data?.message ||
+            "Erro ao excluir modelo",
           "error",
         );
       },
@@ -240,6 +319,10 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
   const handleModelClick = useCallback(
     (modelId: string) => {
       setSelectedModelId(modelId);
+
+      setIsEditMode(false);
+      setDraftStages(null);
+
       const newParams = new URLSearchParams(urlParams);
       newParams.set("modelId", modelId);
       newParams.set("tab", selectedTab);
@@ -251,7 +334,7 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
   const handleMenuOpen = useCallback(
     (event: React.MouseEvent<HTMLElement>, modelId: string) => {
       const model = flowModels.find((m) => m._id === modelId);
-      if (model?.isDefaultPlanco === true) return; // bloquear menu em modelos do sistema
+      if (model?.isDefaultPlanco === true) return;
       setAnchorEl(event.currentTarget);
       setMenuModelId(modelId);
     },
@@ -273,8 +356,10 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
   }, [menuModelId, deleteModelMutation, handleMenuClose]);
 
   const handleEditFlow = useCallback(() => {
+    if (!selectedModel) return;
+    setDraftStages(deepClone(selectedModel.stages || []));
     setIsEditMode(true);
-  }, []);
+  }, [selectedModel]);
 
   const handleRevert = useCallback(() => {
     if (selectedModelId) {
@@ -282,20 +367,67 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
         queryKey: ["findFlowModelById", selectedModelId],
       });
       showNotification("Alterações revertidas", "info");
+      setDraftStages(null);
       setIsEditMode(false);
     }
   }, [selectedModelId, queryClient, showNotification]);
 
   const handleSave = useCallback(() => {
-    if (!selectedModelId || !selectedModel) return;
-    // Aqui entra a lógica real de salvar quando formos editar stages/components
-    showNotification("Alterações salvas com sucesso!", "success");
-    setIsEditMode(false);
-  }, [selectedModelId, selectedModel, showNotification]);
+    if (!selectedModelId) return;
+    if (!draftStages) {
+      showNotification("Nada para salvar.", "info");
+      setIsEditMode(false);
+      return;
+    }
+
+    const stageIds = draftStages.map((s) => s.stageId);
+    if (stageIds.length !== new Set(stageIds).size) {
+      showNotification("Existem etapas com stageId repetido.", "error");
+      return;
+    }
+
+    const stageOrders = draftStages.map((s) => s.order);
+    if (stageOrders.length !== new Set(stageOrders).size) {
+      showNotification("Existem etapas com order repetido.", "error");
+      return;
+    }
+
+    for (const st of draftStages) {
+      const keys = (st.components || []).map((c) => c.key);
+      if (keys.length !== new Set(keys).size) {
+        showNotification(
+          `Etapa "${st.name}": existe componente com key repetida.`,
+          "error",
+        );
+        return;
+      }
+
+      const compOrders = (st.components || []).map((c) => c.order);
+      if (compOrders.length !== new Set(compOrders).size) {
+        showNotification(
+          `Etapa "${st.name}": existe componente com order repetida.`,
+          "error",
+        );
+        return;
+      }
+    }
+
+    updateModelMutation({
+      id: selectedModelId,
+      data: { stages: draftStages },
+    });
+  }, [selectedModelId, draftStages, updateModelMutation, showNotification]);
 
   const handleCreateCard = useCallback(() => {
-    showNotification("Funcionalidade de criar card em desenvolvimento", "info");
-  }, [showNotification]);
+    if (!isEditMode) {
+      showNotification(
+        "Clique em “Editar Fluxo” para adicionar etapas.",
+        "info",
+      );
+      return;
+    }
+    setCreateStageOpen(true);
+  }, [isEditMode, showNotification]);
 
   const handleReorderCards = useCallback(() => {
     showNotification(
@@ -304,26 +436,175 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
     );
   }, [showNotification]);
 
-  const handleViewDetails = useCallback(
-    (stageOrder: number) => {
+  const handleViewDetails = useCallback((stageId: string) => {
+    setEditingStageId(stageId);
+    setEditingStageOriginalId(stageId);
+    setEditStageOpen(true);
+  }, []);
+
+  const handleCloseEditStageModal = useCallback(() => {
+    setEditStageOpen(false);
+    setEditingStageId(null);
+    setEditingStageOriginalId(null);
+  }, []);
+
+  const handleSaveStageInDraft = useCallback(
+    (updatedStage: FlowModelStage) => {
+      if (!isEditMode) return;
+
+      setDraftStages((prev) => {
+        const base = prev ? prev.slice() : [];
+
+        const originalId = editingStageOriginalId || updatedStage.stageId;
+        const idx = base.findIndex((s) => s.stageId === originalId);
+
+        const stageIdAlreadyExists = base.some(
+          (s, i) => i !== idx && s.stageId === updatedStage.stageId,
+        );
+        if (stageIdAlreadyExists) {
+          showNotification("Já existe uma etapa com esse stageId.", "error");
+          return prev;
+        }
+
+        const orderAlreadyExists = base.some(
+          (s, i) => i !== idx && s.order === updatedStage.order,
+        );
+        if (orderAlreadyExists) {
+          showNotification(
+            "Já existe uma etapa com essa ordem (order).",
+            "error",
+          );
+          return prev;
+        }
+
+        if (idx === -1) {
+          return [...base, updatedStage];
+        }
+
+        base[idx] = updatedStage;
+        return base;
+      });
+
       showNotification(
-        `Visualizar detalhes da etapa ${stageOrder} em desenvolvimento`,
+        "Etapa atualizada no rascunho. Clique em Salvar para enviar ao backend.",
+        "success",
+      );
+    },
+    [isEditMode, showNotification, editingStageOriginalId],
+  );
+
+  const normalizeOrders = useCallback((stages: FlowModelStage[]) => {
+    return stages
+      .slice()
+      .sort((a, b) => a.order - b.order)
+      .map((s, idx) => ({ ...s, order: idx + 1 }));
+  }, []);
+
+  const handleDeleteStage = useCallback(
+    (stageId: string) => {
+      if (!isEditMode) return;
+
+      setDraftStages((prev) => {
+        const arr = prev ? prev.slice() : [];
+        const next = arr.filter((s) => s.stageId !== stageId);
+        return normalizeOrders(next);
+      });
+
+      showNotification(
+        "Etapa removida do rascunho. Clique em Salvar para aplicar.",
         "info",
       );
     },
-    [showNotification],
+    [isEditMode, normalizeOrders, showNotification],
+  );
+
+  const handleMoveStage = useCallback(
+    (stageId: string, direction: "up" | "down") => {
+      if (!isEditMode) return;
+
+      setDraftStages((prev) => {
+        const arr = prev ? prev.slice().sort((a, b) => a.order - b.order) : [];
+        const index = arr.findIndex((s) => s.stageId === stageId);
+        if (index < 0) return prev;
+
+        const targetIndex = direction === "up" ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= arr.length) return prev;
+
+        const tmp = arr[index];
+        arr[index] = arr[targetIndex];
+        arr[targetIndex] = tmp;
+
+        return normalizeOrders(arr);
+      });
+    },
+    [isEditMode, normalizeOrders],
+  );
+
+  const handleEditStage = useCallback(
+    (stage: FlowModelStage) => {
+      if (!isEditMode) return;
+      setEditingStageId(stage.stageId);
+      setEditingStageOriginalId(stage.stageId);
+      setEditStageOpen(true);
+    },
+    [isEditMode],
+  );
+
+  const handleCreateStage = useCallback(
+    (newStage: FlowModelStage) => {
+      if (!isEditMode) return;
+
+      setDraftStages((prev) => {
+        const base = prev ? prev.slice() : [];
+
+        const stageIds = base.map((s) => s.stageId);
+        if (stageIds.includes(newStage.stageId)) {
+          showNotification("Já existe uma etapa com esse stageId.", "error");
+          return prev;
+        }
+
+        const stageOrders = base.map((s) => s.order);
+        if (stageOrders.includes(newStage.order)) {
+          showNotification(
+            "Já existe uma etapa com essa ordem (order).",
+            "error",
+          );
+          return prev;
+        }
+
+        return [...base, newStage];
+      });
+
+      setCreateStageOpen(false);
+
+      showNotification(
+        "Etapa criada no rascunho. Clique em Salvar para enviar ao backend.",
+        "success",
+      );
+    },
+    [isEditMode, showNotification],
   );
 
   // Selecionar primeiro modelo se nenhum estiver selecionado
   useEffect(() => {
-    if (!selectedModelId && filteredModels.length > 0) {
-      const firstModel = filteredModels[0];
+    if (!selectedModelId && sortedFilteredModels.length > 0) {
+      const firstModel = sortedFilteredModels[0];
+
+      setIsEditMode(false);
+      setDraftStages(null);
+
       const newParams = new URLSearchParams(urlParams);
       newParams.set("modelId", firstModel._id);
       newParams.set("tab", selectedTab);
       setUrlParams(newParams, { replace: true });
     }
-  }, [selectedModelId, filteredModels, urlParams, selectedTab, setUrlParams]);
+  }, [
+    selectedModelId,
+    sortedFilteredModels,
+    urlParams,
+    selectedTab,
+    setUrlParams,
+  ]);
 
   return (
     <Box
@@ -368,7 +649,11 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
             <Box>
               <Typography
                 variant="h5"
-                sx={{ fontWeight: 700, color: "#212121", fontSize: "1.375rem" }}
+                sx={{
+                  fontWeight: 700,
+                  color: "#212121",
+                  fontSize: "1.375rem",
+                }}
               >
                 Modelos
               </Typography>
@@ -387,7 +672,6 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
             </IconButton>
           </Box>
 
-          {/* Botões */}
           <Box
             sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 2.5 }}
           >
@@ -411,7 +695,6 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
             </Button>
           </Box>
 
-          {/* Busca */}
           <TextField
             fullWidth
             placeholder="Buscar modelos..."
@@ -442,7 +725,6 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
             }}
           />
 
-          {/* Tabs */}
           <Tabs
             value={selectedTab}
             onChange={handleTabChange}
@@ -482,7 +764,7 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
             >
               Erro ao carregar modelos
             </Typography>
-          ) : filteredModels.length === 0 ? (
+          ) : sortedFilteredModels.length === 0 ? (
             <Typography
               variant="body2"
               sx={{ textAlign: "center", py: 4, color: "#616161" }}
@@ -491,7 +773,7 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
             </Typography>
           ) : (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-              {filteredModels.map((model) => (
+              {sortedFilteredModels.map((model) => (
                 <FlowModelCard
                   key={model._id}
                   model={model}
@@ -577,11 +859,7 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
 
                       <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
                         <Chip
-                          label={
-                            selectedModel.isDefaultPlanco
-                              ? "Sistema"
-                              : "Pessoal"
-                          }
+                          label={selectedModel.isDefaultPlanco ? "Sistema" : "Pessoal"}
                           size="small"
                           sx={{
                             bgcolor: "#F0F2F5",
@@ -592,11 +870,7 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
                           }}
                         />
                         <Chip
-                          icon={
-                            <LayersIcon
-                              sx={{ fontSize: 14, color: "#1877F2" }}
-                            />
-                          }
+                          icon={<LayersIcon sx={{ fontSize: 14, color: "#1877F2" }} />}
                           label={`${selectedModel.stages?.length || 0} Etapas`}
                           size="small"
                           sx={{
@@ -609,11 +883,7 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
                           }}
                         />
                         <Chip
-                          icon={
-                            <LayersIcon
-                              sx={{ fontSize: 14, color: "#1877F2" }}
-                            />
-                          }
+                          icon={<LayersIcon sx={{ fontSize: 14, color: "#1877F2" }} />}
                           label={`${totalComponents} Componentes`}
                           size="small"
                           sx={{
@@ -629,14 +899,13 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
                     </Box>
 
                     {!isDefaultPlanco && (
-                      <Box
-                        sx={{ display: "flex", gap: 1.5, alignItems: "center" }}
-                      >
+                      <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
                         {isEditMode ? (
                           <>
                             <Button
                               variant="text"
                               onClick={handleRevert}
+                              disabled={updatingModel}
                               sx={{
                                 textTransform: "none",
                                 fontWeight: 600,
@@ -662,10 +931,7 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
                               }}
                             >
                               {updatingModel ? (
-                                <CircularProgress
-                                  size={20}
-                                  sx={{ color: "#fff" }}
-                                />
+                                <CircularProgress size={20} sx={{ color: "#fff" }} />
                               ) : (
                                 "Salvar"
                               )}
@@ -747,7 +1013,7 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
 
             {/* Cards de etapas */}
             <Box sx={{ flex: 1, overflow: "auto", p: 4, bgcolor: "#f4f6f8" }}>
-              {selectedModel.stages && selectedModel.stages.length > 0 ? (
+              {stagesToRender && stagesToRender.length > 0 ? (
                 <Box
                   sx={{
                     display: "grid",
@@ -760,14 +1026,20 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
                     gap: 3,
                   }}
                 >
-                  {selectedModel.stages
+                  {stagesToRender
                     .slice()
                     .sort((a, b) => a.order - b.order)
-                    .map((stage) => (
+                    .map((stage, idx, arr) => (
                       <StageCard
                         key={stage.stageId || String(stage.order)}
                         stage={stage}
-                        onViewDetails={() => handleViewDetails(stage.order)}
+                        onViewDetails={() => handleViewDetails(stage.stageId)}
+                        isEditMode={isEditMode}
+                        onEditStage={handleEditStage}
+                        onDeleteStage={handleDeleteStage}
+                        onMoveStage={handleMoveStage}
+                        isFirst={idx === 0}
+                        isLast={idx === arr.length - 1}
                       />
                     ))}
                 </Box>
@@ -792,8 +1064,7 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
                     Nenhuma etapa cadastrada
                   </Typography>
                   <Typography variant="body2" sx={{ color: "#616161" }}>
-                    Clique em "Criar Card" para adicionar uma nova etapa ao
-                    modelo
+                    Clique em "Criar Card" para adicionar uma nova etapa ao modelo
                   </Typography>
                 </Box>
               )}
@@ -849,12 +1120,33 @@ const { data: selectedModel, isLoading: selectedModelLoading } = useQuery<FlowMo
           })()}
       </Menu>
 
-      {/* Modal criar */}
+      {/* Modal criar modelo */}
       <CreateFlowModelModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onSave={(data) => createModelMutation(data)}
         loading={creatingModel}
+      />
+
+      {/* Modal editar etapa */}
+      <EditStageModal
+        open={editStageOpen}
+        onClose={handleCloseEditStageModal}
+        stage={
+          editingStageId
+            ? stagesToRender.find((s) => s.stageId === editingStageId) || null
+            : null
+        }
+        onSaveStage={handleSaveStageInDraft}
+        editable={!selectedModel?.isDefaultPlanco && isEditMode}
+      />
+
+      {/* Modal criar etapa */}
+      <CreateStageModal
+        open={createStageOpen}
+        existingStages={stagesToRender || []}
+        onClose={() => setCreateStageOpen(false)}
+        onCreate={handleCreateStage}
       />
     </Box>
   );

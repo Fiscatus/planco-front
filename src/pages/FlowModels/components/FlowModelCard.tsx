@@ -1,10 +1,18 @@
-import React from "react";
-import { Box, Card, Typography, IconButton, Chip } from "@mui/material";
-import { MoreVert as MoreVertIcon, Star as StarIcon } from "@mui/icons-material";
+import React, { useCallback } from "react";
+import { Box, Card, Typography, IconButton, Chip, Tooltip } from "@mui/material";
+import {
+  MoreVert as MoreVertIcon,
+  PushPin as PushPinIcon,
+  Star as StarIcon,
+  StarBorder as StarBorderIcon,
+} from "@mui/icons-material";
 import type { FlowModel } from "@/hooks/useFlowModels";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/pt-br";
+
+// ✅ FAVORITOS (Modelos)
+import { useFavoriteFlowModels } from "@/hooks/useFavoriteFlowModels";
 
 dayjs.extend(relativeTime);
 dayjs.locale("pt-br");
@@ -24,7 +32,11 @@ export const FlowModelCard = ({
   onMenuClick,
   hideMenu = false,
 }: FlowModelCardProps) => {
-  // ✅ Aceita string ou Date (resolve o erro do TS)
+  const { isFavorite, toggleFavorite } = useFavoriteFlowModels();
+
+  const isSystem = model.isDefaultPlanco === true;
+  const isModelFavorite = !isSystem ? isFavorite(model._id) : false;
+
   const getTimeAgo = (date?: string | Date) => {
     if (!date) return "";
     return dayjs(date).fromNow();
@@ -32,6 +44,15 @@ export const FlowModelCard = ({
 
   const stageCount = model.stages?.length || 0;
   const timeAgo = getTimeAgo((model.updatedAt as any) || (model.createdAt as any));
+
+  const handleFavoriteClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      if (isSystem) return; // ✅ sistema não favorita
+      toggleFavorite(model._id);
+    },
+    [toggleFavorite, model._id, isSystem],
+  );
 
   return (
     <Card
@@ -55,7 +76,15 @@ export const FlowModelCard = ({
         },
       }}
     >
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+          mb: 1,
+          gap: 1,
+        }}
+      >
         <Typography
           variant="subtitle1"
           sx={{
@@ -68,23 +97,85 @@ export const FlowModelCard = ({
           {model.name}
         </Typography>
 
-        {!hideMenu && (
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              onMenuClick(e);
-            }}
-            sx={{ color: "text.secondary" }}
-          >
-            <MoreVertIcon fontSize="small" />
-          </IconButton>
-        )}
+        {/* ✅ Indicadores (igual pasta): sistema = fixado; pessoal = favoritos */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+          {isSystem ? (
+            <Tooltip title="Modelo Padrão do Sistema">
+              <IconButton
+                size="small"
+                sx={{
+                  color: "#1877F2",
+                  cursor: "default",
+                  padding: 0.75,
+                  minWidth: "auto",
+                  width: { xs: 32, sm: 36 },
+                  height: { xs: 32, sm: 36 },
+                  "&:hover": { backgroundColor: "transparent" },
+                }}
+              >
+                <PushPinIcon sx={{ fontSize: { xs: 20, sm: 22 } }} />
+              </IconButton>
+            </Tooltip>
+          ) : (
+            <Tooltip
+              title={isModelFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+            >
+              <IconButton
+                onClick={handleFavoriteClick}
+                size="small"
+                sx={{
+                  padding: 0.75,
+                  minWidth: "auto",
+                  width: { xs: 32, sm: 36 },
+                  height: { xs: 32, sm: 36 },
+                  color: isModelFavorite ? "#fbbf24" : "#94a3b8",
+                  "&:hover": {
+                    backgroundColor: "transparent",
+                    color: "#fbbf24",
+                  },
+                  transition: "all 0.2s ease-in-out",
+                }}
+              >
+                {isModelFavorite ? (
+                  <StarIcon
+                    sx={{
+                      fontSize: { xs: 20, sm: 22 },
+                      color: "#fbbf24",
+                      transition: "all 0.2s ease-in-out",
+                    }}
+                  />
+                ) : (
+                  <StarBorderIcon
+                    sx={{
+                      fontSize: { xs: 20, sm: 22 },
+                      color: "#94a3b8",
+                      transition: "all 0.2s ease-in-out",
+                    }}
+                  />
+                )}
+              </IconButton>
+            </Tooltip>
+          )}
+
+          {/* Menu (não aparece em modelo do sistema) */}
+          {!hideMenu && (
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onMenuClick(e);
+              }}
+              sx={{ color: "text.secondary" }}
+            >
+              <MoreVertIcon fontSize="small" />
+            </IconButton>
+          )}
+        </Box>
       </Box>
 
       <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 1, flexWrap: "wrap" }}>
         <Chip
-          label={model.isDefaultPlanco ? "Sistema" : "Pessoal"}
+          label={isSystem ? "Sistema" : "Pessoal"}
           size="small"
           sx={{
             height: 22,
@@ -94,8 +185,6 @@ export const FlowModelCard = ({
             fontWeight: 600,
           }}
         />
-
-        {model.isDefaultPlanco && <StarIcon sx={{ fontSize: 16, color: "#F7B928" }} />}
 
         <Typography variant="caption" sx={{ color: "text.secondary", mx: 0.5 }}>
           •
