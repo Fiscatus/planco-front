@@ -1,19 +1,19 @@
-import { useCallback } from 'react';
-import { api } from '@/services';
+import { useCallback } from "react";
+import { api } from "@/services";
 
 /**
  * Tipos alinhados ao backend (FlowModel schema + DTOs)
  */
 
 export type ComponentType =
-  | 'SIGNATURE'
-  | 'COMMENTS'
-  | 'FORM'
-  | 'APPROVAL'
-  | 'FILES_MANAGMENT'
-  | 'STAGE_PANEL'
-  | 'TIMELINE'
-  | 'FILE_VIEWER';
+  | "SIGNATURE"
+  | "COMMENTS"
+  | "FORM"
+  | "APPROVAL"
+  | "FILES_MANAGMENT"
+  | "STAGE_PANEL"
+  | "TIMELINE"
+  | "FILE_VIEWER";
 
 export type FlowModelComponent = {
   order: number;
@@ -83,13 +83,16 @@ export const useFlowModels = () => {
   /**
    * GET /flow-models?isActive=true|false
    */
-  const fetchFlowModels = useCallback(async (isActive?: boolean): Promise<FlowModel[]> => {
-    const params: { isActive?: boolean } = {};
-    if (isActive !== undefined) params.isActive = isActive;
+  const fetchFlowModels = useCallback(
+    async (isActive?: boolean): Promise<FlowModel[]> => {
+      const params: { isActive?: boolean } = {};
+      if (isActive !== undefined) params.isActive = isActive;
 
-    const response = await api.get<FlowModel[]>('/flow-models', { params });
-    return Array.isArray(response.data) ? response.data : [];
-  }, []);
+      const response = await api.get<FlowModel[]>("/flow-models", { params });
+      return Array.isArray(response.data) ? response.data : [];
+    },
+    [],
+  );
 
   /**
    * GET /flow-models/:id
@@ -98,7 +101,7 @@ export const useFlowModels = () => {
     const response = await api.get<FlowModel>(`/flow-models/${id}`);
 
     if (!response.data) {
-      throw new Error('Resposta da API vazia ao buscar modelo de fluxo');
+      throw new Error("Resposta da API vazia ao buscar modelo de fluxo");
     }
 
     return response.data;
@@ -107,28 +110,34 @@ export const useFlowModels = () => {
   /**
    * POST /flow-models
    */
-  const createFlowModel = useCallback(async (data: CreateFlowModelDto): Promise<FlowModel> => {
-    const response = await api.post<FlowModel>('/flow-models', data);
+  const createFlowModel = useCallback(
+    async (data: CreateFlowModelDto): Promise<FlowModel> => {
+      const response = await api.post<FlowModel>("/flow-models", data);
 
-    if (!response.data) {
-      throw new Error('Resposta da API vazia ao criar modelo de fluxo');
-    }
+      if (!response.data) {
+        throw new Error("Resposta da API vazia ao criar modelo de fluxo");
+      }
 
-    return response.data;
-  }, []);
+      return response.data;
+    },
+    [],
+  );
 
   /**
    * PUT /flow-models/:id
    */
-  const updateFlowModel = useCallback(async (id: string, data: UpdateFlowModelDto): Promise<FlowModel> => {
-    const response = await api.put<FlowModel>(`/flow-models/${id}`, data);
+  const updateFlowModel = useCallback(
+    async (id: string, data: UpdateFlowModelDto): Promise<FlowModel> => {
+      const response = await api.put<FlowModel>(`/flow-models/${id}`, data);
 
-    if (!response.data) {
-      throw new Error('Resposta da API vazia ao atualizar modelo de fluxo');
-    }
+      if (!response.data) {
+        throw new Error("Resposta da API vazia ao atualizar modelo de fluxo");
+      }
 
-    return response.data;
-  }, []);
+      return response.data;
+    },
+    [],
+  );
 
   /**
    * DELETE /flow-models/:id
@@ -139,19 +148,25 @@ export const useFlowModels = () => {
   }, []);
 
   /**
-   * ⚠️ ATENÇÃO:
-   * No controller que você mandou NÃO existe endpoint de duplicar.
-   * Então removi o método para não dar 404 no frontend.
-   *
-   * Se o seu dev tiver criado outro endpoint (ex: POST /flow-models/:id/duplicate),
-   * você me manda o controller/rota e eu recoloco.
+   * POST /flow-models/:id/duplicate
+   * Duplica um modelo existente e retorna o novo modelo.
    */
+  const duplicateFlowModel = useCallback(async (id: string): Promise<FlowModel> => {
+    const response = await api.post<FlowModel>(`/flow-models/${id}/duplicate`);
+
+    if (!response.data) {
+      throw new Error("Resposta da API vazia ao duplicar modelo de fluxo");
+    }
+
+    return response.data;
+  }, []);
 
   return {
     fetchFlowModels,
     findFlowModelById,
     createFlowModel,
     updateFlowModel,
-    deleteFlowModel
+    deleteFlowModel,
+    duplicateFlowModel,
   };
 };

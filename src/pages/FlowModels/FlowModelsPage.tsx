@@ -18,6 +18,7 @@ import {
   Reorder as ReorderIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
+  ContentCopy as ContentCopyIcon,
 } from "@mui/icons-material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState, useMemo, useEffect } from "react";
@@ -61,6 +62,7 @@ const FlowModelsPage = () => {
     createFlowModel,
     updateFlowModel,
     deleteFlowModel,
+    duplicateFlowModel, // ✅ NOVO
   } = useFlowModels();
 
   const [selectedTab, setSelectedTab] = useState<TabValue>(
@@ -305,6 +307,46 @@ const FlowModelsPage = () => {
     },
   );
 
+  // ✅ Duplicar modelo (inclusive o do sistema)
+  const { mutate: duplicateModelMutation, isPending: duplicatingModel } =
+    useMutation({
+      mutationFn: async (id: string) => {
+        return await duplicateFlowModel(id);
+      },
+      onSuccess: (newModel) => {
+        queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
+        // detalhe do selecionado atual pode ficar, mas garantimos refetch do novo ao selecionar
+
+        showNotification("Modelo duplicado com sucesso!", "success");
+
+        // sai do modo edição/draft
+        setIsEditMode(false);
+        setDraftStages(null);
+
+        // seleciona o novo modelo
+        setSelectedModelId(newModel._id);
+
+        // vai para aba "Meus"
+        setSelectedTab("mine");
+        const newParams = new URLSearchParams();
+        newParams.set("tab", "mine");
+        newParams.set("modelId", newModel._id);
+        setUrlParams(newParams);
+
+        // fecha menu
+        setAnchorEl(null);
+        setMenuModelId(null);
+      },
+      onError: (error: any) => {
+        showNotification(
+          error?.message ||
+            error?.response?.data?.message ||
+            "Erro ao duplicar modelo",
+          "error",
+        );
+      },
+    });
+
   const handleTabChange = useCallback(
     (_event: React.SyntheticEvent, newValue: TabValue) => {
       setSelectedTab(newValue);
@@ -333,33 +375,58 @@ const FlowModelsPage = () => {
 
   const handleMenuOpen = useCallback(
     (event: React.MouseEvent<HTMLElement>, modelId: string) => {
-      const model = flowModels.find((m) => m._id === modelId);
-      if (model?.isDefaultPlanco === true) return;
       setAnchorEl(event.currentTarget);
       setMenuModelId(modelId);
     },
-    [flowModels],
+    [],
   );
 
   const handleMenuClose = useCallback(() => {
+    if (duplicatingModel || deletingModel) return;
     setAnchorEl(null);
     setMenuModelId(null);
-  }, []);
+  }, [duplicatingModel, deletingModel]);
 
   const handleDelete = useCallback(() => {
-    if (menuModelId) {
-      if (window.confirm("Tem certeza que deseja excluir este modelo?")) {
-        deleteModelMutation(menuModelId);
-      }
+    if (!menuModelId) return;
+
+    const model = flowModels.find((m) => m._id === menuModelId);
+    const isSystem = model?.isDefaultPlanco === true;
+    if (isSystem) {
+      showNotification("Não é possível excluir o modelo do sistema.", "info");
+      return;
+    }
+
+    if (window.confirm("Tem certeza que deseja excluir este modelo?")) {
+      deleteModelMutation(menuModelId);
     }
     handleMenuClose();
-  }, [menuModelId, deleteModelMutation, handleMenuClose]);
+  }, [
+    menuModelId,
+    flowModels,
+    deleteModelMutation,
+    handleMenuClose,
+    showNotification,
+  ]);
+
+  const handleDuplicate = useCallback(() => {
+    if (!menuModelId) return;
+    duplicateModelMutation(menuModelId);
+  }, [menuModelId, duplicateModelMutation]);
 
   const handleEditFlow = useCallback(() => {
     if (!selectedModel) return;
+    // se for sistema, não entra em editar (precisa duplicar)
+    if (selectedModel.isDefaultPlanco === true) {
+      showNotification(
+        "Este é um modelo do sistema. Duplique para editar.",
+        "info",
+      );
+      return;
+    }
     setDraftStages(deepClone(selectedModel.stages || []));
     setIsEditMode(true);
-  }, [selectedModel]);
+  }, [selectedModel, showNotification]);
 
   const handleRevert = useCallback(() => {
     if (selectedModelId) {
@@ -780,7 +847,7 @@ const FlowModelsPage = () => {
                   isSelected={selectedModelId === model._id}
                   onClick={() => handleModelClick(model._id)}
                   onMenuClick={(e) => handleMenuOpen(e, model._id)}
-                  hideMenu={model.isDefaultPlanco === true}
+                  hideMenu={false} // ✅ menu aparece inclusive no sistema
                 />
               ))}
             </Box>
@@ -859,7 +926,9 @@ const FlowModelsPage = () => {
 
                       <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
                         <Chip
-                          label={selectedModel.isDefaultPlanco ? "Sistema" : "Pessoal"}
+                          label={
+                            selectedModel.isDefaultPlanco ? "Sistema" : "Pessoal"
+                          }
                           size="small"
                           sx={{
                             bgcolor: "#F0F2F5",
@@ -870,7 +939,11 @@ const FlowModelsPage = () => {
                           }}
                         />
                         <Chip
-                          icon={<LayersIcon sx={{ fontSize: 14, color: "#1877F2" }} />}
+                          icon={
+                            <LayersIcon
+                              sx={{ fontSize: 14, color: "#1877F2" }}
+                            />
+                          }
                           label={`${selectedModel.stages?.length || 0} Etapas`}
                           size="small"
                           sx={{
@@ -883,7 +956,11 @@ const FlowModelsPage = () => {
                           }}
                         />
                         <Chip
-                          icon={<LayersIcon sx={{ fontSize: 14, color: "#1877F2" }} />}
+                          icon={
+                            <LayersIcon
+                              sx={{ fontSize: 14, color: "#1877F2" }}
+                            />
+                          }
                           label={`${totalComponents} Componentes`}
                           size="small"
                           sx={{
@@ -898,50 +975,49 @@ const FlowModelsPage = () => {
                       </Box>
                     </Box>
 
-                    {!isDefaultPlanco && (
-                      <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-                        {isEditMode ? (
-                          <>
-                            <Button
-                              variant="text"
-                              onClick={handleRevert}
-                              disabled={updatingModel}
-                              sx={{
-                                textTransform: "none",
-                                fontWeight: 600,
-                                color: "#616161",
-                                "&:hover": { bgcolor: "#F0F2F5" },
-                              }}
-                            >
-                              Reverter
-                            </Button>
+                    <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+                      {isDefaultPlanco ? (
+                        <Button
+                          variant="contained"
+                          startIcon={<ContentCopyIcon />}
+                          onClick={() => duplicateModelMutation(selectedModel._id)}
+                          disabled={duplicatingModel}
+                          sx={{
+                            bgcolor: "#1877F2",
+                            "&:hover": { bgcolor: "#166FE5" },
+                            textTransform: "none",
+                            fontWeight: 600,
+                            borderRadius: 2,
+                            boxShadow: "none",
+                            px: 3,
+                          }}
+                        >
+                          {duplicatingModel ? (
+                            <CircularProgress size={20} sx={{ color: "#fff" }} />
+                          ) : (
+                            "Duplicar"
+                          )}
+                        </Button>
+                      ) : isEditMode ? (
+                        <>
+                          <Button
+                            variant="text"
+                            onClick={handleRevert}
+                            disabled={updatingModel}
+                            sx={{
+                              textTransform: "none",
+                              fontWeight: 600,
+                              color: "#616161",
+                              "&:hover": { bgcolor: "#F0F2F5" },
+                            }}
+                          >
+                            Reverter
+                          </Button>
 
-                            <Button
-                              variant="contained"
-                              onClick={handleSave}
-                              disabled={updatingModel}
-                              sx={{
-                                bgcolor: "#1877F2",
-                                "&:hover": { bgcolor: "#166FE5" },
-                                textTransform: "none",
-                                fontWeight: 600,
-                                borderRadius: 2,
-                                boxShadow: "none",
-                                px: 3,
-                              }}
-                            >
-                              {updatingModel ? (
-                                <CircularProgress size={20} sx={{ color: "#fff" }} />
-                              ) : (
-                                "Salvar"
-                              )}
-                            </Button>
-                          </>
-                        ) : (
                           <Button
                             variant="contained"
-                            startIcon={<EditIcon />}
-                            onClick={handleEditFlow}
+                            onClick={handleSave}
+                            disabled={updatingModel}
                             sx={{
                               bgcolor: "#1877F2",
                               "&:hover": { bgcolor: "#166FE5" },
@@ -952,11 +1028,32 @@ const FlowModelsPage = () => {
                               px: 3,
                             }}
                           >
-                            Editar Fluxo
+                            {updatingModel ? (
+                              <CircularProgress size={20} sx={{ color: "#fff" }} />
+                            ) : (
+                              "Salvar"
+                            )}
                           </Button>
-                        )}
-                      </Box>
-                    )}
+                        </>
+                      ) : (
+                        <Button
+                          variant="contained"
+                          startIcon={<EditIcon />}
+                          onClick={handleEditFlow}
+                          sx={{
+                            bgcolor: "#1877F2",
+                            "&:hover": { bgcolor: "#166FE5" },
+                            textTransform: "none",
+                            fontWeight: 600,
+                            borderRadius: 2,
+                            boxShadow: "none",
+                            px: 3,
+                          }}
+                        >
+                          Editar Fluxo
+                        </Button>
+                      )}
+                    </Box>
                   </Box>
 
                   {!isDefaultPlanco && isEditMode && (
@@ -1106,15 +1203,21 @@ const FlowModelsPage = () => {
         {menuModelId &&
           (() => {
             const model = flowModels.find((m) => m._id === menuModelId);
-            const isDefaultPlanco = model?.isDefaultPlanco === true;
-            if (isDefaultPlanco) return null;
+            const isSystem = model?.isDefaultPlanco === true;
 
             return (
               <>
-                <MenuItem onClick={handleDelete} disabled={deletingModel}>
-                  <DeleteIcon sx={{ mr: 1, fontSize: 20 }} />
-                  Excluir
+                <MenuItem onClick={handleDuplicate} disabled={duplicatingModel || deletingModel}>
+                  <ContentCopyIcon sx={{ mr: 1, fontSize: 20 }} />
+                  {duplicatingModel ? "Duplicando..." : "Duplicar"}
                 </MenuItem>
+
+                {!isSystem && (
+                  <MenuItem onClick={handleDelete} disabled={deletingModel || duplicatingModel}>
+                    <DeleteIcon sx={{ mr: 1, fontSize: 20 }} />
+                    {deletingModel ? "Excluindo..." : "Excluir"}
+                  </MenuItem>
+                )}
               </>
             );
           })()}
