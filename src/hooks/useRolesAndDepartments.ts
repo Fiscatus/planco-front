@@ -34,9 +34,7 @@ export const useRolesAndDepartments = () => {
     }>("/departments", {
       params: {
         page: 1,
-        limit: 200,
-        // se o FilterDepartmentsDto suportar: search/term/etc, pode manter vazio
-        search: "",
+        limit: 100,
       },
     });
 

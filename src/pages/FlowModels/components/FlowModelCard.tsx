@@ -11,7 +11,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/pt-br";
 
-// ✅ FAVORITOS (Modelos)
 import { useFavoriteFlowModels } from "@/hooks/useFavoriteFlowModels";
 
 dayjs.extend(relativeTime);
@@ -48,7 +47,7 @@ export const FlowModelCard = ({
   const handleFavoriteClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
-      if (isSystem) return; // ✅ sistema não favorita
+      if (isSystem) return;
       toggleFavorite(model._id);
     },
     [toggleFavorite, model._id, isSystem],

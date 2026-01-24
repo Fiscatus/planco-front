@@ -110,8 +110,7 @@ export const CreateStageModal = ({
     if (!stageId || stageId.startsWith("stage_")) {
       setStageId(auto);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [name, open, existingStages]);
+  }, [name, open, existingStages, stageId]);
 
   const orderIsUnique = useMemo(() => {
     if (parsedOrder === null) return false;
@@ -366,6 +365,8 @@ export const CreateStageModal = ({
                   fullWidth
                   multiline
                   rows={3}
+                  inputProps={{ maxLength: 100 }}
+                  helperText={`${description.length}/100 caracteres`}
                 />
               </Box>
             </Box>
@@ -383,7 +384,7 @@ export const CreateStageModal = ({
                 Regras da etapa
               </Typography>
 
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -411,18 +412,17 @@ export const CreateStageModal = ({
                   onChange={(e) => setRepeatCondition(e.target.value)}
                   fullWidth
                   placeholder='Ex: "enquanto status != APROVADO"'
+                  sx={{ mb: 2 }}
                 />
               ) : null}
 
-              <Box sx={{ mt: canRepeat ? 2 : 0 }}>
-                <TextField
-                  label="visibilityCondition (opcional)"
-                  value={visibilityCondition}
-                  onChange={(e) => setVisibilityCondition(e.target.value)}
-                  fullWidth
-                  placeholder='Ex: "se tipo_processo == MEDICAMENTO"'
-                />
-              </Box>
+              <TextField
+                label="visibilityCondition (opcional)"
+                value={visibilityCondition}
+                onChange={(e) => setVisibilityCondition(e.target.value)}
+                fullWidth
+                placeholder='Ex: "se tipo_processo == MEDICAMENTO"'
+              />
 
               <Typography
                 variant="caption"

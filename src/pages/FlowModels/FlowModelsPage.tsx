@@ -15,7 +15,7 @@ import {
   Add as AddIcon,
   Search as SearchIcon,
   Layers as LayersIcon,
-  Reorder as ReorderIcon,
+
   Delete as DeleteIcon,
   Edit as EditIcon,
   ContentCopy as ContentCopyIcon,
@@ -37,8 +37,7 @@ import { FlowModelCard } from "./components/FlowModelCard";
 import { StageCard } from "./components/StageCard";
 import { EditStageModal } from "./components/EditStageModal";
 import { CreateStageModal } from "./components/CreateStageModal";
-
-// ✅ FAVORITOS (Modelos de Fluxo)
+import { ConfirmDialog } from "./components/ConfirmDialog";
 import { useFavoriteFlowModels } from "@/hooks/useFavoriteFlowModels";
 
 type TabValue = "all" | "system" | "mine";
@@ -53,7 +52,6 @@ const FlowModelsPage = () => {
   const { user } = useAuth();
   const [urlParams, setUrlParams] = useSearchParams();
 
-  // ✅ FAVORITOS
   const { isFavorite } = useFavoriteFlowModels();
 
   const {
@@ -62,7 +60,7 @@ const FlowModelsPage = () => {
     createFlowModel,
     updateFlowModel,
     deleteFlowModel,
-    duplicateFlowModel, // ✅ NOVO
+    duplicateFlowModel,
   } = useFlowModels();
 
   const [selectedTab, setSelectedTab] = useState<TabValue>(
@@ -89,6 +87,8 @@ const FlowModelsPage = () => {
   // edição do fluxo (draft)
   const [isEditMode, setIsEditMode] = useState(false);
   const [draftStages, setDraftStages] = useState<FlowModelStage[] | null>(null);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   const {
     search: modelSearch,
@@ -147,9 +147,9 @@ const FlowModelsPage = () => {
           if (model.isDefaultPlanco === true) return false;
 
           const createdById =
-            typeof (model as any).createdBy === "string"
-              ? (model as any).createdBy
-              : (model as any).createdBy?._id;
+            typeof model.createdBy === "string"
+              ? model.createdBy
+              : model.createdBy?._id;
 
           return (
             String(createdById || "").trim() === String(currentUserId).trim()
@@ -230,11 +230,9 @@ const FlowModelsPage = () => {
         setUrlParams(newParams);
         setSelectedTab("mine");
       },
-      onError: (error: any) => {
+      onError: (error: Error) => {
         showNotification(
-          error?.message ||
-            error?.response?.data?.message ||
-            "Erro ao criar modelo",
+          error?.message || "Erro ao criar modelo",
           "error",
         );
       },
@@ -263,11 +261,9 @@ const FlowModelsPage = () => {
         setIsEditMode(false);
         setDraftStages(null);
       },
-      onError: (error: any) => {
+      onError: (error: Error) => {
         showNotification(
-          error?.message ||
-            error?.response?.data?.message ||
-            "Erro ao atualizar modelo",
+          error?.message || "Erro ao atualizar modelo",
           "error",
         );
       },
@@ -296,11 +292,9 @@ const FlowModelsPage = () => {
           setUrlParams(newParams, { replace: true });
         }
       },
-      onError: (error: any) => {
+      onError: (error: Error) => {
         showNotification(
-          error?.message ||
-            error?.response?.data?.message ||
-            "Erro ao excluir modelo",
+          error?.message || "Erro ao excluir modelo",
           "error",
         );
       },
@@ -337,11 +331,9 @@ const FlowModelsPage = () => {
         setAnchorEl(null);
         setMenuModelId(null);
       },
-      onError: (error: any) => {
+      onError: (error: Error) => {
         showNotification(
-          error?.message ||
-            error?.response?.data?.message ||
-            "Erro ao duplicar modelo",
+          error?.message || "Erro ao duplicar modelo",
           "error",
         );
       },
@@ -349,28 +341,54 @@ const FlowModelsPage = () => {
 
   const handleTabChange = useCallback(
     (_event: React.SyntheticEvent, newValue: TabValue) => {
+      if (isEditMode) {
+        setPendingAction(() => () => {
+          setIsEditMode(false);
+          setDraftStages(null);
+          setSelectedTab(newValue);
+          const newParams = new URLSearchParams(urlParams);
+          newParams.set("tab", newValue);
+          if (selectedModelId) newParams.set("modelId", selectedModelId);
+          setUrlParams(newParams);
+        });
+        setConfirmDialogOpen(true);
+        return;
+      }
+
       setSelectedTab(newValue);
       const newParams = new URLSearchParams(urlParams);
       newParams.set("tab", newValue);
       if (selectedModelId) newParams.set("modelId", selectedModelId);
       setUrlParams(newParams);
     },
-    [urlParams, selectedModelId, setUrlParams],
+    [urlParams, selectedModelId, setUrlParams, isEditMode],
   );
 
   const handleModelClick = useCallback(
     (modelId: string) => {
-      setSelectedModelId(modelId);
+      if (isEditMode) {
+        setPendingAction(() => () => {
+          setSelectedModelId(modelId);
+          setIsEditMode(false);
+          setDraftStages(null);
+          const newParams = new URLSearchParams(urlParams);
+          newParams.set("modelId", modelId);
+          newParams.set("tab", selectedTab);
+          setUrlParams(newParams);
+        });
+        setConfirmDialogOpen(true);
+        return;
+      }
 
+      setSelectedModelId(modelId);
       setIsEditMode(false);
       setDraftStages(null);
-
       const newParams = new URLSearchParams(urlParams);
       newParams.set("modelId", modelId);
       newParams.set("tab", selectedTab);
       setUrlParams(newParams);
     },
-    [urlParams, selectedTab, setUrlParams],
+    [urlParams, selectedTab, setUrlParams, isEditMode],
   );
 
   const handleMenuOpen = useCallback(
@@ -496,13 +514,6 @@ const FlowModelsPage = () => {
     setCreateStageOpen(true);
   }, [isEditMode, showNotification]);
 
-  const handleReorderCards = useCallback(() => {
-    showNotification(
-      "Funcionalidade de reordenar cards em desenvolvimento",
-      "info",
-    );
-  }, [showNotification]);
-
   const handleViewDetails = useCallback((stageId: string) => {
     setEditingStageId(stageId);
     setEditingStageOriginalId(stageId);
@@ -586,25 +597,26 @@ const FlowModelsPage = () => {
   );
 
   const handleMoveStage = useCallback(
-    (stageId: string, direction: "up" | "down") => {
+    (activeId: string, overId: string) => {
       if (!isEditMode) return;
 
       setDraftStages((prev) => {
-        const arr = prev ? prev.slice().sort((a, b) => a.order - b.order) : [];
-        const index = arr.findIndex((s) => s.stageId === stageId);
-        if (index < 0) return prev;
+        if (!prev) return prev;
+        
+        const arr = prev.slice().sort((a, b) => a.order - b.order);
+        const activeIndex = arr.findIndex((s) => s.stageId === activeId);
+        const overIndex = arr.findIndex((s) => s.stageId === overId);
 
-        const targetIndex = direction === "up" ? index - 1 : index + 1;
-        if (targetIndex < 0 || targetIndex >= arr.length) return prev;
+        if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) return prev;
 
-        const tmp = arr[index];
-        arr[index] = arr[targetIndex];
-        arr[targetIndex] = tmp;
+        const reordered = [...arr];
+        const [moved] = reordered.splice(activeIndex, 1);
+        reordered.splice(overIndex, 0, moved);
 
-        return normalizeOrders(arr);
+        return reordered.map((s, idx) => ({ ...s, order: idx + 1 }));
       });
     },
-    [isEditMode, normalizeOrders],
+    [isEditMode],
   );
 
   const handleEditStage = useCallback(
@@ -653,6 +665,18 @@ const FlowModelsPage = () => {
   );
 
   // Selecionar primeiro modelo se nenhum estiver selecionado
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isEditMode) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isEditMode]);
+
   useEffect(() => {
     if (!selectedModelId && sortedFilteredModels.length > 0) {
       const firstModel = sortedFilteredModels[0];
@@ -1082,26 +1106,6 @@ const FlowModelsPage = () => {
                       >
                         Criar Card
                       </Button>
-
-                      <Button
-                        variant="outlined"
-                        startIcon={<ReorderIcon />}
-                        onClick={handleReorderCards}
-                        sx={{
-                          textTransform: "none",
-                          fontWeight: 600,
-                          borderColor: "#E4E6EB",
-                          color: "#212121",
-                          borderRadius: 2,
-                          px: 2.5,
-                          "&:hover": {
-                            borderColor: "#1877F2",
-                            bgcolor: "#F0F9FF",
-                          },
-                        }}
-                      >
-                        Reordenar cards
-                      </Button>
                     </Box>
                   )}
                 </Box>
@@ -1116,9 +1120,9 @@ const FlowModelsPage = () => {
                     display: "grid",
                     gridTemplateColumns: {
                       xs: "1fr",
-                      sm: "repeat(2, 1fr)",
-                      md: "repeat(3, 1fr)",
-                      lg: "repeat(4, 1fr)",
+                      sm: "repeat(auto-fill, minmax(280px, 1fr))",
+                      md: "repeat(auto-fill, minmax(320px, 1fr))",
+                      lg: "repeat(auto-fill, minmax(340px, 1fr))",
                     },
                     gap: 3,
                   }}
@@ -1126,7 +1130,7 @@ const FlowModelsPage = () => {
                   {stagesToRender
                     .slice()
                     .sort((a, b) => a.order - b.order)
-                    .map((stage, idx, arr) => (
+                    .map((stage) => (
                       <StageCard
                         key={stage.stageId || String(stage.order)}
                         stage={stage}
@@ -1134,9 +1138,7 @@ const FlowModelsPage = () => {
                         isEditMode={isEditMode}
                         onEditStage={handleEditStage}
                         onDeleteStage={handleDeleteStage}
-                        onMoveStage={handleMoveStage}
-                        isFirst={idx === 0}
-                        isLast={idx === arr.length - 1}
+                        onDragEnd={handleMoveStage}
                       />
                     ))}
                 </Box>
@@ -1250,6 +1252,20 @@ const FlowModelsPage = () => {
         existingStages={stagesToRender || []}
         onClose={() => setCreateStageOpen(false)}
         onCreate={handleCreateStage}
+      />
+      <ConfirmDialog
+        open={confirmDialogOpen}
+        onClose={() => {
+          setConfirmDialogOpen(false);
+          setPendingAction(null);
+        }}
+        onConfirm={() => {
+          if (pendingAction) pendingAction();
+          setConfirmDialogOpen(false);
+          setPendingAction(null);
+        }}
+        title="Alterações não salvas"
+        message="Você está no modo de edição. As alterações não salvas serão perdidas. Deseja continuar?"
       />
     </Box>
   );
