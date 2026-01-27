@@ -7,13 +7,13 @@ import { api } from "@/services";
 
 export type ComponentType =
   | "SIGNATURE"
-  | "COMMENTS"
   | "FORM"
-  | "APPROVAL"
   | "FILES_MANAGMENT"
-  | "STAGE_PANEL"
+  | "COMMENTS"
+  | "APPROVAL"
   | "TIMELINE"
   | "FILE_VIEWER";
+
 
 export type FlowModelComponent = {
   order: number;

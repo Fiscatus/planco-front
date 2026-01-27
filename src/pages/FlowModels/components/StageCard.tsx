@@ -15,6 +15,7 @@ import {
   GppGood as GppGoodIcon,
   Layers as LayersIcon,
   Visibility as VisibilityIcon,
+  Preview as PreviewIcon,
 } from "@mui/icons-material";
 import type { FlowModelStage } from "@/hooks/useFlowModels";
 
@@ -126,7 +127,9 @@ export const StageCard = ({
         borderColor: isDragOver ? "#1877F2" : "#E4E6EB",
         bgcolor: isDragOver ? "#F0F9FF" : "background.paper",
         borderRadius: 2,
-        boxShadow: isDragging ? "0 8px 24px rgba(0, 0, 0, 0.15)" : "0 1px 3px rgba(0, 0, 0, 0.05)",
+        boxShadow: isDragging
+          ? "0 8px 24px rgba(0, 0, 0, 0.15)"
+          : "0 1px 3px rgba(0, 0, 0, 0.05)",
         transition: "all 0.2s ease-in-out",
         cursor: isEditMode ? "grab" : "pointer",
         outline: "none",
@@ -147,8 +150,21 @@ export const StageCard = ({
       }}
     >
       {/* Header */}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, flexWrap: "wrap" }}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-start",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1.25,
+            flexWrap: "wrap",
+          }}
+        >
           {isEditMode && (
             <DragIndicatorIcon
               sx={{
@@ -199,7 +215,12 @@ export const StageCard = ({
       <Box sx={{ flex: 1 }}>
         <Typography
           variant="subtitle1"
-          sx={{ fontWeight: 800, color: "text.primary", mb: 0.5, lineHeight: 1.3 }}
+          sx={{
+            fontWeight: 800,
+            color: "text.primary",
+            mb: 0.5,
+            lineHeight: 1.3,
+          }}
         >
           {stage.name}
         </Typography>
@@ -241,8 +262,12 @@ export const StageCard = ({
           />
 
           <Chip
-            icon={stage.requiresApproval ? <GppGoodIcon /> : <CheckCircleIcon />}
-            label={stage.requiresApproval ? "Requer aprovação" : "Sem aprovação"}
+            icon={
+              stage.requiresApproval ? <GppGoodIcon /> : <CheckCircleIcon />
+            }
+            label={
+              stage.requiresApproval ? "Requer aprovação" : "Sem aprovação"
+            }
             size="small"
             sx={{
               bgcolor: stage.requiresApproval ? "#FEF3C7" : "#ECFDF3",
@@ -281,8 +306,36 @@ export const StageCard = ({
           sx={{
             display: "flex",
             gap: 1,
+            alignItems: "center",
           }}
         >
+          {/* Prévia (abre o card pronto) */}
+          <Button
+            variant="outlined"
+            startIcon={<PreviewIcon />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails();
+            }}
+            fullWidth
+            sx={{
+              textTransform: "none",
+              fontWeight: 700,
+              borderColor: "#E4E6EB",
+              color: "#212121",
+              borderRadius: 2,
+              fontSize: "0.875rem",
+              "&:hover": {
+                borderColor: "#1877F2",
+                bgcolor: "#F0F9FF",
+                color: "#1877F2",
+              },
+            }}
+          >
+            Prévia
+          </Button>
+
+          {/* Editar (abre o editor interno) */}
           <Button
             variant="outlined"
             startIcon={<EditIcon />}

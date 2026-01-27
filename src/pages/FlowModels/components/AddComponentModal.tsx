@@ -27,7 +27,6 @@ const COMPONENT_TYPES: { value: ComponentType; label: string }[] = [
   { value: "FILES_MANAGMENT", label: "Gerenciar Arquivos" },
   { value: "COMMENTS", label: "Comentários" },
   { value: "APPROVAL", label: "Aprovação" },
-  { value: "STAGE_PANEL", label: "Painel de Status" },
   { value: "TIMELINE", label: "Linha do Tempo" },
   { value: "FILE_VIEWER", label: "Visualizador de Arquivos" },
 ];

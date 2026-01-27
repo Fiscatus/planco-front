@@ -15,7 +15,6 @@ import {
   Add as AddIcon,
   Search as SearchIcon,
   Layers as LayersIcon,
-
   Delete as DeleteIcon,
   Edit as EditIcon,
   ContentCopy as ContentCopyIcon,
@@ -39,6 +38,7 @@ import { EditStageModal } from "./components/EditStageModal";
 import { CreateStageModal } from "./components/CreateStageModal";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { useFavoriteFlowModels } from "@/hooks/useFavoriteFlowModels";
+import { StagePreviewModal } from "./components/stage-preview/StagePreviewModal";
 
 type TabValue = "all" | "system" | "mine";
 
@@ -120,6 +120,10 @@ const FlowModelsPage = () => {
       enabled: !!selectedModelId,
       refetchOnWindowFocus: false,
     });
+
+  // prévia de etapa (modal)
+  const [previewStageOpen, setPreviewStageOpen] = useState(false);
+  const [previewStage, setPreviewStage] = useState<FlowModelStage | null>(null);
 
   // Filtrar modelos por busca e tab
   const filteredModels = useMemo(() => {
@@ -231,10 +235,7 @@ const FlowModelsPage = () => {
         setSelectedTab("mine");
       },
       onError: (error: Error) => {
-        showNotification(
-          error?.message || "Erro ao criar modelo",
-          "error",
-        );
+        showNotification(error?.message || "Erro ao criar modelo", "error");
       },
     },
   );
@@ -262,10 +263,7 @@ const FlowModelsPage = () => {
         setDraftStages(null);
       },
       onError: (error: Error) => {
-        showNotification(
-          error?.message || "Erro ao atualizar modelo",
-          "error",
-        );
+        showNotification(error?.message || "Erro ao atualizar modelo", "error");
       },
     },
   );
@@ -293,10 +291,7 @@ const FlowModelsPage = () => {
         }
       },
       onError: (error: Error) => {
-        showNotification(
-          error?.message || "Erro ao excluir modelo",
-          "error",
-        );
+        showNotification(error?.message || "Erro ao excluir modelo", "error");
       },
     },
   );
@@ -332,10 +327,7 @@ const FlowModelsPage = () => {
         setMenuModelId(null);
       },
       onError: (error: Error) => {
-        showNotification(
-          error?.message || "Erro ao duplicar modelo",
-          "error",
-        );
+        showNotification(error?.message || "Erro ao duplicar modelo", "error");
       },
     });
 
@@ -514,11 +506,27 @@ const FlowModelsPage = () => {
     setCreateStageOpen(true);
   }, [isEditMode, showNotification]);
 
-  const handleViewDetails = useCallback((stageId: string) => {
-    setEditingStageId(stageId);
-    setEditingStageOriginalId(stageId);
-    setEditStageOpen(true);
-  }, []);
+  const handleViewDetails = useCallback(
+    (stageId: string) => {
+      const id = String(stageId || "").trim();
+      if (!id) {
+        showNotification("Etapa sem stageId válido.", "error");
+        return;
+      }
+
+      const st =
+        stagesToRender.find((s) => String(s.stageId || "").trim() === id) ||
+        null;
+      if (!st) {
+        showNotification("Etapa não encontrada para prévia.", "error");
+        return;
+      }
+
+      setPreviewStage(st);
+      setPreviewStageOpen(true);
+    },
+    [stagesToRender, showNotification],
+  );
 
   const handleCloseEditStageModal = useCallback(() => {
     setEditStageOpen(false);
@@ -602,12 +610,13 @@ const FlowModelsPage = () => {
 
       setDraftStages((prev) => {
         if (!prev) return prev;
-        
+
         const arr = prev.slice().sort((a, b) => a.order - b.order);
         const activeIndex = arr.findIndex((s) => s.stageId === activeId);
         const overIndex = arr.findIndex((s) => s.stageId === overId);
 
-        if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) return prev;
+        if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex)
+          return prev;
 
         const reordered = [...arr];
         const [moved] = reordered.splice(activeIndex, 1);
@@ -622,11 +631,18 @@ const FlowModelsPage = () => {
   const handleEditStage = useCallback(
     (stage: FlowModelStage) => {
       if (!isEditMode) return;
-      setEditingStageId(stage.stageId);
-      setEditingStageOriginalId(stage.stageId);
+
+      const id = String(stage.stageId || "").trim();
+      if (!id) {
+        showNotification("Etapa sem stageId válido.", "error");
+        return;
+      }
+
+      setEditingStageId(id);
+      setEditingStageOriginalId(id);
       setEditStageOpen(true);
     },
-    [isEditMode],
+    [isEditMode, showNotification],
   );
 
   const handleCreateStage = useCallback(
@@ -676,6 +692,11 @@ const FlowModelsPage = () => {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [isEditMode]);
+
+  useEffect(() => {
+    setPreviewStageOpen(false);
+    setPreviewStage(null);
+  }, [selectedModelId, selectedTab]);
 
   useEffect(() => {
     if (!selectedModelId && sortedFilteredModels.length > 0) {
@@ -951,7 +972,9 @@ const FlowModelsPage = () => {
                       <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
                         <Chip
                           label={
-                            selectedModel.isDefaultPlanco ? "Sistema" : "Pessoal"
+                            selectedModel.isDefaultPlanco
+                              ? "Sistema"
+                              : "Pessoal"
                           }
                           size="small"
                           sx={{
@@ -999,12 +1022,16 @@ const FlowModelsPage = () => {
                       </Box>
                     </Box>
 
-                    <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
+                    <Box
+                      sx={{ display: "flex", gap: 1.5, alignItems: "center" }}
+                    >
                       {isDefaultPlanco ? (
                         <Button
                           variant="contained"
                           startIcon={<ContentCopyIcon />}
-                          onClick={() => duplicateModelMutation(selectedModel._id)}
+                          onClick={() =>
+                            duplicateModelMutation(selectedModel._id)
+                          }
                           disabled={duplicatingModel}
                           sx={{
                             bgcolor: "#1877F2",
@@ -1017,7 +1044,10 @@ const FlowModelsPage = () => {
                           }}
                         >
                           {duplicatingModel ? (
-                            <CircularProgress size={20} sx={{ color: "#fff" }} />
+                            <CircularProgress
+                              size={20}
+                              sx={{ color: "#fff" }}
+                            />
                           ) : (
                             "Duplicar"
                           )}
@@ -1053,7 +1083,10 @@ const FlowModelsPage = () => {
                             }}
                           >
                             {updatingModel ? (
-                              <CircularProgress size={20} sx={{ color: "#fff" }} />
+                              <CircularProgress
+                                size={20}
+                                sx={{ color: "#fff" }}
+                              />
                             ) : (
                               "Salvar"
                             )}
@@ -1163,7 +1196,8 @@ const FlowModelsPage = () => {
                     Nenhuma etapa cadastrada
                   </Typography>
                   <Typography variant="body2" sx={{ color: "#616161" }}>
-                    Clique em "Criar Card" para adicionar uma nova etapa ao modelo
+                    Clique em "Criar Card" para adicionar uma nova etapa ao
+                    modelo
                   </Typography>
                 </Box>
               )}
@@ -1209,13 +1243,19 @@ const FlowModelsPage = () => {
 
             return (
               <>
-                <MenuItem onClick={handleDuplicate} disabled={duplicatingModel || deletingModel}>
+                <MenuItem
+                  onClick={handleDuplicate}
+                  disabled={duplicatingModel || deletingModel}
+                >
                   <ContentCopyIcon sx={{ mr: 1, fontSize: 20 }} />
                   {duplicatingModel ? "Duplicando..." : "Duplicar"}
                 </MenuItem>
 
                 {!isSystem && (
-                  <MenuItem onClick={handleDelete} disabled={deletingModel || duplicatingModel}>
+                  <MenuItem
+                    onClick={handleDelete}
+                    disabled={deletingModel || duplicatingModel}
+                  >
                     <DeleteIcon sx={{ mr: 1, fontSize: 20 }} />
                     {deletingModel ? "Excluindo..." : "Excluir"}
                   </MenuItem>
@@ -1253,6 +1293,18 @@ const FlowModelsPage = () => {
         onClose={() => setCreateStageOpen(false)}
         onCreate={handleCreateStage}
       />
+
+      <StagePreviewModal
+        open={previewStageOpen}
+        onClose={() => {
+          setPreviewStageOpen(false);
+          setPreviewStage(null);
+        }}
+        stage={previewStage}
+        readOnly
+        stageCompleted={false}
+      />
+
       <ConfirmDialog
         open={confirmDialogOpen}
         onClose={() => {

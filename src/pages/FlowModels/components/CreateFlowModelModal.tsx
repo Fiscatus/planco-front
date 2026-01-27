@@ -49,14 +49,7 @@ export const CreateFlowModelModal = ({
           description: "Etapa inicial do fluxo",
           requiresApproval: false,
           components: [
-            {
-              order: 1,
-              type: "STAGE_PANEL",
-              key: "stage_panel",
-              label: "Painel da Etapa",
-              description: "Visão geral da etapa",
-              required: false,
-            },
+          
           ],
         },
       ],

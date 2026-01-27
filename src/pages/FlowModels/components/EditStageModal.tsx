@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -12,20 +12,16 @@ import {
   TextField,
   Typography,
   Autocomplete,
-  List,
-  ListItem,
-  ListItemText,
+  Tooltip,
 } from "@mui/material";
 import {
   Add as AddIcon,
   Close as CloseIcon,
   Delete as DeleteIcon,
+  DragIndicator as DragIndicatorIcon,
 } from "@mui/icons-material";
 import { useQuery } from "@tanstack/react-query";
-import type {
-  FlowModelComponent,
-  FlowModelStage,
-} from "@/hooks/useFlowModels";
+import type { FlowModelComponent, FlowModelStage } from "@/hooks/useFlowModels";
 import { useRolesAndDepartments } from "@/hooks/useRolesAndDepartments";
 import { AddComponentModal } from "./AddComponentModal";
 
@@ -41,6 +37,56 @@ function deepClone<T>(v: T): T {
   return JSON.parse(JSON.stringify(v)) as T;
 }
 
+function safeString(v: unknown) {
+  return String(v ?? "").trim();
+}
+
+function normalizeComponent(comp: FlowModelComponent): FlowModelComponent {
+  return {
+    ...comp,
+    key: safeString(comp.key),
+    label: safeString(comp.label),
+    description: safeString(comp.description),
+    order:
+      typeof comp.order === "number" && Number.isFinite(comp.order)
+        ? comp.order
+        : 0,
+    visibilityRoles: Array.isArray(comp.visibilityRoles)
+      ? comp.visibilityRoles
+      : [],
+    editableRoles: Array.isArray(comp.editableRoles) ? comp.editableRoles : [],
+    config: comp.config ?? {},
+    lockedAfterCompletion: !!comp.lockedAfterCompletion,
+    required: !!comp.required,
+  };
+}
+
+function sortByOrder(a: { order?: number }, b: { order?: number }) {
+  return (a.order ?? 0) - (b.order ?? 0);
+}
+
+function reindexOrders(list: FlowModelComponent[]): FlowModelComponent[] {
+  const sorted = list.slice().sort(sortByOrder);
+  return sorted.map((c, idx) => ({ ...c, order: idx + 1 }));
+}
+
+function moveItemByKey(
+  items: FlowModelComponent[],
+  activeKey: string,
+  overKey: string,
+) {
+  const sorted = items.slice().sort(sortByOrder);
+  const from = sorted.findIndex((c) => safeString(c.key) === activeKey);
+  const to = sorted.findIndex((c) => safeString(c.key) === overKey);
+  if (from < 0 || to < 0 || from === to) return items;
+
+  const next = sorted.slice();
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+
+  return reindexOrders(next);
+}
+
 export const EditStageModal = ({
   open,
   onClose,
@@ -53,6 +99,13 @@ export const EditStageModal = ({
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [shouldFetchDepartments, setShouldFetchDepartments] = useState(false);
   const [addComponentOpen, setAddComponentOpen] = useState(false);
+
+  // DnD state (visual)
+  const [draggingKey, setDraggingKey] = useState<string>("");
+  const [dragOverKey, setDragOverKey] = useState<string>("");
+
+  // ✅ FIX: arm do drag precisa ser síncrono (state é lento pro dragstart)
+  const armDragKeyRef = useRef<string>("");
 
   const { fetchRolesByOrg, fetchDepartments } = useRolesAndDepartments();
 
@@ -75,6 +128,10 @@ export const EditStageModal = ({
   useEffect(() => {
     if (!open) return;
 
+    setDraggingKey("");
+    setDragOverKey("");
+    armDragKeyRef.current = "";
+
     if (!stage) {
       setLocalStage(null);
       setSelectedRoles([]);
@@ -84,26 +141,26 @@ export const EditStageModal = ({
 
     const clone = deepClone(stage);
     clone.components = Array.isArray(clone.components) ? clone.components : [];
-    clone.approverRoles = Array.isArray(clone.approverRoles) ? clone.approverRoles : [];
+    clone.approverRoles = Array.isArray(clone.approverRoles)
+      ? clone.approverRoles
+      : [];
     clone.approverDepartments = Array.isArray(clone.approverDepartments)
       ? clone.approverDepartments
       : [];
 
-    clone.components = (clone.components || []).map((c) => ({
-      ...c,
-      visibilityRoles: Array.isArray(c.visibilityRoles) ? c.visibilityRoles : [],
-      editableRoles: Array.isArray(c.editableRoles) ? c.editableRoles : [],
-      config: c.config ?? {},
-      lockedAfterCompletion: !!c.lockedAfterCompletion,
-      required: !!c.required,
-    }));
-
-    clone.components.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    clone.components = reindexOrders(
+      (clone.components || []).map(normalizeComponent),
+    );
 
     setLocalStage(clone);
     setSelectedRoles(clone.approverRoles || []);
     setSelectedDepartments(clone.approverDepartments || []);
   }, [open, stage]);
+
+  const componentsSorted = useMemo(() => {
+    const arr = localStage?.components || [];
+    return arr.slice().sort(sortByOrder);
+  }, [localStage?.components]);
 
   const handleChangeStageField = <K extends keyof FlowModelStage>(
     key: K,
@@ -147,9 +204,14 @@ export const EditStageModal = ({
     const updated: FlowModelStage = {
       ...localStage,
       approverRoles: localStage.requiresApproval ? selectedRoles : [],
-      approverDepartments: localStage.requiresApproval ? selectedDepartments : [],
+      approverDepartments: localStage.requiresApproval
+        ? selectedDepartments
+        : [],
       canRepeat: !!localStage.canRepeat,
       requiresApproval: !!localStage.requiresApproval,
+      components: reindexOrders(
+        (localStage.components || []).map(normalizeComponent),
+      ),
     };
 
     if (!updated.name?.trim()) return;
@@ -160,19 +222,98 @@ export const EditStageModal = ({
 
   const handleAddComponent = (component: FlowModelComponent) => {
     if (!localStage) return;
+
+    const normalized = normalizeComponent(component);
+    const ensuredKey =
+      safeString(normalized.key) ||
+      `comp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+
+    const withKey: FlowModelComponent = { ...normalized, key: ensuredKey };
+
+    const nextList = [...(localStage.components || []), withKey];
+    const next = reindexOrders(nextList);
+
     setLocalStage({
       ...localStage,
-      components: [...(localStage.components || []), component],
+      components: next,
     });
+
     setAddComponentOpen(false);
   };
 
   const handleDeleteComponent = (key: string) => {
     if (!localStage) return;
+
+    const next = (localStage.components || []).filter((c) => c.key !== key);
     setLocalStage({
       ...localStage,
-      components: (localStage.components || []).filter((c) => c.key !== key),
+      components: reindexOrders(next),
     });
+  };
+
+  // =========================
+  // DnD (HTML5) dos COMPONENTES
+  // ✅ FIX: armDragKeyRef
+  // =========================
+  const onCompDragStart = (e: React.DragEvent, compKey: string) => {
+    if (isReadOnly) return;
+
+    const k = safeString(compKey);
+    if (!k) return;
+
+    // ✅ só permite drag se o handle foi o gatilho (ref é síncrono)
+    if (armDragKeyRef.current !== k) {
+      e.preventDefault();
+      return;
+    }
+
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", k);
+
+    setDraggingKey(k);
+  };
+
+  const onCompDragEnd = () => {
+    setDraggingKey("");
+    setDragOverKey("");
+    armDragKeyRef.current = "";
+  };
+
+  const onCompDragOver = (e: React.DragEvent, overKey: string) => {
+    if (isReadOnly) return;
+    e.preventDefault(); // ESSENCIAL pro drop
+    e.dataTransfer.dropEffect = "move";
+    setDragOverKey(safeString(overKey));
+  };
+
+  const onCompDragLeave = (overKey: string) => {
+    const k = safeString(overKey);
+    if (dragOverKey === k) setDragOverKey("");
+  };
+
+  const onCompDrop = (e: React.DragEvent, overKey: string) => {
+    if (isReadOnly) return;
+    e.preventDefault();
+
+    const activeKey = safeString(e.dataTransfer.getData("text/plain"));
+    const over = safeString(overKey);
+
+    setDragOverKey("");
+    armDragKeyRef.current = "";
+
+    if (!activeKey || !over || activeKey === over) return;
+
+    setLocalStage((prev) => {
+      if (!prev) return prev;
+      const nextComponents = moveItemByKey(
+        prev.components || [],
+        activeKey,
+        over,
+      );
+      return { ...prev, components: nextComponents };
+    });
+
+    setDraggingKey("");
   };
 
   return (
@@ -206,6 +347,7 @@ export const EditStageModal = ({
           bgcolor: "#ffffff",
         }}
       >
+        {/* HEADER */}
         <Box
           sx={{
             px: { xs: 2, sm: 3, md: 4 },
@@ -258,7 +400,14 @@ export const EditStageModal = ({
             </IconButton>
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              flexWrap: "wrap",
+            }}
+          >
             {isReadOnly ? (
               <Chip
                 label="Somente leitura"
@@ -280,9 +429,22 @@ export const EditStageModal = ({
                 }}
               />
             )}
+
+            {!isReadOnly ? (
+              <Chip
+                label="Arraste pelo handle para reordenar"
+                size="small"
+                sx={{
+                  bgcolor: "#FAFBFC",
+                  color: "#64748b",
+                  fontWeight: 800,
+                }}
+              />
+            ) : null}
           </Box>
         </Box>
 
+        {/* BODY */}
         <Box
           sx={{
             px: { xs: 2, sm: 3, md: 4 },
@@ -301,6 +463,7 @@ export const EditStageModal = ({
             </Typography>
           ) : (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+              {/* Informações Básicas */}
               <Box
                 sx={{
                   bgcolor: "background.paper",
@@ -317,7 +480,9 @@ export const EditStageModal = ({
                   <TextField
                     label="Nome"
                     value={localStage.name || ""}
-                    onChange={(e) => handleChangeStageField("name", e.target.value)}
+                    onChange={(e) =>
+                      handleChangeStageField("name", e.target.value)
+                    }
                     fullWidth
                     disabled={isReadOnly}
                     error={!String(localStage.name || "").trim()}
@@ -327,7 +492,9 @@ export const EditStageModal = ({
                   <TextField
                     label="Descrição"
                     value={localStage.description || ""}
-                    onChange={(e) => handleChangeStageField("description", e.target.value)}
+                    onChange={(e) =>
+                      handleChangeStageField("description", e.target.value)
+                    }
                     fullWidth
                     disabled={isReadOnly}
                     inputProps={{ maxLength: 100 }}
@@ -336,6 +503,7 @@ export const EditStageModal = ({
                 </Box>
               </Box>
 
+              {/* Configurações */}
               <Box
                 sx={{
                   bgcolor: "background.paper",
@@ -354,7 +522,10 @@ export const EditStageModal = ({
                       <Switch
                         checked={!!localStage.requiresApproval}
                         onChange={(e) =>
-                          handleChangeStageField("requiresApproval", e.target.checked)
+                          handleChangeStageField(
+                            "requiresApproval",
+                            e.target.checked,
+                          )
                         }
                         disabled={isReadOnly}
                       />
@@ -368,7 +539,9 @@ export const EditStageModal = ({
                         multiple
                         options={roles}
                         getOptionLabel={(option) => option.name || option._id}
-                        value={roles.filter((r) => selectedRoles.includes(r._id))}
+                        value={roles.filter((r) =>
+                          selectedRoles.includes(r._id),
+                        )}
                         onChange={(_, newValue) => {
                           setSelectedRoles(newValue.map((v) => v._id));
                         }}
@@ -382,10 +555,13 @@ export const EditStageModal = ({
                         multiple
                         options={departments}
                         getOptionLabel={(option) => {
-                          const name = option.department_name || option.name || option._id;
+                          const name =
+                            option.department_name || option.name || option._id;
                           return String(name);
                         }}
-                        value={departments.filter((d) => selectedDepartments.includes(d._id))}
+                        value={departments.filter((d) =>
+                          selectedDepartments.includes(d._id),
+                        )}
                         onChange={(_, newValue) => {
                           setSelectedDepartments(newValue.map((v) => v._id));
                         }}
@@ -409,7 +585,9 @@ export const EditStageModal = ({
                     control={
                       <Switch
                         checked={!!localStage.canRepeat}
-                        onChange={(e) => handleChangeStageField("canRepeat", e.target.checked)}
+                        onChange={(e) =>
+                          handleChangeStageField("canRepeat", e.target.checked)
+                        }
                         disabled={isReadOnly}
                       />
                     }
@@ -421,7 +599,10 @@ export const EditStageModal = ({
                       label="Condição de repetição"
                       value={localStage.repeatCondition || ""}
                       onChange={(e) =>
-                        handleChangeStageField("repeatCondition", e.target.value)
+                        handleChangeStageField(
+                          "repeatCondition",
+                          e.target.value,
+                        )
                       }
                       fullWidth
                       disabled={isReadOnly}
@@ -433,7 +614,10 @@ export const EditStageModal = ({
                     label="Condição de visibilidade"
                     value={localStage.visibilityCondition || ""}
                     onChange={(e) =>
-                      handleChangeStageField("visibilityCondition", e.target.value)
+                      handleChangeStageField(
+                        "visibilityCondition",
+                        e.target.value,
+                      )
                     }
                     fullWidth
                     disabled={isReadOnly}
@@ -442,6 +626,7 @@ export const EditStageModal = ({
                 </Box>
               </Box>
 
+              {/* Componentes */}
               <Box
                 sx={{
                   bgcolor: "background.paper",
@@ -450,10 +635,19 @@ export const EditStageModal = ({
                   p: 2.5,
                 }}
               >
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mb: 1.5,
+                    gap: 1.5,
+                  }}
+                >
                   <Typography sx={{ fontWeight: 800, color: "#212121" }}>
                     Componentes ({(localStage.components || []).length})
                   </Typography>
+
                   {!isReadOnly && (
                     <Button
                       variant="contained"
@@ -467,6 +661,7 @@ export const EditStageModal = ({
                         fontWeight: 700,
                         borderRadius: 2,
                         boxShadow: "none",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       Adicionar
@@ -475,75 +670,198 @@ export const EditStageModal = ({
                 </Box>
 
                 {(localStage.components || []).length === 0 ? (
-                  <Typography variant="body2" sx={{ color: "#94a3b8", textAlign: "center", py: 2 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "#94a3b8", textAlign: "center", py: 2 }}
+                  >
                     Nenhum componente adicionado
                   </Typography>
                 ) : (
-                  <List sx={{ p: 0 }}>
-                    {localStage.components
-                      ?.sort((a, b) => a.order - b.order)
-                      .map((comp) => (
-                        <ListItem
-                          key={comp.key}
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                    {componentsSorted.map((comp) => {
+                      const compKey = safeString(comp.key);
+                      const isDragging = draggingKey === compKey;
+                      const isOver = dragOverKey === compKey;
+
+                      return (
+                        <Box
+                          key={compKey || comp.key}
+                          draggable={!isReadOnly}
+                          onDragStart={(e) => onCompDragStart(e, compKey)}
+                          onDragEnd={onCompDragEnd}
+                          onDragOver={(e) => onCompDragOver(e, compKey)}
+                          onDragLeave={() => onCompDragLeave(compKey)}
+                          onDrop={(e) => onCompDrop(e, compKey)}
                           sx={{
-                            border: "1px solid #E4E6EB",
-                            borderRadius: 1,
-                            mb: 1,
-                            bgcolor: "#FAFBFC",
+                            border: "1px solid",
+                            borderColor: isOver ? "#1877F2" : "#E4E6EB",
+                            borderRadius: 1.75,
+                            bgcolor: isOver ? "#F0F9FF" : "#FAFBFC",
+                            transition: "all 0.15s ease",
+                            opacity: isDragging ? 0.45 : 1,
+                            boxShadow: isDragging
+                              ? "0 10px 24px rgba(0,0,0,0.12)"
+                              : "none",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1.25,
+                            px: 1.25,
+                            py: 1.1,
+                            cursor: isReadOnly ? "default" : "grab",
+                            userSelect: "none",
                           }}
-                          secondaryAction={
-                            !isReadOnly && (
-                              <IconButton
-                                edge="end"
-                                onClick={() => handleDeleteComponent(comp.key)}
-                                sx={{ color: "#F02849" }}
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            )
-                          }
                         >
-                          <ListItemText
-                            primary={
-                              <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
-                                <Typography sx={{ fontWeight: 700, fontSize: "0.875rem" }}>
-                                  {comp.label}
-                                </Typography>
+                          {/* HANDLE: arma o drag (ref síncrona) */}
+                          {!isReadOnly ? (
+                            <Box
+                              title="Arraste para reordenar"
+                              onPointerDown={(e) => {
+                                // evita seleção/scroll interferir no drag
+                                e.preventDefault();
+                                armDragKeyRef.current = compKey;
+                              }}
+                              onPointerUp={() => {
+                                armDragKeyRef.current = "";
+                              }}
+                              onPointerLeave={() => {
+                                armDragKeyRef.current = "";
+                              }}
+                              sx={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: 1.5,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "grab",
+                                color: "#94a3b8",
+                                border: "1px solid #E4E6EB",
+                                bgcolor: "#fff",
+                                flexShrink: 0,
+                                touchAction: "none",
+                                "&:active": { cursor: "grabbing" },
+                              }}
+                            >
+                              <DragIndicatorIcon sx={{ fontSize: 20 }} />
+                            </Box>
+                          ) : (
+                            <Box sx={{ width: 34, height: 34 }} />
+                          )}
+
+                          {/* Conteúdo */}
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                gap: 1,
+                                alignItems: "center",
+                                flexWrap: "wrap",
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  fontWeight: 800,
+                                  fontSize: "0.9rem",
+                                  color: "#0f172a",
+                                }}
+                              >
+                                {(comp.order ?? 0) > 0 ? `${comp.order}. ` : ""}
+                                {comp.label || "Componente"}
+                              </Typography>
+
+                              <Chip
+                                label={comp.type}
+                                size="small"
+                                sx={{
+                                  height: 20,
+                                  fontSize: "0.7rem",
+                                  bgcolor: "#E7F3FF",
+                                  color: "#1877F2",
+                                  fontWeight: 800,
+                                }}
+                              />
+
+                              {comp.required ? (
                                 <Chip
-                                  label={comp.type}
+                                  label="Obrigatório"
                                   size="small"
                                   sx={{
                                     height: 20,
                                     fontSize: "0.7rem",
-                                    bgcolor: "#E7F3FF",
-                                    color: "#1877F2",
+                                    bgcolor: "#FEF3C7",
+                                    color: "#92400E",
+                                    fontWeight: 800,
                                   }}
                                 />
-                                {comp.required && (
-                                  <Chip
-                                    label="Obrigatório"
-                                    size="small"
-                                    sx={{
-                                      height: 20,
-                                      fontSize: "0.7rem",
-                                      bgcolor: "#FEF3C7",
-                                      color: "#92400E",
-                                    }}
-                                  />
-                                )}
-                              </Box>
-                            }
-                            secondary={comp.description}
-                          />
-                        </ListItem>
-                      ))}
-                  </List>
+                              ) : null}
+
+                              {comp.lockedAfterCompletion ? (
+                                <Chip
+                                  label="Trava ao concluir"
+                                  size="small"
+                                  sx={{
+                                    height: 20,
+                                    fontSize: "0.7rem",
+                                    bgcolor: "#F0F2F5",
+                                    color: "#212121",
+                                    fontWeight: 800,
+                                  }}
+                                />
+                              ) : null}
+                            </Box>
+
+                            {comp.description?.trim() ? (
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: "#64748b",
+                                  mt: 0.25,
+                                  fontWeight: 700,
+                                  fontSize: "0.82rem",
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                }}
+                              >
+                                {comp.description}
+                              </Typography>
+                            ) : null}
+                          </Box>
+
+                          {/* Excluir */}
+                          {!isReadOnly ? (
+                            <Tooltip title="Excluir componente" arrow>
+                              <span>
+                                <IconButton
+                                  onClick={() => handleDeleteComponent(comp.key)}
+                                  sx={{
+                                    color: "#F02849",
+                                    border: "1px solid #E4E6EB",
+                                    borderRadius: 1.5,
+                                    bgcolor: "#fff",
+                                    "&:hover": {
+                                      borderColor: "#F02849",
+                                      bgcolor: "#FFF1F3",
+                                    },
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </span>
+                            </Tooltip>
+                          ) : null}
+                        </Box>
+                      );
+                    })}
+                  </Box>
                 )}
               </Box>
             </Box>
           )}
         </Box>
 
+        {/* FOOTER */}
         <Box
           sx={{
             p: { xs: 2, sm: 3 },
