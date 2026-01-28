@@ -29,7 +29,10 @@ type StagePreviewModalProps = {
   // simula roles do usuário (no futuro vem do auth real)
   userRoleIds?: string[];
 
-  // preview normalmente readOnly; no futuro pode liberar
+  /**
+   * ✅ Preview precisa ser interativo por padrão, para testar componentes.
+   * Se quiser travar, o chamador passa readOnly={true}.
+   */
   readOnly?: boolean;
 
   // simula etapa concluída (pra testar lockedAfterCompletion)
@@ -87,12 +90,27 @@ function extractViewerBootstrap(components: FlowModelComponent[]) {
   return { files, selectedFileId };
 }
 
+function isDevEnv() {
+  // Vite
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const anyImportMeta = import.meta as any;
+    if (anyImportMeta?.env?.DEV === true) return true;
+  } catch {
+    // ignore
+  }
+
+  // CRA / Node-ish
+  // eslint-disable-next-line no-undef
+  return typeof process !== "undefined" && process.env?.NODE_ENV !== "production";
+}
+
 export const StagePreviewModal = ({
   open,
   onClose,
   stage,
   userRoleIds = [],
-  readOnly = true,
+  readOnly = false, // ✅ default editável no preview
   stageCompleted = false,
 }: StagePreviewModalProps) => {
   const baseComponents = stage?.components || [];
@@ -128,54 +146,49 @@ export const StagePreviewModal = ({
     return runtimeFiles[0];
   }, [runtimeFiles, runtimeSelectedFileId]);
 
-  const handleEvent = useCallback(
-    (eventType: string, payload?: Record<string, any>) => {
+  const handleEvent = useCallback((eventType: string, payload?: Record<string, any>) => {
+    if (isDevEnv()) {
       // eslint-disable-next-line no-console
       console.log("[STAGE_PREVIEW][EVENT]", eventType, payload || {});
+    }
 
-      // =========================
-      // Ponte FILES_MANAGMENT
-      // =========================
-      if (eventType === "files:setList") {
-        const files = normalizeFiles(payload?.files);
-        setRuntimeFiles(files);
+    // =========================
+    // Ponte FILES_MANAGMENT
+    // =========================
+    if (eventType === "files:setList") {
+      const files = normalizeFiles(payload?.files);
+      setRuntimeFiles(files);
 
-        // mantém seleção se ainda existir; senão limpa (fallback será o primeiro)
-        setRuntimeSelectedFileId((prev) => {
-          if (!prev) return "";
-          return files.some((f) => f.id === prev) ? prev : "";
-        });
+      // mantém seleção se ainda existir; senão limpa (fallback será o primeiro)
+      setRuntimeSelectedFileId((prev) => {
+        if (!prev) return "";
+        return files.some((f) => f.id === prev) ? prev : "";
+      });
 
-        return;
-      }
+      return;
+    }
 
-      if (eventType === "files:select" || eventType === "files:open") {
-        const fileId = safeString(payload?.fileId);
-        if (fileId) setRuntimeSelectedFileId(fileId);
-        return;
-      }
+    if (eventType === "files:select" || eventType === "files:open") {
+      const fileId = safeString(payload?.fileId);
+      if (fileId) setRuntimeSelectedFileId(fileId);
+      return;
+    }
 
-      // =========================
-      // Ponte FILE_VIEWER
-      // =========================
-      if (eventType === "fileViewer:select") {
-        const fileId = safeString(payload?.fileId);
-        if (fileId) setRuntimeSelectedFileId(fileId);
-        return;
-      }
+    // =========================
+    // Ponte FILE_VIEWER
+    // =========================
+    if (eventType === "fileViewer:select") {
+      const fileId = safeString(payload?.fileId);
+      if (fileId) setRuntimeSelectedFileId(fileId);
+      return;
+    }
 
-      // opcional: manter seleção atualizada se o viewer emitir open/download com fileId
-      if (
-        eventType === "fileViewer:open" ||
-        eventType === "fileViewer:download"
-      ) {
-        const fileId = safeString(payload?.fileId);
-        if (fileId) setRuntimeSelectedFileId(fileId);
-        return;
-      }
-    },
-    [],
-  );
+    if (eventType === "fileViewer:open" || eventType === "fileViewer:download") {
+      const fileId = safeString(payload?.fileId);
+      if (fileId) setRuntimeSelectedFileId(fileId);
+      return;
+    }
+  }, []);
 
   // ✅ injeta runtime config no FILE_VIEWER (e opcionalmente no FILES_MANAGMENT)
   const componentsForRender = useMemo(() => {
@@ -196,7 +209,6 @@ export const StagePreviewModal = ({
       }
 
       if (c.type === "FILES_MANAGMENT") {
-        // se quiser, já injeta lista/seleção também (pra componente usar)
         const currentCfg = (c.config ?? {}) as Record<string, unknown>;
 
         return {
@@ -208,7 +220,7 @@ export const StagePreviewModal = ({
           },
         };
       }
-    
+
       return c;
     });
   }, [baseComponents, runtimeFiles, selectedFile]);
@@ -284,6 +296,7 @@ export const StagePreviewModal = ({
 
             <IconButton
               onClick={onClose}
+              aria-label="Fechar prévia"
               sx={{
                 width: { xs: 36, sm: 40 },
                 height: { xs: 36, sm: 40 },
@@ -333,7 +346,6 @@ export const StagePreviewModal = ({
               {componentsCount === 1 ? "componente" : "componentes"}
             </Typography>
 
-            {/* Debug chip (opcional, mas ajuda MUITO agora) */}
             {runtimeFiles.length ? (
               <Chip
                 label={`Arquivos: ${runtimeFiles.length}`}
@@ -385,7 +397,6 @@ export const StagePreviewModal = ({
               sx={{
                 width: "100%",
                 minWidth: 0,
-                // ✅ “container do card” (simula a página real)
                 bgcolor: "#fff",
                 border: "1px solid #E4E6EB",
                 borderRadius: 3,

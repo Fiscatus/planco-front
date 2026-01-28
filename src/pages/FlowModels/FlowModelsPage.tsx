@@ -1301,7 +1301,7 @@ const FlowModelsPage = () => {
           setPreviewStage(null);
         }}
         stage={previewStage}
-        readOnly
+        readOnly={false}
         stageCompleted={false}
       />
 

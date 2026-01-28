@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -42,9 +42,12 @@ function safeString(v: unknown) {
 }
 
 function normalizeComponent(comp: FlowModelComponent): FlowModelComponent {
+  const key =
+    safeString(comp.key) ||
+    `comp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
   return {
     ...comp,
-    key: safeString(comp.key),
+    key,
     label: safeString(comp.label),
     description: safeString(comp.description),
     order:
@@ -65,26 +68,26 @@ function sortByOrder(a: { order?: number }, b: { order?: number }) {
   return (a.order ?? 0) - (b.order ?? 0);
 }
 
-function reindexOrders(list: FlowModelComponent[]): FlowModelComponent[] {
-  const sorted = list.slice().sort(sortByOrder);
-  return sorted.map((c, idx) => ({ ...c, order: idx + 1 }));
+function reindexOrdersKeepingArrayOrder(list: FlowModelComponent[]) {
+  // 🔥 diferente do seu antigo reindex: aqui a ordem é a do ARRAY (que é o que o DnD muda)
+  return list.map((c, idx) => ({ ...c, order: idx + 1 }));
 }
 
-function moveItemByKey(
+function moveItemByKeyInArrayOrder(
   items: FlowModelComponent[],
   activeKey: string,
   overKey: string,
 ) {
-  const sorted = items.slice().sort(sortByOrder);
-  const from = sorted.findIndex((c) => safeString(c.key) === activeKey);
-  const to = sorted.findIndex((c) => safeString(c.key) === overKey);
+  const arr = items.slice(); // mantém ordem atual do array
+  const from = arr.findIndex((c) => safeString(c.key) === activeKey);
+  const to = arr.findIndex((c) => safeString(c.key) === overKey);
   if (from < 0 || to < 0 || from === to) return items;
 
-  const next = sorted.slice();
+  const next = arr.slice();
   const [moved] = next.splice(from, 1);
   next.splice(to, 0, moved);
 
-  return reindexOrders(next);
+  return reindexOrdersKeepingArrayOrder(next);
 }
 
 export const EditStageModal = ({
@@ -100,12 +103,9 @@ export const EditStageModal = ({
   const [shouldFetchDepartments, setShouldFetchDepartments] = useState(false);
   const [addComponentOpen, setAddComponentOpen] = useState(false);
 
-  // DnD state (visual)
+  // DnD state (visual) — igual seu StageCard
   const [draggingKey, setDraggingKey] = useState<string>("");
   const [dragOverKey, setDragOverKey] = useState<string>("");
-
-  // ✅ FIX: arm do drag precisa ser síncrono (state é lento pro dragstart)
-  const armDragKeyRef = useRef<string>("");
 
   const { fetchRolesByOrg, fetchDepartments } = useRolesAndDepartments();
 
@@ -130,7 +130,6 @@ export const EditStageModal = ({
 
     setDraggingKey("");
     setDragOverKey("");
-    armDragKeyRef.current = "";
 
     if (!stage) {
       setLocalStage(null);
@@ -148,18 +147,22 @@ export const EditStageModal = ({
       ? clone.approverDepartments
       : [];
 
-    clone.components = reindexOrders(
-      (clone.components || []).map(normalizeComponent),
-    );
+    // ✅ Normaliza e cria uma ordem inicial (array order)
+    const normalized = (clone.components || [])
+      .map(normalizeComponent)
+      .sort(sortByOrder);
+
+    clone.components = reindexOrdersKeepingArrayOrder(normalized);
 
     setLocalStage(clone);
     setSelectedRoles(clone.approverRoles || []);
     setSelectedDepartments(clone.approverDepartments || []);
   }, [open, stage]);
 
-  const componentsSorted = useMemo(() => {
-    const arr = localStage?.components || [];
-    return arr.slice().sort(sortByOrder);
+  const componentsInArrayOrder = useMemo(() => {
+    // 🔥 aqui a ordem exibida é a do ARRAY, que é a que o DnD altera
+    // (order é só um número que refletimos no texto)
+    return (localStage?.components || []).slice();
   }, [localStage?.components]);
 
   const handleChangeStageField = <K extends keyof FlowModelStage>(
@@ -209,7 +212,9 @@ export const EditStageModal = ({
         : [],
       canRepeat: !!localStage.canRepeat,
       requiresApproval: !!localStage.requiresApproval,
-      components: reindexOrders(
+
+      // ✅ garante persistência da ordem final (array order -> order 1..n)
+      components: reindexOrdersKeepingArrayOrder(
         (localStage.components || []).map(normalizeComponent),
       ),
     };
@@ -224,14 +229,8 @@ export const EditStageModal = ({
     if (!localStage) return;
 
     const normalized = normalizeComponent(component);
-    const ensuredKey =
-      safeString(normalized.key) ||
-      `comp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-
-    const withKey: FlowModelComponent = { ...normalized, key: ensuredKey };
-
-    const nextList = [...(localStage.components || []), withKey];
-    const next = reindexOrders(nextList);
+    const nextList = [...(localStage.components || []), normalized];
+    const next = reindexOrdersKeepingArrayOrder(nextList);
 
     setLocalStage({
       ...localStage,
@@ -247,13 +246,12 @@ export const EditStageModal = ({
     const next = (localStage.components || []).filter((c) => c.key !== key);
     setLocalStage({
       ...localStage,
-      components: reindexOrders(next),
+      components: reindexOrdersKeepingArrayOrder(next),
     });
   };
 
   // =========================
-  // DnD (HTML5) dos COMPONENTES
-  // ✅ FIX: armDragKeyRef
+  // ✅ DnD HTML5 (igual StageCard)
   // =========================
   const onCompDragStart = (e: React.DragEvent, compKey: string) => {
     if (isReadOnly) return;
@@ -261,14 +259,13 @@ export const EditStageModal = ({
     const k = safeString(compKey);
     if (!k) return;
 
-    // ✅ só permite drag se o handle foi o gatilho (ref é síncrono)
-    if (armDragKeyRef.current !== k) {
-      e.preventDefault();
-      return;
-    }
-
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", k);
+
+    // opcional: melhora muito em alguns browsers
+    // evita “ghost image” esquisita
+    // @ts-ignore
+    e.dataTransfer.setDragImage(e.currentTarget as Element, 8, 8);
 
     setDraggingKey(k);
   };
@@ -276,12 +273,14 @@ export const EditStageModal = ({
   const onCompDragEnd = () => {
     setDraggingKey("");
     setDragOverKey("");
-    armDragKeyRef.current = "";
   };
 
   const onCompDragOver = (e: React.DragEvent, overKey: string) => {
     if (isReadOnly) return;
-    e.preventDefault(); // ESSENCIAL pro drop
+
+    // 🔥 ESSENCIAL pro drop funcionar
+    e.preventDefault();
+
     e.dataTransfer.dropEffect = "move";
     setDragOverKey(safeString(overKey));
   };
@@ -293,19 +292,19 @@ export const EditStageModal = ({
 
   const onCompDrop = (e: React.DragEvent, overKey: string) => {
     if (isReadOnly) return;
+
     e.preventDefault();
 
     const activeKey = safeString(e.dataTransfer.getData("text/plain"));
     const over = safeString(overKey);
 
     setDragOverKey("");
-    armDragKeyRef.current = "";
 
     if (!activeKey || !over || activeKey === over) return;
 
     setLocalStage((prev) => {
       if (!prev) return prev;
-      const nextComponents = moveItemByKey(
+      const nextComponents = moveItemByKeyInArrayOrder(
         prev.components || [],
         activeKey,
         over,
@@ -412,33 +411,21 @@ export const EditStageModal = ({
               <Chip
                 label="Somente leitura"
                 size="small"
-                sx={{
-                  bgcolor: "#F0F2F5",
-                  color: "#212121",
-                  fontWeight: 800,
-                }}
+                sx={{ bgcolor: "#F0F2F5", color: "#212121", fontWeight: 800 }}
               />
             ) : (
               <Chip
                 label="Editável"
                 size="small"
-                sx={{
-                  bgcolor: "#E7F3FF",
-                  color: "#1877F2",
-                  fontWeight: 800,
-                }}
+                sx={{ bgcolor: "#E7F3FF", color: "#1877F2", fontWeight: 800 }}
               />
             )}
 
             {!isReadOnly ? (
               <Chip
-                label="Arraste pelo handle para reordenar"
+                label="Arraste para reordenar (igual cards)"
                 size="small"
-                sx={{
-                  bgcolor: "#FAFBFC",
-                  color: "#64748b",
-                  fontWeight: 800,
-                }}
+                sx={{ bgcolor: "#FAFBFC", color: "#64748b", fontWeight: 800 }}
               />
             ) : null}
           </Box>
@@ -645,7 +632,7 @@ export const EditStageModal = ({
                   }}
                 >
                   <Typography sx={{ fontWeight: 800, color: "#212121" }}>
-                    Componentes ({(localStage.components || []).length})
+                    Componentes ({componentsInArrayOrder.length})
                   </Typography>
 
                   {!isReadOnly && (
@@ -669,7 +656,7 @@ export const EditStageModal = ({
                   )}
                 </Box>
 
-                {(localStage.components || []).length === 0 ? (
+                {componentsInArrayOrder.length === 0 ? (
                   <Typography
                     variant="body2"
                     sx={{ color: "#94a3b8", textAlign: "center", py: 2 }}
@@ -677,8 +664,10 @@ export const EditStageModal = ({
                     Nenhum componente adicionado
                   </Typography>
                 ) : (
-                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                    {componentsSorted.map((comp) => {
+                  <Box
+                    sx={{ display: "flex", flexDirection: "column", gap: 1 }}
+                  >
+                    {componentsInArrayOrder.map((comp) => {
                       const compKey = safeString(comp.key);
                       const isDragging = draggingKey === compKey;
                       const isOver = dragOverKey === compKey;
@@ -709,23 +698,17 @@ export const EditStageModal = ({
                             py: 1.1,
                             cursor: isReadOnly ? "default" : "grab",
                             userSelect: "none",
+                            "&:hover": {
+                              borderColor: isReadOnly ? "#E4E6EB" : "#1877F2",
+                            },
+                            "&:active": {
+                              cursor: isReadOnly ? "default" : "grabbing",
+                            },
                           }}
                         >
-                          {/* HANDLE: arma o drag (ref síncrona) */}
+                          {/* Handle é só visual (igual ao StageCard) */}
                           {!isReadOnly ? (
                             <Box
-                              title="Arraste para reordenar"
-                              onPointerDown={(e) => {
-                                // evita seleção/scroll interferir no drag
-                                e.preventDefault();
-                                armDragKeyRef.current = compKey;
-                              }}
-                              onPointerUp={() => {
-                                armDragKeyRef.current = "";
-                              }}
-                              onPointerLeave={() => {
-                                armDragKeyRef.current = "";
-                              }}
                               sx={{
                                 width: 34,
                                 height: 34,
@@ -733,13 +716,11 @@ export const EditStageModal = ({
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                cursor: "grab",
                                 color: "#94a3b8",
                                 border: "1px solid #E4E6EB",
                                 bgcolor: "#fff",
                                 flexShrink: 0,
-                                touchAction: "none",
-                                "&:active": { cursor: "grabbing" },
+                                cursor: "inherit",
                               }}
                             >
                               <DragIndicatorIcon sx={{ fontSize: 20 }} />
@@ -828,12 +809,16 @@ export const EditStageModal = ({
                             ) : null}
                           </Box>
 
-                          {/* Excluir */}
+                          {/* Excluir — impede arrastar quando clicar */}
                           {!isReadOnly ? (
                             <Tooltip title="Excluir componente" arrow>
                               <span>
                                 <IconButton
-                                  onClick={() => handleDeleteComponent(comp.key)}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    handleDeleteComponent(comp.key);
+                                  }}
                                   sx={{
                                     color: "#F02849",
                                     border: "1px solid #E4E6EB",

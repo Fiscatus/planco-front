@@ -7,6 +7,12 @@ export type StageComponentsRendererProps = {
   components: FlowModelComponent[];
   // permissões simples (podemos evoluir depois)
   userRoleIds?: string[];
+
+  /**
+   * ⚠️ IMPORTANTE:
+   * - readOnly default precisa ser FALSE para não travar todos os componentes por engano.
+   * - O “modo somente leitura” deve ser decidido pelo container (runtime real) ou pelo StagePreviewModal quando quiser.
+   */
   readOnly?: boolean;
 
   // flags de runtime (quando estiver no processo real)
@@ -25,7 +31,7 @@ function hasIntersection(a: string[] = [], b: string[] = []) {
 export const StageComponentsRenderer = ({
   components,
   userRoleIds = [],
-  readOnly = true,
+  readOnly = false, // ✅ default editável para não travar em cascata
   stageCompleted = false,
   onEvent,
 }: StageComponentsRendererProps) => {
@@ -35,7 +41,9 @@ export const StageComponentsRenderer = ({
       .map((c) => ({
         ...c,
         order: Number.isFinite(c.order) ? c.order : 0,
-        visibilityRoles: Array.isArray(c.visibilityRoles) ? c.visibilityRoles : [],
+        visibilityRoles: Array.isArray(c.visibilityRoles)
+          ? c.visibilityRoles
+          : [],
         editableRoles: Array.isArray(c.editableRoles) ? c.editableRoles : [],
         config: c.config ?? {},
       }))
@@ -55,7 +63,10 @@ export const StageComponentsRenderer = ({
   if (!visibleComponents.length) {
     return (
       <Box sx={{ py: 2, width: "100%" }}>
-        <Typography variant="body2" sx={{ color: "#94a3b8", textAlign: "center" }}>
+        <Typography
+          variant="body2"
+          sx={{ color: "#94a3b8", textAlign: "center" }}
+        >
           Nenhum componente disponível para este usuário.
         </Typography>
       </Box>
@@ -78,7 +89,8 @@ export const StageComponentsRenderer = ({
         const Renderer = entry?.Renderer;
 
         const canEditByRole =
-          !comp.editableRoles?.length || hasIntersection(comp.editableRoles, userRoleIds);
+          !comp.editableRoles?.length ||
+          hasIntersection(comp.editableRoles, userRoleIds);
 
         const isReadOnly =
           !!readOnly ||
