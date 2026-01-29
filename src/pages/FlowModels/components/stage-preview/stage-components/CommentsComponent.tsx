@@ -19,6 +19,7 @@ import {
   AttachFile as PaperclipIcon,
   Reply as ReplyIcon,
   ContentCopy as CopyIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import type { StageComponentRuntimeProps } from "../componentRegistry";
 import { BaseStageComponentCard } from "./BaseStageComponentCard";
@@ -28,6 +29,13 @@ type AttachmentItem = {
   name: string;
   url?: string;
   sizeBytes?: number;
+  mime?: string;
+};
+
+type PendingAttachment = {
+  id: string;
+  file: File;
+  objectUrl: string;
 };
 
 type CommentItem = {
@@ -51,6 +59,16 @@ type GroupedComments = {
 
 function safeString(v: unknown) {
   return String(v ?? "").trim();
+}
+
+function safeText(v: unknown) {
+  return String(v ?? "");
+}
+
+function uid(prefix = "id") {
+  return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now()
+    .toString(16)
+    .slice(-4)}`;
 }
 
 function getInitials(name: string): string {
@@ -101,6 +119,16 @@ function avatarColor(name: string) {
   const str = safeString(name);
   const hash = str.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
   return palette[hash % palette.length];
+}
+
+function formatBytes(bytes?: number) {
+  if (!bytes || !Number.isFinite(bytes) || bytes <= 0) return "";
+  const kb = bytes / 1024;
+  if (kb < 1024) return `${kb.toFixed(0)} KB`;
+  const mb = kb / 1024;
+  if (mb < 1024) return `${mb.toFixed(1)} MB`;
+  const gb = mb / 1024;
+  return `${gb.toFixed(2)} GB`;
 }
 
 function renderMessageWithMentions(message: string) {
@@ -217,9 +245,9 @@ export const CommentsComponent = ({
         const obj = (c ?? {}) as Record<string, unknown>;
         const id = safeString(obj.id) || safeString(obj._id);
         const name = safeString(obj.name);
-        const message = safeString(obj.message);
+        const message = safeText(obj.message); // não trim aqui para preservar quebras
         const datetime = safeString(obj.datetime);
-        if (!id || !name || !message || !datetime) return null;
+        if (!id || !name || !datetime) return null;
 
         const role = safeString(obj.role) || undefined;
         const isCurrentUser = !!obj.isCurrentUser;
@@ -243,6 +271,7 @@ export const CommentsComponent = ({
                     typeof at.sizeBytes === "number" && Number.isFinite(at.sizeBytes)
                       ? at.sizeBytes
                       : undefined,
+                  mime: safeString(at.mime) || undefined,
                 } as AttachmentItem;
               })
               .filter(Boolean) as AttachmentItem[])
@@ -253,7 +282,7 @@ export const CommentsComponent = ({
           initials,
           name,
           role,
-          message,
+          message: safeText(message),
           datetime,
           isCurrentUser,
           attachments: attachments.length ? attachments : undefined,
@@ -276,8 +305,14 @@ export const CommentsComponent = ({
   const [replyToId, setReplyToId] = useState<string | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
 
+  // ✅ anexos no composer
+  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const historyRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const locked = isReadOnly || stageCompleted;
 
   const commentById = useMemo(() => {
     const m = new Map<string, CommentItem>();
@@ -292,6 +327,12 @@ export const CommentsComponent = ({
     setCopiedId(null);
     setReplyToId(null);
     setHighlightId(null);
+
+    // reset anexos ao trocar config
+    setPendingAttachments((prev) => {
+      prev.forEach((p) => URL.revokeObjectURL(p.objectUrl));
+      return [];
+    });
   }, [initial]);
 
   useEffect(() => {
@@ -335,14 +376,14 @@ export const CommentsComponent = ({
   const countReal = useMemo(() => comments.filter((c) => !c.isOptimistic).length, [comments]);
 
   const handleInsertMention = () => {
-    if (isReadOnly) return;
+    if (locked) return;
     setText((prev) => (prev.endsWith("@") ? prev : `${prev}@`));
     textareaRef.current?.focus();
     onEvent?.("comments:insertMention", { componentKey: component.key });
   };
 
   const handleReply = (c: CommentItem) => {
-    if (isReadOnly) return;
+    if (locked) return;
 
     setReplyToId(c.id);
     setText((prev) => {
@@ -384,23 +425,128 @@ export const CommentsComponent = ({
     onEvent?.("comments:copy", { componentKey: component.key, commentId: c.id });
   };
 
+  // ---------------------------------------------------------------------------
+  // ✅ Anexos: escolher arquivo(s)
+  // ---------------------------------------------------------------------------
+  const MAX_FILES = 12;
+  const MAX_BYTES_PER_FILE = 25 * 1024 * 1024; // 25MB
+  const ACCEPT =
+    ".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.webp,.gif,.txt,.zip,.rar";
+
+  const openFilePicker = () => {
+    if (locked) return;
+    fileInputRef.current?.click();
+  };
+
+  const cleanupPending = (items: PendingAttachment[]) => {
+    items.forEach((p) => {
+      try {
+        URL.revokeObjectURL(p.objectUrl);
+      } catch {
+        // ok
+      }
+    });
+  };
+
+  const handlePickFiles = (files: FileList | null) => {
+    if (locked) return;
+    if (!files || files.length === 0) return;
+
+    const incoming = Array.from(files);
+    const currentCount = pendingAttachments.length;
+    const allowed = incoming.slice(0, Math.max(0, MAX_FILES - currentCount));
+
+    const next: PendingAttachment[] = [];
+    for (const f of allowed) {
+      // valida tamanho
+      if (f.size > MAX_BYTES_PER_FILE) continue;
+
+      // evita duplicados básicos (nome+tamanho)
+      const already = pendingAttachments.some((p) => p.file.name === f.name && p.file.size === f.size);
+      if (already) continue;
+
+      next.push({
+        id: uid("att"),
+        file: f,
+        objectUrl: URL.createObjectURL(f),
+      });
+    }
+
+    if (next.length) setPendingAttachments((prev) => [...prev, ...next]);
+
+    // reset do input para permitir selecionar o mesmo arquivo novamente
+    if (fileInputRef.current) fileInputRef.current.value = "";
+
+    onEvent?.("comments:attachment:pick", {
+      componentKey: component.key,
+      count: next.length,
+    });
+  };
+
+  const removePendingAttachment = (id: string) => {
+    setPendingAttachments((prev) => {
+      const target = prev.find((p) => p.id === id);
+      if (target) cleanupPending([target]);
+      return prev.filter((p) => p.id !== id);
+    });
+    onEvent?.("comments:attachment:remove", { componentKey: component.key, attachmentId: id });
+  };
+
+  const clearPendingAttachments = () => {
+    setPendingAttachments((prev) => {
+      cleanupPending(prev);
+      return [];
+    });
+  };
+
+  // ---------------------------------------------------------------------------
+  // ✅ Abrir/baixar anexo (url remota OU objectUrl local)
+  // ---------------------------------------------------------------------------
+  const openAttachment = (a: AttachmentItem) => {
+    if (!a.url) return;
+
+    // abre em nova aba (download depende do servidor/headers)
+    window.open(a.url, "_blank", "noopener,noreferrer");
+    onEvent?.("comments:attachment:open", {
+      componentKey: component.key,
+      attachmentId: a.id,
+      url: a.url,
+      name: a.name,
+    });
+  };
+
   const handleSubmit = useCallback(async () => {
-    if (isReadOnly) return;
+    if (locked) return;
 
     const msg = safeString(text);
-    if (!msg) return;
+    const hasFiles = pendingAttachments.length > 0;
+
+    // ✅ permite mandar "só anexo"
+    if (!msg && !hasFiles) return;
 
     const nowIso = new Date().toISOString();
+
+    const optimisticAttachments: AttachmentItem[] | undefined = hasFiles
+      ? pendingAttachments.map((p) => ({
+          id: p.id,
+          name: p.file.name,
+          url: p.objectUrl, // local para abrir/baixar já
+          sizeBytes: p.file.size,
+          mime: p.file.type || undefined,
+        }))
+      : undefined;
+
     const optimistic: CommentItem = {
       id: `temp_${Date.now()}_${Math.random().toString(16).slice(2)}`,
       initials: "VC",
       name: "Você",
       role: "Analista",
-      message: msg,
+      message: msg || "", // pode ser vazio
       datetime: nowIso,
       isCurrentUser: true,
       isOptimistic: true,
       replyToCommentId: replyToId || undefined,
+      attachments: optimisticAttachments,
     };
 
     setComments((prev) => [...prev, optimistic]);
@@ -408,20 +554,44 @@ export const CommentsComponent = ({
     setIsSubmitting(true);
     setReplyToId(null);
 
+    // payload de anexos (arquivos reais) para o backend tratar upload
+    const filesPayload = pendingAttachments.map((p) => p.file);
+
     onEvent?.("comments:add", {
       componentKey: component.key,
-      message: msg,
+      message: msg || "",
       datetime: nowIso,
       optimisticId: optimistic.id,
       replyToCommentId: optimistic.replyToCommentId,
+      attachmentsMeta: optimisticAttachments?.map((a) => ({
+        id: a.id,
+        name: a.name,
+        sizeBytes: a.sizeBytes,
+        mime: a.mime,
+      })),
+      // ✅ IMPORTANTÍSSIMO: arquivos em si (para o host decidir como subir)
+      files: filesPayload,
     });
+
+    // limpa seleção local após "enfileirar" o envio
+    clearPendingAttachments();
 
     try {
       await new Promise((r) => setTimeout(r, 900));
 
+      // simula confirmação: em produção você deve receber anexos com URLs finais do backend
       const finalId = String(Date.now());
       setComments((prev) =>
-        prev.map((c) => (c.id === optimistic.id ? { ...c, id: finalId, isOptimistic: false } : c)),
+        prev.map((c) =>
+          c.id === optimistic.id
+            ? {
+                ...c,
+                id: finalId,
+                isOptimistic: false,
+                // aqui no real, substitua por urls finais retornadas
+              }
+            : c,
+        ),
       );
 
       onEvent?.("comments:add:confirmed", {
@@ -430,6 +600,7 @@ export const CommentsComponent = ({
         commentId: finalId,
       });
     } catch {
+      // rollback
       setComments((prev) => prev.filter((c) => c.id !== optimistic.id));
       setText(msg);
 
@@ -440,9 +611,9 @@ export const CommentsComponent = ({
     } finally {
       setIsSubmitting(false);
     }
-  }, [component.key, isReadOnly, onEvent, replyToId, text]);
+  }, [component.key, locked, onEvent, pendingAttachments, replyToId, text]);
 
-  const disabledSend = isReadOnly || isSubmitting || !safeString(text);
+  const disabledSend = locked || isSubmitting || (!safeString(text) && pendingAttachments.length === 0);
 
   const replyTarget = useMemo(() => {
     if (!replyToId) return null;
@@ -483,12 +654,6 @@ export const CommentsComponent = ({
         />
       }
     >
-      {/**
-       * ✅ IMPORTANTE (corrige as “3 bordas”):
-       * - BaseStageComponentCard já tem a borda externa do componente.
-       * - Aqui dentro NÃO pode existir outro “container com borda”.
-       * - Mantemos somente divisórias internas (Divider) como no SignatureComponent.
-       */}
       <Box
         sx={{
           bgcolor: "#ffffff",
@@ -496,7 +661,7 @@ export const CommentsComponent = ({
           borderRadius: 2,
         }}
       >
-        {/* Top bar (sem borda) */}
+        {/* Top bar */}
         <Box
           sx={{
             px: { xs: 2, sm: 2.25 },
@@ -563,7 +728,7 @@ export const CommentsComponent = ({
           </Box>
         </Box>
 
-        {/* Toolbar (sem borda externa, só separação) */}
+        {/* Toolbar */}
         <Box
           sx={{
             px: { xs: 2, sm: 2.25 },
@@ -583,7 +748,7 @@ export const CommentsComponent = ({
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
-                border: "1px solid #E4E6EB", // ✅ apenas a borda do campo, não do card
+                border: "1px solid #E4E6EB",
                 bgcolor: "#F8FAFC",
                 borderRadius: 999,
                 px: 1.75,
@@ -903,7 +1068,7 @@ export const CommentsComponent = ({
                                     <IconButton
                                       size="small"
                                       onClick={() => handleReply(c)}
-                                      disabled={isReadOnly}
+                                      disabled={locked}
                                       sx={{ color: "#475569", "&:hover": { bgcolor: "#F1F5F9" } }}
                                     >
                                       <ReplyIcon sx={{ fontSize: 18 }} />
@@ -925,7 +1090,8 @@ export const CommentsComponent = ({
                                 </Tooltip>
                               </Box>
 
-                              <Box sx={{ pr: 7 }}>{renderMessageWithMentions(c.message)}</Box>
+                              {/* ✅ mensagem (pode ser vazia quando for só anexo) */}
+                              {safeString(c.message) ? <Box sx={{ pr: 7 }}>{renderMessageWithMentions(c.message)}</Box> : null}
 
                               {c.isOptimistic ? (
                                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1.2 }}>
@@ -936,37 +1102,55 @@ export const CommentsComponent = ({
                                 </Box>
                               ) : null}
 
+                              {/* ✅ anexos compactos: só link/linha (sem preview grande) */}
                               {c.attachments?.length ? (
-                                <Box sx={{ mt: 1.25, pt: 1.25, borderTop: "1px solid #E4E6EB" }}>
-                                  {c.attachments.map((a) => (
-                                    <Box key={a.id} sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                                      <PaperclipIcon sx={{ fontSize: 16, color: "#94a3b8" }} />
-                                      <Typography
-                                        variant="caption"
+                                <Box sx={{ mt: safeString(c.message) ? 1.25 : 0, pt: safeString(c.message) ? 1.25 : 0, borderTop: safeString(c.message) ? "1px solid #E4E6EB" : "none" }}>
+                                  <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                                    {c.attachments.map((a) => (
+                                      <Box
+                                        key={a.id}
                                         sx={{
-                                          color: "#1877F2",
-                                          fontWeight: 900,
-                                          whiteSpace: "nowrap",
-                                          overflow: "hidden",
-                                          textOverflow: "ellipsis",
-                                          maxWidth: 560,
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "space-between",
+                                          gap: 1,
+                                          border: "1px solid #E4E6EB",
+                                          borderRadius: 2,
+                                          px: 1.25,
+                                          py: 0.9,
+                                          bgcolor: "#FFFFFF",
                                           cursor: a.url ? "pointer" : "default",
+                                          "&:hover": a.url ? { borderColor: "#CBD5E1", bgcolor: "#F8FAFC" } : undefined,
                                         }}
                                         onClick={() => {
                                           if (!a.url) return;
-                                          onEvent?.("comments:attachment:open", {
-                                            componentKey: component.key,
-                                            commentId: c.id,
-                                            attachmentId: a.id,
-                                            url: a.url,
-                                          });
+                                          openAttachment(a);
                                         }}
-                                        title={a.name}
                                       >
-                                        {a.name}
-                                      </Typography>
-                                    </Box>
-                                  ))}
+                                        <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
+                                          <PaperclipIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
+                                          <Typography
+                                            variant="body2"
+                                            sx={{
+                                              color: a.url ? "#1877F2" : "#64748b",
+                                              fontWeight: 900,
+                                              whiteSpace: "nowrap",
+                                              overflow: "hidden",
+                                              textOverflow: "ellipsis",
+                                              maxWidth: { xs: 220, sm: 520 },
+                                            }}
+                                            title={a.name}
+                                          >
+                                            {a.name}
+                                          </Typography>
+                                        </Box>
+
+                                        <Typography variant="caption" sx={{ color: "#94a3b8", fontWeight: 900 }}>
+                                          {formatBytes(a.sizeBytes)}
+                                        </Typography>
+                                      </Box>
+                                    ))}
+                                  </Box>
                                 </Box>
                               ) : null}
                             </Box>
@@ -1063,7 +1247,7 @@ export const CommentsComponent = ({
               <span>
                 <IconButton
                   onClick={handleInsertMention}
-                  disabled={isReadOnly}
+                  disabled={locked}
                   sx={{
                     border: "1px solid #E4E6EB",
                     borderRadius: 2,
@@ -1077,22 +1261,111 @@ export const CommentsComponent = ({
               </span>
             </Tooltip>
 
-            <Tooltip title="Anexar (em breve)">
+            <Tooltip title={locked ? "Somente leitura" : "Anexar arquivos"}>
               <span>
                 <IconButton
-                  disabled
+                  onClick={openFilePicker}
+                  disabled={locked}
                   sx={{
                     border: "1px solid #E4E6EB",
                     borderRadius: 2,
                     bgcolor: "#fff",
-                    opacity: 0.55,
+                    "&:hover": { borderColor: "#CBD5E1", bgcolor: "#F8FAFC" },
+                    "&:disabled": { opacity: 0.6 },
                   }}
                 >
                   <PaperclipIcon sx={{ fontSize: 18, color: "#64748b" }} />
                 </IconButton>
               </span>
             </Tooltip>
+
+            {/* input real escondido */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept={ACCEPT}
+              style={{ display: "none" }}
+              onChange={(e) => handlePickFiles(e.target.files)}
+            />
           </Box>
+
+          {/* ✅ lista compacta de anexos selecionados (antes de enviar) */}
+          {pendingAttachments.length ? (
+            <Box
+              sx={{
+                mb: 1,
+                border: "1px solid #E4E6EB",
+                borderRadius: 2,
+                bgcolor: "#FAFBFC",
+                p: 1.25,
+              }}
+            >
+              <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, mb: 1 }}>
+                <Typography sx={{ fontWeight: 900, color: "#0f172a" }}>Anexos</Typography>
+                <Button
+                  onClick={clearPendingAttachments}
+                  size="small"
+                  sx={{ textTransform: "none", fontWeight: 900, color: "#475569", minWidth: "auto" }}
+                >
+                  Limpar
+                </Button>
+              </Box>
+
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+                {pendingAttachments.map((p) => (
+                  <Box
+                    key={p.id}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 1,
+                      border: "1px solid #E4E6EB",
+                      borderRadius: 2,
+                      bgcolor: "#fff",
+                      px: 1.25,
+                      py: 0.9,
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, minWidth: 0 }}>
+                      <PaperclipIcon sx={{ fontSize: 18, color: "#94a3b8" }} />
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: "#0f172a",
+                          fontWeight: 900,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          maxWidth: { xs: 220, sm: 520 },
+                        }}
+                        title={p.file.name}
+                      >
+                        {p.file.name}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: "#94a3b8", fontWeight: 900 }}>
+                        {formatBytes(p.file.size)}
+                      </Typography>
+                    </Box>
+
+                    <IconButton
+                      size="small"
+                      onClick={() => removePendingAttachment(p.id)}
+                      aria-label="Remover anexo"
+                      sx={{ color: "#475569", "&:hover": { bgcolor: "#F1F5F9" } }}
+                    >
+                      <CloseIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  </Box>
+                ))}
+              </Box>
+
+              <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 800, display: "block", mt: 1 }}>
+                Máx. {MAX_FILES} arquivos • até {formatBytes(MAX_BYTES_PER_FILE)} por arquivo.
+              </Typography>
+            </Box>
+          ) : null}
 
           <Box
             component="textarea"
@@ -1105,18 +1378,18 @@ export const CommentsComponent = ({
                 handleSubmit();
               }
             }}
-            placeholder={isReadOnly ? "Somente leitura" : "Escreva um comentário… use @ para mencionar"}
-            disabled={isReadOnly}
+            placeholder={locked ? "Somente leitura" : "Escreva um comentário… ou envie só anexos (sem texto) se quiser"}
+            disabled={locked}
             style={{
               width: "100%",
               minHeight: 46,
               maxHeight: 220,
               resize: "vertical",
               borderRadius: 14,
-              border: "1px solid #CBD5E1", // ✅ apenas borda do campo
+              border: "1px solid #CBD5E1",
               padding: "12px 12px",
               outline: "none",
-              background: isReadOnly ? "#F8FAFC" : "#fff",
+              background: locked ? "#F8FAFC" : "#fff",
               ...unifiedTextStyle,
             }}
           />

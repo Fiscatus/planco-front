@@ -406,13 +406,26 @@ const SimpleBuilderDialog = ({
     setOverId(null);
   };
 
-  const parseOptions = (raw?: string) =>
-    safeString(raw)
+  const parseOptionsEdit = (raw?: string) =>
+    safeText(raw)
+      .replace(/\r/g, "")
+      .split("\n")
+      .map((x) => x); // NÃO trim, NÃO filter(Boolean)
+
+  const ensureMin2Edit = (options: string[]) => {
+    const next = [...options];
+    while (next.length < 2) next.push("");
+    return next;
+  };
+
+  const parseOptionsFinal = (raw?: string) =>
+    safeText(raw)
+      .replace(/\r/g, "")
       .split("\n")
       .map((x) => x.trim())
       .filter(Boolean);
 
-  const ensureMin2 = (options: string[]) => {
+  const ensureMin2Final = (options: string[]) => {
     if (options.length >= 2) return options;
     if (options.length === 1) return [options[0] || "Opção 1", "Opção 2"];
     return ["Opção 1", "Opção 2"];
@@ -442,7 +455,7 @@ const SimpleBuilderDialog = ({
 
       const opcoesText =
         tipo === "opcoes"
-          ? ensureMin2((f.options || []).map((o) => o.label)).join("\n")
+          ? ensureMin2Final((f.options || []).map((o) => o.label)).join("\n")
           : "";
 
       return {
@@ -486,8 +499,9 @@ const SimpleBuilderDialog = ({
     setDrafts((prev) =>
       prev.map((d) => {
         if (d.id !== draftId) return d;
-        const current = ensureMin2(parseOptions(d.opcoesText));
-        const next = [...current, `Opção ${current.length + 1}`];
+
+        const current = ensureMin2Edit(parseOptionsEdit(d.opcoesText));
+        const next = [...current, ""];
         return { ...d, opcoesText: next.join("\n") };
       }),
     );
@@ -497,9 +511,9 @@ const SimpleBuilderDialog = ({
     setDrafts((prev) =>
       prev.map((d) => {
         if (d.id !== draftId) return d;
-        const current = ensureMin2(parseOptions(d.opcoesText));
+        const current = ensureMin2Edit(parseOptionsEdit(d.opcoesText));
         const next = [...current];
-        next[index] = value;
+        next[index] = value; // pode ser ""
         return { ...d, opcoesText: next.join("\n") };
       }),
     );
@@ -509,9 +523,9 @@ const SimpleBuilderDialog = ({
     setDrafts((prev) =>
       prev.map((d) => {
         if (d.id !== draftId) return d;
-        const current = ensureMin2(parseOptions(d.opcoesText));
+        const current = ensureMin2Edit(parseOptionsEdit(d.opcoesText));
         const next = current.filter((_, i) => i !== index);
-        const safeNext = ensureMin2(next);
+        const safeNext = ensureMin2Edit(next); // só garante 2 linhas vazias
         return { ...d, opcoesText: safeNext.join("\n") };
       }),
     );
@@ -524,7 +538,9 @@ const SimpleBuilderDialog = ({
       .map((d) => {
         if (d.tipo === "opcoes") {
           // garante mínimo 2 antes de converter
-          const safe = ensureMin2(parseOptions(d.opcoesText)).join("\n");
+          const safe = ensureMin2Final(parseOptionsFinal(d.opcoesText)).join(
+            "\n",
+          );
           return draftToField({ ...d, opcoesText: safe }, used);
         }
         return draftToField(d, used);
@@ -657,7 +673,7 @@ const SimpleBuilderDialog = ({
             {drafts.map((d, idx) => {
               const options =
                 d.tipo === "opcoes"
-                  ? ensureMin2(parseOptions(d.opcoesText))
+                  ? ensureMin2Edit(parseOptionsEdit(d.opcoesText))
                   : [];
 
               return (
@@ -794,8 +810,8 @@ const SimpleBuilderDialog = ({
                         if (tipo === "opcoes") {
                           update(d.id, {
                             tipo,
-                            opcoesText: ensureMin2(
-                              parseOptions(d.opcoesText),
+                            opcoesText: ensureMin2Edit(
+                              parseOptionsEdit(d.opcoesText),
                             ).join("\n"),
                           });
                           return;
