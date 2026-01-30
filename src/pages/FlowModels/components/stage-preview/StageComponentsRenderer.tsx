@@ -5,6 +5,16 @@ import { componentRegistry } from "./componentRegistry";
 
 export type StageComponentsRendererProps = {
   components: FlowModelComponent[];
+
+  /**
+   * ✅ NOVO:
+   * lista completa de componentes da etapa (mesmo que alguns não sejam renderizados),
+   * útil para componentes como APPROVAL que precisam checar dependências (ex: FILES_MANAGMENT).
+   *
+   * - Se não for enviado, usamos `components` como fallback.
+   */
+  stageComponents?: FlowModelComponent[];
+
   // permissões simples (podemos evoluir depois)
   userRoleIds?: string[];
 
@@ -30,6 +40,7 @@ function hasIntersection(a: string[] = [], b: string[] = []) {
 
 export const StageComponentsRenderer = ({
   components,
+  stageComponents, // ✅ novo
   userRoleIds = [],
   readOnly = false, // ✅ default editável para não travar em cascata
   stageCompleted = false,
@@ -49,6 +60,21 @@ export const StageComponentsRenderer = ({
       }))
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }, [components]);
+
+  // ✅ lista completa segura (fallback = components)
+  const safeStageComponents = useMemo(() => {
+    const base = stageComponents ?? components;
+    const arr = Array.isArray(base) ? base.slice() : [];
+    return arr.map((c) => ({
+      ...c,
+      order: Number.isFinite(c.order) ? c.order : 0,
+      visibilityRoles: Array.isArray(c.visibilityRoles)
+        ? c.visibilityRoles
+        : [],
+      editableRoles: Array.isArray(c.editableRoles) ? c.editableRoles : [],
+      config: c.config ?? {},
+    }));
+  }, [stageComponents, components]);
 
   const visibleComponents = useMemo(() => {
     return safeComponents.filter((c) => {
@@ -132,6 +158,7 @@ export const StageComponentsRenderer = ({
           >
             <Renderer
               component={comp}
+              stageComponents={safeComponents} // ✅ passa a etapa inteira pro runtime
               isReadOnly={isReadOnly}
               stageCompleted={stageCompleted}
               onEvent={onEvent}

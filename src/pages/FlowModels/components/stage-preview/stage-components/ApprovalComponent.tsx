@@ -1,387 +1,487 @@
-import { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   Box,
   Button,
   Chip,
   Dialog,
+  DialogActions,
   DialogContent,
+  DialogTitle,
   Divider,
-  IconButton,
   TextField,
   Typography,
-  CircularProgress,
 } from "@mui/material";
 import {
-  Close as CloseIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-  FactCheck as FactCheckIcon,
-  Gavel as GavelIcon,
-  Lock as LockIcon,
+  Info as InfoIcon,
 } from "@mui/icons-material";
 import type { StageComponentRuntimeProps } from "../componentRegistry";
 import { BaseStageComponentCard } from "./BaseStageComponentCard";
 
-/* -------------------------------------------------------------------------- */
-/* Types                                                                      */
-/* -------------------------------------------------------------------------- */
-
-type ApprovalDecision = "approved" | "changes_requested";
-
-type ApprovalConfig = {
-  decision?: ApprovalDecision;
-  decidedBy?: string;
-  decidedAt?: string; // ISO
-};
-
-/* -------------------------------------------------------------------------- */
-/* Helpers                                                                    */
-/* -------------------------------------------------------------------------- */
+/* =========================
+ * Helpers
+ * ========================= */
 
 function safeString(v: unknown) {
   return String(v ?? "").trim();
 }
 
-function normalizeConfig(raw: unknown): ApprovalConfig {
-  if (!raw || typeof raw !== "object") return {};
-  const obj = raw as Record<string, unknown>;
-
-  const decision = safeString(obj.decision) as ApprovalDecision;
-
-  if (decision !== "approved" && decision !== "changes_requested") {
-    return {};
-  }
-
-  return {
-    decision,
-    decidedBy: safeString(obj.decidedBy) || undefined,
-    decidedAt: safeString(obj.decidedAt) || undefined,
-  };
+function safeArray(v: unknown) {
+  return Array.isArray(v) ? v : [];
 }
 
-function decisionChip(decision: ApprovalDecision) {
-  if (decision === "approved") {
-    return {
-      label: "Aprovado",
-      bg: "#ECFDF3",
-      color: "#065F46",
-      icon: <CheckCircleIcon sx={{ fontSize: 16 }} />,
-    };
-  }
+/* =========================
+ * Types
+ * ========================= */
 
-  return {
-    label: "Correção solicitada",
-    bg: "#FEF2F2",
-    color: "#B91C1C",
-    icon: <CancelIcon sx={{ fontSize: 16 }} />,
-  };
+export type ReviewStatus = "draft" | "in_review" | "approved" | "rejected";
+
+type FileItem = {
+  id: string;
+  name: string;
+  reviewStatus?: ReviewStatus;
+  reviewNote?: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+};
+
+type ApprovalDecision = "approved" | "changes_requested";
+
+type ApprovalConfig = {
+  decision?: ApprovalDecision;
+  justification?: string;
+  decidedAt?: string;
+  decidedBy?: string;
+};
+
+function parseReviewStatus(v: unknown): ReviewStatus | undefined {
+  const s = safeString(v) as ReviewStatus;
+  if (s === "draft" || s === "in_review" || s === "approved" || s === "rejected")
+    return s;
+  return undefined;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Confirmation Dialog                                                         */
-/* -------------------------------------------------------------------------- */
+function parseApprovalDecision(v: unknown): ApprovalDecision | undefined {
+  const s = safeString(v) as ApprovalDecision;
+  if (s === "approved" || s === "changes_requested") return s;
+  return undefined;
+}
 
-type ConfirmDialogProps = {
-  open: boolean;
-  title: string;
-  description: string;
-  confirmLabel: string;
-  confirmColor: string;
-  loading?: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-};
-
-const ConfirmDialog = ({
-  open,
-  title,
-  description,
-  confirmLabel,
-  confirmColor,
-  loading = false,
-  onClose,
-  onConfirm,
-}: ConfirmDialogProps) => {
-  return (
-    <Dialog open={open} onClose={loading ? undefined : onClose} fullWidth maxWidth="xs">
-      <DialogContent sx={{ p: 0 }}>
-        <Box
-          sx={{
-            p: 2.5,
-            borderBottom: "1px solid #E4E6EB",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 2,
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-            <Box
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                bgcolor: "#F0F2F5",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <GavelIcon sx={{ fontSize: 18, color: "#475569" }} />
-            </Box>
-            <Typography sx={{ fontWeight: 900, color: "#0f172a" }}>{title}</Typography>
-          </Box>
-
-          <IconButton onClick={onClose} disabled={loading}>
-            <CloseIcon />
-          </IconButton>
-        </Box>
-
-        <Box sx={{ p: 2.5, display: "flex", flexDirection: "column", gap: 2 }}>
-          <Typography variant="body2" sx={{ color: "#475569", fontWeight: 700 }}>
-            {description}
-          </Typography>
-
-          <Box sx={{ display: "flex", gap: 1 }}>
-            <Button
-              onClick={onClose}
-              variant="outlined"
-              disabled={loading}
-              sx={{
-                textTransform: "none",
-                borderRadius: 2,
-                borderColor: "#E4E6EB",
-                color: "#212121",
-                fontWeight: 900,
-                flex: 1,
-              }}
-            >
-              Cancelar
-            </Button>
-
-            <Button
-              onClick={onConfirm}
-              variant="contained"
-              disabled={loading}
-              sx={{
-                bgcolor: confirmColor,
-                "&:hover": { bgcolor: confirmColor },
-                textTransform: "none",
-                fontWeight: 900,
-                borderRadius: 2,
-                boxShadow: "none",
-                flex: 1,
-              }}
-            >
-              {loading ? (
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <CircularProgress size={16} sx={{ color: "#fff" }} />
-                  Processando...
-                </Box>
-              ) : (
-                confirmLabel
-              )}
-            </Button>
-          </Box>
-        </Box>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-/* -------------------------------------------------------------------------- */
-/* ApprovalComponent                                                           */
-/* -------------------------------------------------------------------------- */
+/* =========================
+ * Component
+ * ========================= */
 
 export const ApprovalComponent = ({
   component,
+  stageComponents,
   isReadOnly,
   stageCompleted,
   onEvent,
 }: StageComponentRuntimeProps) => {
-  const cfg = useMemo(
-    () => normalizeConfig(component.config),
-    [component.config]
+  const locked = isReadOnly || stageCompleted;
+
+  const cfg = useMemo<ApprovalConfig>(() => {
+    const raw = (component.config ?? {}) as Record<string, unknown>;
+
+    return {
+      decision: parseApprovalDecision(raw.decision),
+      justification: safeString(raw.justification) || "",
+      decidedAt: safeString(raw.decidedAt) || "",
+      decidedBy: safeString(raw.decidedBy) || "",
+    };
+  }, [component.config]);
+
+  const filesComponent = useMemo(() => {
+    const list = stageComponents ?? [];
+    return list.find((c) => c.type === "FILES_MANAGMENT");
+  }, [stageComponents]);
+
+  const stageFiles = useMemo<FileItem[]>(() => {
+    if (!filesComponent) return [];
+
+    const rawCfg = (filesComponent.config ?? {}) as Record<string, unknown>;
+    const files = safeArray(rawCfg.files);
+
+    return files
+      .map((f) => {
+        const o = (f ?? {}) as Record<string, unknown>;
+        const id = safeString(o.id) || safeString(o._id);
+        const name = safeString(o.name);
+        if (!id || !name) return null;
+
+        return {
+          id,
+          name,
+          reviewStatus: parseReviewStatus(o.reviewStatus),
+          reviewNote: safeString(o.reviewNote) || undefined,
+          reviewedAt: safeString(o.reviewedAt) || undefined,
+          reviewedBy: safeString(o.reviewedBy) || undefined,
+        } as FileItem;
+      })
+      .filter(Boolean) as FileItem[];
+  }, [filesComponent]);
+
+  const filesInReview = useMemo(
+    () => stageFiles.filter((f) => f.reviewStatus === "in_review"),
+    [stageFiles],
+  );
+
+  const filesRejected = useMemo(
+    () => stageFiles.filter((f) => f.reviewStatus === "rejected"),
+    [stageFiles],
   );
 
   const alreadyDecided = Boolean(cfg.decision);
 
+  const canDecideByFiles = filesInReview.length > 0;
   const canDecide =
-    !isReadOnly &&
-    !stageCompleted &&
-    !alreadyDecided;
+    !locked && !alreadyDecided && Boolean(filesComponent) && canDecideByFiles;
 
-  const [justification, setJustification] = useState("");
-  const [error, setError] = useState("");
-  const [confirmType, setConfirmType] = useState<ApprovalDecision | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [justification, setJustification] = useState(cfg.justification || "");
 
-  const handleOpenConfirm = (type: ApprovalDecision) => {
-    if (!canDecide) return;
+  // dialog confirm
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmType, setConfirmType] = useState<ApprovalDecision>("approved");
 
-    if (!safeString(justification)) {
-      setError("A justificativa é obrigatória");
-      return;
-    }
-
-    setError("");
+  const openConfirm = useCallback((type: ApprovalDecision) => {
     setConfirmType(type);
-    onEvent?.("approval:confirm:open", {
-      componentKey: component.key,
-      decision: type,
-    });
-  };
+    setConfirmOpen(true);
+  }, []);
 
-  const handleConfirm = async () => {
-    if (!confirmType) return;
+  const closeConfirm = useCallback(() => setConfirmOpen(false), []);
 
-    setLoading(true);
+  const emitDecision = useCallback(() => {
+    const fileIds = filesInReview.map((f) => f.id);
+
+    const filesTargetStatus: ReviewStatus =
+      confirmType === "approved" ? "approved" : "rejected";
 
     onEvent?.("approval:decision", {
       componentKey: component.key,
       decision: confirmType,
-      justification,
+      justification: safeString(justification),
+      fileIds,
+      filesTargetStatus,
     });
 
-    // preview: simula latência
-    await new Promise((r) => setTimeout(r, 900));
+    setConfirmOpen(false);
+  }, [filesInReview, onEvent, component.key, confirmType, justification]);
 
-    setLoading(false);
-    setConfirmType(null);
-  };
+  const headerChip = useMemo(() => {
+    if (!cfg.decision) {
+      return (
+        <Chip
+          label="Pendente"
+          size="small"
+          sx={{
+            bgcolor: "#FFF7ED",
+            color: "#9A3412",
+            fontWeight: 950,
+            height: 24,
+          }}
+        />
+      );
+    }
 
-  const decisionUI = cfg.decision ? decisionChip(cfg.decision) : null;
+    if (cfg.decision === "approved") {
+      return (
+        <Chip
+          icon={<CheckCircleIcon sx={{ fontSize: 16 }} />}
+          label="Aprovado"
+          size="small"
+          sx={{
+            bgcolor: "#ECFDF3",
+            color: "#065F46",
+            fontWeight: 950,
+            height: 24,
+            "& .MuiChip-icon": { ml: 0.5, color: "#065F46" },
+          }}
+        />
+      );
+    }
+
+    return (
+      <Chip
+        icon={<CancelIcon sx={{ fontSize: 16 }} />}
+        label="Correções solicitadas"
+        size="small"
+        sx={{
+          bgcolor: "#FEF2F2",
+          color: "#B91C1C",
+          fontWeight: 950,
+          height: 24,
+          "& .MuiChip-icon": { ml: 0.5, color: "#B91C1C" },
+        }}
+      />
+    );
+  }, [cfg.decision]);
+
+  const emptyState = useMemo(() => {
+    if (alreadyDecided) return null;
+
+    if (!filesComponent) {
+      return (
+        <Box
+          sx={{
+            border: "1px solid #EEF2F7",
+            borderRadius: 2,
+            bgcolor: "#FAFBFC",
+            p: 2,
+          }}
+        >
+          <Typography sx={{ fontWeight: 950, color: "#0f172a" }}>
+            Componente de arquivos não encontrado
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ color: "#475569", fontWeight: 700, mt: 0.5 }}
+          >
+            Esta etapa não possui “Gerenciar Arquivos” (FILES_MANAGMENT). Sem
+            anexos em análise, a aprovação fica indisponível.
+          </Typography>
+        </Box>
+      );
+    }
+
+    if (!canDecideByFiles) {
+      return (
+        <Box
+          sx={{
+            border: "1px solid #EEF2F7",
+            borderRadius: 2,
+            bgcolor: "#FAFBFC",
+            p: 2,
+          }}
+        >
+          <Typography sx={{ fontWeight: 950, color: "#0f172a" }}>
+            Nenhum arquivo enviado para análise
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ color: "#475569", fontWeight: 700, mt: 0.5 }}
+          >
+            Para aprovar ou solicitar correções, envie pelo menos 1 arquivo para
+            o status “Em análise” no card de “Gerenciar Arquivos”.
+          </Typography>
+
+          {filesRejected.length > 0 ? (
+            <Typography
+              variant="body2"
+              sx={{ color: "#B91C1C", fontWeight: 800, mt: 0.75 }}
+            >
+              Existem {filesRejected.length} arquivo(s) rejeitado(s). Anexe a
+              nova versão e envie para análise.
+            </Typography>
+          ) : null}
+        </Box>
+      );
+    }
+
+    return null;
+  }, [alreadyDecided, filesComponent, canDecideByFiles, filesRejected.length]);
 
   return (
-    <>
-      <BaseStageComponentCard
-        title={component.label || "Decisão"}
-        subtitle={component.description || "Aprovação ou solicitação de ajustes"}
-        icon={<FactCheckIcon sx={{ fontSize: 18 }} />}
-        required={component.required}
-        lockedAfterCompletion={component.lockedAfterCompletion}
-        isReadOnly={isReadOnly}
-        rightSlot={
-          decisionUI ? (
-            <Chip
-              icon={decisionUI.icon}
-              label={decisionUI.label}
-              size="small"
-              sx={{
-                bgcolor: decisionUI.bg,
-                color: decisionUI.color,
-                fontWeight: 900,
-                fontSize: "0.75rem",
-                height: 24,
-                "& .MuiChip-icon": { color: decisionUI.color },
-              }}
-            />
-          ) : null
-        }
+    <BaseStageComponentCard
+      title={component.label || "Aprovação"}
+      subtitle={
+        component.description ||
+        "Aprove ou solicite correções com base nos anexos em análise"
+      }
+      icon={<InfoIcon sx={{ fontSize: 18 }} />}
+      required={component.required}
+      lockedAfterCompletion={component.lockedAfterCompletion}
+      isReadOnly={isReadOnly}
+      rightSlot={headerChip}
+    >
+      {emptyState}
+
+      <Box sx={{ mt: 1.5 }} />
+
+      <TextField
+        value={justification}
+        onChange={(e) => setJustification(e.target.value)}
+        label="Justificativa / Observações"
+        placeholder="Descreva o motivo da aprovação ou as correções solicitadas..."
+        fullWidth
+        multiline
+        minRows={4}
+        disabled={locked || alreadyDecided}
+        sx={{
+          "& .MuiInputBase-root": {
+            borderRadius: 2,
+            bgcolor: locked || alreadyDecided ? "#F8FAFC" : "#FFFFFF",
+          },
+        }}
+      />
+
+      <Box sx={{ mt: 2 }} />
+
+      <Box
+        sx={{
+          border: "1px solid #EEF2F7",
+          borderRadius: 2,
+          bgcolor: "#FFFFFF",
+          overflow: "hidden",
+        }}
       >
-        {/* Decisão já tomada */}
-        {alreadyDecided ? (
-          <Box
-            sx={{
-              border: "1px solid #E4E6EB",
-              borderRadius: 2,
-              bgcolor: "#FAFBFC",
-              p: 2,
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-            }}
-          >
-            <LockIcon sx={{ color: "#64748b" }} />
-            <Typography sx={{ fontWeight: 900, color: "#475569" }}>
-              Decisão registrada. Esta etapa não pode mais ser alterada.
+        <Box
+          sx={{
+            px: 2,
+            py: 1.25,
+            bgcolor: "#FAFBFC",
+            borderBottom: "1px solid #EEF2F7",
+          }}
+        >
+          <Typography sx={{ fontWeight: 950, color: "#0f172a" }}>
+            Arquivos em análise: {filesInReview.length}
+          </Typography>
+        </Box>
+
+        {filesInReview.length === 0 ? (
+          <Box sx={{ p: 2 }}>
+            <Typography sx={{ color: "#64748b", fontWeight: 700 }}>
+              Nenhum arquivo no status “Em análise”.
             </Typography>
           </Box>
         ) : (
-          <>
-            <TextField
-              label="Justificativa"
-              multiline
-              minRows={4}
-              value={justification}
-              onChange={(e) => {
-                setJustification(e.target.value);
-                if (error) setError("");
-              }}
-              disabled={!canDecide}
-              placeholder="Descreva o motivo da aprovação ou das correções solicitadas..."
-              error={Boolean(error)}
-              helperText={error}
-              fullWidth
-            />
-
-            <Divider sx={{ my: 2 }} />
-
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Button
-                onClick={() => handleOpenConfirm("changes_requested")}
-                variant="outlined"
-                disabled={!canDecide}
-                startIcon={<CancelIcon />}
-                sx={{
-                  textTransform: "none",
-                  borderRadius: 2,
-                  borderColor: "#FECACA",
-                  color: "#B91C1C",
-                  fontWeight: 900,
-                  flex: 1,
-                  "&:hover": { bgcolor: "#FEF2F2" },
-                }}
-              >
-                Solicitar correção
-              </Button>
-
-              <Button
-                onClick={() => handleOpenConfirm("approved")}
-                variant="contained"
-                disabled={!canDecide}
-                startIcon={<CheckCircleIcon />}
-                sx={{
-                  bgcolor: "#16A34A",
-                  "&:hover": { bgcolor: "#15803D" },
-                  textTransform: "none",
-                  fontWeight: 900,
-                  borderRadius: 2,
-                  boxShadow: "none",
-                  flex: 1,
-                }}
-              >
-                Aprovar
-              </Button>
-            </Box>
-          </>
+          <Box sx={{ p: 2 }}>
+            {filesInReview.map((f, idx) => (
+              <React.Fragment key={f.id}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 2,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 900,
+                      color: "#0f172a",
+                      minWidth: 0,
+                      flex: 1,
+                    }}
+                  >
+                    {f.name}
+                  </Typography>
+                  <Chip
+                    label="Em análise"
+                    size="small"
+                    sx={{
+                      bgcolor: "#E7F3FF",
+                      color: "#1877F2",
+                      fontWeight: 950,
+                      height: 22,
+                    }}
+                  />
+                </Box>
+                {idx < filesInReview.length - 1 ? (
+                  <Divider sx={{ my: 1.25, borderColor: "#EEF2F7" }} />
+                ) : null}
+              </React.Fragment>
+            ))}
+          </Box>
         )}
-      </BaseStageComponentCard>
+      </Box>
 
-      <ConfirmDialog
-        open={Boolean(confirmType)}
-        loading={loading}
-        title={
-          confirmType === "approved"
-            ? "Confirmar aprovação"
-            : "Solicitar correção"
-        }
-        description={
-          confirmType === "approved"
-            ? "Esta ação aprova a etapa e libera a próxima no fluxo."
-            : "A etapa será devolvida para ajustes antes de prosseguir."
-        }
-        confirmLabel={
-          confirmType === "approved" ? "Confirmar aprovação" : "Confirmar devolução"
-        }
-        confirmColor={confirmType === "approved" ? "#16A34A" : "#DC2626"}
-        onClose={() => {
-          if (loading) return;
-          setConfirmType(null);
-          onEvent?.("approval:confirm:close", { componentKey: component.key });
+      <Box sx={{ mt: 2 }} />
+
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          flexWrap: "wrap",
+          justifyContent: "flex-end",
         }}
-        onConfirm={handleConfirm}
-      />
-    </>
+      >
+        <Button
+          variant="outlined"
+          startIcon={<CancelIcon />}
+          disabled={!canDecide}
+          onClick={() => openConfirm("changes_requested")}
+          sx={{
+            textTransform: "none",
+            borderRadius: 2,
+            borderColor: "#FECACA",
+            color: "#B91C1C",
+            fontWeight: 950,
+            bgcolor: "#FFFFFF",
+            "&:hover": { borderColor: "#FCA5A5", bgcolor: "#FFFFFF" },
+          }}
+        >
+          Solicitar correções
+        </Button>
+
+        <Button
+          variant="contained"
+          startIcon={<CheckCircleIcon />}
+          disabled={!canDecide}
+          onClick={() => openConfirm("approved")}
+          sx={{
+            bgcolor: "#1877F2",
+            "&:hover": { bgcolor: "#166FE5" },
+            textTransform: "none",
+            fontWeight: 950,
+            borderRadius: 2,
+            boxShadow: "none",
+          }}
+        >
+          Aprovar
+        </Button>
+      </Box>
+
+      {/* Confirm dialog */}
+      <Dialog open={confirmOpen} onClose={closeConfirm} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 950, color: "#0f172a" }}>
+          {confirmType === "approved"
+            ? "Aprovar arquivos?"
+            : "Solicitar correções?"}
+        </DialogTitle>
+
+        <DialogContent sx={{ pt: 0.5 }}>
+          <Typography sx={{ color: "#475569", fontWeight: 700 }}>
+            {confirmType === "approved"
+              ? `Você aprovará ${filesInReview.length} arquivo(s) em análise e liberará o avanço da etapa.`
+              : `Você solicitará correções para ${filesInReview.length} arquivo(s) em análise. A etapa volta para ajustes.`}
+          </Typography>
+        </DialogContent>
+
+        <DialogActions sx={{ p: 2, pt: 1.25 }}>
+          <Button
+            onClick={closeConfirm}
+            variant="outlined"
+            sx={{
+              textTransform: "none",
+              borderRadius: 2,
+              borderColor: "#E4E6EB",
+              color: "#0f172a",
+              fontWeight: 900,
+              "&:hover": { borderColor: "#CBD5E1", backgroundColor: "#fff" },
+            }}
+          >
+            Cancelar
+          </Button>
+
+          <Button
+            onClick={emitDecision}
+            variant="contained"
+            sx={{
+              bgcolor: confirmType === "approved" ? "#1877F2" : "#F02849",
+              "&:hover": {
+                bgcolor: confirmType === "approved" ? "#166FE5" : "#D61F3D",
+              },
+              textTransform: "none",
+              fontWeight: 950,
+              borderRadius: 2,
+              boxShadow: "none",
+            }}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </BaseStageComponentCard>
   );
 };

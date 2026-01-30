@@ -20,6 +20,13 @@ import { Box, Typography } from "@mui/material";
 
 export type StageComponentRuntimeProps = {
   component: FlowModelComponent;
+
+  /**
+   * ✅ lista completa de componentes da etapa
+   * (necessário para APPROVAL enxergar FILES_MANAGMENT etc.)
+   */
+  stageComponents?: FlowModelComponent[];
+
   isReadOnly: boolean;
   stageCompleted: boolean;
   onEvent?: (eventType: string, payload?: Record<string, any>) => void;

@@ -1,3 +1,5 @@
+// src/pages/FlowModels/components/stage-preview/StagePreviewModal.tsx
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Dialog,
@@ -19,6 +21,12 @@ type FileItem = {
   mimeType?: string;
   sizeBytes?: number;
   category?: string;
+
+  // ✅ usado pelo Approval (runtime local do preview)
+  reviewStatus?: "draft" | "in_review" | "approved" | "rejected";
+  reviewNote?: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
 };
 
 type StagePreviewModalProps = {
@@ -43,6 +51,13 @@ function safeString(v: unknown) {
   return String(v ?? "").trim();
 }
 
+function normalizeReviewStatus(v: unknown): FileItem["reviewStatus"] | undefined {
+  const s = safeString(v);
+  if (s === "draft" || s === "in_review" || s === "approved" || s === "rejected")
+    return s;
+  return undefined;
+}
+
 function normalizeFiles(raw: unknown): FileItem[] {
   if (!Array.isArray(raw)) return [];
 
@@ -63,6 +78,11 @@ function normalizeFiles(raw: unknown): FileItem[] {
             ? obj.sizeBytes
             : undefined,
         category: safeString(obj.category) || undefined,
+
+        reviewStatus: normalizeReviewStatus(obj.reviewStatus),
+        reviewNote: safeString(obj.reviewNote) || undefined,
+        reviewedAt: safeString(obj.reviewedAt) || undefined,
+        reviewedBy: safeString(obj.reviewedBy) || undefined,
       } as FileItem;
     })
     .filter(Boolean) as FileItem[];
@@ -81,7 +101,11 @@ function extractViewerBootstrap(components: FlowModelComponent[]) {
   const files = viewerFiles.length ? viewerFiles : managerFiles;
 
   const selectedRaw =
-    (viewerCfg.selectedFile as any) ?? (managerCfg.selectedFile as any) ?? null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (viewerCfg.selectedFile as any) ??
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (managerCfg.selectedFile as any) ??
+    null;
 
   const selectedFileId = selectedRaw
     ? safeString(selectedRaw.id) || safeString(selectedRaw._id)
@@ -112,11 +136,14 @@ function stableAutoKey(input: string) {
   return `k_${h.toString(16)}`;
 }
 
-function deriveChecklistSuggestions(components: FlowModelComponent[]): ChecklistSuggestion[] {
+function deriveChecklistSuggestions(
+  components: FlowModelComponent[],
+): ChecklistSuggestion[] {
   const arr = Array.isArray(components) ? components : [];
   const out: ChecklistSuggestion[] = [];
 
-  const hasType = (t: FlowModelComponent["type"]) => arr.some((c) => c.type === t);
+  const hasType = (t: FlowModelComponent["type"]) =>
+    arr.some((c) => c.type === t);
 
   for (const c of arr) {
     // ignora o próprio checklist pra evitar loop
@@ -138,7 +165,7 @@ function deriveChecklistSuggestions(components: FlowModelComponent[]): Checklist
 
     // FILES_MANAGMENT
     if (c.type === "FILES_MANAGMENT") {
-      const label = `Anexar documentos necessários`;
+      const label = "Anexar documentos necessários";
       out.push({
         id: `auto_files_${c.key}`,
         label,
@@ -151,7 +178,7 @@ function deriveChecklistSuggestions(components: FlowModelComponent[]): Checklist
 
     // SIGNATURE
     if (c.type === "SIGNATURE") {
-      const label = `Realizar assinatura eletrônica`;
+      const label = "Realizar assinatura eletrônica";
       out.push({
         id: `auto_signature_${c.key}`,
         label,
@@ -164,7 +191,7 @@ function deriveChecklistSuggestions(components: FlowModelComponent[]): Checklist
 
     // APPROVAL
     if (c.type === "APPROVAL") {
-      const label = `Obter aprovação da etapa`;
+      const label = "Obter aprovação da etapa";
       out.push({
         id: `auto_approval_${c.key}`,
         label,
@@ -177,7 +204,7 @@ function deriveChecklistSuggestions(components: FlowModelComponent[]): Checklist
 
     // COMMENTS
     if (c.type === "COMMENTS") {
-      const label = `Registrar observações/decisões nos comentários`;
+      const label = "Registrar observações/decisões nos comentários";
       out.push({
         id: `auto_comments_${c.key}`,
         label,
@@ -190,7 +217,7 @@ function deriveChecklistSuggestions(components: FlowModelComponent[]): Checklist
 
     // TIMELINE
     if (c.type === "TIMELINE") {
-      const label = `Conferir prazos e eventos no cronograma`;
+      const label = "Conferir prazos e eventos no cronograma";
       out.push({
         id: `auto_timeline_${c.key}`,
         label,
@@ -203,7 +230,7 @@ function deriveChecklistSuggestions(components: FlowModelComponent[]): Checklist
 
     // FILE_VIEWER
     if (c.type === "FILE_VIEWER") {
-      const label = `Revisar arquivos anexados no visualizador`;
+      const label = "Revisar arquivos anexados no visualizador";
       out.push({
         id: `auto_viewer_${c.key}`,
         label,
@@ -261,7 +288,8 @@ export const StagePreviewModal = ({
   readOnly = false, // ✅ default editável no preview
   stageCompleted = false,
 }: StagePreviewModalProps) => {
-  const baseComponents = stage?.components || [];
+  // ✅ runtime de componentes (necessário p/ Approval persistir decisão no preview)
+  const [runtimeComponents, setRuntimeComponents] = useState<FlowModelComponent[]>([]);
 
   // Runtime local (preview)
   const [runtimeFiles, setRuntimeFiles] = useState<FileItem[]>([]);
@@ -274,8 +302,11 @@ export const StagePreviewModal = ({
     if (!stage) {
       setRuntimeFiles([]);
       setRuntimeSelectedFileId("");
+      setRuntimeComponents([]);
       return;
     }
+
+    setRuntimeComponents(stage.components || []);
 
     const boot = extractViewerBootstrap(stage.components || []);
     setRuntimeFiles(boot.files || []);
@@ -336,13 +367,73 @@ export const StagePreviewModal = ({
       return;
     }
 
+    // =========================
+    // Ponte APPROVAL (runtime)
+    // =========================
+    if (eventType === "approval:decision") {
+      const componentKey = safeString(payload?.componentKey);
+      const decision = safeString(payload?.decision); // "approved" | "changes_requested"
+      const justification = safeString(payload?.justification);
+      const fileIds = Array.isArray(payload?.fileIds) ? payload?.fileIds : [];
+      const filesTargetStatus = safeString(payload?.filesTargetStatus); // "approved" | "rejected"
+      const nowIso = new Date().toISOString();
+
+      // 1) atualiza arquivos no runtime
+      setRuntimeFiles((prev) => {
+        if (!fileIds.length) return prev;
+
+        return prev.map((f) => {
+          if (!fileIds.includes(f.id)) return f;
+
+          const target: FileItem["reviewStatus"] =
+            filesTargetStatus === "approved" ? "approved" : "rejected";
+
+          return {
+            ...f,
+            reviewStatus: target,
+            reviewNote: justification || f.reviewNote,
+            reviewedAt: nowIso,
+            reviewedBy: "Preview",
+          };
+        });
+      });
+
+      // 2) persiste decisão no config do componente APPROVAL (pra chip/estado refletir)
+      setRuntimeComponents((prev) => {
+        if (!componentKey) return prev;
+
+        return prev.map((c) => {
+          if (c.key !== componentKey) return c;
+
+          const currentCfg = (c.config ?? {}) as Record<string, unknown>;
+          const normalizedDecision =
+            decision === "approved" || decision === "changes_requested"
+              ? decision
+              : undefined;
+
+          return {
+            ...c,
+            config: {
+              ...currentCfg,
+              decision: normalizedDecision,
+              justification,
+              decidedAt: nowIso,
+              decidedBy: "Preview",
+            },
+          };
+        });
+      });
+
+      return;
+    }
+
     // Checklist events ficam logados e não quebram o preview
   }, []);
 
   // ✅ injeta runtime config no FILE_VIEWER + FILES_MANAGMENT
   // ✅ injeta autoSuggestions no CHECKLIST (Caminho A)
   const componentsForRender = useMemo(() => {
-    const arr = Array.isArray(baseComponents) ? baseComponents.slice() : [];
+    const arr = Array.isArray(runtimeComponents) ? runtimeComponents.slice() : [];
     const autoSuggestions = deriveChecklistSuggestions(arr);
 
     return arr.map((c) => {
@@ -355,7 +446,6 @@ export const StagePreviewModal = ({
           config: {
             ...currentCfg,
             autoSuggestions,
-            // opcional: contexto de etapa (pode ser útil no futuro)
             stageContext: {
               stageName: safeString(stage?.name),
               stageId: safeString((stage as any)?.stageId),
@@ -395,7 +485,7 @@ export const StagePreviewModal = ({
 
       return c;
     });
-  }, [baseComponents, runtimeFiles, selectedFile, stage, stageCompleted]);
+  }, [runtimeComponents, runtimeFiles, selectedFile, stage, stageCompleted]);
 
   const componentsCount = stage?.components?.length || 0;
 
@@ -497,6 +587,7 @@ export const StagePreviewModal = ({
                 fontWeight: 800,
               }}
             />
+
             <Chip
               label={stageCompleted ? "Etapa concluída" : "Etapa em andamento"}
               size="small"
@@ -506,16 +597,15 @@ export const StagePreviewModal = ({
                 fontWeight: 800,
               }}
             />
+
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5 }} />
-            <Typography
-              variant="body2"
-              sx={{ color: "#212121", fontWeight: 800 }}
-            >
+
+            <Typography variant="body2" sx={{ color: "#212121", fontWeight: 800 }}>
               {stage?.name || "Etapa"}
             </Typography>
+
             <Typography variant="body2" sx={{ color: "#616161" }}>
-              • {componentsCount}{" "}
-              {componentsCount === 1 ? "componente" : "componentes"}
+              • {componentsCount} {componentsCount === 1 ? "componente" : "componentes"}
             </Typography>
 
             {runtimeFiles.length ? (

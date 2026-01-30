@@ -12,6 +12,7 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
+  DialogContentText,
   DialogActions,
   Checkbox,
   TextField,
@@ -31,6 +32,12 @@ import {
   InsertDriveFile as InsertDriveFileIcon,
   Article as ArticleIcon,
   Search as SearchIcon,
+  Send as SendIcon,
+  CheckCircle as CheckCircleIcon,
+  Cancel as CancelIcon,
+  HourglassTop as HourglassTopIcon,
+  Replay as ReplayIcon,
+  FileCopy as FileCopyIcon,
 } from "@mui/icons-material";
 import type { StageComponentRuntimeProps } from "../componentRegistry";
 import { BaseStageComponentCard } from "./BaseStageComponentCard";
@@ -38,6 +45,8 @@ import { BaseStageComponentCard } from "./BaseStageComponentCard";
 /* =========================
  * Types
  * ========================= */
+
+type ReviewStatus = "draft" | "in_review" | "approved" | "rejected";
 
 type FileItem = {
   id: string;
@@ -48,6 +57,12 @@ type FileItem = {
   createdAt?: string; // ISO
   version?: number;
   createdBy?: string;
+
+  // ✅ Revisão / workflow
+  reviewStatus?: ReviewStatus; // draft | in_review | approved | rejected
+  reviewNote?: string; // observação do envio/decisão
+  reviewedAt?: string; // ISO
+  reviewedBy?: string;
 
   /**
    * URL (S3 presigned) pronto pra abrir em nova guia.
@@ -120,6 +135,14 @@ function acceptToLabel(accept: string) {
   return parts.join(" • ");
 }
 
+/**
+ * Pequeno helper defensivo: alguns backends mandam URL em campos alternativos
+ * (mantém aqui em cima para o TS nunca "perder" essa função)
+ */
+function inReviewDownloadUrl(obj: Record<string, unknown>) {
+  return (obj as { inReviewUrl?: unknown }).inReviewUrl;
+}
+
 function fileIconFor(file: FileItem) {
   const ext = getExt(file.name);
   const mime = safeString(file.mimeType).toLowerCase();
@@ -158,6 +181,71 @@ function normalizeQuery(q: string) {
   return safeString(q).toLowerCase();
 }
 
+function reviewChip(status?: ReviewStatus) {
+  const s = status || "draft";
+
+  if (s === "approved") {
+    return {
+      label: "Aprovado",
+      bg: "rgba(5,150,105,0.12)",
+      color: "#047857",
+      icon: <CheckCircleIcon sx={{ fontSize: 16 }} />,
+    };
+  }
+
+  if (s === "rejected") {
+    return {
+      label: "Correção solicitada",
+      bg: "rgba(225,29,72,0.12)",
+      color: "#BE123C",
+      icon: <CancelIcon sx={{ fontSize: 16 }} />,
+    };
+  }
+
+  if (s === "in_review") {
+    return {
+      label: "Em análise",
+      bg: "rgba(24,119,242,0.12)",
+      color: "#1877F2",
+      icon: <HourglassTopIcon sx={{ fontSize: 16 }} />,
+    };
+  }
+
+  return {
+    label: "Rascunho",
+    bg: "#F1F5F9",
+    color: "#475569",
+    icon: <ReplayIcon sx={{ fontSize: 16 }} />,
+  };
+}
+
+function canSubmitForReviewWithCfg(
+  file: FileItem,
+  locked: boolean,
+  requiredCategories: boolean,
+) {
+  if (locked) return false;
+  if (requiredCategories && !safeString(file.category)) return false;
+  const s = file.reviewStatus || "draft";
+  return s === "draft" || s === "rejected";
+}
+
+function canCreateNewVersion(file: FileItem, locked: boolean) {
+  if (locked) return false;
+  const s = file.reviewStatus || "draft";
+  return s === "rejected";
+}
+
+function nextVersionFor(name: string, files: FileItem[]) {
+  const base = safeString(name).toLowerCase();
+  const versions = files
+    .filter((f) => safeString(f.name).toLowerCase() === base)
+    .map((f) => (typeof f.version === "number" ? f.version : 1));
+
+  const maxV = versions.length ? Math.max(...versions) : 1;
+  return maxV + 1;
+}
+
 /* =========================
  * Component
  * ========================= */
@@ -190,8 +278,7 @@ export const FilesManagementComponent = ({
         : 25;
 
     const accept =
-      safeString(raw.accept) ||
-      "application/pdf,.doc,.docx,.xls,.xlsx,.csv,image/*";
+      safeString(raw.accept) || "application/pdf,.doc,.docx,.xls,.xlsx,.csv,image/*";
 
     const multiple = raw.multiple === false ? false : true;
     const showVersions = raw.showVersions === true;
@@ -238,9 +325,16 @@ export const FilesManagementComponent = ({
               ? obj.version
               : undefined,
           createdBy: safeString(obj.createdBy) || undefined,
+
+          reviewStatus: (safeString(obj.reviewStatus) as ReviewStatus) || undefined,
+          reviewNote: safeString(obj.reviewNote) || undefined,
+          reviewedAt: safeString(obj.reviewedAt) || undefined,
+          reviewedBy: safeString(obj.reviewedBy) || undefined,
+
           url:
             safeString(obj.url) ||
             safeString(obj.pdfUrl) ||
+            safeString(inReviewDownloadUrl(obj)) ||
             safeString(obj.downloadUrl) ||
             undefined,
         } as FileItem;
@@ -263,6 +357,11 @@ export const FilesManagementComponent = ({
   const [confirmMode, setConfirmMode] = useState<"single" | "bulk">("single");
   const [confirmSingleId, setConfirmSingleId] = useState<string | null>(null);
 
+  // Enviar para análise (modal simples)
+  const [submitOpen, setSubmitOpen] = useState(false);
+  const [submitFileId, setSubmitFileId] = useState<string | null>(null);
+  const [submitNote, setSubmitNote] = useState("");
+
   const canAddMore = localFiles.length < cfg.maxFiles;
 
   const emitList = useCallback(
@@ -278,6 +377,12 @@ export const FilesManagementComponent = ({
           createdAt: f.createdAt,
           version: f.version,
           createdBy: f.createdBy,
+
+          reviewStatus: f.reviewStatus,
+          reviewNote: f.reviewNote,
+          reviewedAt: f.reviewedAt,
+          reviewedBy: f.reviewedBy,
+
           url: f.url,
         })),
       });
@@ -320,6 +425,12 @@ export const FilesManagementComponent = ({
         createdAt: nowIso,
         version: cfg.showVersions ? 1 : undefined,
         createdBy: "Você",
+
+        reviewStatus: "draft",
+        reviewNote: undefined,
+        reviewedAt: undefined,
+        reviewedBy: undefined,
+
         url: undefined,
       }));
 
@@ -371,9 +482,10 @@ export const FilesManagementComponent = ({
 
     const arr = localFiles.filter((f) => {
       if (!q) return true;
-      const hay = `${f.name} ${safeString(f.createdBy)} ${formatDateTime(
-        f.createdAt,
-      )} ${safeString(f.category)}`.toLowerCase();
+      const hay =
+        `${f.name} ${safeString(f.createdBy)} ${formatDateTime(f.createdAt)} ${safeString(
+          f.category,
+        )} ${f.reviewStatus || "draft"}`.toLowerCase();
       return hay.includes(q);
     });
 
@@ -382,13 +494,10 @@ export const FilesManagementComponent = ({
       return Number.isFinite(t) ? t : 0;
     };
 
-    const sizeOf = (x: FileItem) => {
-      const s =
-        typeof x.sizeBytes === "number" && Number.isFinite(x.sizeBytes)
-          ? x.sizeBytes
-          : 0;
-      return s;
-    };
+    const sizeOf = (x: FileItem) =>
+      typeof x.sizeBytes === "number" && Number.isFinite(x.sizeBytes)
+        ? x.sizeBytes
+        : 0;
 
     const nameOf = (x: FileItem) => safeString(x.name).toLowerCase();
 
@@ -513,7 +622,7 @@ export const FilesManagementComponent = ({
     clearSelection,
   ]);
 
-  // ✅ VER: (front pronto) – você ajusta com seu dev depois
+  // ✅ VER: (front pronto)
   const handleOpenInNewTab = useCallback(
     (fileId: string) => {
       const f = localFiles.find((x) => x.id === fileId);
@@ -532,7 +641,11 @@ export const FilesManagementComponent = ({
       }
 
       window.open(url, "_blank", "noopener,noreferrer");
-      onEvent?.("files:pdf:openInNewTab", { componentKey: component.key, fileId, url });
+      onEvent?.("files:pdf:openInNewTab", {
+        componentKey: component.key,
+        fileId,
+        url,
+      });
     },
     [localFiles, onEvent, component.key],
   );
@@ -570,6 +683,103 @@ export const FilesManagementComponent = ({
       });
     },
     [locked, emitList, onEvent, component.key],
+  );
+
+  const requestSubmitForReview = useCallback(
+    (fileId: string) => {
+      if (locked) return;
+
+      const f = localFiles.find((x) => x.id === fileId);
+      if (!f) return;
+
+      if (!canSubmitForReviewWithCfg(f, locked, cfg.requiredCategories)) return;
+
+      setSubmitFileId(fileId);
+      setSubmitNote("");
+      setSubmitOpen(true);
+
+      onEvent?.("files:submit_for_review:open", {
+        componentKey: component.key,
+        fileId,
+      });
+    },
+    [locked, localFiles, cfg.requiredCategories, onEvent, component.key],
+  );
+
+  const confirmSubmitForReview = useCallback(() => {
+    const fileId = submitFileId;
+    if (!fileId) return;
+
+    setLocalFiles((prev) => {
+      const nowIso = new Date().toISOString();
+
+      const next: FileItem[] = prev.map((x): FileItem => {
+        if (x.id !== fileId) return x;
+
+        return {
+          ...x,
+          reviewStatus: "in_review" as ReviewStatus,
+          reviewNote: safeString(submitNote) || undefined,
+          reviewedAt: nowIso,
+          reviewedBy: "Você",
+        };
+      });
+
+      emitList(next);
+      return next;
+    });
+
+    onEvent?.("files:submit_for_review", {
+      componentKey: component.key,
+      fileId,
+      note: safeString(submitNote) || "",
+    });
+
+    setSubmitOpen(false);
+    setSubmitFileId(null);
+    setSubmitNote("");
+  }, [submitFileId, submitNote, emitList, onEvent, component.key]);
+
+  const requestCreateNewVersion = useCallback(
+    (fileId: string) => {
+      if (locked) return;
+
+      const base = localFiles.find((x) => x.id === fileId);
+      if (!base) return;
+
+      if (!cfg.showVersions) return;
+      if (!canCreateNewVersion(base, locked)) return;
+
+      const nextV = nextVersionFor(base.name, localFiles);
+      const nowIso = new Date().toISOString();
+
+      const clone: FileItem = {
+        ...base,
+        id: `local_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+        createdAt: nowIso,
+        createdBy: "Você",
+        version: nextV,
+        reviewStatus: "draft",
+        reviewNote: undefined,
+        reviewedAt: undefined,
+        reviewedBy: undefined,
+        url: undefined,
+      };
+
+      setLocalFiles((prev) => {
+        const next = [...prev, clone];
+        emitList(next);
+        return next;
+      });
+
+      onEvent?.("files:create_new_version", {
+        componentKey: component.key,
+        baseFileId: fileId,
+        newFileId: clone.id,
+        version: nextV,
+      });
+    },
+    [locked, localFiles, cfg.showVersions, emitList, onEvent, component.key],
   );
 
   return (
@@ -610,7 +820,6 @@ export const FilesManagementComponent = ({
        * DRIVE-LIKE TOP AREA
        * ========================= */}
 
-      {/* 1) Header do módulo (limpo) */}
       <Box
         sx={{
           border: "1px solid #EEF2F7",
@@ -636,7 +845,6 @@ export const FilesManagementComponent = ({
             <Typography sx={{ fontWeight: 950, color: "#0f172a", fontSize: "1.05rem" }}>
               Anexos desta etapa
             </Typography>
-
 
             <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 1.25 }}>
               <Chip
@@ -676,6 +884,18 @@ export const FilesManagementComponent = ({
                   sx={{
                     bgcolor: "#FFF7ED",
                     color: "#9A3412",
+                    fontWeight: 900,
+                    height: 24,
+                  }}
+                />
+              ) : null}
+              {cfg.requiredCategories ? (
+                <Chip
+                  label="Categoria obrigatória"
+                  size="small"
+                  sx={{
+                    bgcolor: "#FEF3C7",
+                    color: "#92400E",
                     fontWeight: 900,
                     height: 24,
                   }}
@@ -741,7 +961,6 @@ export const FilesManagementComponent = ({
           </Box>
         </Box>
 
-        {/* 2) Toolbar do sistema (busca sempre à esquerda + ordenar à direita) */}
         <Box
           sx={{
             px: { xs: 2, sm: 2.5 },
@@ -808,7 +1027,7 @@ export const FilesManagementComponent = ({
 
       <Box sx={{ mt: 2 }} />
 
-      {/* 3) Barra de seleção/ações (fica embaixo, como Drive) */}
+      {/* Barra de seleção/ações */}
       {selectedCount > 0 ? (
         <Box
           sx={{
@@ -885,10 +1104,7 @@ export const FilesManagementComponent = ({
 
       <Box sx={{ mt: 1.5 }} />
 
-      {/* =========================
-       * LIST
-       * ========================= */}
-
+      {/* LIST */}
       {visibleFiles.length === 0 ? (
         <Box
           sx={{
@@ -950,8 +1166,25 @@ export const FilesManagementComponent = ({
               sx={{ "&.Mui-checked": { color: "#1877F2" } }}
             />
 
-            <Typography sx={{ fontWeight: 900, color: "#475569", flex: 1 }}>
+            {/* Reserva do ícone do arquivo (alinha com o tile 40x40 da linha) */}
+            <Box sx={{ width: 40, flexShrink: 0 }} />
+
+            <Typography sx={{ fontWeight: 900, color: "#475569", flex: 1, minWidth: 0 }}>
               Nome
+            </Typography>
+
+            <Typography
+              sx={{
+                fontWeight: 900,
+                color: "#475569",
+                width: 160,
+                textAlign: "center",
+                display: { xs: "none", md: "block" },
+                mr: 1,
+                flexShrink: 0,
+              }}
+            >
+              Situação
             </Typography>
 
             <Typography
@@ -961,24 +1194,12 @@ export const FilesManagementComponent = ({
                 width: 120,
                 textAlign: "right",
                 display: { xs: "none", md: "block" },
+                flexShrink: 0,
+                pr: 0.5,
               }}
             >
-              Tamanho
+              Ações
             </Typography>
-
-            <Typography
-              sx={{
-                fontWeight: 900,
-                color: "#475569",
-                width: 180,
-                textAlign: "right",
-                display: { xs: "none", md: "block" },
-              }}
-            >
-              Data
-            </Typography>
-
-            <Box sx={{ width: 120, flexShrink: 0 }} />
           </Box>
 
           <Box
@@ -995,6 +1216,7 @@ export const FilesManagementComponent = ({
                   file={f}
                   locked={locked}
                   showVersions={cfg.showVersions}
+                  requiredCategories={cfg.requiredCategories}
                   categories={cfg.categories}
                   isSelected={selectedIds.has(f.id)}
                   onToggleSelect={toggleSelect}
@@ -1002,6 +1224,8 @@ export const FilesManagementComponent = ({
                   onDownload={handleDownload}
                   onRequestRemove={requestRemoveSingle}
                   onChangeCategory={handleChangeCategory}
+                  onSubmitForReview={requestSubmitForReview}
+                  onCreateNewVersion={requestCreateNewVersion}
                 />
                 {idx < visibleFiles.length - 1 ? (
                   <Divider sx={{ borderColor: "#EEF2F7" }} />
@@ -1060,6 +1284,74 @@ export const FilesManagementComponent = ({
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Submit for review dialog */}
+      <Dialog
+        open={submitOpen}
+        onClose={() => {
+          setSubmitOpen(false);
+          setSubmitFileId(null);
+          setSubmitNote("");
+        }}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle sx={{ fontWeight: 900, color: "#0f172a" }}>
+          Enviar para análise?
+        </DialogTitle>
+        <DialogContent sx={{ pt: 0.5 }}>
+          <DialogContentText sx={{ color: "#475569", fontWeight: 700 }}>
+            O responsável pela aprovação vai analisar este documento. Se houver correções,
+            ele pode devolver com observações.
+          </DialogContentText>
+
+          <TextField
+            label="Observação (opcional)"
+            value={submitNote}
+            onChange={(e) => setSubmitNote(e.target.value)}
+            placeholder="Ex: Versão revisada conforme orientação do jurídico..."
+            multiline
+            minRows={3}
+            fullWidth
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 2, pt: 1.25 }}>
+          <Button
+            onClick={() => {
+              setSubmitOpen(false);
+              setSubmitFileId(null);
+              setSubmitNote("");
+            }}
+            variant="outlined"
+            sx={{
+              textTransform: "none",
+              borderRadius: 2,
+              borderColor: "#E4E6EB",
+              color: "#0f172a",
+              fontWeight: 900,
+              "&:hover": { borderColor: "#CBD5E1", backgroundColor: "#fff" },
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={confirmSubmitForReview}
+            variant="contained"
+            startIcon={<SendIcon />}
+            sx={{
+              bgcolor: "#1877F2",
+              "&:hover": { bgcolor: "#166FE5" },
+              textTransform: "none",
+              fontWeight: 900,
+              borderRadius: 2,
+              boxShadow: "none",
+            }}
+          >
+            Enviar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </BaseStageComponentCard>
   );
 };
@@ -1072,6 +1364,7 @@ type FileRowProps = {
   file: FileItem;
   locked: boolean;
   showVersions: boolean;
+  requiredCategories: boolean;
   categories: string[];
   isSelected: boolean;
   onToggleSelect: (fileId: string) => void;
@@ -1079,12 +1372,16 @@ type FileRowProps = {
   onDownload: (fileId: string) => void;
   onRequestRemove: (fileId: string) => void;
   onChangeCategory: (fileId: string, category: string) => void;
+
+  onSubmitForReview: (fileId: string) => void;
+  onCreateNewVersion: (fileId: string) => void;
 };
 
 const FileRow = ({
   file,
   locked,
   showVersions,
+  requiredCategories,
   categories,
   isSelected,
   onToggleSelect,
@@ -1092,14 +1389,20 @@ const FileRow = ({
   onDownload,
   onRequestRemove,
   onChangeCategory,
+  onSubmitForReview,
+  onCreateNewVersion,
 }: FileRowProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
 
-  const { Icon, bg, fg, label } = fileIconFor(file);
+  const { Icon, bg, fg } = fileIconFor(file);
 
   const metaDate = formatDateTime(file.createdAt);
   const author = safeString(file.createdBy) || "—";
+  const review = reviewChip(file.reviewStatus);
+  const canSubmit = canSubmitForReviewWithCfg(file, locked, requiredCategories);
+  const canNewVersion = showVersions && canCreateNewVersion(file, locked);
+  const isInReview = (file.reviewStatus || "draft") === "in_review";
 
   const closeMenu = () => setAnchorEl(null);
 
@@ -1142,7 +1445,15 @@ const FileRow = ({
       }}
     >
       {/* Left */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1.25, minWidth: 0, flex: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.25,
+          minWidth: 0,
+          flex: 1,
+        }}
+      >
         <Checkbox
           checked={isSelected}
           onClick={(e) => {
@@ -1183,33 +1494,38 @@ const FileRow = ({
             {file.name}
           </Typography>
 
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mt: 0.5, alignItems: "center" }}>
-            <Chip
-              label={label}
-              size="small"
-              sx={{
-                bgcolor: "#F1F5F9",
-                color: "#334155",
-                fontWeight: 900,
-                fontSize: "0.75rem",
-                height: 22,
-              }}
-            />
+          {/* ✅ Data/Hora abaixo do documento */}
+          <Typography
+            variant="body2"
+            sx={{
+              mt: 0.35,
+              color: "#64748b",
+              fontWeight: 800,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              lineHeight: 1.1,
+            }}
+            title={`${author} • ${metaDate || "Sem data"}`}
+          >
+            Enviado por{" "}
+            <Box component="span" sx={{ color: "#0f172a", fontWeight: 900 }}>
+              {author}
+            </Box>
+            {" • "}
+            {metaDate || "Sem data"}
+          </Typography>
 
-            {file.sizeBytes ? (
-              <Chip
-                label={formatBytes(file.sizeBytes)}
-                size="small"
-                sx={{
-                  bgcolor: "#F1F5F9",
-                  color: "#334155",
-                  fontWeight: 900,
-                  fontSize: "0.75rem",
-                  height: 22,
-                }}
-              />
-            ) : null}
-
+          {/* Chips utilitários */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              flexWrap: "wrap",
+              mt: 0.75,
+              alignItems: "center",
+            }}
+          >
             {showVersions && file.version ? (
               <Chip
                 label={`v${file.version}`}
@@ -1226,53 +1542,62 @@ const FileRow = ({
 
             {categoryChip}
 
-            <Chip
-              label={`${metaDate || "—"} • ${author}`}
-              size="small"
-              sx={{
-                bgcolor: "#FFFFFF",
-                border: "1px solid #EEF2F7",
-                color: "#475569",
-                fontWeight: 900,
-                fontSize: "0.75rem",
-                height: 22,
-              }}
-            />
+            {/* Situação no mobile fica aqui (no desktop vai para a coluna) */}
+            <Box sx={{ display: { xs: "block", md: "none" } }}>
+              <Chip
+                icon={review.icon}
+                label={review.label}
+                size="small"
+                sx={{
+                  bgcolor: review.bg,
+                  color: review.color,
+                  fontWeight: 950,
+                  fontSize: "0.75rem",
+                  height: 22,
+                  "& .MuiChip-icon": { color: review.color },
+                }}
+              />
+            </Box>
           </Box>
         </Box>
 
-        {/* Colunas "tabela" à direita (desktop) */}
-        <Box sx={{ display: { xs: "none", md: "flex" }, gap: 2, alignItems: "center" }}>
-          <Typography
+        {/* Coluna Situação (desktop), alinhada perto dos ícones */}
+        <Box
+          sx={{
+            display: { xs: "none", md: "flex" },
+            width: 160,
+            justifyContent: "center",
+            mr: 1,
+            flexShrink: 0,
+          }}
+        >
+          <Chip
+            icon={review.icon}
+            label={review.label}
+            size="small"
             sx={{
-              width: 120,
-              textAlign: "right",
-              color: "#475569",
-              fontWeight: 900,
-              fontSize: "0.85rem",
+              bgcolor: review.bg,
+              color: review.color,
+              fontWeight: 950,
+              fontSize: "0.75rem",
+              height: 22,
+              "& .MuiChip-icon": { color: review.color },
             }}
-            title={file.sizeBytes ? formatBytes(file.sizeBytes) : "—"}
-          >
-            {file.sizeBytes ? formatBytes(file.sizeBytes) : "—"}
-          </Typography>
-
-          <Typography
-            sx={{
-              width: 180,
-              textAlign: "right",
-              color: "#475569",
-              fontWeight: 900,
-              fontSize: "0.85rem",
-            }}
-            title={metaDate || "—"}
-          >
-            {metaDate || "—"}
-          </Typography>
+          />
         </Box>
       </Box>
 
       {/* Right: actions */}
-      <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0, width: 120, justifyContent: "flex-end" }}>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          flexShrink: 0,
+          width: 120,
+          justifyContent: "flex-end",
+        }}
+      >
         <Tooltip title="Ver (nova guia)">
           <span>
             <IconButton
@@ -1328,7 +1653,31 @@ const FileRow = ({
             Baixar
           </MenuItem>
 
-          {!locked ? (
+          {canSubmit ? (
+            <MenuItem
+              onClick={() => {
+                closeMenu();
+                onSubmitForReview(file.id);
+              }}
+            >
+              <SendIcon sx={{ mr: 1, fontSize: 20, color: "#1877F2" }} />
+              Enviar para análise
+            </MenuItem>
+          ) : null}
+
+          {canNewVersion ? (
+            <MenuItem
+              onClick={() => {
+                closeMenu();
+                onCreateNewVersion(file.id);
+              }}
+            >
+              <FileCopyIcon sx={{ mr: 1, fontSize: 20, color: "#475569" }} />
+              Criar nova versão
+            </MenuItem>
+          ) : null}
+
+          {!locked && !isInReview ? (
             <MenuItem
               onClick={() => {
                 closeMenu();
