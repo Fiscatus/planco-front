@@ -12,7 +12,9 @@ export type ComponentType =
   | "COMMENTS"
   | "APPROVAL"
   | "TIMELINE"
-  | "FILE_VIEWER";
+  | "FILE_VIEWER"
+  | "CHECKLIST";
+
 
 
 export type FlowModelComponent = {

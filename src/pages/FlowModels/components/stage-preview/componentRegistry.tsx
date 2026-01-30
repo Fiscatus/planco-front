@@ -8,6 +8,7 @@ import { CommentsComponent } from "./stage-components/CommentsComponent";
 import { ApprovalComponent } from "./stage-components/ApprovalComponent";
 import { TimelineComponent } from "./stage-components/TimelineComponent";
 import { FileViewerComponent } from "./stage-components/FileViewerComponent";
+import { ChecklistComponent } from "./stage-components/ChecklistComponent";
 
 import { Box, Typography } from "@mui/material";
 
@@ -50,7 +51,6 @@ export const componentRegistry: Record<ComponentType, RegistryEntry> = {
     label: "Aprovação",
     Renderer: ApprovalComponent,
   },
-
   TIMELINE: {
     label: "Linha do Tempo",
     Renderer: TimelineComponent,
@@ -58,5 +58,10 @@ export const componentRegistry: Record<ComponentType, RegistryEntry> = {
   FILE_VIEWER: {
     label: "Visualizador de Arquivos",
     Renderer: FileViewerComponent,
+  },
+
+  CHECKLIST: {
+    label: "Checklist",
+    Renderer: ChecklistComponent,
   },
 };

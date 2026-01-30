@@ -90,6 +90,154 @@ function extractViewerBootstrap(components: FlowModelComponent[]) {
   return { files, selectedFileId };
 }
 
+/**
+ * ✅ Sugestões automáticas do checklist baseadas nos componentes do card
+ * - gera várias sugestões (não só uma)
+ * - com id estável e label bom
+ */
+type ChecklistSuggestion = {
+  id: string;
+  label: string;
+  autoKey?: string;
+  priority?: "low" | "medium" | "high";
+  relatedComponentKey?: string;
+  relatedComponentType?: string;
+  meta?: Record<string, any>;
+};
+
+function stableAutoKey(input: string) {
+  const s = safeString(input).toLowerCase();
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+  return `k_${h.toString(16)}`;
+}
+
+function deriveChecklistSuggestions(components: FlowModelComponent[]): ChecklistSuggestion[] {
+  const arr = Array.isArray(components) ? components : [];
+  const out: ChecklistSuggestion[] = [];
+
+  const hasType = (t: FlowModelComponent["type"]) => arr.some((c) => c.type === t);
+
+  for (const c of arr) {
+    // ignora o próprio checklist pra evitar loop
+    if (c.type === ("CHECKLIST" as any)) continue;
+
+    // FORM
+    if (c.type === "FORM") {
+      const label = `Preencher formulário: ${safeString(c.label) || "Formulário"}`;
+      out.push({
+        id: `auto_form_${c.key}`,
+        label,
+        autoKey: stableAutoKey(`FORM::${c.key}::${label}`),
+        priority: c.required ? "high" : "medium",
+        relatedComponentKey: c.key,
+        relatedComponentType: c.type,
+        meta: { required: !!c.required },
+      });
+    }
+
+    // FILES_MANAGMENT
+    if (c.type === "FILES_MANAGMENT") {
+      const label = `Anexar documentos necessários`;
+      out.push({
+        id: `auto_files_${c.key}`,
+        label,
+        autoKey: stableAutoKey(`FILES::${c.key}::${label}`),
+        priority: "high",
+        relatedComponentKey: c.key,
+        relatedComponentType: c.type,
+      });
+    }
+
+    // SIGNATURE
+    if (c.type === "SIGNATURE") {
+      const label = `Realizar assinatura eletrônica`;
+      out.push({
+        id: `auto_signature_${c.key}`,
+        label,
+        autoKey: stableAutoKey(`SIGNATURE::${c.key}::${label}`),
+        priority: "high",
+        relatedComponentKey: c.key,
+        relatedComponentType: c.type,
+      });
+    }
+
+    // APPROVAL
+    if (c.type === "APPROVAL") {
+      const label = `Obter aprovação da etapa`;
+      out.push({
+        id: `auto_approval_${c.key}`,
+        label,
+        autoKey: stableAutoKey(`APPROVAL::${c.key}::${label}`),
+        priority: "high",
+        relatedComponentKey: c.key,
+        relatedComponentType: c.type,
+      });
+    }
+
+    // COMMENTS
+    if (c.type === "COMMENTS") {
+      const label = `Registrar observações/decisões nos comentários`;
+      out.push({
+        id: `auto_comments_${c.key}`,
+        label,
+        autoKey: stableAutoKey(`COMMENTS::${c.key}::${label}`),
+        priority: "medium",
+        relatedComponentKey: c.key,
+        relatedComponentType: c.type,
+      });
+    }
+
+    // TIMELINE
+    if (c.type === "TIMELINE") {
+      const label = `Conferir prazos e eventos no cronograma`;
+      out.push({
+        id: `auto_timeline_${c.key}`,
+        label,
+        autoKey: stableAutoKey(`TIMELINE::${c.key}::${label}`),
+        priority: "medium",
+        relatedComponentKey: c.key,
+        relatedComponentType: c.type,
+      });
+    }
+
+    // FILE_VIEWER
+    if (c.type === "FILE_VIEWER") {
+      const label = `Revisar arquivos anexados no visualizador`;
+      out.push({
+        id: `auto_viewer_${c.key}`,
+        label,
+        autoKey: stableAutoKey(`VIEWER::${c.key}::${label}`),
+        priority: "medium",
+        relatedComponentKey: c.key,
+        relatedComponentType: c.type,
+      });
+    }
+  }
+
+  // heurística cross
+  if (hasType("FILES_MANAGMENT") && hasType("FORM")) {
+    const label = "Conferir se anexos batem com as informações do formulário";
+    out.push({
+      id: "auto_cross_files_form",
+      label,
+      autoKey: stableAutoKey(`CROSS::FILES+FORM::${label}`),
+      priority: "medium",
+      relatedComponentType: "CROSS",
+    });
+  }
+
+  // de-dup
+  const seen = new Set<string>();
+  return out.filter((x) => {
+    const k = x.autoKey || x.id;
+    if (!k) return false;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
 function isDevEnv() {
   // Vite
   try {
@@ -117,8 +265,7 @@ export const StagePreviewModal = ({
 
   // Runtime local (preview)
   const [runtimeFiles, setRuntimeFiles] = useState<FileItem[]>([]);
-  const [runtimeSelectedFileId, setRuntimeSelectedFileId] =
-    useState<string>("");
+  const [runtimeSelectedFileId, setRuntimeSelectedFileId] = useState<string>("");
 
   // Bootstrap do runtime ao abrir modal / trocar stage
   useEffect(() => {
@@ -188,13 +335,37 @@ export const StagePreviewModal = ({
       if (fileId) setRuntimeSelectedFileId(fileId);
       return;
     }
+
+    // Checklist events ficam logados e não quebram o preview
   }, []);
 
-  // ✅ injeta runtime config no FILE_VIEWER (e opcionalmente no FILES_MANAGMENT)
+  // ✅ injeta runtime config no FILE_VIEWER + FILES_MANAGMENT
+  // ✅ injeta autoSuggestions no CHECKLIST (Caminho A)
   const componentsForRender = useMemo(() => {
     const arr = Array.isArray(baseComponents) ? baseComponents.slice() : [];
+    const autoSuggestions = deriveChecklistSuggestions(arr);
 
     return arr.map((c) => {
+      // CHECKLIST: injeta sugestões do card inteiro
+      if (c.type === ("CHECKLIST" as any)) {
+        const currentCfg = (c.config ?? {}) as Record<string, unknown>;
+
+        return {
+          ...c,
+          config: {
+            ...currentCfg,
+            autoSuggestions,
+            // opcional: contexto de etapa (pode ser útil no futuro)
+            stageContext: {
+              stageName: safeString(stage?.name),
+              stageId: safeString((stage as any)?.stageId),
+              stageCompleted,
+            },
+          },
+        };
+      }
+
+      // FILE_VIEWER
       if (c.type === "FILE_VIEWER") {
         const currentCfg = (c.config ?? {}) as Record<string, unknown>;
 
@@ -208,6 +379,7 @@ export const StagePreviewModal = ({
         };
       }
 
+      // FILES_MANAGMENT
       if (c.type === "FILES_MANAGMENT") {
         const currentCfg = (c.config ?? {}) as Record<string, unknown>;
 
@@ -223,7 +395,7 @@ export const StagePreviewModal = ({
 
       return c;
     });
-  }, [baseComponents, runtimeFiles, selectedFile]);
+  }, [baseComponents, runtimeFiles, selectedFile, stage, stageCompleted]);
 
   const componentsCount = stage?.components?.length || 0;
 

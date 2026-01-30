@@ -29,6 +29,7 @@ const COMPONENT_TYPES: { value: ComponentType; label: string }[] = [
   { value: "APPROVAL", label: "Aprovação" },
   { value: "TIMELINE", label: "Linha do Tempo" },
   { value: "FILE_VIEWER", label: "Visualizador de Arquivos" },
+  { value: "CHECKLIST", label: "Checklist" },
 ];
 
 export const AddComponentModal = ({
