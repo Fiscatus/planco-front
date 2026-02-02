@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import {
   Box,
   Button,
@@ -34,6 +35,10 @@ import {
   Add as AddIcon,
   Event as EventIcon,
   Sort as SortIcon,
+  Flag as FlagIcon,
+  EventAvailable as EventAvailableIcon,
+  EventBusy as EventBusyIcon,
+  Bolt as BoltIcon,
 } from "@mui/icons-material";
 import type { StageComponentRuntimeProps } from "../componentRegistry";
 import { BaseStageComponentCard } from "./BaseStageComponentCard";
@@ -208,24 +213,26 @@ const MOCK_ITEMS: TimelineItem[] = [
       isDeadline: true,
       dueAt: "2026-01-20T15:00:00.000Z",
       deadlineStatus: "FUTURO",
+      occurrence: "created",
     },
   },
 ];
 
 function iconForType(type: TimelineItemType) {
+  const base = { fontSize: 18 };
   switch (type) {
     case "status":
-      return <HistoryIcon sx={{ fontSize: 18, color: "#475569" }} />;
+      return <HistoryIcon sx={{ ...base, color: "#1877F2" }} />;
     case "versao":
-      return <ScheduleIcon sx={{ fontSize: 18, color: "#475569" }} />;
+      return <ScheduleIcon sx={{ ...base, color: "#92400E" }} />;
     case "comentario":
-      return <CommentIcon sx={{ fontSize: 18, color: "#475569" }} />;
+      return <CommentIcon sx={{ ...base, color: "#64748b" }} />;
     case "arquivo":
-      return <FilePresentIcon sx={{ fontSize: 18, color: "#475569" }} />;
+      return <FilePresentIcon sx={{ ...base, color: "#0f172a" }} />;
     case "acao":
-      return <CheckCircleIcon sx={{ fontSize: 18, color: "#16A34A" }} />;
+      return <CheckCircleIcon sx={{ ...base, color: "#16A34A" }} />;
     default:
-      return <InfoIcon sx={{ fontSize: 18, color: "#475569" }} />;
+      return <InfoIcon sx={{ ...base, color: "#475569" }} />;
   }
 }
 
@@ -405,12 +412,137 @@ function normalizeDeadlineMeta(meta?: Record<string, unknown>) {
   };
 }
 
+/** ✅ Novo: ocorrência no calendário (evento criado + prazo final) */
+type CalendarOccurrence = "created" | "deadline";
+
+function getOccurrence(it: TimelineItem): CalendarOccurrence {
+  const occ = safeString(it.meta?.occurrence);
+  if (occ === "deadline") return "deadline";
+  return "created";
+}
+
+function withOccurrenceMeta(meta: Record<string, unknown> | undefined, occurrence: CalendarOccurrence) {
+  return {
+    ...(meta || {}),
+    occurrence,
+  } as Record<string, unknown>;
+}
+
+/**
+ * ✅ Regra:
+ * - todo evento aparece no dia createdAt (ocorrência "created")
+ * - se tiver prazo (meta.isDeadline + meta.dueAt), aparece também no dia dueAt (ocorrência "deadline")
+ */
+function expandItemsForCalendar(items: TimelineItem[]) {
+  const out: TimelineItem[] = [];
+
+  for (const it of items) {
+    const base: TimelineItem = {
+      ...it,
+      meta: withOccurrenceMeta(it.meta, "created"),
+    };
+    out.push(base);
+
+    const dl = normalizeDeadlineMeta(it.meta);
+    if (dl.isDeadline && dl.dueAt) {
+      const due = parseCreatedAt(dl.dueAt);
+      if (due) {
+        const ghost: TimelineItem = {
+          ...it,
+          id: `${it.id}__deadline`,
+          createdAt: dl.dueAt,
+          title: `Prazo final: ${it.title}`,
+          meta: withOccurrenceMeta(it.meta, "deadline"),
+        };
+        out.push(ghost);
+      }
+    }
+  }
+
+  return out;
+}
+
+/** ✅ Novo: indicadores claros no calendário (criado vs prazo final) */
+function deadlineVisual(now: Date, it: TimelineItem) {
+  const dl = normalizeDeadlineMeta(it.meta);
+  const occ = getOccurrence(it);
+  if (occ !== "deadline") return null;
+
+  const dueAt = dl.dueAt || it.createdAt;
+  const status = computeDeadlineStatus(dueAt, now);
+
+  if (status === "ATRASADO") {
+    return { icon: <EventBusyIcon sx={{ fontSize: 14, color: "#B91C1C" }} />, bg: "rgba(225,29,72,0.12)", label: "Prazo atrasado" };
+  }
+  if (status === "HOJE") {
+    return { icon: <BoltIcon sx={{ fontSize: 14, color: "#92400E" }} />, bg: "rgba(245,158,11,0.18)", label: "Prazo é hoje" };
+  }
+  return { icon: <FlagIcon sx={{ fontSize: 14, color: "#1877F2" }} />, bg: "rgba(24,119,242,0.12)", label: "Prazo final" };
+}
+
+function calendarGlyphs(items: TimelineItem[], now: Date) {
+  const glyphs: Array<{ key: string; node: ReactNode; label: string }> = [];
+
+  const deadlines = items.filter((it) => getOccurrence(it) === "deadline");
+  const created = items.filter((it) => getOccurrence(it) === "created");
+
+  for (const it of deadlines.slice(0, 2)) {
+    const v = deadlineVisual(now, it);
+    if (!v) continue;
+    glyphs.push({
+      key: `${it.id}__dl`,
+      label: v.label,
+      node: (
+        <Box
+          sx={{
+            width: 22,
+            height: 22,
+            borderRadius: 999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: v.bg,
+            border: "1px solid rgba(0,0,0,0.06)",
+          }}
+        >
+          {v.icon}
+        </Box>
+      ),
+    });
+  }
+
+  if (created.length > 0) {
+    glyphs.push({
+      key: "created",
+      label: "Evento criado",
+      node: (
+        <Box
+          sx={{
+            width: 22,
+            height: 22,
+            borderRadius: 999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            bgcolor: "rgba(22,163,74,0.12)",
+            border: "1px solid rgba(0,0,0,0.06)",
+          }}
+        >
+          <EventAvailableIcon sx={{ fontSize: 14, color: "#16A34A" }} />
+        </Box>
+      ),
+    });
+  }
+
+  return glyphs.slice(0, 3);
+}
+
 type TimelineModalProps = {
   open: boolean;
   onClose: () => void;
   title: string;
   subtitle?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 const TimelineModal = ({ open, onClose, title, subtitle, children }: TimelineModalProps) => {
@@ -558,8 +690,9 @@ const CreateEventModal = ({ open, onClose, prefillDayKey, onCreate }: CreateEven
             isDeadline: true,
             dueAt: dueIso,
             deadlineStatus: deadlineStatus || computeDeadlineStatus(dueIso, new Date()),
+            occurrence: "created",
           } as Record<string, unknown>)
-        : undefined,
+        : ({ occurrence: "created" } as Record<string, unknown>),
       canOpen: true,
     };
 
@@ -850,7 +983,7 @@ const CreateEventModal = ({ open, onClose, prefillDayKey, onCreate }: CreateEven
                       nome: safeString(authorName) || undefined,
                       cargo: safeString(authorRole) || undefined,
                     },
-                    meta: isDeadline && dueIso ? { isDeadline: true, dueAt: dueIso, deadlineStatus: deadlineStatus || "FUTURO" } : undefined,
+                    meta: isDeadline && dueIso ? { isDeadline: true, dueAt: dueIso, deadlineStatus: deadlineStatus || "FUTURO", occurrence: "created" } : { occurrence: "created" },
                     canOpen: true,
                   }}
                   mode="detailed"
@@ -925,11 +1058,12 @@ const DayEventsModal = ({ open, onClose, dayLabel, items, onCreateEvent }: DayEv
   const filtered = useMemo(() => {
     if (quickFilter === "all") return sorted;
 
-    const isDeadline = (it: TimelineItem) => normalizeDeadlineMeta(it.meta).isDeadline;
+    const isDeadline = (it: TimelineItem) => getOccurrence(it) === "deadline";
     const isOverdue = (it: TimelineItem) => {
+      if (getOccurrence(it) !== "deadline") return false;
       const dl = normalizeDeadlineMeta(it.meta);
-      if (!dl.isDeadline || !dl.dueAt) return false;
-      return computeDeadlineStatus(dl.dueAt, new Date()) === "ATRASADO";
+      const dueAt = dl.dueAt || it.createdAt;
+      return computeDeadlineStatus(dueAt, new Date()) === "ATRASADO";
     };
 
     if (quickFilter === "deadlines") return sorted.filter(isDeadline);
@@ -938,11 +1072,12 @@ const DayEventsModal = ({ open, onClose, dayLabel, items, onCreateEvent }: DayEv
 
   const summary = useMemo(() => {
     const total = items.length;
-    const deadlines = items.filter((it) => normalizeDeadlineMeta(it.meta).isDeadline).length;
+    const deadlines = items.filter((it) => getOccurrence(it) === "deadline").length;
     const overdue = items.filter((it) => {
+      if (getOccurrence(it) !== "deadline") return false;
       const dl = normalizeDeadlineMeta(it.meta);
-      if (!dl.isDeadline || !dl.dueAt) return false;
-      return computeDeadlineStatus(dl.dueAt, new Date()) === "ATRASADO";
+      const dueAt = dl.dueAt || it.createdAt;
+      return computeDeadlineStatus(dueAt, new Date()) === "ATRASADO";
     }).length;
     return { total, deadlines, overdue };
   }, [items]);
@@ -1015,6 +1150,7 @@ const DayEventsModal = ({ open, onClose, dayLabel, items, onCreateEvent }: DayEv
                   }}
                 />
                 <Chip
+                  icon={<FlagIcon sx={{ fontSize: 16 }} />}
                   label="Prazos"
                   clickable
                   onClick={() => setQuickFilter("deadlines")}
@@ -1024,9 +1160,11 @@ const DayEventsModal = ({ open, onClose, dayLabel, items, onCreateEvent }: DayEv
                     fontWeight: 950,
                     height: 26,
                     cursor: "pointer",
+                    "& .MuiChip-icon": { color: quickFilter === "deadlines" ? "#1877F2" : "#64748b" },
                   }}
                 />
                 <Chip
+                  icon={<EventBusyIcon sx={{ fontSize: 16 }} />}
                   label="Atrasados"
                   clickable
                   onClick={() => setQuickFilter("overdue")}
@@ -1036,6 +1174,7 @@ const DayEventsModal = ({ open, onClose, dayLabel, items, onCreateEvent }: DayEv
                     fontWeight: 950,
                     height: 26,
                     cursor: "pointer",
+                    "& .MuiChip-icon": { color: quickFilter === "overdue" ? "#B91C1C" : "#64748b" },
                   }}
                 />
               </Box>
@@ -1128,6 +1267,8 @@ function TimelineRow({ item, mode = "compact" }: { item: TimelineItem; mode?: "c
   const deadlineChip = showDeadlineLine ? chipForDeadlineStatus(liveStatus!) : null;
 
   const dense = mode === "compact";
+  const occurrence = getOccurrence(item);
+  const isDeadlineOccurrence = occurrence === "deadline";
 
   return (
     <Box
@@ -1149,14 +1290,15 @@ function TimelineRow({ item, mode = "compact" }: { item: TimelineItem; mode?: "c
             width: 36,
             height: 36,
             borderRadius: "50%",
-            bgcolor: "#F0F2F5",
+            bgcolor: isDeadlineOccurrence ? "rgba(24,119,242,0.10)" : "#F0F2F5",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
+            border: isDeadlineOccurrence ? "1px solid rgba(24,119,242,0.18)" : "1px solid rgba(0,0,0,0.04)",
           }}
         >
-          {iconForType(item.type)}
+          {isDeadlineOccurrence ? <FlagIcon sx={{ fontSize: 18, color: "#1877F2" }} /> : iconForType(item.type)}
         </Box>
 
         <Box sx={{ minWidth: 0 }}>
@@ -1187,6 +1329,36 @@ function TimelineRow({ item, mode = "compact" }: { item: TimelineItem; mode?: "c
                 fontSize: "0.72rem",
               }}
             />
+
+            {isDeadlineOccurrence ? (
+              <Chip
+                icon={<FlagIcon sx={{ fontSize: 16 }} />}
+                label="Prazo final"
+                size="small"
+                sx={{
+                  bgcolor: "rgba(24,119,242,0.12)",
+                  color: "#1877F2",
+                  fontWeight: 950,
+                  height: 22,
+                  fontSize: "0.72rem",
+                  "& .MuiChip-icon": { color: "#1877F2" },
+                }}
+              />
+            ) : (
+              <Chip
+                icon={<EventAvailableIcon sx={{ fontSize: 16 }} />}
+                label="Evento criado"
+                size="small"
+                sx={{
+                  bgcolor: "rgba(22,163,74,0.12)",
+                  color: "#166534",
+                  fontWeight: 950,
+                  height: 22,
+                  fontSize: "0.72rem",
+                  "& .MuiChip-icon": { color: "#16A34A" },
+                }}
+              />
+            )}
           </Box>
 
           {item.description ? (
@@ -1281,24 +1453,35 @@ function TimelineRow({ item, mode = "compact" }: { item: TimelineItem; mode?: "c
 }
 
 function CalendarLegend() {
-  const items: Array<{ label: string; type: TimelineItemType }> = [
-    { label: "Conclusão", type: "acao" },
-    { label: "Andamento", type: "status" },
-    { label: "Anexo", type: "arquivo" },
-    { label: "Observação", type: "comentario" },
-    { label: "Documento", type: "versao" },
-  ];
-
   return (
     <Box sx={{ display: "flex", gap: 1.25, flexWrap: "wrap", alignItems: "center" }}>
-      {items.map((it) => (
-        <Box key={it.type} sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-          <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: typeDotColor(it.type) }} />
-          <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 900 }}>
-            {it.label}
-          </Typography>
-        </Box>
-      ))}
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+        <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#16A34A" }} />
+        <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 900 }}>
+          Evento criado
+        </Typography>
+      </Box>
+
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+        <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#1877F2" }} />
+        <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 900 }}>
+          Prazo final
+        </Typography>
+      </Box>
+
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+        <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#92400E" }} />
+        <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 900 }}>
+          Prazo hoje
+        </Typography>
+      </Box>
+
+      <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+        <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#B91C1C" }} />
+        <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 900 }}>
+          Prazo atrasado
+        </Typography>
+      </Box>
     </Box>
   );
 }
@@ -1411,10 +1594,15 @@ export const TimelineComponent = ({ component, isReadOnly, stageCompleted, onEve
 
   const [activeMonth, setActiveMonth] = useState(() => startOfMonth(new Date()));
 
+  /** ✅ Novo: a camada do calendário usa eventos expandidos (created + due) */
+  const filteredForCalendar = useMemo(() => {
+    return expandItemsForCalendar(filtered);
+  }, [filtered]);
+
   const itemsByDay = useMemo(() => {
     const map: Record<string, TimelineItem[]> = {};
 
-    for (const it of filtered) {
+    for (const it of filteredForCalendar) {
       const d = parseCreatedAt(it.createdAt);
       if (!d) continue;
       const key = toDayKey(d);
@@ -1430,7 +1618,7 @@ export const TimelineComponent = ({ component, isReadOnly, stageCompleted, onEve
     });
 
     return map;
-  }, [filtered]);
+  }, [filteredForCalendar]);
 
   const monthGrid = useMemo(() => {
     const monthStart = startOfMonth(activeMonth);
@@ -1446,15 +1634,10 @@ export const TimelineComponent = ({ component, isReadOnly, stageCompleted, onEve
       const isToday = dayKey === toDayKey(today);
 
       const items = itemsByDay[dayKey] || [];
-      const byType = items.reduce((acc, it) => {
-        acc[it.type] = (acc[it.type] || 0) + 1;
-        return acc;
-      }, {} as Record<TimelineItemType, number>);
+      const now = new Date();
 
-      const typeOrder: TimelineItemType[] = ["acao", "status", "arquivo", "comentario", "versao", "sistema"];
-      const typesPresent = typeOrder.filter((t) => (byType[t] || 0) > 0);
-      const dots = typesPresent.slice(0, 3);
-      const extra = Math.max(0, typesPresent.length - dots.length);
+      const glyphs = calendarGlyphs(items, now);
+      const extra = Math.max(0, items.length - glyphs.length);
 
       return {
         date: d,
@@ -1462,7 +1645,7 @@ export const TimelineComponent = ({ component, isReadOnly, stageCompleted, onEve
         isInMonth,
         isToday,
         itemsCount: items.length,
-        dots,
+        glyphs,
         extra,
       };
     });
@@ -1855,9 +2038,11 @@ export const TimelineComponent = ({ component, isReadOnly, stageCompleted, onEve
                       ) : null}
                     </Box>
 
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mt: 1.15 }}>
-                      {cell.dots.map((t) => (
-                        <Box key={t} sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: typeDotColor(t) }} />
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.75, mt: 1.15, flexWrap: "wrap" }}>
+                      {cell.glyphs.map((g) => (
+                        <Tooltip key={g.key} title={g.label} arrow>
+                          <Box>{g.node}</Box>
+                        </Tooltip>
                       ))}
                       {cell.extra > 0 ? (
                         <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 950 }}>
@@ -1880,13 +2065,7 @@ export const TimelineComponent = ({ component, isReadOnly, stageCompleted, onEve
       </BaseStageComponentCard>
 
       {/* Modal do dia */}
-      <DayEventsModal
-        open={dayModalOpen}
-        onClose={closeDayModal}
-        dayLabel={selectedDayLabel}
-        items={selectedItems}
-        onCreateEvent={() => openCreateEvent(selectedDayKey)}
-      />
+      <DayEventsModal open={dayModalOpen} onClose={closeDayModal} dayLabel={selectedDayLabel} items={selectedItems} onCreateEvent={() => openCreateEvent(selectedDayKey)} />
 
       {/* Modal Criar evento */}
       <CreateEventModal open={createOpen} onClose={closeCreateEvent} prefillDayKey={createPrefillDayKey} onCreate={handleCreateItem} />

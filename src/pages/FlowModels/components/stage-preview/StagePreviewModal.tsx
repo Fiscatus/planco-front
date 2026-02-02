@@ -9,8 +9,13 @@ import {
   IconButton,
   Chip,
   Divider,
+  Tooltip,
 } from "@mui/material";
-import { Close as CloseIcon } from "@mui/icons-material";
+import {
+  Close as CloseIcon,
+  OpenInFull as OpenInFullIcon,
+  CloseFullscreen as CloseFullscreenIcon,
+} from "@mui/icons-material";
 import type { FlowModelComponent, FlowModelStage } from "@/hooks/useFlowModels";
 import { StageComponentsRenderer } from "./StageComponentsRenderer";
 
@@ -34,18 +39,14 @@ type StagePreviewModalProps = {
   onClose: () => void;
   stage: FlowModelStage | null;
 
-  // simula roles do usuário (no futuro vem do auth real)
   userRoleIds?: string[];
-
-  /**
-   * ✅ Preview precisa ser interativo por padrão, para testar componentes.
-   * Se quiser travar, o chamador passa readOnly={true}.
-   */
   readOnly?: boolean;
-
-  // simula etapa concluída (pra testar lockedAfterCompletion)
   stageCompleted?: boolean;
 };
+
+/* =========================
+ * Helpers
+ * ========================= */
 
 function safeString(v: unknown) {
   return String(v ?? "").trim();
@@ -114,11 +115,10 @@ function extractViewerBootstrap(components: FlowModelComponent[]) {
   return { files, selectedFileId };
 }
 
-/**
- * ✅ Sugestões automáticas do checklist baseadas nos componentes do card
- * - gera várias sugestões (não só uma)
- * - com id estável e label bom
- */
+/* =========================
+ * Checklist Suggestions (auto)
+ * ========================= */
+
 type ChecklistSuggestion = {
   id: string;
   label: string;
@@ -126,6 +126,7 @@ type ChecklistSuggestion = {
   priority?: "low" | "medium" | "high";
   relatedComponentKey?: string;
   relatedComponentType?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   meta?: Record<string, any>;
 };
 
@@ -142,14 +143,11 @@ function deriveChecklistSuggestions(
   const arr = Array.isArray(components) ? components : [];
   const out: ChecklistSuggestion[] = [];
 
-  const hasType = (t: FlowModelComponent["type"]) =>
-    arr.some((c) => c.type === t);
+  const hasType = (t: FlowModelComponent["type"]) => arr.some((c) => c.type === t);
 
   for (const c of arr) {
-    // ignora o próprio checklist pra evitar loop
     if (c.type === ("CHECKLIST" as any)) continue;
 
-    // FORM
     if (c.type === "FORM") {
       const label = `Preencher formulário: ${safeString(c.label) || "Formulário"}`;
       out.push({
@@ -163,7 +161,6 @@ function deriveChecklistSuggestions(
       });
     }
 
-    // FILES_MANAGMENT
     if (c.type === "FILES_MANAGMENT") {
       const label = "Anexar documentos necessários";
       out.push({
@@ -176,7 +173,6 @@ function deriveChecklistSuggestions(
       });
     }
 
-    // SIGNATURE
     if (c.type === "SIGNATURE") {
       const label = "Realizar assinatura eletrônica";
       out.push({
@@ -189,7 +185,6 @@ function deriveChecklistSuggestions(
       });
     }
 
-    // APPROVAL
     if (c.type === "APPROVAL") {
       const label = "Obter aprovação da etapa";
       out.push({
@@ -202,7 +197,6 @@ function deriveChecklistSuggestions(
       });
     }
 
-    // COMMENTS
     if (c.type === "COMMENTS") {
       const label = "Registrar observações/decisões nos comentários";
       out.push({
@@ -215,7 +209,6 @@ function deriveChecklistSuggestions(
       });
     }
 
-    // TIMELINE
     if (c.type === "TIMELINE") {
       const label = "Conferir prazos e eventos no cronograma";
       out.push({
@@ -228,7 +221,6 @@ function deriveChecklistSuggestions(
       });
     }
 
-    // FILE_VIEWER
     if (c.type === "FILE_VIEWER") {
       const label = "Revisar arquivos anexados no visualizador";
       out.push({
@@ -242,7 +234,6 @@ function deriveChecklistSuggestions(
     }
   }
 
-  // heurística cross
   if (hasType("FILES_MANAGMENT") && hasType("FORM")) {
     const label = "Conferir se anexos batem com as informações do formulário";
     out.push({
@@ -254,7 +245,6 @@ function deriveChecklistSuggestions(
     });
   }
 
-  // de-dup
   const seen = new Set<string>();
   return out.filter((x) => {
     const k = x.autoKey || x.id;
@@ -266,7 +256,6 @@ function deriveChecklistSuggestions(
 }
 
 function isDevEnv() {
-  // Vite
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const anyImportMeta = import.meta as any;
@@ -275,29 +264,74 @@ function isDevEnv() {
     // ignore
   }
 
-  // CRA / Node-ish
   // eslint-disable-next-line no-undef
   return typeof process !== "undefined" && process.env?.NODE_ENV !== "production";
 }
+
+/* =========================
+ * LocalStorage + Keys
+ * ========================= */
+
+const LS_KEY_EXPANDED = "planco:stagePreview:expanded";
+
+/* =========================
+ * Component
+ * ========================= */
 
 export const StagePreviewModal = ({
   open,
   onClose,
   stage,
   userRoleIds = [],
-  readOnly = false, // ✅ default editável no preview
+  readOnly = false,
   stageCompleted = false,
 }: StagePreviewModalProps) => {
-  // ✅ runtime de componentes (necessário p/ Approval persistir decisão no preview)
   const [runtimeComponents, setRuntimeComponents] = useState<FlowModelComponent[]>([]);
-
-  // Runtime local (preview)
   const [runtimeFiles, setRuntimeFiles] = useState<FileItem[]>([]);
   const [runtimeSelectedFileId, setRuntimeSelectedFileId] = useState<string>("");
+
+  // ✅ Fullscreen real (MUI fullScreen) + persistência
+  const [expanded, setExpanded] = useState(false);
+
+  const readExpandedFromStorage = useCallback(() => {
+    try {
+      const raw = localStorage.getItem(LS_KEY_EXPANDED);
+      return raw === "1";
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const persistExpanded = useCallback((v: boolean) => {
+    try {
+      localStorage.setItem(LS_KEY_EXPANDED, v ? "1" : "0");
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const setExpandedSafe = useCallback(
+    (next: boolean) => {
+      setExpanded(next);
+      persistExpanded(next);
+    },
+    [persistExpanded],
+  );
+
+  const toggleExpanded = useCallback(() => {
+    setExpanded((prev) => {
+      const next = !prev;
+      persistExpanded(next);
+      return next;
+    });
+  }, [persistExpanded]);
 
   // Bootstrap do runtime ao abrir modal / trocar stage
   useEffect(() => {
     if (!open) return;
+
+    // ✅ restaura fullscreen preferido ao abrir
+    setExpandedSafe(readExpandedFromStorage());
 
     if (!stage) {
       setRuntimeFiles([]);
@@ -311,7 +345,45 @@ export const StagePreviewModal = ({
     const boot = extractViewerBootstrap(stage.components || []);
     setRuntimeFiles(boot.files || []);
     setRuntimeSelectedFileId(boot.selectedFileId || "");
-  }, [open, stage]);
+  }, [open, stage, readExpandedFromStorage, setExpandedSafe]);
+
+  // ✅ atalhos: F = fullscreen, Esc = sair do fullscreen; se não estiver fullscreen, fecha modal
+  useEffect(() => {
+    if (!open) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      const key = (e.key || "").toLowerCase();
+
+      // Evita disparar em inputs/textarea/contenteditable
+      const target = e.target as HTMLElement | null;
+      const tag = (target?.tagName || "").toLowerCase();
+      const isTypingSurface =
+        tag === "input" ||
+        tag === "textarea" ||
+        target?.getAttribute?.("contenteditable") === "true";
+
+      // F: toggle fullscreen (mesmo se estiver digitando não faz sentido, mas vamos respeitar UX: não togglar se estiver digitando)
+      if (key === "f") {
+        if (isTypingSurface) return;
+        e.preventDefault();
+        toggleExpanded();
+        return;
+      }
+
+      // Esc: se expanded -> sai; senão -> fecha
+      if (key === "escape") {
+        e.preventDefault();
+        if (expanded) {
+          setExpandedSafe(false);
+        } else {
+          onClose();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown, { passive: false });
+    return () => window.removeEventListener("keydown", onKeyDown as any);
+  }, [open, expanded, onClose, toggleExpanded, setExpandedSafe]);
 
   const selectedFile = useMemo(() => {
     if (!runtimeFiles.length) return null;
@@ -330,14 +402,11 @@ export const StagePreviewModal = ({
       console.log("[STAGE_PREVIEW][EVENT]", eventType, payload || {});
     }
 
-    // =========================
-    // Ponte FILES_MANAGMENT
-    // =========================
+    // FILES_MANAGMENT
     if (eventType === "files:setList") {
       const files = normalizeFiles(payload?.files);
       setRuntimeFiles(files);
 
-      // mantém seleção se ainda existir; senão limpa (fallback será o primeiro)
       setRuntimeSelectedFileId((prev) => {
         if (!prev) return "";
         return files.some((f) => f.id === prev) ? prev : "";
@@ -352,9 +421,7 @@ export const StagePreviewModal = ({
       return;
     }
 
-    // =========================
-    // Ponte FILE_VIEWER
-    // =========================
+    // FILE_VIEWER
     if (eventType === "fileViewer:select") {
       const fileId = safeString(payload?.fileId);
       if (fileId) setRuntimeSelectedFileId(fileId);
@@ -367,18 +434,15 @@ export const StagePreviewModal = ({
       return;
     }
 
-    // =========================
-    // Ponte APPROVAL (runtime)
-    // =========================
+    // APPROVAL (runtime)
     if (eventType === "approval:decision") {
       const componentKey = safeString(payload?.componentKey);
-      const decision = safeString(payload?.decision); // "approved" | "changes_requested"
+      const decision = safeString(payload?.decision); // approved | changes_requested
       const justification = safeString(payload?.justification);
       const fileIds = Array.isArray(payload?.fileIds) ? payload?.fileIds : [];
-      const filesTargetStatus = safeString(payload?.filesTargetStatus); // "approved" | "rejected"
+      const filesTargetStatus = safeString(payload?.filesTargetStatus); // approved | rejected
       const nowIso = new Date().toISOString();
 
-      // 1) atualiza arquivos no runtime
       setRuntimeFiles((prev) => {
         if (!fileIds.length) return prev;
 
@@ -398,7 +462,6 @@ export const StagePreviewModal = ({
         });
       });
 
-      // 2) persiste decisão no config do componente APPROVAL (pra chip/estado refletir)
       setRuntimeComponents((prev) => {
         if (!componentKey) return prev;
 
@@ -426,18 +489,15 @@ export const StagePreviewModal = ({
 
       return;
     }
-
-    // Checklist events ficam logados e não quebram o preview
   }, []);
 
   // ✅ injeta runtime config no FILE_VIEWER + FILES_MANAGMENT
-  // ✅ injeta autoSuggestions no CHECKLIST (Caminho A)
+  // ✅ injeta autoSuggestions no CHECKLIST
   const componentsForRender = useMemo(() => {
     const arr = Array.isArray(runtimeComponents) ? runtimeComponents.slice() : [];
     const autoSuggestions = deriveChecklistSuggestions(arr);
 
     return arr.map((c) => {
-      // CHECKLIST: injeta sugestões do card inteiro
       if (c.type === ("CHECKLIST" as any)) {
         const currentCfg = (c.config ?? {}) as Record<string, unknown>;
 
@@ -455,10 +515,8 @@ export const StagePreviewModal = ({
         };
       }
 
-      // FILE_VIEWER
       if (c.type === "FILE_VIEWER") {
         const currentCfg = (c.config ?? {}) as Record<string, unknown>;
-
         return {
           ...c,
           config: {
@@ -469,10 +527,8 @@ export const StagePreviewModal = ({
         };
       }
 
-      // FILES_MANAGMENT
       if (c.type === "FILES_MANAGMENT") {
         const currentCfg = (c.config ?? {}) as Record<string, unknown>;
-
         return {
           ...c,
           config: {
@@ -489,23 +545,40 @@ export const StagePreviewModal = ({
 
   const componentsCount = stage?.components?.length || 0;
 
+  /**
+   * ✅ Layout “padrão sistemas premium”
+   * - normal: modal confortável, sem exagero de largura
+   * - fullscreen: ocupa toda tela, mas conteúdo fica em “workspace” ideal (não estica em ultra-wide)
+   */
+  const outerGutterX = expanded ? { xs: 2, sm: 3, md: 4 } : { xs: 1.5, sm: 2.25, md: 3 };
+  const outerGutterY = expanded ? { xs: 2, sm: 2.5, md: 3 } : { xs: 1.5, sm: 2, md: 2.5 };
+
+  // ✅ largura ideal do “workspace” (o card de conteúdo)
+  // Normal: ótimo pra leitura sem sobrar branco e sem ficar “largo demais”
+  // Fullscreen: maior, mas ainda profissional (evita esticar em monitor grande)
+  const contentMaxWidth = expanded ? 1440 : 1180;
+
   return (
     <Dialog
       open={open}
       onClose={onClose}
+      fullScreen={expanded}
       fullWidth
-      maxWidth="md"
+      maxWidth={expanded ? false : "lg"}
       PaperProps={{
         sx: {
-          borderRadius: { xs: 2, sm: 3 },
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+          borderRadius: expanded ? 0 : { xs: 2, sm: 4 },
+          margin: expanded ? 0 : { xs: 1, sm: 2 },
+
+          width: expanded ? "100vw" : "min(1240px, 96vw)",
+          height: expanded ? "100vh" : { xs: "calc(100vh - 16px)", sm: "min(86vh, 940px)" },
+          maxHeight: expanded ? "100vh" : { xs: "calc(100vh - 16px)", sm: "min(86vh, 940px)" },
+
+          boxShadow: expanded ? "none" : "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
           overflow: "hidden",
-          margin: { xs: 1, sm: 2 },
-          maxWidth: { xs: "calc(100% - 16px)", sm: "700px", md: "900px" },
-          width: "100%",
-          maxHeight: { xs: "calc(100vh - 32px)", sm: "calc(100vh - 64px)" },
           display: "flex",
           flexDirection: "column",
+          bgcolor: "#ffffff",
         },
       }}
     >
@@ -523,11 +596,14 @@ export const StagePreviewModal = ({
         {/* Header */}
         <Box
           sx={{
-            px: { xs: 2, sm: 3, md: 4 },
-            py: { xs: 2, sm: 2.5, md: 3 },
+            px: expanded ? { xs: 2, sm: 3, md: 4 } : { xs: 2, sm: 3, md: 4 },
+            py: expanded ? { xs: 1.75, sm: 2, md: 2.25 } : { xs: 2, sm: 2.25, md: 2.5 },
             borderBottom: "1px solid #E4E6EB",
             flexShrink: 0,
             backgroundColor: "#ffffff",
+            position: "sticky",
+            top: 0,
+            zIndex: 2,
           }}
         >
           <Box
@@ -544,46 +620,67 @@ export const StagePreviewModal = ({
                 variant="h5"
                 sx={{
                   fontWeight: 800,
-                  color: "#212121",
+                  color: "#0f172a",
                   fontSize: { xs: "1.25rem", sm: "1.375rem", md: "1.5rem" },
                   lineHeight: 1.2,
                 }}
               >
                 Prévia da Etapa
               </Typography>
-              <Typography variant="body2" sx={{ color: "#616161", mt: 0.25 }}>
+              <Typography variant="body2" sx={{ color: "#475569", mt: 0.25, fontWeight: 650 }}>
                 Visualização de como os componentes aparecerão dentro do card
               </Typography>
             </Box>
 
-            <IconButton
-              onClick={onClose}
-              aria-label="Fechar prévia"
-              sx={{
-                width: { xs: 36, sm: 40 },
-                height: { xs: 36, sm: 40 },
-                color: "#64748b",
-                "&:hover": { backgroundColor: "#f1f5f9" },
-              }}
-            >
-              <CloseIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
-            </IconButton>
+            <Box sx={{ display: "flex", gap: 0.75, alignItems: "center" }}>
+              <Tooltip
+                title={expanded ? "Sair da tela cheia (Esc)" : "Tela cheia (F)"}
+                arrow
+              >
+                <IconButton
+                  onClick={toggleExpanded}
+                  aria-label={expanded ? "Sair da tela cheia" : "Tela cheia"}
+                  sx={{
+                    width: { xs: 36, sm: 40 },
+                    height: { xs: 36, sm: 40 },
+                    color: "#0f172a",
+                    border: "1px solid #E4E6EB",
+                    bgcolor: "#ffffff",
+                    "&:hover": { backgroundColor: "#f8fafc" },
+                  }}
+                >
+                  {expanded ? (
+                    <CloseFullscreenIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                  ) : (
+                    <OpenInFullIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                  )}
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title={expanded ? "Fechar (Esc duas vezes)" : "Fechar (Esc)"} arrow>
+                <IconButton
+                  onClick={onClose}
+                  aria-label="Fechar prévia"
+                  sx={{
+                    width: { xs: 36, sm: 40 },
+                    height: { xs: 36, sm: 40 },
+                    color: "#64748b",
+                    "&:hover": { backgroundColor: "#f1f5f9" },
+                  }}
+                >
+                  <CloseIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                </IconButton>
+              </Tooltip>
+            </Box>
           </Box>
 
-          <Box
-            sx={{
-              display: "flex",
-              gap: 1,
-              flexWrap: "wrap",
-              alignItems: "center",
-            }}
-          >
+          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
             <Chip
               label={readOnly ? "Somente leitura" : "Editável"}
               size="small"
               sx={{
-                bgcolor: readOnly ? "#F0F2F5" : "#E7F3FF",
-                color: readOnly ? "#616161" : "#1877F2",
+                bgcolor: readOnly ? "#F1F5F9" : "#E7F3FF",
+                color: readOnly ? "#475569" : "#1877F2",
                 fontWeight: 800,
               }}
             />
@@ -600,11 +697,11 @@ export const StagePreviewModal = ({
 
             <Divider flexItem orientation="vertical" sx={{ mx: 0.5 }} />
 
-            <Typography variant="body2" sx={{ color: "#212121", fontWeight: 800 }}>
+            <Typography variant="body2" sx={{ color: "#0f172a", fontWeight: 850 }}>
               {stage?.name || "Etapa"}
             </Typography>
 
-            <Typography variant="body2" sx={{ color: "#616161" }}>
+            <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 700 }}>
               • {componentsCount} {componentsCount === 1 ? "componente" : "componentes"}
             </Typography>
 
@@ -612,11 +709,7 @@ export const StagePreviewModal = ({
               <Chip
                 label={`Arquivos: ${runtimeFiles.length}`}
                 size="small"
-                sx={{
-                  bgcolor: "#E7F3FF",
-                  color: "#1877F2",
-                  fontWeight: 800,
-                }}
+                sx={{ bgcolor: "#E7F3FF", color: "#1877F2", fontWeight: 850 }}
               />
             ) : null}
 
@@ -625,15 +718,23 @@ export const StagePreviewModal = ({
                 label={`Selecionado: ${selectedFile.name}`}
                 size="small"
                 sx={{
-                  bgcolor: "#F0F2F5",
-                  color: "#212121",
+                  bgcolor: "#F1F5F9",
+                  color: "#0f172a",
                   fontWeight: 800,
-                  maxWidth: 360,
+                  maxWidth: expanded ? 680 : 460,
                   "& .MuiChip-label": {
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                   },
                 }}
+              />
+            ) : null}
+
+            {expanded ? (
+              <Chip
+                label="Tela cheia"
+                size="small"
+                sx={{ bgcolor: "#0f172a", color: "#ffffff", fontWeight: 850 }}
               />
             ) : null}
           </Box>
@@ -642,8 +743,8 @@ export const StagePreviewModal = ({
         {/* Body */}
         <Box
           sx={{
-            px: { xs: 2, sm: 3, md: 4 },
-            py: { xs: 2, sm: 2.5, md: 3 },
+            px: outerGutterX,
+            py: outerGutterY,
             flex: 1,
             minHeight: 0,
             overflow: "auto",
@@ -651,7 +752,7 @@ export const StagePreviewModal = ({
           }}
         >
           {!stage ? (
-            <Typography variant="body2" sx={{ color: "#616161" }}>
+            <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 650 }}>
               Nenhuma etapa selecionada.
             </Typography>
           ) : (
@@ -659,19 +760,56 @@ export const StagePreviewModal = ({
               sx={{
                 width: "100%",
                 minWidth: 0,
-                bgcolor: "#fff",
-                border: "1px solid #E4E6EB",
-                borderRadius: 3,
-                p: { xs: 2, sm: 2.5, md: 3 },
+
+                // ✅ “workspace” ideal: central e com maxWidth inteligente
+                maxWidth: contentMaxWidth,
+                mx: "auto",
               }}
             >
-              <StageComponentsRenderer
-                components={componentsForRender}
-                userRoleIds={userRoleIds}
-                readOnly={readOnly}
-                stageCompleted={stageCompleted}
-                onEvent={handleEvent}
-              />
+              <Box
+                sx={{
+                  width: "100%",
+                  minWidth: 0,
+
+                  bgcolor: "#fff",
+                  border: "1px solid #E4E6EB",
+                  borderRadius: expanded ? 3 : 3,
+                  overflow: "hidden",
+
+                  // ✅ padding interno: ajustado pra parecer premium e evitar “white space” inútil
+                  p: expanded ? { xs: 2, sm: 2.5, md: 3 } : { xs: 1.75, sm: 2.25, md: 2.75 },
+                }}
+              >
+                <StageComponentsRenderer
+                  components={componentsForRender}
+                  userRoleIds={userRoleIds}
+                  readOnly={readOnly}
+                  stageCompleted={stageCompleted}
+                  onEvent={handleEvent}
+                />
+              </Box>
+
+              {/* ✅ Hint discreto de atalhos (padrão apps premium) */}
+              <Box
+                sx={{
+                  mt: 1.25,
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: 1,
+                  flexWrap: "wrap",
+                }}
+              >
+                <Chip
+                  label="F: Tela cheia"
+                  size="small"
+                  sx={{ bgcolor: "#F1F5F9", color: "#475569", fontWeight: 800 }}
+                />
+                <Chip
+                  label="Esc: Sair/Fechar"
+                  size="small"
+                  sx={{ bgcolor: "#F1F5F9", color: "#475569", fontWeight: 800 }}
+                />
+              </Box>
             </Box>
           )}
         </Box>
