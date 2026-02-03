@@ -10,6 +10,8 @@ import {
   Menu,
   MenuItem,
   CircularProgress,
+  Tooltip,
+  Divider,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -18,6 +20,9 @@ import {
   Delete as DeleteIcon,
   Edit as EditIcon,
   ContentCopy as ContentCopyIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
+  ViewList as ViewListIcon,
 } from "@mui/icons-material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState, useMemo, useEffect } from "react";
@@ -46,6 +51,8 @@ function deepClone<T>(v: T): T {
   return JSON.parse(JSON.stringify(v)) as T;
 }
 
+const LS_KEY_SIDEBAR_COLLAPSED = "planco:flowModels:sidebarCollapsed";
+
 const FlowModelsPage = () => {
   const { showNotification } = useNotification();
   const queryClient = useQueryClient();
@@ -71,8 +78,49 @@ const FlowModelsPage = () => {
   );
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  // menu de contexto do card (3 pontinhos)
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [menuModelId, setMenuModelId] = useState<string | null>(null);
+
+  // ✅ Sidebar collapse (recuar)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(LS_KEY_SIDEBAR_COLLAPSED) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        LS_KEY_SIDEBAR_COLLAPSED,
+        sidebarCollapsed ? "1" : "0",
+      );
+    } catch {
+      // ignore
+    }
+  }, [sidebarCollapsed]);
+
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed((v) => !v);
+  }, []);
+
+  // ✅ Menu rápido de modelos quando sidebar estiver recolhida
+  const [collapsedModelsAnchorEl, setCollapsedModelsAnchorEl] =
+    useState<null | HTMLElement>(null);
+
+  const openCollapsedModelsMenu = useCallback(
+    (e: React.MouseEvent<HTMLElement>) => {
+      setCollapsedModelsAnchorEl(e.currentTarget);
+    },
+    [],
+  );
+
+  const closeCollapsedModelsMenu = useCallback(() => {
+    setCollapsedModelsAnchorEl(null);
+  }, []);
 
   // edição de etapa
   const [editStageOpen, setEditStageOpen] = useState(false);
@@ -304,25 +352,20 @@ const FlowModelsPage = () => {
       },
       onSuccess: (newModel) => {
         queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
-        // detalhe do selecionado atual pode ficar, mas garantimos refetch do novo ao selecionar
 
         showNotification("Modelo duplicado com sucesso!", "success");
 
-        // sai do modo edição/draft
         setIsEditMode(false);
         setDraftStages(null);
 
-        // seleciona o novo modelo
         setSelectedModelId(newModel._id);
 
-        // vai para aba "Meus"
         setSelectedTab("mine");
         const newParams = new URLSearchParams();
         newParams.set("tab", "mine");
         newParams.set("modelId", newModel._id);
         setUrlParams(newParams);
 
-        // fecha menu
         setAnchorEl(null);
         setMenuModelId(null);
       },
@@ -426,7 +469,7 @@ const FlowModelsPage = () => {
 
   const handleEditFlow = useCallback(() => {
     if (!selectedModel) return;
-    // se for sistema, não entra em editar (precisa duplicar)
+
     if (selectedModel.isDefaultPlanco === true) {
       showNotification(
         "Este é um modelo do sistema. Duplique para editar.",
@@ -517,6 +560,7 @@ const FlowModelsPage = () => {
       const st =
         stagesToRender.find((s) => String(s.stageId || "").trim() === id) ||
         null;
+
       if (!st) {
         showNotification("Etapa não encontrada para prévia.", "error");
         return;
@@ -563,9 +607,7 @@ const FlowModelsPage = () => {
           return prev;
         }
 
-        if (idx === -1) {
-          return [...base, updatedStage];
-        }
+        if (idx === -1) return [...base, updatedStage];
 
         base[idx] = updatedStage;
         return base;
@@ -680,7 +722,7 @@ const FlowModelsPage = () => {
     [isEditMode, showNotification],
   );
 
-  // Selecionar primeiro modelo se nenhum estiver selecionado
+  // proteção contra sair com draft
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isEditMode) {
@@ -698,6 +740,7 @@ const FlowModelsPage = () => {
     setPreviewStage(null);
   }, [selectedModelId, selectedTab]);
 
+  // Selecionar primeiro modelo se nenhum estiver selecionado
   useEffect(() => {
     if (!selectedModelId && sortedFilteredModels.length > 0) {
       const firstModel = sortedFilteredModels[0];
@@ -718,11 +761,14 @@ const FlowModelsPage = () => {
     setUrlParams,
   ]);
 
+  const sidebarWidth = sidebarCollapsed ? 76 : 360;
+
   return (
     <Box
       sx={{
         display: "flex",
-        height: "calc(100vh - 64px)",
+        minHeight: "calc(100dvh - 64px)",
+        height: "calc(100dvh - 64px)",
         overflow: "hidden",
         position: "relative",
         bgcolor: "#f4f6f8",
@@ -731,7 +777,9 @@ const FlowModelsPage = () => {
       {/* Sidebar */}
       <Box
         sx={{
-          width: 360,
+          width: sidebarWidth,
+          height: "100%",
+          transition: "width .18s ease",
           bgcolor: "background.paper",
           borderRight: 1,
           borderColor: "#E4E6EB",
@@ -739,12 +787,13 @@ const FlowModelsPage = () => {
           flexDirection: "column",
           overflow: "hidden",
           boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+          flexShrink: 0,
         }}
       >
         {/* Header */}
         <Box
           sx={{
-            p: 3,
+            p: sidebarCollapsed ? 1.5 : 3,
             borderBottom: 1,
             borderColor: "#E4E6EB",
             bgcolor: "#FAFBFC",
@@ -753,157 +802,256 @@ const FlowModelsPage = () => {
           <Box
             sx={{
               display: "flex",
-              justifyContent: "space-between",
+              justifyContent: sidebarCollapsed ? "center" : "space-between",
               alignItems: "center",
-              mb: 2.5,
+              mb: sidebarCollapsed ? 1.25 : 2.5,
+              gap: 1,
             }}
           >
-            <Box>
-              <Typography
-                variant="h5"
+            {!sidebarCollapsed ? (
+              <Box>
+                <Typography
+                  variant="h5"
+                  sx={{
+                    fontWeight: 800,
+                    color: "#0f172a",
+                    fontSize: "1.375rem",
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  Modelos
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: "#64748b",
+                    mt: 0.5,
+                    fontSize: "0.875rem",
+                    fontWeight: 650,
+                  }}
+                >
+                  Fluxos de trabalho
+                </Typography>
+              </Box>
+            ) : null}
+
+            {/* ✅ Botão no lugar do ícone cinza: recolher/expandir */}
+            <Tooltip
+              title={sidebarCollapsed ? "Expandir sidebar" : "Recolher sidebar"}
+              arrow
+            >
+              <IconButton
+                onClick={toggleSidebar}
+                aria-label={
+                  sidebarCollapsed ? "Expandir sidebar" : "Recolher sidebar"
+                }
                 sx={{
-                  fontWeight: 700,
-                  color: "#212121",
-                  fontSize: "1.375rem",
+                  width: { xs: 36, sm: 40 },
+                  height: { xs: 36, sm: 40 },
+                  color: "#64748b",
+                  border: "1px solid #E4E6EB",
+                  bgcolor: "#ffffff",
+                  "&:hover": { bgcolor: "#f1f5f9" },
                 }}
               >
-                Modelos
-              </Typography>
-              <Typography
-                variant="body2"
-                sx={{ color: "#616161", mt: 0.5, fontSize: "0.875rem" }}
-              >
-                Fluxos de trabalho
-              </Typography>
-            </Box>
-            <IconButton
-              size="small"
-              sx={{ color: "#616161", "&:hover": { bgcolor: "#F0F2F5" } }}
-            >
-              <LayersIcon />
-            </IconButton>
+                {sidebarCollapsed ? (
+                  <ChevronRightIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                ) : (
+                  <ChevronLeftIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                )}
+              </IconButton>
+            </Tooltip>
           </Box>
 
-          <Box
-            sx={{ display: "flex", flexDirection: "column", gap: 1.5, mb: 2.5 }}
-          >
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => setCreateModalOpen(true)}
-              fullWidth
+          {/* Ações principais */}
+          {sidebarCollapsed ? (
+            <Box
               sx={{
-                bgcolor: "#1877F2",
-                "&:hover": { bgcolor: "#166FE5" },
-                textTransform: "none",
-                fontWeight: 600,
-                py: 1.25,
-                borderRadius: 2,
-                boxShadow: "none",
-                fontSize: "0.875rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: 1,
+                alignItems: "center",
               }}
             >
-              Novo Modelo
-            </Button>
-          </Box>
+              <Tooltip title="Novo Modelo" arrow>
+                <IconButton
+                  onClick={() => setCreateModalOpen(true)}
+                  sx={{
+                    width: { xs: 36, sm: 40 },
+                    height: { xs: 36, sm: 40 },
+                    color: "#1877F2",
+                    border: "1px solid #E4E6EB",
+                    bgcolor: "#ffffff",
+                    "&:hover": { bgcolor: "#EEF6FF" },
+                  }}
+                >
+                  <AddIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                </IconButton>
+              </Tooltip>
 
-          <TextField
-            fullWidth
-            placeholder="Buscar modelos..."
-            value={modelSearch}
-            onChange={(e) => handleModelSearchChange(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <SearchIcon sx={{ color: "#8A8D91", mr: 1, fontSize: 20 }} />
-              ),
-            }}
-            size="small"
-            sx={{
-              mb: 2.5,
-              "& .MuiOutlinedInput-root": {
-                bgcolor: "#F0F2F5",
-                borderRadius: 2,
-                "& fieldset": { borderColor: "#E4E6EB" },
-                "&:hover fieldset": { borderColor: "#D8DADF" },
-                "&.Mui-focused fieldset": {
-                  borderColor: "#1877F2",
-                  borderWidth: "1.5px",
-                },
-              },
-              "& .MuiInputBase-input::placeholder": {
-                color: "#8A8D91",
-                opacity: 1,
-              },
-            }}
-          />
+              <Tooltip title="Selecionar modelo" arrow>
+                <IconButton
+                  onClick={openCollapsedModelsMenu}
+                  sx={{
+                    width: { xs: 36, sm: 40 },
+                    height: { xs: 36, sm: 40 },
+                    color: "#0f172a",
+                    border: "1px solid #E4E6EB",
+                    bgcolor: "#ffffff",
+                    "&:hover": { bgcolor: "#f8fafc" },
+                  }}
+                >
+                  <ViewListIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                </IconButton>
+              </Tooltip>
 
-          <Tabs
-            value={selectedTab}
-            onChange={handleTabChange}
-            sx={{
-              borderBottom: 1,
-              borderColor: "#E4E6EB",
-              minHeight: 40,
-              "& .MuiTab-root": {
-                minHeight: 40,
-                textTransform: "none",
-                fontWeight: 600,
-                fontSize: "0.875rem",
-                color: "#616161",
-                "&.Mui-selected": { color: "#1877F2" },
-              },
-              "& .MuiTabs-indicator": { bgcolor: "#1877F2", height: 3 },
-            }}
-          >
-            <Tab label="Todos" value="all" />
-            <Tab label="Sistema" value="system" />
-            <Tab label="Meus" value="mine" />
-          </Tabs>
+              <Divider
+                flexItem
+                sx={{ width: "100%", mt: 0.5, borderColor: "#E4E6EB" }}
+              />
+            </Box>
+          ) : (
+            <>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1.5,
+                  mb: 2.5,
+                }}
+              >
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={() => setCreateModalOpen(true)}
+                  fullWidth
+                  sx={{
+                    bgcolor: "#1877F2",
+                    "&:hover": { bgcolor: "#166FE5" },
+                    textTransform: "none",
+                    fontWeight: 700,
+                    py: 1.25,
+                    borderRadius: 2,
+                    boxShadow: "none",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  Novo Modelo
+                </Button>
+              </Box>
+
+              <TextField
+                fullWidth
+                placeholder="Buscar modelos..."
+                value={modelSearch}
+                onChange={(e) => handleModelSearchChange(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <SearchIcon
+                      sx={{ color: "#8A8D91", mr: 1, fontSize: 20 }}
+                    />
+                  ),
+                }}
+                size="small"
+                sx={{
+                  mb: 2.5,
+                  "& .MuiOutlinedInput-root": {
+                    bgcolor: "#F0F2F5",
+                    borderRadius: 2,
+                    "& fieldset": { borderColor: "#E4E6EB" },
+                    "&:hover fieldset": { borderColor: "#D8DADF" },
+                    "&.Mui-focused fieldset": {
+                      borderColor: "#1877F2",
+                      borderWidth: "1.5px",
+                    },
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: "#8A8D91",
+                    opacity: 1,
+                  },
+                }}
+              />
+
+              <Tabs
+                value={selectedTab}
+                onChange={handleTabChange}
+                sx={{
+                  borderBottom: 1,
+                  borderColor: "#E4E6EB",
+                  minHeight: 40,
+                  "& .MuiTab-root": {
+                    minHeight: 40,
+                    textTransform: "none",
+                    fontWeight: 700,
+                    fontSize: "0.875rem",
+                    color: "#64748b",
+                    "&.Mui-selected": { color: "#1877F2" },
+                  },
+                  "& .MuiTabs-indicator": { bgcolor: "#1877F2", height: 3 },
+                }}
+              >
+                <Tab label="Todos" value="all" />
+                <Tab label="Sistema" value="system" />
+                <Tab label="Meus" value="mine" />
+              </Tabs>
+            </>
+          )}
         </Box>
 
         {/* Lista */}
-        <Box
-          sx={{ flex: 1, overflow: "auto", p: 2, bgcolor: "background.paper" }}
-        >
-          {modelsLoading ? (
-            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
-              <CircularProgress size={24} sx={{ color: "#1877F2" }} />
-            </Box>
-          ) : modelsError ? (
-            <Typography
-              variant="body2"
-              sx={{ textAlign: "center", py: 4, color: "#F02849" }}
-            >
-              Erro ao carregar modelos
-            </Typography>
-          ) : sortedFilteredModels.length === 0 ? (
-            <Typography
-              variant="body2"
-              sx={{ textAlign: "center", py: 4, color: "#616161" }}
-            >
-              Nenhum modelo encontrado
-            </Typography>
-          ) : (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-              {sortedFilteredModels.map((model) => (
-                <FlowModelCard
-                  key={model._id}
-                  model={model}
-                  isSelected={selectedModelId === model._id}
-                  onClick={() => handleModelClick(model._id)}
-                  onMenuClick={(e) => handleMenuOpen(e, model._id)}
-                  hideMenu={false} // ✅ menu aparece inclusive no sistema
-                />
-              ))}
-            </Box>
-          )}
-        </Box>
+        {!sidebarCollapsed ? (
+          <Box
+            sx={{
+              flex: 1,
+              minHeight: 0,
+              overflow: "auto",
+              p: 2,
+              bgcolor: "background.paper",
+            }}
+          >
+            {modelsLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
+                <CircularProgress size={24} sx={{ color: "#1877F2" }} />
+              </Box>
+            ) : modelsError ? (
+              <Typography
+                variant="body2"
+                sx={{ textAlign: "center", py: 4, color: "#F02849" }}
+              >
+                Erro ao carregar modelos
+              </Typography>
+            ) : sortedFilteredModels.length === 0 ? (
+              <Typography
+                variant="body2"
+                sx={{ textAlign: "center", py: 4, color: "#616161" }}
+              >
+                Nenhum modelo encontrado
+              </Typography>
+            ) : (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                {sortedFilteredModels.map((model) => (
+                  <FlowModelCard
+                    key={model._id}
+                    model={model}
+                    isSelected={selectedModelId === model._id}
+                    onClick={() => handleModelClick(model._id)}
+                    onMenuClick={(e) => handleMenuOpen(e, model._id)}
+                    hideMenu={false}
+                  />
+                ))}
+              </Box>
+            )}
+          </Box>
+        ) : (
+          <Box sx={{ flex: 1, bgcolor: "background.paper" }} />
+        )}
       </Box>
 
       {/* Área principal */}
       <Box
         sx={{
           flex: 1,
+          minWidth: 0,
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -941,17 +1089,19 @@ const FlowModelsPage = () => {
                       justifyContent: "space-between",
                       alignItems: "flex-start",
                       mb: 3,
+                      gap: 2,
                     }}
                   >
-                    <Box sx={{ flex: 1 }}>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Breadcrumbs />
                       <Typography
                         variant="h4"
                         sx={{
-                          fontWeight: 700,
-                          color: "#212121",
-                          mb: 1.5,
+                          fontWeight: 800,
+                          color: "#0f172a",
+                          mb: 1.25,
                           fontSize: "1.75rem",
+                          letterSpacing: "-0.01em",
                         }}
                       >
                         {selectedModel.name}
@@ -960,16 +1110,19 @@ const FlowModelsPage = () => {
                       <Typography
                         variant="body1"
                         sx={{
-                          color: "#616161",
-                          mb: 2.5,
+                          color: "#64748b",
+                          mb: 2.25,
                           fontSize: "0.9375rem",
                           lineHeight: 1.6,
+                          fontWeight: 650,
                         }}
                       >
                         {selectedModel.description || "Sem descrição"}
                       </Typography>
 
-                      <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
+                      <Box
+                        sx={{ display: "flex", gap: 1.25, flexWrap: "wrap" }}
+                      >
                         <Chip
                           label={
                             selectedModel.isDefaultPlanco
@@ -978,9 +1131,9 @@ const FlowModelsPage = () => {
                           }
                           size="small"
                           sx={{
-                            bgcolor: "#F0F2F5",
-                            color: "#212121",
-                            fontWeight: 600,
+                            bgcolor: "#F1F5F9",
+                            color: "#0f172a",
+                            fontWeight: 800,
                             fontSize: "0.75rem",
                             height: 24,
                           }}
@@ -996,7 +1149,7 @@ const FlowModelsPage = () => {
                           sx={{
                             bgcolor: "#E7F3FF",
                             color: "#1877F2",
-                            fontWeight: 600,
+                            fontWeight: 800,
                             fontSize: "0.75rem",
                             height: 24,
                             "& .MuiChip-icon": { ml: 0.5 },
@@ -1013,7 +1166,7 @@ const FlowModelsPage = () => {
                           sx={{
                             bgcolor: "#E7F3FF",
                             color: "#1877F2",
-                            fontWeight: 600,
+                            fontWeight: 800,
                             fontSize: "0.75rem",
                             height: 24,
                             "& .MuiChip-icon": { ml: 0.5 },
@@ -1023,7 +1176,12 @@ const FlowModelsPage = () => {
                     </Box>
 
                     <Box
-                      sx={{ display: "flex", gap: 1.5, alignItems: "center" }}
+                      sx={{
+                        display: "flex",
+                        gap: 1.25,
+                        alignItems: "center",
+                        flexShrink: 0,
+                      }}
                     >
                       {isDefaultPlanco ? (
                         <Button
@@ -1037,7 +1195,7 @@ const FlowModelsPage = () => {
                             bgcolor: "#1877F2",
                             "&:hover": { bgcolor: "#166FE5" },
                             textTransform: "none",
-                            fontWeight: 600,
+                            fontWeight: 800,
                             borderRadius: 2,
                             boxShadow: "none",
                             px: 3,
@@ -1060,9 +1218,9 @@ const FlowModelsPage = () => {
                             disabled={updatingModel}
                             sx={{
                               textTransform: "none",
-                              fontWeight: 600,
-                              color: "#616161",
-                              "&:hover": { bgcolor: "#F0F2F5" },
+                              fontWeight: 800,
+                              color: "#64748b",
+                              "&:hover": { bgcolor: "#F1F5F9" },
                             }}
                           >
                             Reverter
@@ -1076,7 +1234,7 @@ const FlowModelsPage = () => {
                               bgcolor: "#1877F2",
                               "&:hover": { bgcolor: "#166FE5" },
                               textTransform: "none",
-                              fontWeight: 600,
+                              fontWeight: 800,
                               borderRadius: 2,
                               boxShadow: "none",
                               px: 3,
@@ -1101,7 +1259,7 @@ const FlowModelsPage = () => {
                             bgcolor: "#1877F2",
                             "&:hover": { bgcolor: "#166FE5" },
                             textTransform: "none",
-                            fontWeight: 600,
+                            fontWeight: 800,
                             borderRadius: 2,
                             boxShadow: "none",
                             px: 3,
@@ -1131,7 +1289,7 @@ const FlowModelsPage = () => {
                           bgcolor: "#1877F2",
                           "&:hover": { bgcolor: "#166FE5" },
                           textTransform: "none",
-                          fontWeight: 600,
+                          fontWeight: 800,
                           borderRadius: 2,
                           boxShadow: "none",
                           px: 2.5,
@@ -1187,15 +1345,19 @@ const FlowModelsPage = () => {
                     bgcolor: "background.paper",
                     borderRadius: 2,
                     p: 4,
+                    border: "1px solid #E4E6EB",
                   }}
                 >
                   <Typography
                     variant="h6"
-                    sx={{ mb: 1, color: "#212121", fontWeight: 600 }}
+                    sx={{ mb: 1, color: "#0f172a", fontWeight: 800 }}
                   >
                     Nenhuma etapa cadastrada
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "#616161" }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "#64748b", fontWeight: 650 }}
+                  >
                     Clique em "Criar Card" para adicionar uma nova etapa ao
                     modelo
                   </Typography>
@@ -1215,20 +1377,152 @@ const FlowModelsPage = () => {
               bgcolor: "background.paper",
               m: 4,
               borderRadius: 2,
+              border: "1px solid #E4E6EB",
             }}
           >
             <Typography
               variant="h6"
-              sx={{ mb: 1, color: "#212121", fontWeight: 600 }}
+              sx={{ mb: 1, color: "#0f172a", fontWeight: 800 }}
             >
               Nenhum modelo selecionado
             </Typography>
-            <Typography variant="body2" sx={{ color: "#616161" }}>
+            <Typography
+              variant="body2"
+              sx={{ color: "#64748b", fontWeight: 650 }}
+            >
               Selecione um modelo da lista ou crie um novo
             </Typography>
           </Box>
         )}
       </Box>
+
+      {/* ✅ Menu rápido de modelos (quando sidebar recolhida) */}
+      <Menu
+        anchorEl={collapsedModelsAnchorEl}
+        open={Boolean(collapsedModelsAnchorEl)}
+        onClose={closeCollapsedModelsMenu}
+        PaperProps={{
+          sx: {
+            width: 360,
+            maxWidth: "90vw",
+            borderRadius: 2,
+            border: "1px solid #E4E6EB",
+            boxShadow: "0 18px 40px rgba(15, 23, 42, 0.12)",
+            overflow: "hidden",
+          },
+        }}
+      >
+        <Box sx={{ px: 2, pt: 1.75, pb: 1.25, bgcolor: "#ffffff" }}>
+          <Typography sx={{ fontWeight: 900, color: "#0f172a" }}>
+            Selecionar modelo
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{ color: "#64748b", fontWeight: 650, mt: 0.25 }}
+          >
+            Clique para abrir o fluxo
+          </Typography>
+        </Box>
+        <Divider />
+        <Box sx={{ maxHeight: 420, overflow: "auto", py: 0.5 }}>
+          {modelsLoading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+              <CircularProgress size={22} sx={{ color: "#1877F2" }} />
+            </Box>
+          ) : sortedFilteredModels.length === 0 ? (
+            <Typography
+              variant="body2"
+              sx={{ textAlign: "center", py: 3, color: "#64748b" }}
+            >
+              Nenhum modelo encontrado
+            </Typography>
+          ) : (
+            sortedFilteredModels.map((m) => {
+              const selected = selectedModelId === m._id;
+              const isSystem = m.isDefaultPlanco === true;
+
+              return (
+                <MenuItem
+                  key={m._id}
+                  selected={selected}
+                  onClick={() => {
+                    closeCollapsedModelsMenu();
+                    handleModelClick(m._id);
+                  }}
+                  sx={{
+                    py: 1.25,
+                    alignItems: "flex-start",
+                    "&.Mui-selected": { bgcolor: "#EEF6FF" },
+                    "&.Mui-selected:hover": { bgcolor: "#E7F3FF" },
+                  }}
+                >
+                  <Box sx={{ minWidth: 0, width: "100%" }}>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        mb: 0.25,
+                      }}
+                    >
+                      <Typography
+                        sx={{ fontWeight: 900, color: "#0f172a", minWidth: 0 }}
+                      >
+                        <Box
+                          component="span"
+                          sx={{
+                            display: "block",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {m.name}
+                        </Box>
+                      </Typography>
+                      {isSystem ? (
+                        <Chip
+                          label="Sistema"
+                          size="small"
+                          sx={{
+                            height: 20,
+                            fontWeight: 900,
+                            bgcolor: "#F1F5F9",
+                            color: "#0f172a",
+                          }}
+                        />
+                      ) : isFavorite(m._id) ? (
+                        <Chip
+                          label="Favorito"
+                          size="small"
+                          sx={{
+                            height: 20,
+                            fontWeight: 900,
+                            bgcolor: "#ECFDF3",
+                            color: "#065F46",
+                          }}
+                        />
+                      ) : null}
+                    </Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: "#64748b",
+                        fontWeight: 650,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {m.description || "Sem descrição"}
+                    </Typography>
+                  </Box>
+                </MenuItem>
+              );
+            })
+          )}
+        </Box>
+      </Menu>
 
       {/* Menu de contexto */}
       <Menu

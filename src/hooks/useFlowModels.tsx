@@ -13,9 +13,8 @@ export type ComponentType =
   | "APPROVAL"
   | "TIMELINE"
   | "FILE_VIEWER"
-  | "CHECKLIST";
-
-
+  | "CHECKLIST"
+  | "STAGE_SUMMARY";
 
 export type FlowModelComponent = {
   order: number;
@@ -24,6 +23,7 @@ export type FlowModelComponent = {
   label: string;
   description?: string;
   required: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   config?: Record<string, any>;
   visibilityRoles?: string[]; // backend usa ObjectId; no front tratamos como string
   editableRoles?: string[];

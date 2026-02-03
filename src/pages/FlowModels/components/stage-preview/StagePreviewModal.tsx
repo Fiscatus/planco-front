@@ -1,6 +1,6 @@
 // src/pages/FlowModels/components/stage-preview/StagePreviewModal.tsx
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -27,7 +27,6 @@ type FileItem = {
   sizeBytes?: number;
   category?: string;
 
-  // ✅ usado pelo Approval (runtime local do preview)
   reviewStatus?: "draft" | "in_review" | "approved" | "rejected";
   reviewNote?: string;
   reviewedAt?: string;
@@ -44,18 +43,13 @@ type StagePreviewModalProps = {
   stageCompleted?: boolean;
 };
 
-/* =========================
- * Helpers
- * ========================= */
-
 function safeString(v: unknown) {
   return String(v ?? "").trim();
 }
 
 function normalizeReviewStatus(v: unknown): FileItem["reviewStatus"] | undefined {
   const s = safeString(v);
-  if (s === "draft" || s === "in_review" || s === "approved" || s === "rejected")
-    return s;
+  if (s === "draft" || s === "in_review" || s === "approved" || s === "rejected") return s;
   return undefined;
 }
 
@@ -108,9 +102,7 @@ function extractViewerBootstrap(components: FlowModelComponent[]) {
     (managerCfg.selectedFile as any) ??
     null;
 
-  const selectedFileId = selectedRaw
-    ? safeString(selectedRaw.id) || safeString(selectedRaw._id)
-    : "";
+  const selectedFileId = selectedRaw ? safeString(selectedRaw.id) || safeString(selectedRaw._id) : "";
 
   return { files, selectedFileId };
 }
@@ -137,9 +129,7 @@ function stableAutoKey(input: string) {
   return `k_${h.toString(16)}`;
 }
 
-function deriveChecklistSuggestions(
-  components: FlowModelComponent[],
-): ChecklistSuggestion[] {
+function deriveChecklistSuggestions(components: FlowModelComponent[]): ChecklistSuggestion[] {
   const arr = Array.isArray(components) ? components : [];
   const out: ChecklistSuggestion[] = [];
 
@@ -275,6 +265,29 @@ function isDevEnv() {
 const LS_KEY_EXPANDED = "planco:stagePreview:expanded";
 
 /* =========================
+ * Helpers: DOM safe
+ * ========================= */
+
+function escapeCssId(id: string) {
+  try {
+    // alguns browsers têm CSS.escape; outros não
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    const esc = w?.CSS?.escape;
+    if (typeof esc === "function") return esc(id);
+  } catch {
+    // ignore
+  }
+
+  // fallback conservador (serve para ids simples)
+  return id.replace(/([ #;?%&,.+*~\':"!^$[\]()=>|/@])/g, "\\$1");
+}
+
+function raf2(cb: () => void) {
+  requestAnimationFrame(() => requestAnimationFrame(cb));
+}
+
+/* =========================
  * Component
  * ========================= */
 
@@ -290,7 +303,17 @@ export const StagePreviewModal = ({
   const [runtimeFiles, setRuntimeFiles] = useState<FileItem[]>([]);
   const [runtimeSelectedFileId, setRuntimeSelectedFileId] = useState<string>("");
 
-  // ✅ Fullscreen real (MUI fullScreen) + persistência
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const [highlightedAnchorId, setHighlightedAnchorId] = useState<string | null>(null);
+
+  const highlightAnchor = useCallback((anchorId: string) => {
+    setHighlightedAnchorId(anchorId);
+    window.setTimeout(() => {
+      setHighlightedAnchorId((prev) => (prev === anchorId ? null : prev));
+    }, 1100);
+  }, []);
+
   const [expanded, setExpanded] = useState(false);
 
   const readExpandedFromStorage = useCallback(() => {
@@ -326,17 +349,16 @@ export const StagePreviewModal = ({
     });
   }, [persistExpanded]);
 
-  // Bootstrap do runtime ao abrir modal / trocar stage
   useEffect(() => {
     if (!open) return;
 
-    // ✅ restaura fullscreen preferido ao abrir
     setExpandedSafe(readExpandedFromStorage());
 
     if (!stage) {
       setRuntimeFiles([]);
       setRuntimeSelectedFileId("");
       setRuntimeComponents([]);
+      setHighlightedAnchorId(null);
       return;
     }
 
@@ -345,24 +367,20 @@ export const StagePreviewModal = ({
     const boot = extractViewerBootstrap(stage.components || []);
     setRuntimeFiles(boot.files || []);
     setRuntimeSelectedFileId(boot.selectedFileId || "");
+    setHighlightedAnchorId(null);
   }, [open, stage, readExpandedFromStorage, setExpandedSafe]);
 
-  // ✅ atalhos: F = fullscreen, Esc = sair do fullscreen; se não estiver fullscreen, fecha modal
   useEffect(() => {
     if (!open) return;
 
     const onKeyDown = (e: KeyboardEvent) => {
       const key = (e.key || "").toLowerCase();
 
-      // Evita disparar em inputs/textarea/contenteditable
       const target = e.target as HTMLElement | null;
       const tag = (target?.tagName || "").toLowerCase();
       const isTypingSurface =
-        tag === "input" ||
-        tag === "textarea" ||
-        target?.getAttribute?.("contenteditable") === "true";
+        tag === "input" || tag === "textarea" || target?.getAttribute?.("contenteditable") === "true";
 
-      // F: toggle fullscreen (mesmo se estiver digitando não faz sentido, mas vamos respeitar UX: não togglar se estiver digitando)
       if (key === "f") {
         if (isTypingSurface) return;
         e.preventDefault();
@@ -370,14 +388,10 @@ export const StagePreviewModal = ({
         return;
       }
 
-      // Esc: se expanded -> sai; senão -> fecha
       if (key === "escape") {
         e.preventDefault();
-        if (expanded) {
-          setExpandedSafe(false);
-        } else {
-          onClose();
-        }
+        if (expanded) setExpandedSafe(false);
+        else onClose();
       }
     };
 
@@ -396,103 +410,6 @@ export const StagePreviewModal = ({
     return runtimeFiles[0];
   }, [runtimeFiles, runtimeSelectedFileId]);
 
-  const handleEvent = useCallback((eventType: string, payload?: Record<string, any>) => {
-    if (isDevEnv()) {
-      // eslint-disable-next-line no-console
-      console.log("[STAGE_PREVIEW][EVENT]", eventType, payload || {});
-    }
-
-    // FILES_MANAGMENT
-    if (eventType === "files:setList") {
-      const files = normalizeFiles(payload?.files);
-      setRuntimeFiles(files);
-
-      setRuntimeSelectedFileId((prev) => {
-        if (!prev) return "";
-        return files.some((f) => f.id === prev) ? prev : "";
-      });
-
-      return;
-    }
-
-    if (eventType === "files:select" || eventType === "files:open") {
-      const fileId = safeString(payload?.fileId);
-      if (fileId) setRuntimeSelectedFileId(fileId);
-      return;
-    }
-
-    // FILE_VIEWER
-    if (eventType === "fileViewer:select") {
-      const fileId = safeString(payload?.fileId);
-      if (fileId) setRuntimeSelectedFileId(fileId);
-      return;
-    }
-
-    if (eventType === "fileViewer:open" || eventType === "fileViewer:download") {
-      const fileId = safeString(payload?.fileId);
-      if (fileId) setRuntimeSelectedFileId(fileId);
-      return;
-    }
-
-    // APPROVAL (runtime)
-    if (eventType === "approval:decision") {
-      const componentKey = safeString(payload?.componentKey);
-      const decision = safeString(payload?.decision); // approved | changes_requested
-      const justification = safeString(payload?.justification);
-      const fileIds = Array.isArray(payload?.fileIds) ? payload?.fileIds : [];
-      const filesTargetStatus = safeString(payload?.filesTargetStatus); // approved | rejected
-      const nowIso = new Date().toISOString();
-
-      setRuntimeFiles((prev) => {
-        if (!fileIds.length) return prev;
-
-        return prev.map((f) => {
-          if (!fileIds.includes(f.id)) return f;
-
-          const target: FileItem["reviewStatus"] =
-            filesTargetStatus === "approved" ? "approved" : "rejected";
-
-          return {
-            ...f,
-            reviewStatus: target,
-            reviewNote: justification || f.reviewNote,
-            reviewedAt: nowIso,
-            reviewedBy: "Preview",
-          };
-        });
-      });
-
-      setRuntimeComponents((prev) => {
-        if (!componentKey) return prev;
-
-        return prev.map((c) => {
-          if (c.key !== componentKey) return c;
-
-          const currentCfg = (c.config ?? {}) as Record<string, unknown>;
-          const normalizedDecision =
-            decision === "approved" || decision === "changes_requested"
-              ? decision
-              : undefined;
-
-          return {
-            ...c,
-            config: {
-              ...currentCfg,
-              decision: normalizedDecision,
-              justification,
-              decidedAt: nowIso,
-              decidedBy: "Preview",
-            },
-          };
-        });
-      });
-
-      return;
-    }
-  }, []);
-
-  // ✅ injeta runtime config no FILE_VIEWER + FILES_MANAGMENT
-  // ✅ injeta autoSuggestions no CHECKLIST
   const componentsForRender = useMemo(() => {
     const arr = Array.isArray(runtimeComponents) ? runtimeComponents.slice() : [];
     const autoSuggestions = deriveChecklistSuggestions(arr);
@@ -500,7 +417,6 @@ export const StagePreviewModal = ({
     return arr.map((c) => {
       if (c.type === ("CHECKLIST" as any)) {
         const currentCfg = (c.config ?? {}) as Record<string, unknown>;
-
         return {
           ...c,
           config: {
@@ -545,18 +461,198 @@ export const StagePreviewModal = ({
 
   const componentsCount = stage?.components?.length || 0;
 
-  /**
-   * ✅ Layout “padrão sistemas premium”
-   * - normal: modal confortável, sem exagero de largura
-   * - fullscreen: ocupa toda tela, mas conteúdo fica em “workspace” ideal (não estica em ultra-wide)
-   */
   const outerGutterX = expanded ? { xs: 2, sm: 3, md: 4 } : { xs: 1.5, sm: 2.25, md: 3 };
   const outerGutterY = expanded ? { xs: 2, sm: 2.5, md: 3 } : { xs: 1.5, sm: 2, md: 2.5 };
-
-  // ✅ largura ideal do “workspace” (o card de conteúdo)
-  // Normal: ótimo pra leitura sem sobrar branco e sem ficar “largo demais”
-  // Fullscreen: maior, mas ainda profissional (evita esticar em monitor grande)
   const contentMaxWidth = expanded ? 1440 : 1180;
+
+  const scrollToAnchorId = useCallback(
+    (anchorId: string) => {
+      const container = scrollContainerRef.current;
+      if (!container) return;
+
+      const selector = `#${escapeCssId(anchorId)}`;
+
+      // ✅ espera layout estabilizar (evita “não rolou” quando DOM ainda está montando)
+      raf2(() => {
+        const el =
+          (container.querySelector(selector) as HTMLElement | null) ??
+          (document.getElementById(anchorId) as HTMLElement | null);
+
+        if (!el) return;
+
+        const cRect = container.getBoundingClientRect();
+        const eRect = el.getBoundingClientRect();
+
+        const paddingTop = 12;
+        const nextTop = container.scrollTop + (eRect.top - cRect.top) - paddingTop;
+
+        container.scrollTo({ top: Math.max(0, nextTop), behavior: "smooth" });
+        highlightAnchor(anchorId);
+
+        window.setTimeout(() => {
+          const ctn = scrollContainerRef.current;
+          if (!ctn) return;
+          ctn.scrollBy({ top: -4, behavior: "smooth" });
+        }, 240);
+      });
+    },
+    [highlightAnchor],
+  );
+
+  const scrollToComponent = useCallback(
+    (opts: {
+      componentKey?: string;
+      componentType?: FlowModelComponent["type"];
+      preferredTypes?: FlowModelComponent["type"][];
+    }) => {
+      const list = Array.isArray(componentsForRender) ? componentsForRender : [];
+      if (!list.length) return;
+
+      const key = safeString(opts.componentKey);
+      const type = safeString(opts.componentType) as FlowModelComponent["type"];
+      const preferredTypes = Array.isArray(opts.preferredTypes) ? opts.preferredTypes : [];
+
+      let target: FlowModelComponent | null = null;
+
+      if (key) target = list.find((c) => safeString(c.key) === key) || null;
+      if (!target && type) target = list.find((c) => c.type === type) || null;
+
+      if (!target && preferredTypes.length) {
+        for (const t of preferredTypes) {
+          const found = list.find((c) => c.type === t);
+          if (found) {
+            target = found;
+            break;
+          }
+        }
+      }
+
+      if (!target) return;
+
+      const anchorId = `stage-comp-${safeString(target.key) || `order-${target.order}`}`;
+      scrollToAnchorId(anchorId);
+    },
+    [componentsForRender, scrollToAnchorId],
+  );
+
+  const goToFilesManagement = useCallback(() => {
+    // ✅ prioridade: Gerenciar Arquivos, fallback: Visualizador
+    scrollToComponent({
+      preferredTypes: ["FILES_MANAGMENT", "FILE_VIEWER"],
+    });
+  }, [scrollToComponent]);
+
+  const handleEvent = useCallback(
+    (eventType: string, payload?: Record<string, any>) => {
+      if (isDevEnv()) {
+        // eslint-disable-next-line no-console
+        console.log("[STAGE_PREVIEW][EVENT]", eventType, payload || {});
+      }
+
+      // ✅ Clique do "Abrir arquivos" (StageSummaryCard)
+      if (eventType === "stageSummary:openFiles") {
+        goToFilesManagement();
+        return;
+      }
+
+      // ✅ Genérico (caso algum componente use)
+      if (eventType === "ui:scrollToComponent") {
+        scrollToComponent({
+          componentKey: payload?.componentKey,
+          componentType: payload?.componentType,
+          preferredTypes: payload?.preferredTypes,
+        });
+        return;
+      }
+
+      // FILES_MANAGMENT
+      if (eventType === "files:setList") {
+        const files = normalizeFiles(payload?.files);
+        setRuntimeFiles(files);
+
+        setRuntimeSelectedFileId((prev) => {
+          if (!prev) return "";
+          return files.some((f) => f.id === prev) ? prev : "";
+        });
+
+        return;
+      }
+
+      if (eventType === "files:select" || eventType === "files:open") {
+        const fileId = safeString(payload?.fileId);
+        if (fileId) setRuntimeSelectedFileId(fileId);
+        return;
+      }
+
+      // FILE_VIEWER
+      if (eventType === "fileViewer:select") {
+        const fileId = safeString(payload?.fileId);
+        if (fileId) setRuntimeSelectedFileId(fileId);
+        return;
+      }
+
+      if (eventType === "fileViewer:open" || eventType === "fileViewer:download") {
+        const fileId = safeString(payload?.fileId);
+        if (fileId) setRuntimeSelectedFileId(fileId);
+        return;
+      }
+
+      // APPROVAL (runtime)
+      if (eventType === "approval:decision") {
+        const componentKey = safeString(payload?.componentKey);
+        const decision = safeString(payload?.decision);
+        const justification = safeString(payload?.justification);
+        const fileIds = Array.isArray(payload?.fileIds) ? payload?.fileIds : [];
+        const filesTargetStatus = safeString(payload?.filesTargetStatus);
+        const nowIso = new Date().toISOString();
+
+        setRuntimeFiles((prev) => {
+          if (!fileIds.length) return prev;
+
+          return prev.map((f) => {
+            if (!fileIds.includes(f.id)) return f;
+
+            const targetStatus: FileItem["reviewStatus"] =
+              filesTargetStatus === "approved" ? "approved" : "rejected";
+
+            return {
+              ...f,
+              reviewStatus: targetStatus,
+              reviewNote: justification || f.reviewNote,
+              reviewedAt: nowIso,
+              reviewedBy: "Preview",
+            };
+          });
+        });
+
+        setRuntimeComponents((prev) => {
+          if (!componentKey) return prev;
+
+          return prev.map((c) => {
+            if (c.key !== componentKey) return c;
+
+            const currentCfg = (c.config ?? {}) as Record<string, unknown>;
+            const normalizedDecision =
+              decision === "approved" || decision === "changes_requested" ? decision : undefined;
+
+            return {
+              ...c,
+              config: {
+                ...currentCfg,
+                decision: normalizedDecision,
+                justification,
+                decidedAt: nowIso,
+                decidedBy: "Preview",
+              },
+            };
+          });
+        });
+
+        return;
+      }
+    },
+    [goToFilesManagement, scrollToComponent],
+  );
 
   return (
     <Dialog
@@ -633,20 +729,15 @@ export const StagePreviewModal = ({
             </Box>
 
             <Box sx={{ display: "flex", gap: 0.75, alignItems: "center" }}>
-              <Tooltip
-                title={expanded ? "Sair da tela cheia (Esc)" : "Tela cheia (F)"}
-                arrow
-              >
+              <Tooltip title={expanded ? "Sair da tela cheia (Esc)" : "Tela cheia (F)"} arrow>
                 <IconButton
                   onClick={toggleExpanded}
                   aria-label={expanded ? "Sair da tela cheia" : "Tela cheia"}
                   sx={{
                     width: { xs: 36, sm: 40 },
                     height: { xs: 36, sm: 40 },
-                    color: "#0f172a",
-                    border: "1px solid #E4E6EB",
-                    bgcolor: "#ffffff",
-                    "&:hover": { backgroundColor: "#f8fafc" },
+                    color: "#64748b",
+                    "&:hover": { backgroundColor: "#f1f5f9" },
                   }}
                 >
                   {expanded ? (
@@ -674,7 +765,15 @@ export const StagePreviewModal = ({
             </Box>
           </Box>
 
-          <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
+          {/* Header enxuto */}
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              flexWrap: "wrap",
+              alignItems: "center",
+            }}
+          >
             <Chip
               label={readOnly ? "Somente leitura" : "Editável"}
               size="small"
@@ -705,31 +804,6 @@ export const StagePreviewModal = ({
               • {componentsCount} {componentsCount === 1 ? "componente" : "componentes"}
             </Typography>
 
-            {runtimeFiles.length ? (
-              <Chip
-                label={`Arquivos: ${runtimeFiles.length}`}
-                size="small"
-                sx={{ bgcolor: "#E7F3FF", color: "#1877F2", fontWeight: 850 }}
-              />
-            ) : null}
-
-            {selectedFile?.name ? (
-              <Chip
-                label={`Selecionado: ${selectedFile.name}`}
-                size="small"
-                sx={{
-                  bgcolor: "#F1F5F9",
-                  color: "#0f172a",
-                  fontWeight: 800,
-                  maxWidth: expanded ? 680 : 460,
-                  "& .MuiChip-label": {
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  },
-                }}
-              />
-            ) : null}
-
             {expanded ? (
               <Chip
                 label="Tela cheia"
@@ -742,6 +816,7 @@ export const StagePreviewModal = ({
 
         {/* Body */}
         <Box
+          ref={scrollContainerRef}
           sx={{
             px: outerGutterX,
             py: outerGutterY,
@@ -760,8 +835,6 @@ export const StagePreviewModal = ({
               sx={{
                 width: "100%",
                 minWidth: 0,
-
-                // ✅ “workspace” ideal: central e com maxWidth inteligente
                 maxWidth: contentMaxWidth,
                 mx: "auto",
               }}
@@ -770,26 +843,24 @@ export const StagePreviewModal = ({
                 sx={{
                   width: "100%",
                   minWidth: 0,
-
                   bgcolor: "#fff",
                   border: "1px solid #E4E6EB",
-                  borderRadius: expanded ? 3 : 3,
+                  borderRadius: 3,
                   overflow: "hidden",
-
-                  // ✅ padding interno: ajustado pra parecer premium e evitar “white space” inútil
                   p: expanded ? { xs: 2, sm: 2.5, md: 3 } : { xs: 1.75, sm: 2.25, md: 2.75 },
                 }}
               >
                 <StageComponentsRenderer
                   components={componentsForRender}
+                  stageComponents={componentsForRender}
                   userRoleIds={userRoleIds}
                   readOnly={readOnly}
                   stageCompleted={stageCompleted}
                   onEvent={handleEvent}
+                  highlightedAnchorId={highlightedAnchorId}
                 />
               </Box>
 
-              {/* ✅ Hint discreto de atalhos (padrão apps premium) */}
               <Box
                 sx={{
                   mt: 1.25,

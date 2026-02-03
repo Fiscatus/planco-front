@@ -30,6 +30,7 @@ const COMPONENT_TYPES: { value: ComponentType; label: string }[] = [
   { value: "TIMELINE", label: "Linha do Tempo" },
   { value: "FILE_VIEWER", label: "Visualizador de Arquivos" },
   { value: "CHECKLIST", label: "Checklist" },
+  { value: "STAGE_SUMMARY", label: "Resumo da Etapa" },
 ];
 
 export const AddComponentModal = ({

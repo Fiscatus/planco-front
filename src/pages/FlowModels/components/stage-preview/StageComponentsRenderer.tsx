@@ -1,5 +1,7 @@
+// src/pages/FlowModels/components/stage-preview/StageComponentsRenderer.tsx
+
 import { Box, Typography } from "@mui/material";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FlowModelComponent } from "@/hooks/useFlowModels";
 import { componentRegistry } from "./componentRegistry";
 
@@ -19,6 +21,12 @@ export type StageComponentsRendererProps = {
   readOnly?: boolean;
   stageCompleted?: boolean;
   onEvent?: (eventType: string, payload?: Record<string, any>) => void;
+
+  /**
+   * ✅ NOVO:
+   * id do anchor para highlight após scroll
+   */
+  highlightedAnchorId?: string | null;
 };
 
 function hasIntersection(a: string[] = [], b: string[] = []) {
@@ -31,6 +39,24 @@ function supportsIntersectionObserver() {
   return typeof window !== "undefined" && "IntersectionObserver" in window;
 }
 
+function safeString(v: unknown) {
+  return String(v ?? "").trim();
+}
+
+/**
+ * Scroll helper:
+ * - Usa o anchorId (id real no DOM)
+ * - scrollIntoView rola o ancestral rolável mais próximo (modal OU página)
+ */
+function scrollToAnchor(anchorId: string) {
+  const el = document.getElementById(anchorId);
+  if (!el) return false;
+
+  // scrollMarginTop já está no anchor wrapper (12px).
+  el.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
+  return true;
+}
+
 export const StageComponentsRenderer = ({
   components,
   stageComponents,
@@ -38,6 +64,7 @@ export const StageComponentsRenderer = ({
   readOnly = false,
   stageCompleted = false,
   onEvent,
+  highlightedAnchorId = null,
 }: StageComponentsRendererProps) => {
   const safeComponents = useMemo(() => {
     const arr = Array.isArray(components) ? components.slice() : [];
@@ -90,8 +117,6 @@ export const StageComponentsRenderer = ({
     if (!visibleComponents.length) return;
 
     const root = containerRef.current ?? undefined;
-
-    // Guardamos ratios e escolhemos o maior como "active"
     const ratios = new Map<string, number>();
 
     const observer = new IntersectionObserver(
@@ -109,8 +134,6 @@ export const StageComponentsRenderer = ({
 
         if (!changed) return;
 
-        // escolhe o mais visível (ratio maior).
-        // se nenhum visível, mantém o atual.
         let bestKey = "";
         let bestRatio = 0;
 
@@ -121,38 +144,140 @@ export const StageComponentsRenderer = ({
           }
         });
 
-        // só troca se tiver um "melhor" razoável,
-        // evita piscadas quando está entre dois componentes
         if (bestKey && bestRatio >= 0.2) {
           setActiveKey((prev) => (prev === bestKey ? prev : bestKey));
         }
       },
       {
-        // root = container do renderer, se existir, senão viewport
         root,
-        // "janela" de ativação: favorece o componente central
         rootMargin: "-25% 0px -55% 0px",
         threshold: [0, 0.1, 0.2, 0.35, 0.5, 0.7, 0.9, 1],
       },
     );
 
-    // observa todos os itens
     for (const c of visibleComponents) {
       const el = itemRefs.current[c.key];
       if (el) observer.observe(el);
     }
 
-    // define ativo inicial (primeiro) se ainda não tiver
     setActiveKey((prev) => prev || visibleComponents[0]?.key || "");
 
     return () => observer.disconnect();
   }, [visibleComponents]);
 
-  // Focus-within: quando o user clicar/digitar em algum componente,
-  // esse componente vira ativo imediatamente.
   const handleFocusCapture = (key: string) => {
     setActiveKey(key);
   };
+
+  /**
+   * ✅ Scroll resolver:
+   * - por key
+   * - por type
+   * - por preferredTypes
+   */
+  const resolveTargetComponent = useCallback(
+    (opts: {
+      componentKey?: string;
+      componentType?: FlowModelComponent["type"];
+      preferredTypes?: FlowModelComponent["type"][];
+    }) => {
+      const list = Array.isArray(visibleComponents) ? visibleComponents : [];
+      if (!list.length) return null;
+
+      const key = safeString(opts.componentKey);
+      const type = safeString(opts.componentType) as FlowModelComponent["type"];
+      const preferredTypes = Array.isArray(opts.preferredTypes) ? opts.preferredTypes : [];
+
+      let target: FlowModelComponent | null = null;
+
+      if (key) target = list.find((c) => safeString(c.key) === key) || null;
+      if (!target && type) target = list.find((c) => c.type === type) || null;
+
+      if (!target && preferredTypes.length) {
+        for (const t of preferredTypes) {
+          const found = list.find((c) => c.type === t);
+          if (found) {
+            target = found;
+            break;
+          }
+        }
+      }
+
+      return target;
+    },
+    [visibleComponents],
+  );
+
+  const doScrollToComponent = useCallback(
+    (opts: {
+      componentKey?: string;
+      componentType?: FlowModelComponent["type"];
+      preferredTypes?: FlowModelComponent["type"][];
+    }) => {
+      const target = resolveTargetComponent(opts);
+      if (!target) return false;
+
+      const anchorId = `stage-comp-${safeString(target.key) || `order-${target.order}`}`;
+      const ok = scrollToAnchor(anchorId);
+
+      if (ok) {
+        // deixa o item como "ativo" também (UX melhor)
+        setActiveKey(safeString(target.key));
+      }
+
+      return ok;
+    },
+    [resolveTargetComponent],
+  );
+
+  /**
+   * ✅ Wrapper do onEvent:
+   * Intercepta eventos de navegação e faz scroll aqui mesmo,
+   * depois repassa para o handler externo (se existir).
+   */
+  const emitEvent = useCallback(
+    (eventType: string, payload?: Record<string, any>) => {
+      // ✅ Evento real vindo do StageSummary (pendências / botões)
+      if (eventType === "stageSummary:scrollToComponent") {
+        const componentKey = safeString(payload?.targetKey);
+        const componentType = safeString(payload?.targetType) as
+          | FlowModelComponent["type"]
+          | undefined;
+
+        doScrollToComponent({
+          componentKey: componentKey || undefined,
+          componentType: componentType || undefined,
+        });
+      }
+
+      // ✅ Compat: botão "Ir para Gerenciar Arquivos" (se existir em algum lugar antigo)
+      if (eventType === "stageSummary:openFiles") {
+        doScrollToComponent({
+          preferredTypes: ["FILES_MANAGMENT", "FILE_VIEWER"],
+        });
+      }
+
+      // ✅ Compat: "Ver pendências" (vai na primeira pendência)
+      if (eventType === "stageSummary:jumpToPending") {
+        const pendingKeys = Array.isArray(payload?.pendingKeys) ? payload?.pendingKeys : [];
+        const firstKey = safeString(pendingKeys[0]);
+        if (firstKey) doScrollToComponent({ componentKey: firstKey });
+      }
+
+      // ✅ Evento genérico para navegação (se algum componente usar)
+      if (eventType === "ui:scrollToComponent") {
+        doScrollToComponent({
+          componentKey: payload?.componentKey,
+          componentType: payload?.componentType,
+          preferredTypes: payload?.preferredTypes,
+        });
+      }
+
+      // ✅ sempre repassa pro pai (runtime do modal etc.)
+      onEvent?.(eventType, payload);
+    },
+    [doScrollToComponent, onEvent],
+  );
 
   if (!visibleComponents.length) {
     return (
@@ -163,6 +288,10 @@ export const StageComponentsRenderer = ({
       </Box>
     );
   }
+
+  const activeShadow = "0 0 0 3px rgba(59,130,246,0.08), 0 12px 28px rgba(15,23,42,0.06)";
+  const focusShadow = "0 0 0 3px rgba(59,130,246,0.12), 0 12px 28px rgba(15,23,42,0.06)";
+  const jumpShadow = "0 0 0 3px rgba(24,119,242,0.14), 0 12px 28px rgba(15,23,42,0.08)";
 
   return (
     <Box
@@ -186,6 +315,9 @@ export const StageComponentsRenderer = ({
           !!readOnly || !canEditByRole || (stageCompleted && !!comp.lockedAfterCompletion);
 
         const isActive = activeKey === comp.key;
+
+        const anchorId = `stage-comp-${safeString(comp.key) || `order-${comp.order}`}`;
+        const isJumpHighlighted = highlightedAnchorId === anchorId;
 
         if (!Renderer) {
           return (
@@ -211,43 +343,44 @@ export const StageComponentsRenderer = ({
 
         return (
           <Box key={comp.key} sx={{ width: "100%", minWidth: 0 }}>
-            {/* 🔹 Anchor do observer + foco */}
+            {/* 🔹 Anchor real (id) + observer + foco */}
             <Box
+              id={anchorId}
               ref={setItemRef(comp.key)}
               data-component-key={comp.key}
               onFocusCapture={() => handleFocusCapture(comp.key)}
               sx={{
                 width: "100%",
                 minWidth: 0,
+                scrollMarginTop: 12,
               }}
             >
-              {/* ✅ Wrapper premium + active highlight */}
+              {/* ✅ Wrapper premium + active/jump highlight */}
               <Box
                 sx={{
                   width: "100%",
-                  bgcolor: isActive ? "#F8FAFF" : "#FFFFFF",
+                  bgcolor: isActive ? "#FBFCFF" : "#FFFFFF",
                   border: "1px solid",
-                  borderColor: isActive ? "#C7D2FE" : "#EEF2F7",
+                  borderColor: isJumpHighlighted ? "#93C5FD" : isActive ? "#D6E4FF" : "#EEF2F7",
                   borderRadius: 3,
                   p: { xs: 1.5, sm: 2, md: 2.5 },
                   position: "relative",
-                  transition:
-                    "background-color .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease",
+                  transition: "background-color .18s ease, border-color .18s ease, box-shadow .18s ease",
 
-                  // OpenAI-like: highlight sutil, nada chamativo
-                  boxShadow: isActive
-                    ? "0 0 0 4px rgba(99,102,241,0.10), 0 12px 28px rgba(15,23,42,0.06)"
-                    : "none",
+                  boxShadow: isJumpHighlighted ? jumpShadow : isActive ? activeShadow : "none",
 
                   "&:hover": {
-                    bgcolor: isActive ? "#F8FAFF" : "#FAFBFC",
-                    borderColor: isActive ? "#A5B4FC" : "#E2E8F0",
+                    bgcolor: isActive ? "#FBFCFF" : "#FAFBFC",
+                    borderColor: isJumpHighlighted ? "#60A5FA" : isActive ? "#BFDBFE" : "#E2E8F0",
                   },
 
                   "&:focus-within": {
-                    borderColor: "#A5B4FC",
-                    boxShadow: "0 0 0 4px rgba(99,102,241,0.14), 0 12px 28px rgba(15,23,42,0.06)",
+                    borderColor: "#BFDBFE",
+                    boxShadow: isJumpHighlighted ? jumpShadow : focusShadow,
                   },
+
+                  outline: isJumpHighlighted ? "3px solid rgba(24,119,242,0.25)" : "none",
+                  outlineOffset: isJumpHighlighted ? 2 : 0,
 
                   "& > *": { width: "100%", minWidth: 0 },
                 }}
@@ -257,12 +390,12 @@ export const StageComponentsRenderer = ({
                   stageComponents={safeStageComponents}
                   isReadOnly={isReadOnly}
                   stageCompleted={stageCompleted}
-                  onEvent={onEvent}
+                  onEvent={emitEvent} // ✅ usa wrapper que faz scroll
                 />
               </Box>
             </Box>
 
-            {/* 🌈 Separador em gradiente (suave, claro, fluido) */}
+            {/* 🌈 Separador em gradiente */}
             {idx < visibleComponents.length - 1 && (
               <Box
                 sx={{
