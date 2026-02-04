@@ -852,6 +852,7 @@ export const StagePreviewModal = ({
               >
                 <StageComponentsRenderer
                   components={componentsForRender}
+                  stage={stage}
                   stageComponents={componentsForRender}
                   userRoleIds={userRoleIds}
                   readOnly={readOnly}

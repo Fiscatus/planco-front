@@ -1,6 +1,6 @@
 // src/pages/FlowModels/components/stage-preview/componentRegistry.tsx
 
-import type { ComponentType, FlowModelComponent } from "@/hooks/useFlowModels";
+import type { ComponentType, FlowModelComponent, FlowModelStage } from "@/hooks/useFlowModels";
 import type { ComponentType as ReactComponentType } from "react";
 
 import { SignatureComponent } from "./stage-components/SignatureComponent";
@@ -15,9 +15,16 @@ import { StageSummaryCard } from "./stage-components/StageSummaryCard";
 
 /**
  * ✅ Props padrão que TODOS os componentes de etapa recebem
+ * ✅ Agora inclui `stage` para suportar fallback e contexto real
  */
 export type StageComponentRuntimeProps = {
   component: FlowModelComponent;
+
+  /**
+   * ✅ NOVO:
+   * Etapa completa (inclui aprovadores, regras etc.)
+   */
+  stage?: FlowModelStage | null;
 
   /**
    * Lista completa de componentes da etapa

@@ -2,11 +2,18 @@
 
 import { Box, Typography } from "@mui/material";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { FlowModelComponent } from "@/hooks/useFlowModels";
+import type { FlowModelComponent, FlowModelStage } from "@/hooks/useFlowModels";
 import { componentRegistry } from "./componentRegistry";
 
 export type StageComponentsRendererProps = {
   components: FlowModelComponent[];
+
+  /**
+   * ✅ NOVO:
+   * Stage inteiro (instância da etapa)
+   * - permite que componentes (ex: STAGE_SUMMARY) usem dados do stage (approverRoles, etc.)
+   */
+  stage?: FlowModelStage | null;
 
   /**
    * ✅ NOVO:
@@ -59,6 +66,7 @@ function scrollToAnchor(anchorId: string) {
 
 export const StageComponentsRenderer = ({
   components,
+  stage,
   stageComponents,
   userRoleIds = [],
   readOnly = false,
@@ -365,7 +373,8 @@ export const StageComponentsRenderer = ({
                   borderRadius: 3,
                   p: { xs: 1.5, sm: 2, md: 2.5 },
                   position: "relative",
-                  transition: "background-color .18s ease, border-color .18s ease, box-shadow .18s ease",
+                  transition:
+                    "background-color .18s ease, border-color .18s ease, box-shadow .18s ease",
 
                   boxShadow: isJumpHighlighted ? jumpShadow : isActive ? activeShadow : "none",
 
@@ -387,6 +396,7 @@ export const StageComponentsRenderer = ({
               >
                 <Renderer
                   component={comp}
+                  stage={stage ?? undefined} // ✅ NOVO: repassa stage inteiro pro componente
                   stageComponents={safeStageComponents}
                   isReadOnly={isReadOnly}
                   stageCompleted={stageCompleted}
