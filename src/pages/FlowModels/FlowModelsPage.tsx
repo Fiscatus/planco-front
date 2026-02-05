@@ -59,7 +59,7 @@ const FlowModelsPage = () => {
   const { user } = useAuth();
   const [urlParams, setUrlParams] = useSearchParams();
 
-  const { isFavorite } = useFavoriteFlowModels();
+  const { isFavorite, toggleFavorite } = useFavoriteFlowModels();
 
   const {
     fetchFlowModels,
@@ -1037,6 +1037,11 @@ const FlowModelsPage = () => {
                     onClick={() => handleModelClick(model._id)}
                     onMenuClick={(e) => handleMenuOpen(e, model._id)}
                     hideMenu={false}
+                    isFavorite={!model.isDefaultPlanco && isFavorite(model._id)}
+                    onToggleFavorite={() => {
+                      if (model.isDefaultPlanco) return;
+                      toggleFavorite(model._id);
+                    }}
                   />
                 ))}
               </Box>

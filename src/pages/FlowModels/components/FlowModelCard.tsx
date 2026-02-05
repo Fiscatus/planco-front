@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Box, Card, Typography, IconButton, Chip, Tooltip } from "@mui/material";
 import {
   MoreVert as MoreVertIcon,
@@ -22,6 +22,13 @@ type FlowModelCardProps = {
   onClick: () => void;
   onMenuClick: (event: React.MouseEvent<HTMLElement>) => void;
   hideMenu?: boolean;
+
+  /**
+   * ✅ Controle pelo pai (recomendado):
+   * - permite optimistic reorder (favorito sobe instantaneamente)
+   */
+  isFavorite?: boolean;
+  onToggleFavorite?: () => void;
 };
 
 export const FlowModelCard = ({
@@ -30,11 +37,22 @@ export const FlowModelCard = ({
   onClick,
   onMenuClick,
   hideMenu = false,
+  isFavorite: isFavoriteProp,
+  onToggleFavorite,
 }: FlowModelCardProps) => {
-  const { isFavorite, toggleFavorite } = useFavoriteFlowModels();
+  const { isFavorite: isFavoriteHook, toggleFavorite } = useFavoriteFlowModels();
 
   const isSystem = model.isDefaultPlanco === true;
-  const isModelFavorite = !isSystem ? isFavorite(model._id) : false;
+
+  const isModelFavorite = useMemo(() => {
+    if (isSystem) return false;
+
+    if (typeof isFavoriteProp === "boolean") {
+      return isFavoriteProp;
+    }
+
+    return isFavoriteHook(model._id) === true;
+  }, [isSystem, isFavoriteProp, isFavoriteHook, model._id]);
 
   const getTimeAgo = (date?: string | Date) => {
     if (!date) return "";
@@ -48,9 +66,15 @@ export const FlowModelCard = ({
     (e: React.MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
       if (isSystem) return;
+
+      if (onToggleFavorite) {
+        onToggleFavorite();
+        return;
+      }
+
       toggleFavorite(model._id);
     },
-    [toggleFavorite, model._id, isSystem],
+    [onToggleFavorite, toggleFavorite, model._id, isSystem],
   );
 
   return (
@@ -193,7 +217,7 @@ export const FlowModelCard = ({
           {stageCount} {stageCount === 1 ? "etapa" : "etapas"}
         </Typography>
 
-        {timeAgo && (
+        {timeAgo ? (
           <>
             <Typography variant="caption" sx={{ color: "text.secondary", mx: 0.5 }}>
               •
@@ -202,10 +226,10 @@ export const FlowModelCard = ({
               {timeAgo}
             </Typography>
           </>
-        )}
+        ) : null}
       </Box>
 
-      {model.description && (
+      {model.description ? (
         <Typography
           variant="body2"
           sx={{
@@ -219,7 +243,7 @@ export const FlowModelCard = ({
         >
           {model.description}
         </Typography>
-      )}
+      ) : null}
     </Card>
   );
 };

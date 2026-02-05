@@ -19,11 +19,13 @@ import {
   Close as CloseIcon,
   Delete as DeleteIcon,
   DragIndicator as DragIndicatorIcon,
+  Edit as EditIcon,
 } from "@mui/icons-material";
 import { useQuery } from "@tanstack/react-query";
 import type { FlowModelComponent, FlowModelStage } from "@/hooks/useFlowModels";
 import { useRolesAndDepartments } from "@/hooks/useRolesAndDepartments";
 import { AddComponentModal } from "./AddComponentModal";
+import { EditComponentModal } from "./EditComponentModal";
 
 type EditStageModalProps = {
   open: boolean;
@@ -42,21 +44,15 @@ function safeString(v: unknown) {
 }
 
 function normalizeComponent(comp: FlowModelComponent): FlowModelComponent {
-  const key =
-    safeString(comp.key) ||
-    `comp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  const key = safeString(comp.key) || `comp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+
   return {
     ...comp,
     key,
     label: safeString(comp.label),
     description: safeString(comp.description),
-    order:
-      typeof comp.order === "number" && Number.isFinite(comp.order)
-        ? comp.order
-        : 0,
-    visibilityRoles: Array.isArray(comp.visibilityRoles)
-      ? comp.visibilityRoles
-      : [],
+    order: typeof comp.order === "number" && Number.isFinite(comp.order) ? comp.order : 0,
+    visibilityRoles: Array.isArray(comp.visibilityRoles) ? comp.visibilityRoles : [],
     editableRoles: Array.isArray(comp.editableRoles) ? comp.editableRoles : [],
     config: comp.config ?? {},
     lockedAfterCompletion: !!comp.lockedAfterCompletion,
@@ -69,16 +65,11 @@ function sortByOrder(a: { order?: number }, b: { order?: number }) {
 }
 
 function reindexOrdersKeepingArrayOrder(list: FlowModelComponent[]) {
-  // 🔥 diferente do seu antigo reindex: aqui a ordem é a do ARRAY (que é o que o DnD muda)
   return list.map((c, idx) => ({ ...c, order: idx + 1 }));
 }
 
-function moveItemByKeyInArrayOrder(
-  items: FlowModelComponent[],
-  activeKey: string,
-  overKey: string,
-) {
-  const arr = items.slice(); // mantém ordem atual do array
+function moveItemByKeyInArrayOrder(items: FlowModelComponent[], activeKey: string, overKey: string) {
+  const arr = items.slice();
   const from = arr.findIndex((c) => safeString(c.key) === activeKey);
   const to = arr.findIndex((c) => safeString(c.key) === overKey);
   if (from < 0 || to < 0 || from === to) return items;
@@ -101,9 +92,14 @@ export const EditStageModal = ({
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [shouldFetchDepartments, setShouldFetchDepartments] = useState(false);
+
   const [addComponentOpen, setAddComponentOpen] = useState(false);
 
-  // DnD state (visual) — igual seu StageCard
+  // ✅ Edit Component Modal state
+  const [editComponentOpen, setEditComponentOpen] = useState(false);
+  const [componentToEdit, setComponentToEdit] = useState<FlowModelComponent | null>(null);
+
+  // DnD state (visual)
   const [draggingKey, setDraggingKey] = useState<string>("");
   const [dragOverKey, setDragOverKey] = useState<string>("");
 
@@ -130,6 +126,8 @@ export const EditStageModal = ({
 
     setDraggingKey("");
     setDragOverKey("");
+    setEditComponentOpen(false);
+    setComponentToEdit(null);
 
     if (!stage) {
       setLocalStage(null);
@@ -140,18 +138,10 @@ export const EditStageModal = ({
 
     const clone = deepClone(stage);
     clone.components = Array.isArray(clone.components) ? clone.components : [];
-    clone.approverRoles = Array.isArray(clone.approverRoles)
-      ? clone.approverRoles
-      : [];
-    clone.approverDepartments = Array.isArray(clone.approverDepartments)
-      ? clone.approverDepartments
-      : [];
+    clone.approverRoles = Array.isArray(clone.approverRoles) ? clone.approverRoles : [];
+    clone.approverDepartments = Array.isArray(clone.approverDepartments) ? clone.approverDepartments : [];
 
-    // ✅ Normaliza e cria uma ordem inicial (array order)
-    const normalized = (clone.components || [])
-      .map(normalizeComponent)
-      .sort(sortByOrder);
-
+    const normalized = (clone.components || []).map(normalizeComponent).sort(sortByOrder);
     clone.components = reindexOrdersKeepingArrayOrder(normalized);
 
     setLocalStage(clone);
@@ -160,15 +150,10 @@ export const EditStageModal = ({
   }, [open, stage]);
 
   const componentsInArrayOrder = useMemo(() => {
-    // 🔥 aqui a ordem exibida é a do ARRAY, que é a que o DnD altera
-    // (order é só um número que refletimos no texto)
     return (localStage?.components || []).slice();
   }, [localStage?.components]);
 
-  const handleChangeStageField = <K extends keyof FlowModelStage>(
-    key: K,
-    value: FlowModelStage[K],
-  ) => {
+  const handleChangeStageField = <K extends keyof FlowModelStage>(key: K, value: FlowModelStage[K]) => {
     if (!localStage) return;
 
     if (key === "requiresApproval") {
@@ -207,16 +192,10 @@ export const EditStageModal = ({
     const updated: FlowModelStage = {
       ...localStage,
       approverRoles: localStage.requiresApproval ? selectedRoles : [],
-      approverDepartments: localStage.requiresApproval
-        ? selectedDepartments
-        : [],
+      approverDepartments: localStage.requiresApproval ? selectedDepartments : [],
       canRepeat: !!localStage.canRepeat,
       requiresApproval: !!localStage.requiresApproval,
-
-      // ✅ garante persistência da ordem final (array order -> order 1..n)
-      components: reindexOrdersKeepingArrayOrder(
-        (localStage.components || []).map(normalizeComponent),
-      ),
+      components: reindexOrdersKeepingArrayOrder((localStage.components || []).map(normalizeComponent)),
     };
 
     if (!updated.name?.trim()) return;
@@ -243,15 +222,67 @@ export const EditStageModal = ({
   const handleDeleteComponent = (key: string) => {
     if (!localStage) return;
 
-    const next = (localStage.components || []).filter((c) => c.key !== key);
+    const k = safeString(key);
+    const next = (localStage.components || []).filter((c) => safeString(c.key) !== k);
     setLocalStage({
       ...localStage,
       components: reindexOrdersKeepingArrayOrder(next),
     });
   };
 
+  // ✅ Abrir modal de editar
+  const handleOpenEditComponent = (comp: FlowModelComponent) => {
+    if (isReadOnly) return;
+    const normalized = normalizeComponent(comp);
+    setComponentToEdit(normalized);
+    setEditComponentOpen(true);
+  };
+
+  // ✅ Salvar edição do componente
+  const handleSaveEditedComponent = (updatedComp: FlowModelComponent) => {
+    if (!localStage) return;
+
+    const targetKey = safeString(updatedComp.key);
+    if (!targetKey) return;
+
+    setLocalStage((prev) => {
+      if (!prev) return prev;
+
+      const current = prev.components || [];
+      const next = current.map((c) => {
+        if (safeString(c.key) !== targetKey) return c;
+
+        // preserva o order do array (reindex no final garante)
+        return normalizeComponent({
+          ...c,
+          ...updatedComp,
+          key: safeString(c.key), // 🔒 garante manter key original
+          order: c.order, // mantém ordem atual do item na lista
+          config: updatedComp.config ?? c.config ?? {},
+          visibilityRoles: Array.isArray(updatedComp.visibilityRoles)
+            ? updatedComp.visibilityRoles
+            : Array.isArray(c.visibilityRoles)
+              ? c.visibilityRoles
+              : [],
+          editableRoles: Array.isArray(updatedComp.editableRoles)
+            ? updatedComp.editableRoles
+            : Array.isArray(c.editableRoles)
+              ? c.editableRoles
+              : [],
+          lockedAfterCompletion: !!(updatedComp.lockedAfterCompletion ?? c.lockedAfterCompletion),
+          required: !!updatedComp.required,
+        });
+      });
+
+      return { ...prev, components: reindexOrdersKeepingArrayOrder(next) };
+    });
+
+    setEditComponentOpen(false);
+    setComponentToEdit(null);
+  };
+
   // =========================
-  // ✅ DnD HTML5 (igual StageCard)
+  // ✅ DnD HTML5
   // =========================
   const onCompDragStart = (e: React.DragEvent, compKey: string) => {
     if (isReadOnly) return;
@@ -262,8 +293,6 @@ export const EditStageModal = ({
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", k);
 
-    // opcional: melhora muito em alguns browsers
-    // evita “ghost image” esquisita
     // @ts-ignore
     e.dataTransfer.setDragImage(e.currentTarget as Element, 8, 8);
 
@@ -277,10 +306,7 @@ export const EditStageModal = ({
 
   const onCompDragOver = (e: React.DragEvent, overKey: string) => {
     if (isReadOnly) return;
-
-    // 🔥 ESSENCIAL pro drop funcionar
     e.preventDefault();
-
     e.dataTransfer.dropEffect = "move";
     setDragOverKey(safeString(overKey));
   };
@@ -304,11 +330,7 @@ export const EditStageModal = ({
 
     setLocalStage((prev) => {
       if (!prev) return prev;
-      const nextComponents = moveItemByKeyInArrayOrder(
-        prev.components || [],
-        activeKey,
-        over,
-      );
+      const nextComponents = moveItemByKeyInArrayOrder(prev.components || [], activeKey, over);
       return { ...prev, components: nextComponents };
     });
 
@@ -399,26 +421,11 @@ export const EditStageModal = ({
             </IconButton>
           </Box>
 
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
-              flexWrap: "wrap",
-            }}
-          >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
             {isReadOnly ? (
-              <Chip
-                label="Somente leitura"
-                size="small"
-                sx={{ bgcolor: "#F0F2F5", color: "#212121", fontWeight: 800 }}
-              />
+              <Chip label="Somente leitura" size="small" sx={{ bgcolor: "#F0F2F5", color: "#212121", fontWeight: 800 }} />
             ) : (
-              <Chip
-                label="Editável"
-                size="small"
-                sx={{ bgcolor: "#E7F3FF", color: "#1877F2", fontWeight: 800 }}
-              />
+              <Chip label="Editável" size="small" sx={{ bgcolor: "#E7F3FF", color: "#1877F2", fontWeight: 800 }} />
             )}
 
             {!isReadOnly ? (
@@ -451,25 +458,14 @@ export const EditStageModal = ({
           ) : (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
               {/* Informações Básicas */}
-              <Box
-                sx={{
-                  bgcolor: "background.paper",
-                  border: "1px solid #E4E6EB",
-                  borderRadius: 2,
-                  p: 2.5,
-                }}
-              >
-                <Typography sx={{ fontWeight: 800, color: "#212121", mb: 1.5 }}>
-                  Informações Básicas
-                </Typography>
+              <Box sx={{ bgcolor: "background.paper", border: "1px solid #E4E6EB", borderRadius: 2, p: 2.5 }}>
+                <Typography sx={{ fontWeight: 800, color: "#212121", mb: 1.5 }}>Informações Básicas</Typography>
 
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   <TextField
                     label="Nome"
                     value={localStage.name || ""}
-                    onChange={(e) =>
-                      handleChangeStageField("name", e.target.value)
-                    }
+                    onChange={(e) => handleChangeStageField("name", e.target.value)}
                     fullWidth
                     disabled={isReadOnly}
                     error={!String(localStage.name || "").trim()}
@@ -479,9 +475,7 @@ export const EditStageModal = ({
                   <TextField
                     label="Descrição"
                     value={localStage.description || ""}
-                    onChange={(e) =>
-                      handleChangeStageField("description", e.target.value)
-                    }
+                    onChange={(e) => handleChangeStageField("description", e.target.value)}
                     fullWidth
                     disabled={isReadOnly}
                     inputProps={{ maxLength: 100 }}
@@ -491,29 +485,15 @@ export const EditStageModal = ({
               </Box>
 
               {/* Configurações */}
-              <Box
-                sx={{
-                  bgcolor: "background.paper",
-                  border: "1px solid #E4E6EB",
-                  borderRadius: 2,
-                  p: 2.5,
-                }}
-              >
-                <Typography sx={{ fontWeight: 800, color: "#212121", mb: 1.5 }}>
-                  Configurações
-                </Typography>
+              <Box sx={{ bgcolor: "background.paper", border: "1px solid #E4E6EB", borderRadius: 2, p: 2.5 }}>
+                <Typography sx={{ fontWeight: 800, color: "#212121", mb: 1.5 }}>Configurações</Typography>
 
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   <FormControlLabel
                     control={
                       <Switch
                         checked={!!localStage.requiresApproval}
-                        onChange={(e) =>
-                          handleChangeStageField(
-                            "requiresApproval",
-                            e.target.checked,
-                          )
-                        }
+                        onChange={(e) => handleChangeStageField("requiresApproval", e.target.checked)}
                         disabled={isReadOnly}
                       />
                     }
@@ -526,32 +506,21 @@ export const EditStageModal = ({
                         multiple
                         options={roles}
                         getOptionLabel={(option) => option.name || option._id}
-                        value={roles.filter((r) =>
-                          selectedRoles.includes(r._id),
-                        )}
-                        onChange={(_, newValue) => {
-                          setSelectedRoles(newValue.map((v) => v._id));
-                        }}
+                        value={roles.filter((r) => selectedRoles.includes(r._id))}
+                        onChange={(_, newValue) => setSelectedRoles(newValue.map((v) => v._id))}
                         disabled={isReadOnly}
-                        renderInput={(params) => (
-                          <TextField {...params} label="Cargos aprovadores" />
-                        )}
+                        renderInput={(params) => <TextField {...params} label="Cargos aprovadores" />}
                       />
 
                       <Autocomplete
                         multiple
                         options={departments}
                         getOptionLabel={(option) => {
-                          const name =
-                            option.department_name || option.name || option._id;
+                          const name = option.department_name || option.name || option._id;
                           return String(name);
                         }}
-                        value={departments.filter((d) =>
-                          selectedDepartments.includes(d._id),
-                        )}
-                        onChange={(_, newValue) => {
-                          setSelectedDepartments(newValue.map((v) => v._id));
-                        }}
+                        value={departments.filter((d) => selectedDepartments.includes(d._id))}
+                        onChange={(_, newValue) => setSelectedDepartments(newValue.map((v) => v._id))}
                         onOpen={() => setShouldFetchDepartments(true)}
                         disabled={isReadOnly}
                         noOptionsText="Nenhum departamento encontrado"
@@ -570,13 +539,7 @@ export const EditStageModal = ({
 
                   <FormControlLabel
                     control={
-                      <Switch
-                        checked={!!localStage.canRepeat}
-                        onChange={(e) =>
-                          handleChangeStageField("canRepeat", e.target.checked)
-                        }
-                        disabled={isReadOnly}
-                      />
+                      <Switch checked={!!localStage.canRepeat} onChange={(e) => handleChangeStageField("canRepeat", e.target.checked)} disabled={isReadOnly} />
                     }
                     label="Pode repetir"
                   />
@@ -585,12 +548,7 @@ export const EditStageModal = ({
                     <TextField
                       label="Condição de repetição"
                       value={localStage.repeatCondition || ""}
-                      onChange={(e) =>
-                        handleChangeStageField(
-                          "repeatCondition",
-                          e.target.value,
-                        )
-                      }
+                      onChange={(e) => handleChangeStageField("repeatCondition", e.target.value)}
                       fullWidth
                       disabled={isReadOnly}
                       placeholder='Ex: "enquanto status != APROVADO"'
@@ -600,12 +558,7 @@ export const EditStageModal = ({
                   <TextField
                     label="Condição de visibilidade"
                     value={localStage.visibilityCondition || ""}
-                    onChange={(e) =>
-                      handleChangeStageField(
-                        "visibilityCondition",
-                        e.target.value,
-                      )
-                    }
+                    onChange={(e) => handleChangeStageField("visibilityCondition", e.target.value)}
                     fullWidth
                     disabled={isReadOnly}
                     placeholder='Ex: "se tipo_processo == MEDICAMENTO"'
@@ -614,26 +567,9 @@ export const EditStageModal = ({
               </Box>
 
               {/* Componentes */}
-              <Box
-                sx={{
-                  bgcolor: "background.paper",
-                  border: "1px solid #E4E6EB",
-                  borderRadius: 2,
-                  p: 2.5,
-                }}
-              >
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 1.5,
-                    gap: 1.5,
-                  }}
-                >
-                  <Typography sx={{ fontWeight: 800, color: "#212121" }}>
-                    Componentes ({componentsInArrayOrder.length})
-                  </Typography>
+              <Box sx={{ bgcolor: "background.paper", border: "1px solid #E4E6EB", borderRadius: 2, p: 2.5 }}>
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5, gap: 1.5 }}>
+                  <Typography sx={{ fontWeight: 800, color: "#212121" }}>Componentes ({componentsInArrayOrder.length})</Typography>
 
                   {!isReadOnly && (
                     <Button
@@ -657,16 +593,11 @@ export const EditStageModal = ({
                 </Box>
 
                 {componentsInArrayOrder.length === 0 ? (
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#94a3b8", textAlign: "center", py: 2 }}
-                  >
+                  <Typography variant="body2" sx={{ color: "#94a3b8", textAlign: "center", py: 2 }}>
                     Nenhum componente adicionado
                   </Typography>
                 ) : (
-                  <Box
-                    sx={{ display: "flex", flexDirection: "column", gap: 1 }}
-                  >
+                  <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                     {componentsInArrayOrder.map((comp) => {
                       const compKey = safeString(comp.key);
                       const isDragging = draggingKey === compKey;
@@ -688,9 +619,7 @@ export const EditStageModal = ({
                             bgcolor: isOver ? "#F0F9FF" : "#FAFBFC",
                             transition: "all 0.15s ease",
                             opacity: isDragging ? 0.45 : 1,
-                            boxShadow: isDragging
-                              ? "0 10px 24px rgba(0,0,0,0.12)"
-                              : "none",
+                            boxShadow: isDragging ? "0 10px 24px rgba(0,0,0,0.12)" : "none",
                             display: "flex",
                             alignItems: "center",
                             gap: 1.25,
@@ -706,7 +635,6 @@ export const EditStageModal = ({
                             },
                           }}
                         >
-                          {/* Handle é só visual (igual ao StageCard) */}
                           {!isReadOnly ? (
                             <Box
                               sx={{
@@ -729,23 +657,9 @@ export const EditStageModal = ({
                             <Box sx={{ width: 34, height: 34 }} />
                           )}
 
-                          {/* Conteúdo */}
                           <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                gap: 1,
-                                alignItems: "center",
-                                flexWrap: "wrap",
-                              }}
-                            >
-                              <Typography
-                                sx={{
-                                  fontWeight: 800,
-                                  fontSize: "0.9rem",
-                                  color: "#0f172a",
-                                }}
-                              >
+                            <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
+                              <Typography sx={{ fontWeight: 800, fontSize: "0.9rem", color: "#0f172a" }}>
                                 {(comp.order ?? 0) > 0 ? `${comp.order}. ` : ""}
                                 {comp.label || "Componente"}
                               </Typography>
@@ -809,32 +723,57 @@ export const EditStageModal = ({
                             ) : null}
                           </Box>
 
-                          {/* Excluir — impede arrastar quando clicar */}
+                          {/* Ações */}
                           {!isReadOnly ? (
-                            <Tooltip title="Excluir componente" arrow>
-                              <span>
-                                <IconButton
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    handleDeleteComponent(comp.key);
-                                  }}
-                                  sx={{
-                                    color: "#F02849",
-                                    border: "1px solid #E4E6EB",
-                                    borderRadius: 1.5,
-                                    bgcolor: "#fff",
-                                    "&:hover": {
-                                      borderColor: "#F02849",
-                                      bgcolor: "#FFF1F3",
-                                    },
-                                    flexShrink: 0,
-                                  }}
-                                >
-                                  <DeleteIcon fontSize="small" />
-                                </IconButton>
-                              </span>
-                            </Tooltip>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexShrink: 0 }}>
+                              <Tooltip title="Editar componente" arrow>
+                                <span>
+                                  <IconButton
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      handleOpenEditComponent(comp);
+                                    }}
+                                    sx={{
+                                      color: "#1877F2",
+                                      border: "1px solid #E4E6EB",
+                                      borderRadius: 1.5,
+                                      bgcolor: "#fff",
+                                      "&:hover": {
+                                        borderColor: "#1877F2",
+                                        bgcolor: "#EFF6FF",
+                                      },
+                                    }}
+                                  >
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+
+                              <Tooltip title="Excluir componente" arrow>
+                                <span>
+                                  <IconButton
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      handleDeleteComponent(comp.key);
+                                    }}
+                                    sx={{
+                                      color: "#F02849",
+                                      border: "1px solid #E4E6EB",
+                                      borderRadius: 1.5,
+                                      bgcolor: "#fff",
+                                      "&:hover": {
+                                        borderColor: "#F02849",
+                                        bgcolor: "#FFF1F3",
+                                      },
+                                    }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            </Box>
                           ) : null}
                         </Box>
                       );
@@ -911,6 +850,17 @@ export const EditStageModal = ({
         open={addComponentOpen}
         onClose={() => setAddComponentOpen(false)}
         onAdd={handleAddComponent}
+        existingComponents={localStage?.components || []}
+      />
+
+      <EditComponentModal
+        open={editComponentOpen}
+        onClose={() => {
+          setEditComponentOpen(false);
+          setComponentToEdit(null);
+        }}
+        onSave={handleSaveEditedComponent}
+        component={componentToEdit}
         existingComponents={localStage?.components || []}
       />
     </Dialog>
