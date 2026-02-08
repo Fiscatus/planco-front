@@ -10,7 +10,7 @@ export type ComponentType =
   | "COMMENTS"
   | "FORM"
   | "APPROVAL"
-  | "FILES_MANAGMENT"
+  | "FILES_MANAGEMENT"
   | "STAGE_PANEL"
   | "TIMELINE"
   | "FILE_VIEWER";

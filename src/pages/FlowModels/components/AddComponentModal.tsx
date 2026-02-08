@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Dialog, DialogContent, Button, Box, Typography, IconButton, TextField, MenuItem, FormControlLabel, Switch } from "@mui/material";
-import { Close as CloseIcon } from "@mui/icons-material";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, Button, Box, Typography, IconButton, TextField, MenuItem, FormControlLabel, Switch, Alert } from "@mui/material";
+import { Close as CloseIcon, Warning as WarningIcon } from "@mui/icons-material";
 import type { ComponentType, FlowModelComponent } from "@/hooks/useFlowModels";
 
 type AddComponentModalProps = {
@@ -8,12 +8,13 @@ type AddComponentModalProps = {
   onClose: () => void;
   onAdd: (component: FlowModelComponent) => void;
   existingComponents: FlowModelComponent[];
+  editingComponent?: FlowModelComponent | null;
 };
 
 const COMPONENT_TYPES: { value: ComponentType; label: string }[] = [
   { value: "SIGNATURE", label: "Assinatura Eletrônica" },
   { value: "FORM", label: "Formulário" },
-  { value: "FILES_MANAGMENT", label: "Gerenciar Arquivos" },
+  { value: "FILES_MANAGEMENT", label: "Gerenciar Arquivos" },
   { value: "COMMENTS", label: "Comentários" },
   { value: "APPROVAL", label: "Aprovação" },
   { value: "STAGE_PANEL", label: "Painel de Status" },
@@ -21,31 +22,68 @@ const COMPONENT_TYPES: { value: ComponentType; label: string }[] = [
   { value: "FILE_VIEWER", label: "Visualizador de Arquivos" },
 ];
 
-export const AddComponentModal = ({ open, onClose, onAdd, existingComponents }: AddComponentModalProps) => {
+export const AddComponentModal = ({ open, onClose, onAdd, existingComponents, editingComponent }: AddComponentModalProps) => {
   const [type, setType] = useState<ComponentType>("FORM");
   const [label, setLabel] = useState("");
   const [description, setDescription] = useState("");
   const [required, setRequired] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+
+  const hasFilesManagement = existingComponents.some(c => c.type === "FILES_MANAGEMENT");
+  const isEditMode = !!editingComponent;
+
+  useEffect(() => {
+    if (open && editingComponent) {
+      setType(editingComponent.type);
+      setLabel(editingComponent.label);
+      setDescription(editingComponent.description || "");
+      setRequired(editingComponent.required || false);
+    } else if (open && !editingComponent) {
+      setType("FORM");
+      setLabel("");
+      setDescription("");
+      setRequired(false);
+    }
+    setShowAlert(false);
+  }, [open, editingComponent]);
 
   const handleAdd = () => {
     if (!label.trim()) return;
-    const nextOrder = existingComponents.length > 0 ? Math.max(...existingComponents.map((c) => c.order)) + 1 : 1;
-    onAdd({
-      order: nextOrder,
-      type,
-      key: `${type.toLowerCase()}_${Date.now()}`,
-      label: label.trim(),
-      description: description.trim() || undefined,
-      required,
-      config: {},
-      visibilityRoles: [],
-      editableRoles: [],
-      lockedAfterCompletion: false,
-    });
-    setType("FORM");
-    setLabel("");
-    setDescription("");
-    setRequired(false);
+    
+    if (type === "APPROVAL" && !hasFilesManagement && !isEditMode) {
+      setShowAlert(true);
+      return;
+    }
+    
+    // Verifica se já existe um componente do mesmo tipo (exceto no modo de edição)
+    if (!isEditMode && existingComponents.some(c => c.type === type)) {
+      setShowAlert(true);
+      return;
+    }
+    
+    if (isEditMode && editingComponent) {
+      onAdd({
+        ...editingComponent,
+        label: label.trim(),
+        description: description.trim() || undefined,
+        required,
+      });
+    } else {
+      const nextOrder = existingComponents.length > 0 ? Math.max(...existingComponents.map((c) => c.order)) + 1 : 1;
+      onAdd({
+        order: nextOrder,
+        type,
+        key: `${type.toLowerCase()}_${Date.now()}`,
+        label: label.trim(),
+        description: description.trim() || undefined,
+        required,
+        config: {},
+        visibilityRoles: [],
+        editableRoles: [],
+        lockedAfterCompletion: false,
+      });
+    }
+    handleClose();
   };
 
   const handleClose = () => {
@@ -53,19 +91,20 @@ export const AddComponentModal = ({ open, onClose, onAdd, existingComponents }: 
     setLabel("");
     setDescription("");
     setRequired(false);
+    setShowAlert(false);
     onClose();
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 3, overflow: "hidden", boxShadow: "0 25px 60px rgba(0,0,0,.22)" } }}>
-      <DialogContent sx={{ p: 0 }}>
-        <Box sx={{ px: 3, pt: 3, pb: 2, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 2 }}>
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: 3, overflow: "hidden", boxShadow: "0 25px 60px rgba(0,0,0,.22)", display: "flex", flexDirection: "column", maxHeight: "90vh" } }}>
+      <DialogContent sx={{ p: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+        <Box sx={{ px: 3, pt: 3, pb: 2, display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 2, flexShrink: 0, borderBottom: "1px solid #e2e8f0" }}>
           <Box>
             <Typography sx={{ fontWeight: 900, color: "#0f172a", fontSize: "1.25rem", lineHeight: 1.2 }}>
-              Adicionar Componente
+              {isEditMode ? "Editar Componente" : "Adicionar Componente"}
             </Typography>
             <Typography variant="body2" sx={{ color: "#64748b", mt: 0.5 }}>
-              Selecione o tipo de componente e configure
+              {isEditMode ? "Modifique as configurações do componente" : "Selecione o tipo de componente e configure"}
             </Typography>
           </Box>
           <IconButton onClick={handleClose} sx={{ width: 40, height: 40, color: "#64748b" }}>
@@ -73,9 +112,16 @@ export const AddComponentModal = ({ open, onClose, onAdd, existingComponents }: 
           </IconButton>
         </Box>
 
-        <Box sx={{ px: 3, py: 2 }}>
+        <Box sx={{ px: 3, py: 2, flex: 1, overflow: "auto" }}>
+          {showAlert && (
+            <Alert severity="warning" icon={<WarningIcon />} onClose={() => setShowAlert(false)} sx={{ mb: 2 }}>
+              {type === "APPROVAL" && !hasFilesManagement
+                ? "Para adicionar o componente de Aprovação, você precisa primeiro adicionar o componente de Gerenciar Arquivos."
+                : "Já existe um componente deste tipo nesta etapa. Não é possível adicionar componentes duplicados."}
+            </Alert>
+          )}
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <TextField select label="Tipo de Componente" value={type} onChange={(e) => setType(e.target.value as ComponentType)} fullWidth required>
+            <TextField select label="Tipo de Componente" value={type} onChange={(e) => setType(e.target.value as ComponentType)} fullWidth required disabled={isEditMode} helperText={isEditMode ? "O tipo não pode ser alterado após a criação" : undefined}>
               {COMPONENT_TYPES.map((option) => (
                 <MenuItem key={option.value} value={option.value}>{option.label}</MenuItem>
               ))}
@@ -86,12 +132,12 @@ export const AddComponentModal = ({ open, onClose, onAdd, existingComponents }: 
           </Box>
         </Box>
 
-        <Box sx={{ px: 3, py: 2, display: "flex", justifyContent: "flex-end", gap: 1.25, bgcolor: "#f8fafc", borderTop: "1px solid #eef2f7" }}>
+        <Box sx={{ px: 3, py: 2, display: "flex", justifyContent: "flex-end", gap: 1.25, bgcolor: "#f8fafc", borderTop: "1px solid #eef2f7", flexShrink: 0 }}>
           <Button onClick={handleClose} variant="outlined" sx={{ textTransform: "none", borderRadius: 999, borderColor: "#e2e8f0", color: "#0f172a", fontWeight: 800, px: 2.5, "&:hover": { borderColor: "#cbd5e1", backgroundColor: "#ffffff" } }}>
             Cancelar
           </Button>
           <Button onClick={handleAdd} variant="contained" disabled={!label.trim()} sx={{ textTransform: "none", borderRadius: 999, backgroundColor: "#1877F2", fontWeight: 900, px: 3, boxShadow: "none", "&:hover": { backgroundColor: "#166FE5" }, "&:disabled": { backgroundColor: "#e2e8f0", color: "#94a3b8" } }}>
-            Adicionar
+            {isEditMode ? "Salvar" : "Adicionar"}
           </Button>
         </Box>
       </DialogContent>

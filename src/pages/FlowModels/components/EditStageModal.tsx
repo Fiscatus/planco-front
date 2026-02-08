@@ -15,11 +15,18 @@ import {
   List,
   ListItem,
   ListItemText,
+  Tooltip,
 } from "@mui/material";
 import {
   Add as AddIcon,
   Close as CloseIcon,
   Delete as DeleteIcon,
+  Visibility as VisibilityIcon,
+  Fullscreen as FullscreenIcon,
+  FullscreenExit as FullscreenExitIcon,
+  DragIndicator as DragIndicatorIcon,
+  Info as InfoIcon,
+  Edit as EditIcon,
 } from "@mui/icons-material";
 import { useQuery } from "@tanstack/react-query";
 import type {
@@ -28,6 +35,19 @@ import type {
 } from "@/hooks/useFlowModels";
 import { useRolesAndDepartments } from "@/hooks/useRolesAndDepartments";
 import { AddComponentModal } from "./AddComponentModal";
+import { SignatureComponent } from "./SignatureComponent";
+import { FilesManagementComponent } from "./FilesManagementComponent";
+import { ApprovalComponent } from "./ApprovalComponent";
+
+// Mapeamento de componentes implementados
+const COMPONENT_MAP: Record<string, React.ComponentType<any>> = {
+  SIGNATURE: SignatureComponent,
+  FILES_MANAGEMENT: FilesManagementComponent,
+  APPROVAL: ApprovalComponent,
+};
+
+// Componentes que têm implementação de preview
+const COMPONENTS_WITH_PREVIEW = Object.keys(COMPONENT_MAP);
 
 type EditStageModalProps = {
   open: boolean;
@@ -53,6 +73,10 @@ export const EditStageModal = ({
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
   const [shouldFetchDepartments, setShouldFetchDepartments] = useState(false);
   const [addComponentOpen, setAddComponentOpen] = useState(false);
+  const [editingComponent, setEditingComponent] = useState<FlowModelComponent | null>(null);
+  const [previewComponentKey, setPreviewComponentKey] = useState<string | null>(null);
+  const [previewFullscreen, setPreviewFullscreen] = useState(false);
+  const [editModalFullscreen, setEditModalFullscreen] = useState(false);
 
   const { fetchRolesByOrg, fetchDepartments } = useRolesAndDepartments();
 
@@ -137,8 +161,14 @@ export const EditStageModal = ({
 
   const handleAddComponent = (component: FlowModelComponent) => {
     if (!localStage) return;
-    setLocalStage({ ...localStage, components: [...(localStage.components || []), component] });
+    if (editingComponent) {
+      const updated = (localStage.components || []).map(c => c.key === component.key ? component : c);
+      setLocalStage({ ...localStage, components: updated });
+    } else {
+      setLocalStage({ ...localStage, components: [...(localStage.components || []), component] });
+    }
     setAddComponentOpen(false);
+    setEditingComponent(null);
   };
 
   const handleDeleteComponent = (key: string) => {
@@ -146,21 +176,51 @@ export const EditStageModal = ({
     setLocalStage({ ...localStage, components: (localStage.components || []).filter((c) => c.key !== key) });
   };
 
+  const handlePreviewComponent = (key: string) => {
+    setPreviewComponentKey(key);
+  };
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", String(index));
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (!localStage) return;
+
+    const dragIndex = Number(e.dataTransfer.getData("text/plain"));
+    if (dragIndex === dropIndex) return;
+
+    const components = [...(localStage.components || [])];
+    const [draggedItem] = components.splice(dragIndex, 1);
+    components.splice(dropIndex, 0, draggedItem);
+
+    const reordered = components.map((c, idx) => ({ ...c, order: idx + 1 }));
+    setLocalStage({ ...localStage, components: reordered });
+  };
+
   return (
     <Dialog
       open={open}
       onClose={onClose}
       fullWidth
-      maxWidth="md"
+      fullScreen={editModalFullscreen}
+      maxWidth={editModalFullscreen ? false : "md"}
       PaperProps={{
         sx: {
-          borderRadius: { xs: 2, sm: 3 },
+          borderRadius: editModalFullscreen ? 0 : { xs: 2, sm: 3 },
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
           overflow: "hidden",
-          margin: { xs: 1, sm: 2 },
-          maxWidth: { xs: "calc(100% - 16px)", sm: "600px", md: "800px" },
+          margin: editModalFullscreen ? 0 : { xs: 1, sm: 2 },
+          maxWidth: editModalFullscreen ? "none" : { xs: "calc(100% - 16px)", sm: "600px", md: "800px" },
           width: "100%",
-          maxHeight: { xs: "calc(100vh - 32px)", sm: "calc(100vh - 64px)" },
+          maxHeight: editModalFullscreen ? "100vh" : { xs: "calc(100vh - 32px)", sm: "calc(100vh - 64px)" },
           display: "flex",
           flexDirection: "column",
         },
@@ -212,21 +272,38 @@ export const EditStageModal = ({
               </Typography>
             </Box>
 
-            <IconButton
-              onClick={onClose}
-              sx={{
-                width: { xs: 36, sm: 40 },
-                height: { xs: 36, sm: 40 },
-                color: "#64748b",
-                backgroundColor: "transparent",
-                flexShrink: 0,
-                "&:hover": {
-                  backgroundColor: "#f1f5f9",
-                },
-              }}
-            >
-              <CloseIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
-            </IconButton>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <IconButton
+                onClick={() => setEditModalFullscreen(!editModalFullscreen)}
+                sx={{
+                  width: { xs: 36, sm: 40 },
+                  height: { xs: 36, sm: 40 },
+                  color: "#1877F2",
+                  backgroundColor: "transparent",
+                  flexShrink: 0,
+                  "&:hover": {
+                    backgroundColor: "#E7F3FF",
+                  },
+                }}
+              >
+                {editModalFullscreen ? <FullscreenExitIcon sx={{ fontSize: { xs: 18, sm: 20 } }} /> : <FullscreenIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+              </IconButton>
+              <IconButton
+                onClick={onClose}
+                sx={{
+                  width: { xs: 36, sm: 40 },
+                  height: { xs: 36, sm: 40 },
+                  color: "#64748b",
+                  backgroundColor: "transparent",
+                  flexShrink: 0,
+                  "&:hover": {
+                    backgroundColor: "#f1f5f9",
+                  },
+                }}
+              >
+                <CloseIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+              </IconButton>
+            </Box>
           </Box>
 
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
@@ -430,7 +507,7 @@ export const EditStageModal = ({
                       variant="contained"
                       size="small"
                       startIcon={<AddIcon />}
-                      onClick={() => setAddComponentOpen(true)}
+                      onClick={() => { setEditingComponent(null); setAddComponentOpen(true); }}
                       sx={{
                         bgcolor: "#1877F2",
                         "&:hover": { bgcolor: "#166FE5" },
@@ -453,27 +530,58 @@ export const EditStageModal = ({
                   <List sx={{ p: 0 }}>
                     {localStage.components
                       ?.sort((a, b) => a.order - b.order)
-                      .map((comp) => (
+                      .map((comp, index) => (
                         <ListItem
                           key={comp.key}
+                          draggable={!isReadOnly}
+                          onDragStart={(e) => handleDragStart(e, index)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, index)}
                           sx={{
                             border: "1px solid #E4E6EB",
                             borderRadius: 1,
                             mb: 1,
                             bgcolor: "#FAFBFC",
+                            cursor: isReadOnly ? "default" : "grab",
+                            "&:active": { cursor: isReadOnly ? "default" : "grabbing" },
                           }}
                           secondaryAction={
-                            !isReadOnly && (
-                              <IconButton
-                                edge="end"
-                                onClick={() => handleDeleteComponent(comp.key)}
-                                sx={{ color: "#F02849" }}
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            )
+                            <Box sx={{ display: "flex", gap: 0.5 }}>
+                              {COMPONENTS_WITH_PREVIEW.includes(comp.type) && (
+                                <IconButton
+                                  edge="end"
+                                  onClick={() => handlePreviewComponent(comp.key)}
+                                  sx={{ color: "#1877F2" }}
+                                >
+                                  <VisibilityIcon fontSize="small" />
+                                </IconButton>
+                              )}
+                              {!isReadOnly && (
+                                <>
+                                  <IconButton
+                                    edge="end"
+                                    onClick={() => { setEditingComponent(comp); setAddComponentOpen(true); }}
+                                    sx={{ color: "#1877F2" }}
+                                  >
+                                    <EditIcon fontSize="small" />
+                                  </IconButton>
+                                  <IconButton
+                                    edge="end"
+                                    onClick={() => handleDeleteComponent(comp.key)}
+                                    sx={{ color: "#F02849" }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </>
+                              )}
+                            </Box>
                           }
                         >
+                          {!isReadOnly && (
+                            <Box sx={{ mr: 1, display: "flex", alignItems: "center", color: "#94a3b8" }}>
+                              <DragIndicatorIcon fontSize="small" />
+                            </Box>
+                          )}
                           <ListItemText
                             primary={
                               <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
@@ -577,10 +685,62 @@ export const EditStageModal = ({
 
       <AddComponentModal
         open={addComponentOpen}
-        onClose={() => setAddComponentOpen(false)}
+        onClose={() => { setAddComponentOpen(false); setEditingComponent(null); }}
         onAdd={handleAddComponent}
         existingComponents={localStage?.components || []}
+        editingComponent={editingComponent}
       />
+
+      <Dialog
+        open={!!previewComponentKey}
+        onClose={() => setPreviewComponentKey(null)}
+        fullWidth
+        fullScreen={previewFullscreen}
+        maxWidth={previewFullscreen ? false : "md"}
+        PaperProps={{ sx: { borderRadius: previewFullscreen ? 0 : 3, overflow: "hidden" } }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ px: 3, py: 2.5, borderBottom: "1px solid #E4E6EB", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+            <Box sx={{ flex: 1 }}>
+              {previewComponentKey && (() => {
+                const comp = localStage?.components?.find((c) => c.key === previewComponentKey);
+                return comp ? (
+                  <>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "1.25rem" }}>
+                        {comp.label}
+                      </Typography>
+                      {comp.description && (
+                        <Tooltip title={comp.description} arrow>
+                          <InfoIcon sx={{ fontSize: 20, color: "#1877F2", cursor: "help" }} />
+                        </Tooltip>
+                      )}
+                    </Box>
+                    <Typography variant="body2" sx={{ color: "#64748b", mt: 0.25 }}>
+                      Visualização com dados simulados
+                    </Typography>
+                  </>
+                ) : null;
+              })()}
+            </Box>
+            <Box sx={{ display: "flex", gap: 1 }}>
+              <IconButton onClick={() => setPreviewFullscreen(!previewFullscreen)} sx={{ color: "#1877F2" }}>
+                {previewFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+              </IconButton>
+              <IconButton onClick={() => setPreviewComponentKey(null)}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+          </Box>
+          <Box sx={{ p: 3, bgcolor: "#FAFBFC", height: previewFullscreen ? "calc(100vh - 80px)" : "auto", overflow: "auto" }}>
+            {previewComponentKey && (() => {
+              const comp = localStage?.components?.find((c) => c.key === previewComponentKey);
+              const Component = comp ? COMPONENT_MAP[comp.type] : null;
+              return Component ? <Component config={comp.config} /> : null;
+            })()}
+          </Box>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };

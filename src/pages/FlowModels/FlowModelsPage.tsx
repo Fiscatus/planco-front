@@ -445,11 +445,10 @@ const FlowModelsPage = () => {
   }, [isEditMode]);
 
   const handleEditStage = useCallback((stage: FlowModelStage) => {
-    if (!isEditMode) return;
     setEditingStageId(stage.stageId);
     setEditingStageOriginalId(stage.stageId);
     setEditStageOpen(true);
-  }, [isEditMode]);
+  }, []);
 
   const handleCreateStage = useCallback((newStage: FlowModelStage) => {
     if (!isEditMode) return;
@@ -974,7 +973,6 @@ const FlowModelsPage = () => {
                       <StageCard
                         key={stage.stageId || String(stage.order)}
                         stage={stage}
-                        onViewDetails={() => handleViewDetails(stage.stageId)}
                         isEditMode={isEditMode}
                         onEditStage={handleEditStage}
                         onDeleteStage={handleDeleteStage}
