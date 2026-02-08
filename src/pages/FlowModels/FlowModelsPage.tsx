@@ -15,10 +15,11 @@ import {
   Add as AddIcon,
   Search as SearchIcon,
   Layers as LayersIcon,
-
   Delete as DeleteIcon,
   Edit as EditIcon,
   ContentCopy as ContentCopyIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
 } from "@mui/icons-material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState, useMemo, useEffect } from "react";
@@ -73,6 +74,7 @@ const FlowModelsPage = () => {
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [menuModelId, setMenuModelId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // edição de etapa
   const [editStageOpen, setEditStageOpen] = useState(false);
@@ -81,10 +83,8 @@ const FlowModelsPage = () => {
     string | null
   >(null);
 
-  // criação de etapa
   const [createStageOpen, setCreateStageOpen] = useState(false);
 
-  // edição do fluxo (draft)
   const [isEditMode, setIsEditMode] = useState(false);
   const [draftStages, setDraftStages] = useState<FlowModelStage[] | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
@@ -96,7 +96,6 @@ const FlowModelsPage = () => {
     handleSearchChange: handleModelSearchChange,
   } = useSearchWithDebounce("search");
 
-  // Buscar todos os modelos
   const {
     data: flowModels = [],
     isLoading: modelsLoading,
@@ -109,7 +108,6 @@ const FlowModelsPage = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Buscar modelo selecionado
   const { data: selectedModel, isLoading: selectedModelLoading } =
     useQuery<FlowModel | null>({
       queryKey: ["findFlowModelById", selectedModelId],
@@ -121,265 +119,145 @@ const FlowModelsPage = () => {
       refetchOnWindowFocus: false,
     });
 
-  // Filtrar modelos por busca e tab
   const filteredModels = useMemo(() => {
     let filtered = flowModels;
 
     if (debouncedModelSearch) {
-      filtered = filtered.filter(
-        (model) =>
-          model.name
-            .toLowerCase()
-            .includes(debouncedModelSearch.toLowerCase()) ||
-          model.description
-            ?.toLowerCase()
-            .includes(debouncedModelSearch.toLowerCase()),
+      const search = debouncedModelSearch.toLowerCase();
+      filtered = filtered.filter((m) => 
+        m.name.toLowerCase().includes(search) || m.description?.toLowerCase().includes(search)
       );
     }
 
     if (selectedTab === "system") {
-      filtered = filtered.filter((model) => model.isDefaultPlanco === true);
+      filtered = filtered.filter((m) => m.isDefaultPlanco);
+    } else if (selectedTab === "mine" && user?._id) {
+      filtered = filtered.filter((m) => {
+        if (m.isDefaultPlanco) return false;
+        const createdById = typeof m.createdBy === "string" ? m.createdBy : m.createdBy?._id;
+        return String(createdById || "").trim() === String(user._id).trim();
+      });
     } else if (selectedTab === "mine") {
-      const currentUserId = user?._id;
-
-      if (currentUserId) {
-        filtered = filtered.filter((model) => {
-          if (model.isDefaultPlanco === true) return false;
-
-          const createdById =
-            typeof model.createdBy === "string"
-              ? model.createdBy
-              : model.createdBy?._id;
-
-          return (
-            String(createdById || "").trim() === String(currentUserId).trim()
-          );
-        });
-      } else {
-        filtered = [];
-      }
+      filtered = [];
     }
 
     return filtered;
   }, [flowModels, debouncedModelSearch, selectedTab, user?._id]);
 
-  // ✅ Ordenar:
-  // 1) Sistema (fixado) sempre no topo
-  // 2) Favoritos (somente não-sistema)
-  // 3) Restante por nome (estável)
   const sortedFilteredModels = useMemo(() => {
-    const copy = filteredModels.slice();
-
-    copy.sort((a, b) => {
-      const aSystem = a.isDefaultPlanco === true ? 1 : 0;
-      const bSystem = b.isDefaultPlanco === true ? 1 : 0;
+    return filteredModels.slice().sort((a, b) => {
+      const aSystem = a.isDefaultPlanco ? 1 : 0;
+      const bSystem = b.isDefaultPlanco ? 1 : 0;
       if (bSystem !== aSystem) return bSystem - aSystem;
 
       const aFav = !aSystem && isFavorite(a._id) ? 1 : 0;
       const bFav = !bSystem && isFavorite(b._id) ? 1 : 0;
       if (bFav !== aFav) return bFav - aFav;
 
-      return String(a.name || "").localeCompare(String(b.name || ""), "pt-BR", {
-        sensitivity: "base",
-      });
+      return (a.name || "").localeCompare(b.name || "", "pt-BR", { sensitivity: "base" });
     });
-
-    return copy;
   }, [filteredModels, isFavorite]);
 
-  // Stages a renderizar (view = selectedModel.stages; edit = draftStages)
-  const stagesToRender = useMemo(() => {
-    if (!selectedModel) return [];
-    if (isEditMode) return draftStages || [];
-    return selectedModel.stages || [];
-  }, [selectedModel, isEditMode, draftStages]);
+  const stagesToRender = useMemo(() => 
+    !selectedModel ? [] : isEditMode ? (draftStages || []) : (selectedModel.stages || [])
+  , [selectedModel, isEditMode, draftStages]);
 
-  // Total de componentes no modelo
-  const totalComponents = useMemo(() => {
-    const baseStages = isEditMode
-      ? draftStages || []
-      : selectedModel?.stages || [];
-    if (!baseStages.length) return 0;
+  const totalComponents = useMemo(() => 
+    (isEditMode ? (draftStages || []) : (selectedModel?.stages || [])).reduce(
+      (acc, stage) => acc + (stage.components?.length || 0), 0
+    )
+  , [selectedModel?.stages, isEditMode, draftStages]);
 
-    return baseStages.reduce(
-      (acc: number, stage: FlowModelStage) =>
-        acc + (stage.components?.length || 0),
-      0,
-    );
-  }, [selectedModel?.stages, isEditMode, draftStages]);
+  const { mutate: createModelMutation, isPending: creatingModel } = useMutation({
+    mutationFn: createFlowModel,
+    onSuccess: (newModel) => {
+      queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
+      showNotification("Modelo criado com sucesso!", "success");
+      setCreateModalOpen(false);
+      setIsEditMode(false);
+      setDraftStages(null);
+      setSelectedModelId(newModel._id);
+      const newParams = new URLSearchParams();
+      newParams.set("modelId", newModel._id);
+      newParams.set("tab", "mine");
+      setUrlParams(newParams);
+      setSelectedTab("mine");
+    },
+    onError: (error: Error) => showNotification(error?.message || "Erro ao criar modelo", "error"),
+  });
 
-  // Criar modelo
-  const { mutate: createModelMutation, isPending: creatingModel } = useMutation(
-    {
-      mutationFn: async (data: CreateFlowModelDto) => {
-        return await createFlowModel(data);
-      },
-      onSuccess: (newModel) => {
-        queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
-        showNotification("Modelo criado com sucesso!", "success");
-        setCreateModalOpen(false);
+  const { mutate: updateModelMutation, isPending: updatingModel } = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateFlowModelDto }) => updateFlowModel(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
+      queryClient.invalidateQueries({ queryKey: ["findFlowModelById", selectedModelId] });
+      showNotification("Modelo atualizado com sucesso!", "success");
+      setIsEditMode(false);
+      setDraftStages(null);
+    },
+    onError: (error: Error) => showNotification(error?.message || "Erro ao atualizar modelo", "error"),
+  });
 
+  const { mutate: deleteModelMutation, isPending: deletingModel } = useMutation({
+    mutationFn: deleteFlowModel,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
+      showNotification("Modelo excluído com sucesso!", "success");
+      if (selectedModelId === menuModelId) {
+        setSelectedModelId(null);
         setIsEditMode(false);
         setDraftStages(null);
-
-        setSelectedModelId(newModel._id);
-
-        const newParams = new URLSearchParams();
-        newParams.set("modelId", newModel._id);
-        newParams.set("tab", "mine");
-        setUrlParams(newParams);
-        setSelectedTab("mine");
-      },
-      onError: (error: Error) => {
-        showNotification(
-          error?.message || "Erro ao criar modelo",
-          "error",
-        );
-      },
-    },
-  );
-
-  // Atualizar modelo
-  const { mutate: updateModelMutation, isPending: updatingModel } = useMutation(
-    {
-      mutationFn: async ({
-        id,
-        data,
-      }: {
-        id: string;
-        data: UpdateFlowModelDto;
-      }) => {
-        return await updateFlowModel(id, data);
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
-        queryClient.invalidateQueries({
-          queryKey: ["findFlowModelById", selectedModelId],
-        });
-
-        showNotification("Modelo atualizado com sucesso!", "success");
-        setIsEditMode(false);
-        setDraftStages(null);
-      },
-      onError: (error: Error) => {
-        showNotification(
-          error?.message || "Erro ao atualizar modelo",
-          "error",
-        );
-      },
-    },
-  );
-
-  // Deletar modelo
-  const { mutate: deleteModelMutation, isPending: deletingModel } = useMutation(
-    {
-      mutationFn: async (id: string) => {
-        return await deleteFlowModel(id);
-      },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
-        showNotification("Modelo excluído com sucesso!", "success");
-
-        if (selectedModelId === menuModelId) {
-          setSelectedModelId(null);
-
-          setIsEditMode(false);
-          setDraftStages(null);
-
-          const newParams = new URLSearchParams(urlParams);
-          newParams.delete("modelId");
-          newParams.set("tab", selectedTab);
-          setUrlParams(newParams, { replace: true });
-        }
-      },
-      onError: (error: Error) => {
-        showNotification(
-          error?.message || "Erro ao excluir modelo",
-          "error",
-        );
-      },
-    },
-  );
-
-  // ✅ Duplicar modelo (inclusive o do sistema)
-  const { mutate: duplicateModelMutation, isPending: duplicatingModel } =
-    useMutation({
-      mutationFn: async (id: string) => {
-        return await duplicateFlowModel(id);
-      },
-      onSuccess: (newModel) => {
-        queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
-        // detalhe do selecionado atual pode ficar, mas garantimos refetch do novo ao selecionar
-
-        showNotification("Modelo duplicado com sucesso!", "success");
-
-        // sai do modo edição/draft
-        setIsEditMode(false);
-        setDraftStages(null);
-
-        // seleciona o novo modelo
-        setSelectedModelId(newModel._id);
-
-        // vai para aba "Meus"
-        setSelectedTab("mine");
-        const newParams = new URLSearchParams();
-        newParams.set("tab", "mine");
-        newParams.set("modelId", newModel._id);
-        setUrlParams(newParams);
-
-        // fecha menu
-        setAnchorEl(null);
-        setMenuModelId(null);
-      },
-      onError: (error: Error) => {
-        showNotification(
-          error?.message || "Erro ao duplicar modelo",
-          "error",
-        );
-      },
-    });
-
-  const handleTabChange = useCallback(
-    (_event: React.SyntheticEvent, newValue: TabValue) => {
-      if (isEditMode) {
-        setPendingAction(() => () => {
-          setIsEditMode(false);
-          setDraftStages(null);
-          setSelectedTab(newValue);
-          const newParams = new URLSearchParams(urlParams);
-          newParams.set("tab", newValue);
-          if (selectedModelId) newParams.set("modelId", selectedModelId);
-          setUrlParams(newParams);
-        });
-        setConfirmDialogOpen(true);
-        return;
+        const newParams = new URLSearchParams(urlParams);
+        newParams.delete("modelId");
+        newParams.set("tab", selectedTab);
+        setUrlParams(newParams, { replace: true });
       }
+    },
+    onError: (error: Error) => showNotification(error?.message || "Erro ao excluir modelo", "error"),
+  });
 
+  const { mutate: duplicateModelMutation, isPending: duplicatingModel } = useMutation({
+    mutationFn: duplicateFlowModel,
+    onSuccess: (newModel) => {
+      queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
+      showNotification("Modelo duplicado com sucesso!", "success");
+      setIsEditMode(false);
+      setDraftStages(null);
+      setSelectedModelId(newModel._id);
+      setSelectedTab("mine");
+      const newParams = new URLSearchParams();
+      newParams.set("tab", "mine");
+      newParams.set("modelId", newModel._id);
+      setUrlParams(newParams);
+      setAnchorEl(null);
+      setMenuModelId(null);
+    },
+    onError: (error: Error) => showNotification(error?.message || "Erro ao duplicar modelo", "error"),
+  });
+
+  const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: TabValue) => {
+    const updateTab = () => {
       setSelectedTab(newValue);
       const newParams = new URLSearchParams(urlParams);
       newParams.set("tab", newValue);
       if (selectedModelId) newParams.set("modelId", selectedModelId);
       setUrlParams(newParams);
-    },
-    [urlParams, selectedModelId, setUrlParams, isEditMode],
-  );
+    };
 
-  const handleModelClick = useCallback(
-    (modelId: string) => {
-      if (isEditMode) {
-        setPendingAction(() => () => {
-          setSelectedModelId(modelId);
-          setIsEditMode(false);
-          setDraftStages(null);
-          const newParams = new URLSearchParams(urlParams);
-          newParams.set("modelId", modelId);
-          newParams.set("tab", selectedTab);
-          setUrlParams(newParams);
-        });
-        setConfirmDialogOpen(true);
-        return;
-      }
+    if (isEditMode) {
+      setPendingAction(() => () => {
+        setIsEditMode(false);
+        setDraftStages(null);
+        updateTab();
+      });
+      setConfirmDialogOpen(true);
+    } else {
+      updateTab();
+    }
+  }, [urlParams, selectedModelId, setUrlParams, isEditMode]);
 
+  const handleModelClick = useCallback((modelId: string) => {
+    const selectModel = () => {
       setSelectedModelId(modelId);
       setIsEditMode(false);
       setDraftStages(null);
@@ -387,17 +265,20 @@ const FlowModelsPage = () => {
       newParams.set("modelId", modelId);
       newParams.set("tab", selectedTab);
       setUrlParams(newParams);
-    },
-    [urlParams, selectedTab, setUrlParams, isEditMode],
-  );
+    };
 
-  const handleMenuOpen = useCallback(
-    (event: React.MouseEvent<HTMLElement>, modelId: string) => {
-      setAnchorEl(event.currentTarget);
-      setMenuModelId(modelId);
-    },
-    [],
-  );
+    if (isEditMode) {
+      setPendingAction(() => selectModel);
+      setConfirmDialogOpen(true);
+    } else {
+      selectModel();
+    }
+  }, [urlParams, selectedTab, setUrlParams, isEditMode]);
+
+  const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>, modelId: string) => {
+    setAnchorEl(event.currentTarget);
+    setMenuModelId(modelId);
+  }, []);
 
   const handleMenuClose = useCallback(() => {
     if (duplicatingModel || deletingModel) return;
@@ -407,39 +288,25 @@ const FlowModelsPage = () => {
 
   const handleDelete = useCallback(() => {
     if (!menuModelId) return;
-
     const model = flowModels.find((m) => m._id === menuModelId);
-    const isSystem = model?.isDefaultPlanco === true;
-    if (isSystem) {
+    if (model?.isDefaultPlanco) {
       showNotification("Não é possível excluir o modelo do sistema.", "info");
       return;
     }
-
     if (window.confirm("Tem certeza que deseja excluir este modelo?")) {
       deleteModelMutation(menuModelId);
     }
     handleMenuClose();
-  }, [
-    menuModelId,
-    flowModels,
-    deleteModelMutation,
-    handleMenuClose,
-    showNotification,
-  ]);
+  }, [menuModelId, flowModels, deleteModelMutation, handleMenuClose, showNotification]);
 
   const handleDuplicate = useCallback(() => {
-    if (!menuModelId) return;
-    duplicateModelMutation(menuModelId);
+    if (menuModelId) duplicateModelMutation(menuModelId);
   }, [menuModelId, duplicateModelMutation]);
 
   const handleEditFlow = useCallback(() => {
     if (!selectedModel) return;
-    // se for sistema, não entra em editar (precisa duplicar)
-    if (selectedModel.isDefaultPlanco === true) {
-      showNotification(
-        "Este é um modelo do sistema. Duplique para editar.",
-        "info",
-      );
+    if (selectedModel.isDefaultPlanco) {
+      showNotification("Este é um modelo do sistema. Duplique para editar.", "info");
       return;
     }
     setDraftStages(deepClone(selectedModel.stages || []));
@@ -505,10 +372,7 @@ const FlowModelsPage = () => {
 
   const handleCreateCard = useCallback(() => {
     if (!isEditMode) {
-      showNotification(
-        "Clique em “Editar Fluxo” para adicionar etapas.",
-        "info",
-      );
+      showNotification("Clique em “Editar Fluxo” para adicionar etapas.", "info");
       return;
     }
     setCreateStageOpen(true);
@@ -526,145 +390,85 @@ const FlowModelsPage = () => {
     setEditingStageOriginalId(null);
   }, []);
 
-  const handleSaveStageInDraft = useCallback(
-    (updatedStage: FlowModelStage) => {
-      if (!isEditMode) return;
+  const handleSaveStageInDraft = useCallback((updatedStage: FlowModelStage) => {
+    if (!isEditMode) return;
 
-      setDraftStages((prev) => {
-        const base = prev ? prev.slice() : [];
+    setDraftStages((prev) => {
+      const base = prev?.slice() || [];
+      const originalId = editingStageOriginalId || updatedStage.stageId;
+      const idx = base.findIndex((s) => s.stageId === originalId);
 
-        const originalId = editingStageOriginalId || updatedStage.stageId;
-        const idx = base.findIndex((s) => s.stageId === originalId);
+      if (base.some((s, i) => i !== idx && s.stageId === updatedStage.stageId)) {
+        showNotification("Já existe uma etapa com esse stageId.", "error");
+        return prev;
+      }
 
-        const stageIdAlreadyExists = base.some(
-          (s, i) => i !== idx && s.stageId === updatedStage.stageId,
-        );
-        if (stageIdAlreadyExists) {
-          showNotification("Já existe uma etapa com esse stageId.", "error");
-          return prev;
-        }
+      if (base.some((s, i) => i !== idx && s.order === updatedStage.order)) {
+        showNotification("Já existe uma etapa com essa ordem (order).", "error");
+        return prev;
+      }
 
-        const orderAlreadyExists = base.some(
-          (s, i) => i !== idx && s.order === updatedStage.order,
-        );
-        if (orderAlreadyExists) {
-          showNotification(
-            "Já existe uma etapa com essa ordem (order).",
-            "error",
-          );
-          return prev;
-        }
+      if (idx === -1) return [...base, updatedStage];
+      base[idx] = updatedStage;
+      return base;
+    });
 
-        if (idx === -1) {
-          return [...base, updatedStage];
-        }
+    showNotification("Etapa atualizada no rascunho. Clique em Salvar para enviar ao backend.", "success");
+  }, [isEditMode, showNotification, editingStageOriginalId]);
 
-        base[idx] = updatedStage;
-        return base;
-      });
+  const normalizeOrders = useCallback((stages: FlowModelStage[]) => 
+    stages.slice().sort((a, b) => a.order - b.order).map((s, idx) => ({ ...s, order: idx + 1 }))
+  , []);
 
-      showNotification(
-        "Etapa atualizada no rascunho. Clique em Salvar para enviar ao backend.",
-        "success",
-      );
-    },
-    [isEditMode, showNotification, editingStageOriginalId],
-  );
+  const handleDeleteStage = useCallback((stageId: string) => {
+    if (!isEditMode) return;
+    setDraftStages((prev) => {
+      const arr = prev?.slice() || [];
+      return normalizeOrders(arr.filter((s) => s.stageId !== stageId));
+    });
+    showNotification("Etapa removida do rascunho. Clique em Salvar para aplicar.", "info");
+  }, [isEditMode, normalizeOrders, showNotification]);
 
-  const normalizeOrders = useCallback((stages: FlowModelStage[]) => {
-    return stages
-      .slice()
-      .sort((a, b) => a.order - b.order)
-      .map((s, idx) => ({ ...s, order: idx + 1 }));
-  }, []);
+  const handleMoveStage = useCallback((activeId: string, overId: string) => {
+    if (!isEditMode) return;
+    setDraftStages((prev) => {
+      if (!prev) return prev;
+      const arr = prev.slice().sort((a, b) => a.order - b.order);
+      const activeIndex = arr.findIndex((s) => s.stageId === activeId);
+      const overIndex = arr.findIndex((s) => s.stageId === overId);
+      if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) return prev;
+      const reordered = [...arr];
+      const [moved] = reordered.splice(activeIndex, 1);
+      reordered.splice(overIndex, 0, moved);
+      return reordered.map((s, idx) => ({ ...s, order: idx + 1 }));
+    });
+  }, [isEditMode]);
 
-  const handleDeleteStage = useCallback(
-    (stageId: string) => {
-      if (!isEditMode) return;
+  const handleEditStage = useCallback((stage: FlowModelStage) => {
+    if (!isEditMode) return;
+    setEditingStageId(stage.stageId);
+    setEditingStageOriginalId(stage.stageId);
+    setEditStageOpen(true);
+  }, [isEditMode]);
 
-      setDraftStages((prev) => {
-        const arr = prev ? prev.slice() : [];
-        const next = arr.filter((s) => s.stageId !== stageId);
-        return normalizeOrders(next);
-      });
+  const handleCreateStage = useCallback((newStage: FlowModelStage) => {
+    if (!isEditMode) return;
+    setDraftStages((prev) => {
+      const base = prev?.slice() || [];
+      if (base.some((s) => s.stageId === newStage.stageId)) {
+        showNotification("Já existe uma etapa com esse stageId.", "error");
+        return prev;
+      }
+      if (base.some((s) => s.order === newStage.order)) {
+        showNotification("Já existe uma etapa com essa ordem (order).", "error");
+        return prev;
+      }
+      return [...base, newStage];
+    });
+    setCreateStageOpen(false);
+    showNotification("Etapa criada no rascunho. Clique em Salvar para enviar ao backend.", "success");
+  }, [isEditMode, showNotification]);
 
-      showNotification(
-        "Etapa removida do rascunho. Clique em Salvar para aplicar.",
-        "info",
-      );
-    },
-    [isEditMode, normalizeOrders, showNotification],
-  );
-
-  const handleMoveStage = useCallback(
-    (activeId: string, overId: string) => {
-      if (!isEditMode) return;
-
-      setDraftStages((prev) => {
-        if (!prev) return prev;
-        
-        const arr = prev.slice().sort((a, b) => a.order - b.order);
-        const activeIndex = arr.findIndex((s) => s.stageId === activeId);
-        const overIndex = arr.findIndex((s) => s.stageId === overId);
-
-        if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) return prev;
-
-        const reordered = [...arr];
-        const [moved] = reordered.splice(activeIndex, 1);
-        reordered.splice(overIndex, 0, moved);
-
-        return reordered.map((s, idx) => ({ ...s, order: idx + 1 }));
-      });
-    },
-    [isEditMode],
-  );
-
-  const handleEditStage = useCallback(
-    (stage: FlowModelStage) => {
-      if (!isEditMode) return;
-      setEditingStageId(stage.stageId);
-      setEditingStageOriginalId(stage.stageId);
-      setEditStageOpen(true);
-    },
-    [isEditMode],
-  );
-
-  const handleCreateStage = useCallback(
-    (newStage: FlowModelStage) => {
-      if (!isEditMode) return;
-
-      setDraftStages((prev) => {
-        const base = prev ? prev.slice() : [];
-
-        const stageIds = base.map((s) => s.stageId);
-        if (stageIds.includes(newStage.stageId)) {
-          showNotification("Já existe uma etapa com esse stageId.", "error");
-          return prev;
-        }
-
-        const stageOrders = base.map((s) => s.order);
-        if (stageOrders.includes(newStage.order)) {
-          showNotification(
-            "Já existe uma etapa com essa ordem (order).",
-            "error",
-          );
-          return prev;
-        }
-
-        return [...base, newStage];
-      });
-
-      setCreateStageOpen(false);
-
-      showNotification(
-        "Etapa criada no rascunho. Clique em Salvar para enviar ao backend.",
-        "success",
-      );
-    },
-    [isEditMode, showNotification],
-  );
-
-  // Selecionar primeiro modelo se nenhum estiver selecionado
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (isEditMode) {
@@ -680,22 +484,14 @@ const FlowModelsPage = () => {
   useEffect(() => {
     if (!selectedModelId && sortedFilteredModels.length > 0) {
       const firstModel = sortedFilteredModels[0];
-
       setIsEditMode(false);
       setDraftStages(null);
-
       const newParams = new URLSearchParams(urlParams);
       newParams.set("modelId", firstModel._id);
       newParams.set("tab", selectedTab);
       setUrlParams(newParams, { replace: true });
     }
-  }, [
-    selectedModelId,
-    sortedFilteredModels,
-    urlParams,
-    selectedTab,
-    setUrlParams,
-  ]);
+  }, [selectedModelId, sortedFilteredModels, urlParams, selectedTab, setUrlParams]);
 
   return (
     <Box
@@ -707,10 +503,9 @@ const FlowModelsPage = () => {
         bgcolor: "#f4f6f8",
       }}
     >
-      {/* Sidebar */}
       <Box
         sx={{
-          width: 360,
+          width: sidebarOpen ? { xs: "100%", sm: 360 } : 56,
           bgcolor: "background.paper",
           borderRight: 1,
           borderColor: "#E4E6EB",
@@ -718,15 +513,43 @@ const FlowModelsPage = () => {
           flexDirection: "column",
           overflow: "hidden",
           boxShadow: "0 1px 3px rgba(0, 0, 0, 0.05)",
+          transition: "width 0.3s ease",
+          position: { xs: "absolute", sm: "relative" },
+          zIndex: { xs: 10, sm: 1 },
+          height: "100%",
         }}
       >
-        {/* Header */}
+        {!sidebarOpen && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              p: 2,
+              borderBottom: 1,
+              borderColor: "#E4E6EB",
+              bgcolor: "#FAFBFC",
+            }}
+          >
+            <IconButton
+              onClick={() => setSidebarOpen(true)}
+              size="small"
+              sx={{
+                color: "#1877F2",
+                "&:hover": { bgcolor: "#E7F3FF" },
+              }}
+            >
+              <ChevronRightIcon />
+            </IconButton>
+          </Box>
+        )}
         <Box
           sx={{
             p: 3,
             borderBottom: 1,
             borderColor: "#E4E6EB",
             bgcolor: "#FAFBFC",
+            display: sidebarOpen ? "block" : "none",
           }}
         >
           <Box
@@ -756,10 +579,11 @@ const FlowModelsPage = () => {
               </Typography>
             </Box>
             <IconButton
+              onClick={() => setSidebarOpen(false)}
               size="small"
-              sx={{ color: "#616161", "&:hover": { bgcolor: "#F0F2F5" } }}
+              sx={{ color: "#1877F2", "&:hover": { bgcolor: "#E7F3FF" } }}
             >
-              <LayersIcon />
+              <ChevronLeftIcon />
             </IconButton>
           </Box>
 
@@ -840,9 +664,14 @@ const FlowModelsPage = () => {
           </Tabs>
         </Box>
 
-        {/* Lista */}
         <Box
-          sx={{ flex: 1, overflow: "auto", p: 2, bgcolor: "background.paper" }}
+          sx={{
+            flex: 1,
+            overflow: "auto",
+            p: 2,
+            bgcolor: "background.paper",
+            display: sidebarOpen ? "block" : "none",
+          }}
         >
           {modelsLoading ? (
             <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}>
@@ -871,7 +700,7 @@ const FlowModelsPage = () => {
                   isSelected={selectedModelId === model._id}
                   onClick={() => handleModelClick(model._id)}
                   onMenuClick={(e) => handleMenuOpen(e, model._id)}
-                  hideMenu={false} // ✅ menu aparece inclusive no sistema
+                  hideMenu={false}
                 />
               ))}
             </Box>
@@ -879,7 +708,6 @@ const FlowModelsPage = () => {
         </Box>
       </Box>
 
-      {/* Área principal */}
       <Box
         sx={{
           flex: 1,
@@ -1112,7 +940,6 @@ const FlowModelsPage = () => {
               );
             })()}
 
-            {/* Cards de etapas */}
             <Box sx={{ flex: 1, overflow: "auto", p: 4, bgcolor: "#f4f6f8" }}>
               {stagesToRender && stagesToRender.length > 0 ? (
                 <Box
@@ -1196,7 +1023,6 @@ const FlowModelsPage = () => {
         )}
       </Box>
 
-      {/* Menu de contexto */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -1225,7 +1051,6 @@ const FlowModelsPage = () => {
           })()}
       </Menu>
 
-      {/* Modal criar modelo */}
       <CreateFlowModelModal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
@@ -1233,7 +1058,6 @@ const FlowModelsPage = () => {
         loading={creatingModel}
       />
 
-      {/* Modal editar etapa */}
       <EditStageModal
         open={editStageOpen}
         onClose={handleCloseEditStageModal}
@@ -1246,7 +1070,6 @@ const FlowModelsPage = () => {
         editable={!selectedModel?.isDefaultPlanco && isEditMode}
       />
 
-      {/* Modal criar etapa */}
       <CreateStageModal
         open={createStageOpen}
         existingStages={stagesToRender || []}

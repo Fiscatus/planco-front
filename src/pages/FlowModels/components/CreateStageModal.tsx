@@ -23,33 +23,23 @@ type CreateStageModalProps = {
 };
 
 function slugifyStageId(input: string) {
-  const base = input
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "")
-    .slice(0, 60);
-
+  const base = input.trim().toLowerCase().normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "").slice(0, 60);
   return base ? `stage_${base}` : "stage_nova_etapa";
 }
 
 function nextOrder(stages: FlowModelStage[]) {
-  const orders = stages
-    .map((s) => (typeof s.order === "number" && Number.isFinite(s.order) ? s.order : 0))
-    .filter((n) => Number.isFinite(n));
-
-  const max = orders.length ? Math.max(...orders) : 0;
-  return max + 1;
+  const orders = stages.map((s) => typeof s.order === "number" && Number.isFinite(s.order) ? s.order : 0)
+    .filter(Number.isFinite);
+  return orders.length ? Math.max(...orders) + 1 : 1;
 }
 
 function ensureUniqueStageId(candidate: string, stages: FlowModelStage[]) {
   const used = new Set(stages.map((s) => String(s.stageId || "").trim()).filter(Boolean));
   if (!used.has(candidate)) return candidate;
-
   let i = 2;
-  while (used.has(`${candidate}_${i}`)) i += 1;
+  while (used.has(`${candidate}_${i}`)) i++;
   return `${candidate}_${i}`;
 }
 
@@ -68,10 +58,8 @@ export const CreateStageModal = ({
   const [repeatCondition, setRepeatCondition] = useState("");
   const [visibilityCondition, setVisibilityCondition] = useState("");
 
-  // ✅ order como string para não virar NaN ao digitar/apagar
   const [orderText, setOrderText] = useState<string>("");
 
-  // ✅ controle: o usuário mexeu manualmente no stageId?
   const stageIdTouchedRef = useRef(false);
 
   const defaultOrder = useMemo(() => nextOrder(existingStages), [existingStages]);
@@ -81,46 +69,34 @@ export const CreateStageModal = ({
     return Number.isFinite(v) ? v : null;
   }, [orderText]);
 
-  // reset ao abrir
   useEffect(() => {
-    if (!open) return;
-
-    setName("");
-    setDescription("");
-    setRequiresApproval(false);
-
-    setCanRepeat(false);
-    setRepeatCondition("");
-    setVisibilityCondition("");
-
-    setOrderText(String(nextOrder(existingStages)));
-
-    stageIdTouchedRef.current = false;
-    setStageId("");
+    if (open) {
+      setName("");
+      setDescription("");
+      setRequiresApproval(false);
+      setCanRepeat(false);
+      setRepeatCondition("");
+      setVisibilityCondition("");
+      setOrderText(String(nextOrder(existingStages)));
+      stageIdTouchedRef.current = false;
+      setStageId("");
+    }
   }, [open, existingStages]);
 
-  // auto stageId quando nome muda (enquanto usuário não tiver editado manualmente)
   useEffect(() => {
-    if (!open) return;
-    if (stageIdTouchedRef.current) return;
-
-    const auto = ensureUniqueStageId(slugifyStageId(name || ""), existingStages);
-
-    // só define se vazio OU ainda está igual ao padrão anterior
-    if (!stageId || stageId.startsWith("stage_")) {
-      setStageId(auto);
+    if (open && !stageIdTouchedRef.current) {
+      const auto = ensureUniqueStageId(slugifyStageId(name || ""), existingStages);
+      if (!stageId || stageId.startsWith("stage_")) setStageId(auto);
     }
   }, [name, open, existingStages, stageId]);
 
-  const orderIsUnique = useMemo(() => {
-    if (parsedOrder === null) return false;
-    return !existingStages.some((s) => s.order === parsedOrder);
-  }, [existingStages, parsedOrder]);
+  const orderIsUnique = useMemo(() => 
+    parsedOrder !== null && !existingStages.some((s) => s.order === parsedOrder)
+  , [existingStages, parsedOrder]);
 
   const stageIdIsUnique = useMemo(() => {
     const c = stageId.trim();
-    if (!c) return false;
-    return !existingStages.some((s) => String(s.stageId || "").trim() === c);
+    return c && !existingStages.some((s) => String(s.stageId || "").trim() === c);
   }, [existingStages, stageId]);
 
   const validations = useMemo(() => {
@@ -160,7 +136,6 @@ export const CreateStageModal = ({
 
       visibilityCondition: visibilityCondition.trim() ? visibilityCondition.trim() : undefined,
 
-      // backend exige components array
       components: [],
     };
 
@@ -209,7 +184,6 @@ export const CreateStageModal = ({
           bgcolor: "#ffffff",
         }}
       >
-        {/* Header (padrão do sistema) */}
         <Box
           sx={{
             px: { xs: 2, sm: 3, md: 4 },
@@ -219,7 +193,6 @@ export const CreateStageModal = ({
             backgroundColor: "#ffffff",
           }}
         >
-          {/* Faixa 1: título + fechar */}
           <Box
             sx={{
               display: "flex",
@@ -264,7 +237,6 @@ export const CreateStageModal = ({
             </IconButton>
           </Box>
 
-          {/* Faixa 2: chip */}
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
             <Chip
               label="Etapa nova"
@@ -278,7 +250,6 @@ export const CreateStageModal = ({
           </Box>
         </Box>
 
-        {/* Body (scrollável) - aqui fica seu conteúdo original */}
         <Box
           sx={{
             px: { xs: 2, sm: 3, md: 4 },
@@ -292,7 +263,6 @@ export const CreateStageModal = ({
           }}
         >
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
-            {/* Dados principais */}
             <Box
               sx={{
                 bgcolor: "background.paper",
@@ -371,7 +341,6 @@ export const CreateStageModal = ({
               </Box>
             </Box>
 
-            {/* Regras */}
             <Box
               sx={{
                 bgcolor: "background.paper",
@@ -433,7 +402,6 @@ export const CreateStageModal = ({
               </Typography>
             </Box>
 
-            {/* Validações */}
             {validations.length > 0 ? (
               <Box
                 sx={{
@@ -456,7 +424,6 @@ export const CreateStageModal = ({
           </Box>
         </Box>
 
-        {/* Footer (fixo) - mesmos botões, só padronizado */}
         <Box
           sx={{
             p: { xs: 2, sm: 3 },

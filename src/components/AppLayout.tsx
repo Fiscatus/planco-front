@@ -38,7 +38,6 @@ const AppLayout = ({ children, hideHeader = false, hideSidebar = false }: AppLay
             sx={{
               display: 'flex',
               flex: 1,
-              pt: '64px',
               width: '100%'
             }}
           >

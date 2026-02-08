@@ -24,34 +24,17 @@ type FlowModelCardProps = {
   hideMenu?: boolean;
 };
 
-export const FlowModelCard = ({
-  model,
-  isSelected,
-  onClick,
-  onMenuClick,
-  hideMenu = false,
-}: FlowModelCardProps) => {
+export const FlowModelCard = ({ model, isSelected, onClick, onMenuClick, hideMenu = false }: FlowModelCardProps) => {
   const { isFavorite, toggleFavorite } = useFavoriteFlowModels();
-
   const isSystem = model.isDefaultPlanco === true;
-  const isModelFavorite = !isSystem ? isFavorite(model._id) : false;
-
-  const getTimeAgo = (date?: string | Date) => {
-    if (!date) return "";
-    return dayjs(date).fromNow();
-  };
-
+  const isModelFavorite = !isSystem && isFavorite(model._id);
   const stageCount = model.stages?.length || 0;
-  const timeAgo = getTimeAgo((model.updatedAt as any) || (model.createdAt as any));
+  const timeAgo = (model.updatedAt || model.createdAt) ? dayjs(model.updatedAt || model.createdAt).fromNow() : "";
 
-  const handleFavoriteClick = useCallback(
-    (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.stopPropagation();
-      if (isSystem) return;
-      toggleFavorite(model._id);
-    },
-    [toggleFavorite, model._id, isSystem],
-  );
+  const handleFavoriteClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (!isSystem) toggleFavorite(model._id);
+  }, [toggleFavorite, model._id, isSystem]);
 
   return (
     <Card

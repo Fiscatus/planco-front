@@ -27,42 +27,22 @@ type StageCardProps = {
   onDragEnd?: (activeId: string, overId: string) => void;
 };
 
-export const StageCard = ({
-  stage,
-  onViewDetails,
-  isEditMode = false,
-  onEditStage,
-  onDeleteStage,
-  onDragEnd,
-}: StageCardProps) => {
+export const StageCard = ({ stage, onViewDetails, isEditMode = false, onEditStage, onDeleteStage, onDragEnd }: StageCardProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
-
-  const componentsCount = useMemo(() => {
-    return Array.isArray(stage.components) ? stage.components.length : 0;
-  }, [stage.components]);
-
+  const componentsCount = useMemo(() => stage.components?.length || 0, [stage.components]);
   const safeStageId = String(stage.stageId || "").trim();
-  const safeOrder =
-    typeof stage.order === "number" && Number.isFinite(stage.order)
-      ? stage.order
-      : 0;
+  const safeOrder = typeof stage.order === "number" && Number.isFinite(stage.order) ? stage.order : 0;
 
   const handleEdit = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    if (onEditStage) onEditStage(stage);
+    e?.stopPropagation();
+    onEditStage?.(stage);
   };
 
   const handleDelete = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    if (!safeStageId) return;
-
-    const ok = window.confirm(
-      `Tem certeza que deseja excluir a etapa "${stage.name}"?\n\nIsso só será aplicado quando você clicar em "Salvar".`,
-    );
-    if (!ok) return;
-
-    if (onDeleteStage) onDeleteStage(safeStageId);
+    e?.stopPropagation();
+    if (!safeStageId || !window.confirm(`Tem certeza que deseja excluir a etapa "${stage.name}"?\n\nIsso só será aplicado quando você clicar em "Salvar".`)) return;
+    onDeleteStage?.(safeStageId);
   };
 
   const canEdit = isEditMode && !!onEditStage;
@@ -75,10 +55,6 @@ export const StageCard = ({
     setIsDragging(true);
   };
 
-  const handleDragEnd = () => {
-    setIsDragging(false);
-  };
-
   const handleDragOver = (e: React.DragEvent) => {
     if (!isEditMode) return;
     e.preventDefault();
@@ -86,18 +62,12 @@ export const StageCard = ({
     setIsDragOver(true);
   };
 
-  const handleDragLeave = () => {
-    setIsDragOver(false);
-  };
-
   const handleDrop = (e: React.DragEvent) => {
     if (!isEditMode) return;
     e.preventDefault();
     setIsDragOver(false);
     const activeId = e.dataTransfer.getData("text/plain");
-    if (activeId && activeId !== safeStageId && onDragEnd) {
-      onDragEnd(activeId, safeStageId);
-    }
+    if (activeId && activeId !== safeStageId) onDragEnd?.(activeId, safeStageId);
   };
 
   return (
@@ -105,9 +75,9 @@ export const StageCard = ({
       component="div"
       draggable={isEditMode}
       onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+      onDragEnd={() => setIsDragging(false)}
       onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
+      onDragLeave={() => setIsDragOver(false)}
       onDrop={handleDrop}
       tabIndex={0}
       onClick={onViewDetails}

@@ -105,74 +105,45 @@ export const EditStageModal = ({
     setSelectedDepartments(clone.approverDepartments || []);
   }, [open, stage]);
 
-  const handleChangeStageField = <K extends keyof FlowModelStage>(
-    key: K,
-    value: FlowModelStage[K],
-  ) => {
+  const handleChangeStageField = <K extends keyof FlowModelStage>(key: K, value: FlowModelStage[K]) => {
     if (!localStage) return;
 
-    if (key === "requiresApproval") {
-      const nextRequires = Boolean(value);
-      if (!nextRequires) {
-        setSelectedRoles([]);
-        setSelectedDepartments([]);
-        setLocalStage({
-          ...localStage,
-          requiresApproval: false,
-          approverRoles: [],
-          approverDepartments: [],
-        });
-        return;
-      }
+    if (key === "requiresApproval" && !value) {
+      setSelectedRoles([]);
+      setSelectedDepartments([]);
+      setLocalStage({ ...localStage, requiresApproval: false, approverRoles: [], approverDepartments: [] });
+      return;
     }
 
-    if (key === "canRepeat") {
-      const nextRepeat = Boolean(value);
-      if (!nextRepeat) {
-        setLocalStage({
-          ...localStage,
-          canRepeat: false,
-          repeatCondition: "",
-        });
-        return;
-      }
+    if (key === "canRepeat" && !value) {
+      setLocalStage({ ...localStage, canRepeat: false, repeatCondition: "" });
+      return;
     }
 
     setLocalStage({ ...localStage, [key]: value });
   };
 
   const handleSave = () => {
-    if (!localStage) return;
-
-    const updated: FlowModelStage = {
+    if (!localStage?.name?.trim()) return;
+    onSaveStage({
       ...localStage,
       approverRoles: localStage.requiresApproval ? selectedRoles : [],
       approverDepartments: localStage.requiresApproval ? selectedDepartments : [],
       canRepeat: !!localStage.canRepeat,
       requiresApproval: !!localStage.requiresApproval,
-    };
-
-    if (!updated.name?.trim()) return;
-
-    onSaveStage(updated);
+    });
     onClose();
   };
 
   const handleAddComponent = (component: FlowModelComponent) => {
     if (!localStage) return;
-    setLocalStage({
-      ...localStage,
-      components: [...(localStage.components || []), component],
-    });
+    setLocalStage({ ...localStage, components: [...(localStage.components || []), component] });
     setAddComponentOpen(false);
   };
 
   const handleDeleteComponent = (key: string) => {
     if (!localStage) return;
-    setLocalStage({
-      ...localStage,
-      components: (localStage.components || []).filter((c) => c.key !== key),
-    });
+    setLocalStage({ ...localStage, components: (localStage.components || []).filter((c) => c.key !== key) });
   };
 
   return (

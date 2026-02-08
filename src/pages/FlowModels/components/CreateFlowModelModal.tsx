@@ -20,58 +20,43 @@ type CreateFlowModelModalProps = {
   loading?: boolean;
 };
 
-export const CreateFlowModelModal = ({
-  open,
-  onClose,
-  onSave,
-  loading = false,
-}: CreateFlowModelModalProps) => {
+export const CreateFlowModelModal = ({ open, onClose, onSave, loading = false }: CreateFlowModelModalProps) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    if (!open) return;
-    setName("");
-    setDescription("");
+    if (open) {
+      setName("");
+      setDescription("");
+    }
   }, [open]);
 
   const handleSave = useCallback(() => {
     if (!name.trim()) return;
-
     onSave({
       name: name.trim(),
       description: description.trim() || undefined,
-      stages: [
-        {
-          stageId: `stage_${Date.now()}`,
+      stages: [{
+        stageId: `stage_${Date.now()}`,
+        order: 1,
+        name: "Etapa 1",
+        description: "Etapa inicial do fluxo",
+        requiresApproval: false,
+        components: [{
           order: 1,
-          name: "Etapa 1",
-          description: "Etapa inicial do fluxo",
-          requiresApproval: false,
-          components: [
-            {
-              order: 1,
-              type: "STAGE_PANEL",
-              key: "stage_panel",
-              label: "Painel da Etapa",
-              description: "Visão geral da etapa",
-              required: false,
-            },
-          ],
-        },
-      ],
+          type: "STAGE_PANEL",
+          key: "stage_panel",
+          label: "Painel da Etapa",
+          description: "Visão geral da etapa",
+          required: false,
+        }],
+      }],
       isActive: true,
     });
-
-    setName("");
-    setDescription("");
   }, [name, description, onSave]);
 
   const handleClose = useCallback(() => {
-    if (loading) return;
-    setName("");
-    setDescription("");
-    onClose();
+    if (!loading) onClose();
   }, [loading, onClose]);
 
   return (
@@ -90,7 +75,6 @@ export const CreateFlowModelModal = ({
       }}
     >
       <DialogContent sx={{ p: 0 }}>
-        {/* HEADER (simples e clean) */}
         <Box
           sx={{
             px: { xs: 2.5, sm: 3 },
@@ -159,10 +143,8 @@ export const CreateFlowModelModal = ({
           </IconButton>
         </Box>
 
-        {/* DIVISÓRIA leve */}
         <Box sx={{ height: 1, backgroundColor: "#eef2f7" }} />
 
-        {/* BODY (sem “card dentro do modal”) */}
         <Box
           sx={{
             px: { xs: 2.5, sm: 3 },
@@ -218,7 +200,6 @@ export const CreateFlowModelModal = ({
           </Box>
         </Box>
 
-        {/* FOOTER (clean) */}
         <Box
           sx={{
             px: { xs: 2.5, sm: 3 },
