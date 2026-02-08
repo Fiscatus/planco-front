@@ -912,6 +912,7 @@ const FlowModelsPage = () => {
                     <Box
                       sx={{
                         display: "flex",
+                        alignItems: "center",
                         gap: 1.5,
                         pt: 3,
                         borderTop: 1,
@@ -930,10 +931,22 @@ const FlowModelsPage = () => {
                           borderRadius: 2,
                           boxShadow: "none",
                           px: 2.5,
+                          height: 40,
                         }}
                       >
                         Criar Card
                       </Button>
+                      <Chip
+                        label="Modo de Edição Ativo"
+                        sx={{
+                          bgcolor: "#FEF3C7",
+                          color: "#92400E",
+                          fontWeight: 700,
+                          fontSize: "0.875rem",
+                          height: 40,
+                          px: 1,
+                        }}
+                      />
                     </Box>
                   )}
                 </Box>

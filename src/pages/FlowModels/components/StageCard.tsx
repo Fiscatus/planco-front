@@ -148,20 +148,6 @@ export const StageCard = ({ stage, onViewDetails, isEditMode = false, onEditStag
           >
             {safeOrder}
           </Box>
-
-          {isEditMode ? (
-            <Chip
-              label="Modo edição"
-              size="small"
-              sx={{
-                bgcolor: "#E7F3FF",
-                color: "#1877F2",
-                fontWeight: 800,
-                fontSize: "0.75rem",
-                height: 24,
-              }}
-            />
-          ) : null}
         </Box>
       </Box>
 
