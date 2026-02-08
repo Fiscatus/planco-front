@@ -15,6 +15,7 @@ import { useNavigate } from 'react-router-dom';
 import { useNotification } from '@/components';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { api } from '@/services';
 import logo from '/assets/isologo.svg';
 
 type Props = {
@@ -35,6 +36,8 @@ const SignIn = ({ setIsSignIn }: Props) => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(true);
   const [shouldRedirectAfterLogin, setShouldRedirectAfterLogin] = useState(false);
+  const [emailNotVerified, setEmailNotVerified] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
 
   const { mutate: signInMutation, isPending: signingIn } = useMutation({
     mutationFn: async (credentials: LoginDto) => {
@@ -42,19 +45,35 @@ const SignIn = ({ setIsSignIn }: Props) => {
     },
     onError: (error: unknown) => {
       if (error instanceof Error && error.message) {
-        showNotification(error.message, 'error');
+        if (error.message.includes('email não verificado') || error.message.includes('email not verified')) {
+          setEmailNotVerified(true);
+          showNotification('Email não verificado. Verifique sua caixa de entrada.', 'error');
+        } else {
+          showNotification(error.message, 'error');
+        }
       } else {
         showNotification('Erro ao fazer login. Tente novamente.', 'error');
       }
     },
     onSuccess: () => {
+      setEmailNotVerified(false);
       showNotification('Login realizado com sucesso!', 'success');
       setShouldRedirectAfterLogin(true);
     }
   });
 
   const onSubmit = (credentials: LoginDto) => {
+    setUserEmail(credentials.email);
     signInMutation(credentials);
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      await api.post('/auth/resend-verification', { email: userEmail });
+      showNotification('Email de verificação reenviado!', 'success');
+    } catch (error: any) {
+      showNotification(error.message || 'Erro ao reenviar email.', 'error');
+    }
   };
 
   useEffect(() => {
@@ -312,6 +331,29 @@ const SignIn = ({ setIsSignIn }: Props) => {
         >
           Entrar
         </Button>
+
+        {emailNotVerified && (
+          <Button
+            onClick={handleResendVerification}
+            fullWidth
+            sx={{
+              height: '48px',
+              borderRadius: '8px',
+              backgroundColor: 'white',
+              color: '#1877F2',
+              fontSize: '1rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              mb: 3,
+              border: '2px solid #1877F2',
+              '&:hover': {
+                backgroundColor: '#F8F9FA'
+              }
+            }}
+          >
+            Reenviar email de verificação
+          </Button>
+        )}
 
         <Typography
           sx={{

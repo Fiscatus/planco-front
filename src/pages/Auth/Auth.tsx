@@ -1,12 +1,15 @@
 import { Box, Typography, useTheme } from '@mui/material';
 
 import CreateAccount from './components/CreateAccount';
+import RegistrationSuccess from './components/RegistrationSuccess';
 import GavelIcon from '@mui/icons-material/Gavel';
 import SignIn from './components/SignIn';
 import { useState } from 'react';
 
 const Auth = () => {
   const [isSignIn, setIsSignIn] = useState(true);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
   const theme = useTheme();
 
   return (
@@ -45,7 +48,21 @@ const Auth = () => {
           }}
         >
           <Box sx={{ width: '100%', maxWidth: '400px' }}>
-            {isSignIn ? <SignIn setIsSignIn={setIsSignIn} /> : <CreateAccount setIsSignIn={setIsSignIn} />}
+            {registrationSuccess ? (
+              <RegistrationSuccess 
+                email={registeredEmail} 
+                setIsSignIn={setIsSignIn}
+                setRegistrationSuccess={setRegistrationSuccess}
+              />
+            ) : isSignIn ? (
+              <SignIn setIsSignIn={setIsSignIn} />
+            ) : (
+              <CreateAccount 
+                setIsSignIn={setIsSignIn} 
+                setRegistrationSuccess={setRegistrationSuccess}
+                setRegisteredEmail={setRegisteredEmail}
+              />
+            )}
           </Box>
         </Box>
 
@@ -82,34 +99,17 @@ const Auth = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '140px',
-                height: '140px',
-                borderRadius: '50%',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(15px)',
-                border: '3px solid rgba(255, 255, 255, 0.3)',
-                boxShadow: '0 12px 40px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
-                animation: 'logoFloat 4s ease-in-out infinite',
-                position: 'relative',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  inset: '-4px',
-                  borderRadius: '50%',
-                  background: 'linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05))',
-                  zIndex: -1,
-                  animation: 'logoGlow 3s ease-in-out infinite alternate'
-                }
+                mb: 3
               }}
             >
-              <GavelIcon
-                sx={{
-                  fontSize: '4rem',
-                  color: 'white',
-                  textShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                  filter: 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.3))',
-                  animation: 'iconPulse 2s ease-in-out infinite'
-                }}
+              <img 
+                src='/assets/isologo.svg' 
+                alt="Planco Logo" 
+                style={{ 
+                  width: '120px', 
+                  height: '120px',
+                  objectFit: 'contain'
+                }} 
               />
             </Box>
 
@@ -146,53 +146,6 @@ const Auth = () => {
               A plataforma inteligente que conecta todas as fases da licitação pública.
             </Typography>
           </Box>
-
-          {/* Keyframes para animação */}
-          <style>
-            {`
-              @keyframes logoFloat {
-                0%, 100% {
-                  transform: translateY(0px) scale(1);
-                }
-                50% {
-                  transform: translateY(-8px) scale(1.02);
-                }
-              }
-              
-              @keyframes logoGlow {
-                0% {
-                  opacity: 0.3;
-                  transform: scale(1);
-                }
-                100% {
-                  opacity: 0.6;
-                  transform: scale(1.05);
-                }
-              }
-              
-              @keyframes iconPulse {
-                0%, 100% {
-                  transform: scale(1);
-                  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
-                }
-                50% {
-                  transform: scale(1.05);
-                  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.5));
-                }
-              }
-              
-              @keyframes pulse {
-                0%, 100% {
-                  transform: scale(1);
-                  opacity: 1;
-                }
-                50% {
-                  transform: scale(1.05);
-                  opacity: 0.7;
-                }
-              }
-            `}
-          </style>
         </Box>
       </Box>
     </Box>

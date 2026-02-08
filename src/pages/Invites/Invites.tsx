@@ -105,7 +105,7 @@ const Invites = () => {
                 width: 56,
                 height: 56,
                 borderRadius: '50%',
-                bgcolor: 'rgb(216, 194, 253)',
+                bgcolor: 'primary.light',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -113,7 +113,7 @@ const Invites = () => {
                 mt: 3
               }}
             >
-              <InfoOutlined sx={{ fontSize: 24, color: 'rgb(124, 59, 237)' }} />
+              <InfoOutlined sx={{ fontSize: 24, color: 'primary.main' }} />
             </Box>
           </Box>
           <Typography
@@ -173,7 +173,7 @@ const Invites = () => {
                   width: 56,
                   height: 56,
                   borderRadius: '50%',
-                  bgcolor: 'rgb(216, 194, 253)',
+                  bgcolor: 'primary.light',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -181,7 +181,7 @@ const Invites = () => {
                   mt: 3
                 }}
               >
-                <Mail sx={{ fontSize: 24, color: 'rgb(124, 59, 237)' }} />
+                <Mail sx={{ fontSize: 24, color: 'primary.main' }} />
               </Box>
             </Box>
             <Typography
@@ -252,7 +252,7 @@ const Invites = () => {
                       width: 24,
                       height: 24,
                       borderRadius: '50%',
-                      bgcolor: 'rgb(124, 59, 237)',
+                      bgcolor: 'primary.main',
                       color: 'white',
                       display: 'flex',
                       alignItems: 'center',
@@ -291,7 +291,7 @@ const Invites = () => {
                       width: 24,
                       height: 24,
                       borderRadius: '50%',
-                      bgcolor: 'rgb(124, 59, 237)',
+                      bgcolor: 'primary.main',
                       color: 'white',
                       display: 'flex',
                       alignItems: 'center',
@@ -330,7 +330,7 @@ const Invites = () => {
                       width: 24,
                       height: 24,
                       borderRadius: '50%',
-                      bgcolor: 'rgb(124, 59, 237)',
+                      bgcolor: 'primary.main',
                       color: 'white',
                       display: 'flex',
                       alignItems: 'center',
@@ -414,7 +414,7 @@ const Invites = () => {
                 width: 56,
                 height: 56,
                 borderRadius: '50%',
-                bgcolor: 'rgb(216, 194, 253)',
+                bgcolor: 'primary.light',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -422,7 +422,7 @@ const Invites = () => {
                 mt: 3
               }}
             >
-              <PersonAdd sx={{ fontSize: 28, color: 'rgb(124, 59, 237)' }} />
+              <PersonAdd sx={{ fontSize: 28, color: 'primary.main' }} />
             </Box>
           </Box>
           <Typography
@@ -589,10 +589,7 @@ const Invites = () => {
                       startIcon={<CheckCircle />}
                       onClick={() => handleAcceptInvite(invite._id)}
                       disabled={acceptingInvite || decliningInvite}
-                      sx={{
-                        flex: 1,
-                        bgcolor: 'rgb(124, 59, 237)'
-                      }}
+                      sx={{ flex: 1 }}
                     >
                       Aceitar Convite
                     </Button>
@@ -600,13 +597,6 @@ const Invites = () => {
                       variant='outlined'
                       onClick={() => handleDeclineInvite(invite._id)}
                       disabled={acceptingInvite || decliningInvite}
-                      sx={{
-                        borderColor: 'rgb(124, 59, 237)',
-                        color: 'rgb(124, 59, 237)',
-                        '&:hover': {
-                          borderColor: 'darkred'
-                        }
-                      }}
                     >
                       Recusar
                     </Button>
