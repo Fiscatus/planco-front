@@ -6,6 +6,7 @@ import {
   WarningOutlined as WarningIcon
 } from '@mui/icons-material';
 import {
+  alpha,
   Box,
   Chip,
   IconButton,
@@ -29,58 +30,58 @@ interface ProcessTableProps {
 const getPriorityColor = (priority?: string) => {
   switch (priority) {
     case 'Alta':
-      return { bg: '#FDE8EC', color: '#B81E34', fontWeight: 700 };
+      return { bg: 'error.light', color: 'error.main', fontWeight: 700 };
     case 'Média':
-      return { bg: '#FFF5D6', color: '#B38800', fontWeight: 600 };
+      return { bg: 'warning.light', color: 'warning.dark', fontWeight: 600 };
     case 'Baixa':
-      return { bg: '#E7F3FF', color: '#1877F2', fontWeight: 600 };
+      return { bg: 'secondary.light', color: 'primary.main', fontWeight: 600 };
     default:
-      return { bg: '#F3F4F6', color: '#6B7280', fontWeight: 600 };
+      return { bg: 'grey.100', color: 'text.secondary', fontWeight: 600 };
   }
 };
 
-const getModalityColor = (modality?: string) => {
+const _getModalityColor = (modality?: string) => {
   switch (modality) {
     case 'Pregão Eletrônico':
-      return { bg: '#E7F3FF', color: '#105BBE' };
+      return { bg: 'secondary.light', color: 'primary.dark' };
     case 'Pregão Presencial':
-      return { bg: '#E8F5FE', color: '#1877F2' };
+      return { bg: 'secondary.light', color: 'primary.main' };
     case 'Dispensa de Licitação':
-      return { bg: '#E6F4EA', color: '#1F7A37' };
+      return { bg: 'success.light', color: 'success.dark' };
     case 'Concorrência':
-      return { bg: '#EEE8FD', color: '#5A3DBE' };
+      return { bg: 'secondary.light', color: 'secondary.dark' };
     case 'Inexigibilidade':
     case 'Inexigibilidade de Licitação':
-      return { bg: '#FFF5D6', color: '#B38800' };
+      return { bg: 'warning.light', color: 'warning.dark' };
     case 'Concurso':
-      return { bg: '#E8F5FE', color: '#105BBE' };
+      return { bg: 'secondary.light', color: 'primary.dark' };
     case 'Leilão':
-      return { bg: '#E8F5FE', color: '#105BBE' };
+      return { bg: 'secondary.light', color: 'primary.dark' };
     case 'Diálogo Competitivo':
-      return { bg: '#E7F3FF', color: '#105BBE' };
+      return { bg: 'secondary.light', color: 'primary.dark' };
     case 'Pregão':
     case 'Dispensa':
     case 'Tomada de Preços':
-      return { bg: '#E6F4EA', color: '#1F7A37' };
+      return { bg: 'success.light', color: 'success.dark' };
     default:
-      return { bg: '#F0F2F5', color: '#3A3B3C' };
+      return { bg: 'grey.100', color: 'grey.800' };
   }
 };
 
 const getStatusColor = (status?: string) => {
   switch (status) {
     case 'Em Andamento':
-      return { bg: '#E7F3FF', color: '#105BBE', fontWeight: 700 };
+      return { bg: 'secondary.light', color: 'primary.dark', fontWeight: 700 };
     case 'Pendente':
-      return { bg: '#FFF5D6', color: '#B38800', fontWeight: 700 };
+      return { bg: 'warning.light', color: 'warning.dark', fontWeight: 700 };
     case 'Em Atraso':
-      return { bg: '#FDE8EC', color: '#B81E34', fontWeight: 700 };
+      return { bg: 'error.light', color: 'error.main', fontWeight: 700 };
     case 'Concluído':
-      return { bg: '#E6F4EA', color: '#1F7A37', fontWeight: 700 };
+      return { bg: 'success.light', color: 'success.dark', fontWeight: 700 };
     case 'Cancelado':
-      return { bg: '#F0F2F5', color: '#616161', fontWeight: 600 };
+      return { bg: 'grey.100', color: 'text.secondary', fontWeight: 600 };
     default:
-      return { bg: '#F3F4F6', color: '#6B7280', fontWeight: 600 };
+      return { bg: 'grey.100', color: 'text.secondary', fontWeight: 600 };
   }
 };
 
@@ -154,7 +155,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
             width: { xs: 4, sm: 6 },
             height: { xs: 20, sm: 24 },
             borderRadius: '6px',
-            backgroundColor: '#1877F2',
+            backgroundColor: 'primary.main',
             flexShrink: 0
           }}
         />
@@ -163,7 +164,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
           sx={{
             fontWeight: 700,
             fontSize: { xs: '16px', sm: '18px', md: '20px' },
-            color: '#212121'
+            color: 'text.primary'
           }}
         >
           {sortedProcesses.length === 1 ? '1 Processo' : `${sortedProcesses.length} Processos`}
@@ -173,23 +174,23 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
       <TableContainer
         sx={{
           borderRadius: { xs: '12px', sm: '16px' },
-          border: '1px solid #E4E6EB',
-          boxShadow: '0 1px 3px rgba(16, 24, 40, 0.06)',
+          border: '1px solid divider',
+          boxShadow: (theme) => `0 1px 3px ${alpha(theme.palette.common.black, 0.06)}`,
           overflowX: 'auto',
-          backgroundColor: '#FFFFFF',
+          backgroundColor: 'background.paper',
           mb: { xs: 2, sm: 3 },
           '&::-webkit-scrollbar': {
             height: '8px'
           },
           '&::-webkit-scrollbar-track': {
-            backgroundColor: '#F7F9FB',
+            backgroundColor: 'grey.50',
             borderRadius: '4px'
           },
           '&::-webkit-scrollbar-thumb': {
-            backgroundColor: '#D1D5DB',
+            backgroundColor: 'grey.300',
             borderRadius: '4px',
             '&:hover': {
-              backgroundColor: '#9CA3AF'
+              backgroundColor: 'text.disabled'
             }
           }
         }}
@@ -198,14 +199,14 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
           <TableHead>
             <TableRow
               sx={{
-                background: 'linear-gradient(to bottom, #F7F9FC 0%, #F3F6FA 100%)',
+                background: 'linear-gradient(to bottom, grey.50 0%, grey.100 100%)',
                 '& th': {
                   fontWeight: 600,
                   fontSize: '0.875rem',
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
-                  color: '#212121',
-                  borderBottom: '1px solid #E4E6EB',
+                  color: 'text.primary',
+                  borderBottom: '1px solid divider',
                   py: 2,
                   px: { xs: 1.5, md: 2.5 },
                   verticalAlign: 'middle'
@@ -227,8 +228,8 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                     componentsProps={{
                       tooltip: {
                         sx: {
-                          backgroundColor: '#212121',
-                          color: '#FFFFFF',
+                          backgroundColor: 'text.primary',
+                          color: 'common.white',
                           border: 'none',
                           fontSize: '12px',
                           padding: '6px 12px',
@@ -237,7 +238,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                       },
                       arrow: {
                         sx: {
-                          color: '#212121'
+                          color: 'text.primary'
                         }
                       }
                     }}
@@ -252,12 +253,12 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                         transition: 'all 200ms ease',
                         '&:hover': {
                           '& .sort-icon': {
-                            color: '#1877F2',
+                            color: 'primary.main',
                             transform: 'scale(1.1)'
                           }
                         },
                         '&:focus': {
-                          outline: '2px solid rgba(24, 119, 242, 0.25)',
+                          outline: (theme) => `2px solid ${alpha(theme.palette.primary.main, 0.25)}`,
                           outlineOffset: '2px'
                         }
                       }}
@@ -266,7 +267,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                         className='sort-icon'
                         sx={{
                           fontSize: '14px',
-                          color: '#8A8D91',
+                          color: 'text.disabled',
                           transition: 'transform 200ms ease, color 200ms ease'
                         }}
                       />
@@ -307,13 +308,13 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                         width: 80,
                         height: 80,
                         borderRadius: '50%',
-                        background: 'linear-gradient(180deg, #F7F9FB 0%, #E4E6EB 100%)',
+                        background: 'linear-gradient(180deg, grey.50 0%, divider 100%)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center'
                       }}
                     >
-                      <AssignmentIcon sx={{ fontSize: 40, color: '#9CA3AF' }} />
+                      <AssignmentIcon sx={{ fontSize: 40, color: 'text.disabled' }} />
                     </Box>
                     <Box>
                       <Typography
@@ -321,7 +322,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                         sx={{
                           fontWeight: 600,
                           fontSize: '20px',
-                          color: '#212121',
+                          color: 'text.primary',
                           mb: 1
                         }}
                       >
@@ -330,7 +331,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                       <Typography
                         variant='body2'
                         sx={{
-                          color: '#8A8D91',
+                          color: 'text.disabled',
                           maxWidth: '448px'
                         }}
                       >
@@ -345,12 +346,12 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                 <TableRow
                   key={process._id}
                   sx={{
-                    backgroundColor: index % 2 === 0 ? '#FFFFFF' : '#FAFBFC',
-                    borderBottom: '1px solid #E4E6EB',
-                    borderTop: index === 0 ? '1px solid #E4E6EB' : 'none',
+                    backgroundColor: index % 2 === 0 ? 'background.paper' : 'grey.50',
+                    borderBottom: '1px solid divider',
+                    borderTop: index === 0 ? '1px solid divider' : 'none',
                     '&:hover': {
-                      backgroundColor: '#E7F3FF',
-                      boxShadow: '0 2px 6px rgba(16, 24, 40, 0.06)',
+                      backgroundColor: 'secondary.light',
+                      boxShadow: (theme) => `0 2px 6px ${alpha(theme.palette.common.black, 0.06)}`,
                       cursor: 'pointer',
                       transform: 'translateY(-1px)'
                     },
@@ -367,7 +368,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                       component='span'
                       onClick={() => handleProcessClick(process)}
                       sx={{
-                        color: '#1877F2',
+                        color: 'primary.main',
                         fontWeight: 700,
                         fontSize: '1rem',
                         cursor: 'pointer',
@@ -376,12 +377,12 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                         display: 'inline-block',
                         transition: 'all 0.2s ease',
                         '&:hover': {
-                          color: '#105BBE',
+                          color: 'primary.dark',
                           textDecoration: 'underline',
                           transform: 'translateX(2px)'
                         },
                         '&:focus': {
-                          outline: '2px solid rgba(24, 119, 242, 0.25)',
+                          outline: (theme) => `2px solid ${alpha(theme.palette.primary.main, 0.25)}`,
                           outlineOffset: '4px',
                           borderRadius: '4px'
                         }
@@ -398,8 +399,8 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                       componentsProps={{
                         tooltip: {
                           sx: {
-                            backgroundColor: '#212121',
-                            color: '#FFFFFF',
+                            backgroundColor: 'text.primary',
+                            color: 'common.white',
                             border: 'none',
                             fontSize: '12px',
                             maxWidth: '600px',
@@ -409,7 +410,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                         },
                         arrow: {
                           sx: {
-                            color: '#212121'
+                            color: 'text.primary'
                           }
                         }
                       }}
@@ -417,7 +418,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                       <Typography
                         component='span'
                         sx={{
-                          color: '#212121',
+                          color: 'text.primary',
                           fontSize: '0.875rem',
                           lineHeight: 1.6,
                           maxWidth: { xs: 300, sm: 500, md: 600, lg: 700 },
@@ -428,7 +429,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                           display: 'block',
                           transition: 'color 0.2s ease',
                           '&:hover': {
-                            color: '#105BBE'
+                            color: 'primary.dark'
                           }
                         }}
                       >
@@ -450,16 +451,16 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                           padding: '6px 12px',
                           borderRadius: '20px',
                           whiteSpace: 'nowrap',
-                          backgroundColor: '#FFFFFF',
-                          color: '#3A3B3C',
-                          border: '1px solid #E4E6EB',
-                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                          backgroundColor: 'background.paper',
+                          color: 'grey.800',
+                          border: '1px solid divider',
+                          boxShadow: (theme) => `0 1px 2px ${alpha(theme.palette.common.black, 0.05)}`,
                           height: '28px',
                           minWidth: 'fit-content',
                           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                           '&:hover': {
-                            borderColor: '#D1D5DB',
-                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                            borderColor: 'grey.300',
+                            boxShadow: (theme) => `0 2px 6px ${alpha(theme.palette.common.black, 0.1)}`,
                             transform: 'translateY(-1px)'
                           }
                         }}
@@ -480,16 +481,16 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                           padding: '6px 12px',
                           borderRadius: '20px',
                           whiteSpace: 'nowrap',
-                          backgroundColor: '#FFFFFF',
-                          color: '#3A3B3C',
-                          border: '1px solid #E4E6EB',
-                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                          backgroundColor: 'background.paper',
+                          color: 'grey.800',
+                          border: '1px solid divider',
+                          boxShadow: (theme) => `0 1px 2px ${alpha(theme.palette.common.black, 0.05)}`,
                           height: '28px',
                           minWidth: 'fit-content',
                           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                           '&:hover': {
-                            borderColor: '#D1D5DB',
-                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                            borderColor: 'grey.300',
+                            boxShadow: (theme) => `0 2px 6px ${alpha(theme.palette.common.black, 0.1)}`,
                             transform: 'translateY(-1px)'
                           }
                         }}
@@ -510,16 +511,16 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                           padding: '6px 12px',
                           borderRadius: '16px',
                           whiteSpace: 'nowrap',
-                          backgroundColor: '#FFFFFF',
+                          backgroundColor: 'background.paper',
                           color: getPriorityColor(process.priority).color,
-                          border: '1px solid #E4E6EB',
-                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                          border: '1px solid divider',
+                          boxShadow: (theme) => `0 1px 2px ${alpha(theme.palette.common.black, 0.05)}`,
                           height: '28px',
                           minWidth: 'fit-content',
                           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                           '&:hover': {
-                            borderColor: '#D1D5DB',
-                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                            borderColor: 'grey.300',
+                            boxShadow: (theme) => `0 2px 6px ${alpha(theme.palette.common.black, 0.1)}`,
                             transform: 'translateY(-1px)'
                           }
                         }}
@@ -540,16 +541,16 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                           padding: '6px 12px',
                           borderRadius: '16px',
                           whiteSpace: 'nowrap',
-                          backgroundColor: '#FFFFFF',
+                          backgroundColor: 'background.paper',
                           color: getStatusColor(process.status).color,
-                          border: '1px solid #E4E6EB',
-                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+                          border: '1px solid divider',
+                          boxShadow: (theme) => `0 1px 2px ${alpha(theme.palette.common.black, 0.05)}`,
                           height: '28px',
                           minWidth: 'fit-content',
                           transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                           '&:hover': {
-                            borderColor: '#D1D5DB',
-                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+                            borderColor: 'grey.300',
+                            boxShadow: (theme) => `0 2px 6px ${alpha(theme.palette.common.black, 0.1)}`,
                             transform: 'translateY(-1px)'
                           }
                         }}
@@ -560,17 +561,17 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                             width: 28,
                             height: 28,
                             borderRadius: '50%',
-                            backgroundColor: 'rgba(184, 30, 52, 0.12)',
+                            backgroundColor: (theme) => alpha(theme.palette.error.main, 0.12),
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            filter: 'drop-shadow(0 2px 3px rgba(184, 30, 52, 0.25))',
+                            filter: (theme) => `drop-shadow(0 2px 3px ${alpha(theme.palette.error.main, 0.25)})`,
                             animation: 'pulseAlert 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                             flexShrink: 0,
-                            border: '1px solid rgba(184, 30, 52, 0.2)',
+                            border: (theme) => `1px solid ${alpha(theme.palette.error.main, 0.2)}`,
                             transition: 'all 0.2s ease',
                             '&:hover': {
-                              backgroundColor: 'rgba(184, 30, 52, 0.18)',
+                              backgroundColor: (theme) => alpha(theme.palette.error.main, 0.18),
                               transform: 'scale(1.05)'
                             },
                             '@keyframes pulseAlert': {
@@ -585,7 +586,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                             }
                           }}
                         >
-                          <WarningIcon sx={{ fontSize: 18, color: '#B81E34' }} />
+                          <WarningIcon sx={{ fontSize: 18, color: 'error.main' }} />
                         </Box>
                       )}
                     </Box>
@@ -599,8 +600,8 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                         componentsProps={{
                           tooltip: {
                             sx: {
-                              backgroundColor: '#212121',
-                              color: '#FFFFFF',
+                              backgroundColor: 'text.primary',
+                              color: 'common.white',
                               border: 'none',
                               fontSize: '12px',
                               padding: '6px 12px',
@@ -609,7 +610,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                           },
                           arrow: {
                             sx: {
-                              color: '#212121'
+                              color: 'text.primary'
                             }
                           }
                         }}
@@ -621,18 +622,18 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                             height: 36,
                             borderRadius: '999px',
                             backgroundColor: 'transparent',
-                            color: '#8A8D91',
+                            color: 'text.disabled',
                             transition: 'all 0.2s ease',
                             '&:hover': {
-                              backgroundColor: 'rgba(24, 119, 242, 0.08)',
-                              color: '#1877F2',
+                              backgroundColor: 'action.selected',
+                              color: 'primary.main',
                               transform: 'scale(1.05)'
                             },
                             '&:active': {
                               transform: 'scale(0.95)'
                             },
                             '&:focus': {
-                              outline: '2px solid rgba(24, 119, 242, 0.25)',
+                              outline: (theme) => `2px solid ${alpha(theme.palette.primary.main, 0.25)}`,
                               outlineOffset: '2px'
                             },
                             '& svg': {
@@ -650,8 +651,8 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                         componentsProps={{
                           tooltip: {
                             sx: {
-                              backgroundColor: '#212121',
-                              color: '#FFFFFF',
+                              backgroundColor: 'text.primary',
+                              color: 'common.white',
                               border: 'none',
                               fontSize: '12px',
                               padding: '6px 12px',
@@ -660,7 +661,7 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                           },
                           arrow: {
                             sx: {
-                              color: '#212121'
+                              color: 'text.primary'
                             }
                           }
                         }}
@@ -673,18 +674,18 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                             height: 36,
                             borderRadius: '999px',
                             backgroundColor: 'transparent',
-                            color: '#8A8D91',
+                            color: 'text.disabled',
                             transition: 'all 0.2s ease',
                             '&:hover': {
-                              backgroundColor: 'rgba(24, 119, 242, 0.08)',
-                              color: '#1877F2',
+                              backgroundColor: 'action.selected',
+                              color: 'primary.main',
                               transform: 'scale(1.05)'
                             },
                             '&:active': {
                               transform: 'scale(0.95)'
                             },
                             '&:focus': {
-                              outline: '2px solid rgba(24, 119, 242, 0.25)',
+                              outline: (theme) => `2px solid ${alpha(theme.palette.primary.main, 0.25)}`,
                               outlineOffset: '2px'
                             },
                             '& svg': {

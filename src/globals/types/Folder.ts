@@ -46,4 +46,3 @@ export type ToggleFavoriteResponse = {
   message: string;
   folder: Folder;
 };
-

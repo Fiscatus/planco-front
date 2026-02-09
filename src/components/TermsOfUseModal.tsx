@@ -1,5 +1,5 @@
-import { Box, Button, Dialog, DialogContent, IconButton, Typography } from '@mui/material';
 import { Close as CloseIcon, Description as DescriptionIcon } from '@mui/icons-material';
+import { Box, Button, Dialog, DialogContent, IconButton, Typography, useTheme } from '@mui/material';
 
 type Props = {
   open: boolean;
@@ -7,6 +7,8 @@ type Props = {
 };
 
 const TermsOfUseModal = ({ open, onClose }: Props) => {
+  const theme = useTheme();
+
   return (
     <Dialog
       open={open}
@@ -25,7 +27,8 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
       {/* Header com gradiente */}
       <Box
         sx={{
-          background: 'linear-gradient(135deg, #1877F2 0%, #42A5F5 100%)',
+          background: (theme) =>
+            `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.light} 100%)`,
           color: 'white',
           position: 'relative',
           overflow: 'hidden'
@@ -100,17 +103,17 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
           {/* Introdução */}
           <Box
             sx={{
-              backgroundColor: '#F8F9FA',
+              backgroundColor: 'grey.50',
               borderRadius: '12px',
               p: 3,
               mb: 3,
-              border: '1px solid #E9ECEF'
+              border: (theme) => `1px solid ${theme.palette.divider}`
             }}
           >
             <Typography
               variant='body1'
               sx={{
-                color: '#495057',
+                color: 'text.secondary',
                 fontSize: '1rem',
                 lineHeight: 1.6,
                 textAlign: 'center'
@@ -128,7 +131,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 backgroundColor: 'white',
                 borderRadius: '12px',
                 p: 3,
-                border: '1px solid #E9ECEF',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
               }}
             >
@@ -137,7 +140,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 sx={{
                   mb: 2,
                   fontWeight: 600,
-                  color: '#1877F2',
+                  color: 'primary.main',
                   fontSize: '1.125rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -149,7 +152,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                     width: '24px',
                     height: '24px',
                     borderRadius: '50%',
-                    backgroundColor: '#1877F2',
+                    backgroundColor: 'primary.main',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
@@ -165,7 +168,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               <Typography
                 variant='body2'
                 sx={{
-                  color: '#495057',
+                  color: 'text.secondary',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
@@ -181,7 +184,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 backgroundColor: 'white',
                 borderRadius: '12px',
                 p: 3,
-                border: '1px solid #E9ECEF',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
               }}
             >
@@ -190,7 +193,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 sx={{
                   mb: 2,
                   fontWeight: 600,
-                  color: '#1877F2',
+                  color: 'primary.main',
                   fontSize: '1.125rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -202,7 +205,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                     width: '24px',
                     height: '24px',
                     borderRadius: '50%',
-                    backgroundColor: '#1877F2',
+                    backgroundColor: 'primary.main',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
@@ -218,7 +221,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               <Typography
                 variant='body2'
                 sx={{
-                  color: '#495057',
+                  color: 'text.secondary',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
@@ -234,7 +237,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 backgroundColor: 'white',
                 borderRadius: '12px',
                 p: 3,
-                border: '1px solid #E9ECEF',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
               }}
             >
@@ -243,7 +246,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 sx={{
                   mb: 2,
                   fontWeight: 600,
-                  color: '#1877F2',
+                  color: 'primary.main',
                   fontSize: '1.125rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -255,7 +258,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                     width: '24px',
                     height: '24px',
                     borderRadius: '50%',
-                    backgroundColor: '#1877F2',
+                    backgroundColor: 'primary.main',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
@@ -271,7 +274,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               <Typography
                 variant='body2'
                 sx={{
-                  color: '#495057',
+                  color: 'text.secondary',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
@@ -288,7 +291,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 backgroundColor: 'white',
                 borderRadius: '12px',
                 p: 3,
-                border: '1px solid #E9ECEF',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
               }}
             >
@@ -297,7 +300,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 sx={{
                   mb: 2,
                   fontWeight: 600,
-                  color: '#1877F2',
+                  color: 'primary.main',
                   fontSize: '1.125rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -309,7 +312,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                     width: '24px',
                     height: '24px',
                     borderRadius: '50%',
-                    backgroundColor: '#1877F2',
+                    backgroundColor: 'primary.main',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
@@ -325,7 +328,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               <Typography
                 variant='body2'
                 sx={{
-                  color: '#495057',
+                  color: 'text.secondary',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
@@ -341,7 +344,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 backgroundColor: 'white',
                 borderRadius: '12px',
                 p: 3,
-                border: '1px solid #E9ECEF',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
               }}
             >
@@ -350,7 +353,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 sx={{
                   mb: 2,
                   fontWeight: 600,
-                  color: '#1877F2',
+                  color: 'primary.main',
                   fontSize: '1.125rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -362,7 +365,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                     width: '24px',
                     height: '24px',
                     borderRadius: '50%',
-                    backgroundColor: '#1877F2',
+                    backgroundColor: 'primary.main',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
@@ -378,7 +381,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               <Typography
                 variant='body2'
                 sx={{
-                  color: '#495057',
+                  color: 'text.secondary',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
@@ -394,7 +397,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 backgroundColor: 'white',
                 borderRadius: '12px',
                 p: 3,
-                border: '1px solid #E9ECEF',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
               }}
             >
@@ -403,7 +406,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 sx={{
                   mb: 2,
                   fontWeight: 600,
-                  color: '#1877F2',
+                  color: 'primary.main',
                   fontSize: '1.125rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -415,7 +418,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                     width: '24px',
                     height: '24px',
                     borderRadius: '50%',
-                    backgroundColor: '#1877F2',
+                    backgroundColor: 'primary.main',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
@@ -431,7 +434,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               <Typography
                 variant='body2'
                 sx={{
-                  color: '#495057',
+                  color: 'text.secondary',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
@@ -447,7 +450,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 backgroundColor: 'white',
                 borderRadius: '12px',
                 p: 3,
-                border: '1px solid #E9ECEF',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
               }}
             >
@@ -456,7 +459,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 sx={{
                   mb: 2,
                   fontWeight: 600,
-                  color: '#1877F2',
+                  color: 'primary.main',
                   fontSize: '1.125rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -468,7 +471,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                     width: '24px',
                     height: '24px',
                     borderRadius: '50%',
-                    backgroundColor: '#1877F2',
+                    backgroundColor: 'primary.main',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
@@ -484,7 +487,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               <Typography
                 variant='body2'
                 sx={{
-                  color: '#495057',
+                  color: 'text.secondary',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
@@ -500,7 +503,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 backgroundColor: 'white',
                 borderRadius: '12px',
                 p: 3,
-                border: '1px solid #E9ECEF',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
                 boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)'
               }}
             >
@@ -509,7 +512,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                 sx={{
                   mb: 2,
                   fontWeight: 600,
-                  color: '#1877F2',
+                  color: 'primary.main',
                   fontSize: '1.125rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -521,7 +524,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
                     width: '24px',
                     height: '24px',
                     borderRadius: '50%',
-                    backgroundColor: '#1877F2',
+                    backgroundColor: 'primary.main',
                     color: 'white',
                     display: 'flex',
                     alignItems: 'center',
@@ -537,7 +540,7 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
               <Typography
                 variant='body2'
                 sx={{
-                  color: '#495057',
+                  color: 'text.secondary',
                   lineHeight: 1.6,
                   fontSize: '0.875rem'
                 }}
@@ -553,8 +556,8 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
         <Box
           sx={{
             p: 3,
-            backgroundColor: '#F8F9FA',
-            borderTop: '1px solid #E9ECEF',
+            backgroundColor: 'grey.50',
+            borderTop: (theme) => `1px solid ${theme.palette.divider}`,
             display: 'flex',
             justifyContent: 'center'
           }}
@@ -565,14 +568,14 @@ const TermsOfUseModal = ({ open, onClose }: Props) => {
             sx={{
               height: '48px',
               borderRadius: '8px',
-              backgroundColor: '#1877F2',
+              backgroundColor: 'primary.main',
               color: 'white',
               fontSize: '1rem',
               fontWeight: 600,
               textTransform: 'none',
               px: 4,
               '&:hover': {
-                backgroundColor: '#166FE5'
+                backgroundColor: 'primary.dark'
               },
               transition: 'all 0.2s ease-in-out'
             }}

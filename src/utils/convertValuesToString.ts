@@ -12,7 +12,7 @@ const convertValuesToString = <T extends Record<string, Params>>(obj: T): Record
       }
     }
   }
-  return result as Record<keyof T, string>
+  return result as Record<keyof T, string>;
 };
 
 export { convertValuesToString };

@@ -195,23 +195,15 @@ export const ManageFolderModal = ({
     }
   }, [debouncedSearch, open, currentTab, setUrlParams, urlParams]);
 
-  // Carregar processos quando a aba de mover processos estiver ativa
-  useEffect(() => {
-    if (open && folder?._id && currentTab === 1) {
-      loadProcesses();
-    }
-  }, [open, folder?._id, currentTab, modalPage, modalLimit, debouncedSearch]);
-
-  const loadProcesses = async () => {
+  const loadProcesses = useCallback(async () => {
     if (!folder?._id) return;
     setLoadingProcesses(true);
     try {
-      setProcesses([]); // Limpa os processos existentes antes de carregar
+      setProcesses([]);
       const filters: FilterProcessesDto = {
         page: modalPage,
         limit: modalLimit
       };
-      // Se houver busca, buscar tanto por processNumber quanto por object
       if (debouncedSearch) {
         filters.processNumber = debouncedSearch;
         filters.object = debouncedSearch;
@@ -228,7 +220,13 @@ export const ManageFolderModal = ({
     } finally {
       setLoadingProcesses(false);
     }
-  };
+  }, [folder?._id, modalPage, modalLimit, debouncedSearch, fetchProcessesByFolder]);
+
+  useEffect(() => {
+    if (open && folder?._id && currentTab === 1) {
+      loadProcesses();
+    }
+  }, [open, folder?._id, currentTab, loadProcesses]);
 
   const handleModalPageChange = useCallback(
     (_event: unknown, newPage: number) => {
@@ -322,7 +320,7 @@ export const ManageFolderModal = ({
     setDeleteConfirmationModalOpen(false);
   };
 
-  const handleChangeTab = (event: React.SyntheticEvent, newValue: number) => {
+  const handleChangeTab = (_event: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
     setDeleteConfirmationModalOpen(false); // Fechar modal de confirmação ao trocar de aba
   };
@@ -356,9 +354,7 @@ export const ManageFolderModal = ({
     try {
       const dataToSave: UpdateFolderDto = {
         name: folderForm.name,
-        ...(folderForm.observations && folderForm.observations.trim()
-          ? { observations: folderForm.observations.trim() }
-          : {}),
+        ...(folderForm.observations?.trim() ? { observations: folderForm.observations.trim() } : {}),
         ...(folderForm.year !== undefined &&
         (typeof folderForm.year === 'string' ? folderForm.year !== '' : folderForm.year !== 0)
           ? { year: Number(folderForm.year) }
@@ -425,9 +421,9 @@ export const ManageFolderModal = ({
             sx={{
               px: { xs: 2, sm: 3, md: 4 },
               py: { xs: 2, sm: 2.5, md: 3 },
-              borderBottom: '1px solid #e2e8f0',
+              borderBottom: '1px solid divider',
               flexShrink: 0,
-              backgroundColor: '#ffffff'
+              backgroundColor: 'background.paper'
             }}
           >
             {/* Faixa 1: Título principal + botão fechar */}
@@ -444,7 +440,7 @@ export const ManageFolderModal = ({
                 variant='h5'
                 sx={{
                   fontWeight: 700,
-                  color: '#0f172a',
+                  color: 'text.primary',
                   fontSize: { xs: '1.25rem', sm: '1.375rem', md: '1.5rem' },
                   lineHeight: { xs: 1.3, sm: 1.2 },
                   flex: 1,
@@ -458,11 +454,11 @@ export const ManageFolderModal = ({
                 sx={{
                   width: { xs: 36, sm: 40 },
                   height: { xs: 36, sm: 40 },
-                  color: '#64748b',
+                  color: 'text.secondary',
                   backgroundColor: 'transparent',
                   flexShrink: 0,
                   '&:hover': {
-                    backgroundColor: '#f1f5f9'
+                    backgroundColor: 'grey.100'
                   }
                 }}
               >
@@ -484,7 +480,7 @@ export const ManageFolderModal = ({
                 variant='subtitle1'
                 sx={{
                   fontWeight: 600,
-                  color: '#0f172a',
+                  color: 'text.primary',
                   fontSize: { xs: '0.9375rem', sm: '1rem' },
                   lineHeight: 1.4,
                   wordBreak: 'break-word',
@@ -504,9 +500,9 @@ export const ManageFolderModal = ({
                       height: { xs: 22, sm: 24 },
                       fontSize: { xs: '0.6875rem', sm: '0.75rem' },
                       fontWeight: 600,
-                      backgroundColor: '#dbeafe',
-                      color: '#1877F2',
-                      border: '1px solid #bfdbfe',
+                      backgroundColor: 'secondary.light',
+                      color: 'primary.main',
+                      border: '1px solid secondary.light',
                       '& .MuiChip-label': {
                         px: { xs: 1, sm: 1.25 },
                         py: 0
@@ -516,16 +512,16 @@ export const ManageFolderModal = ({
                 )}
                 {isFolderFavorite && !folder.isPermanent && (
                   <Chip
-                    icon={<StarIcon sx={{ fontSize: { xs: 12, sm: 14 }, color: '#f59e0b' }} />}
+                    icon={<StarIcon sx={{ fontSize: { xs: 12, sm: 14 }, color: 'warning.main' }} />}
                     label='Favorita'
                     size='small'
                     sx={{
                       height: { xs: 22, sm: 24 },
                       fontSize: { xs: '0.6875rem', sm: '0.75rem' },
                       fontWeight: 600,
-                      backgroundColor: '#fef3c7',
-                      color: '#92400e',
-                      border: '1px solid #fde68a',
+                      backgroundColor: 'warning.light',
+                      color: 'warning.dark',
+                      border: '1px solid warning.main',
                       '& .MuiChip-icon': {
                         marginLeft: { xs: '4px', sm: '6px' }
                       },
@@ -543,7 +539,7 @@ export const ManageFolderModal = ({
             <Typography
               variant='body2'
               sx={{
-                color: '#64748b',
+                color: 'text.secondary',
                 fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                 lineHeight: { xs: 1.4, sm: 1.5 },
                 fontWeight: 400
@@ -577,7 +573,7 @@ export const ManageFolderModal = ({
                   minHeight: { xs: 48, sm: 56 },
                   px: { xs: 1.5, sm: 2 },
                   '&.Mui-selected': {
-                    color: '#1877F2'
+                    color: 'primary.main'
                   },
                   '&:hover': {
                     backgroundColor: 'rgba(24, 119, 242, 0.04)'
@@ -587,7 +583,7 @@ export const ManageFolderModal = ({
                   fontSize: { xs: 18, sm: 20 }
                 },
                 '& .MuiTabs-indicator': {
-                  backgroundColor: '#1877F2',
+                  backgroundColor: 'primary.main',
                   height: 3,
                   borderRadius: '3px 3px 0 0'
                 },
@@ -639,18 +635,18 @@ export const ManageFolderModal = ({
                   sx={{
                     p: { xs: 2, sm: 2.5 },
                     borderRadius: 2,
-                    backgroundColor: '#fef3c7',
-                    border: '1px solid #fcd34d',
+                    backgroundColor: 'warning.light',
+                    border: '1px solid warning.main',
                     display: 'flex',
                     alignItems: 'center',
                     gap: { xs: 1, sm: 1.5 }
                   }}
                 >
-                  <WarningIcon sx={{ color: '#92400e', fontSize: { xs: 18, sm: 20 }, flexShrink: 0 }} />
+                  <WarningIcon sx={{ color: 'warning.dark', fontSize: { xs: 18, sm: 20 }, flexShrink: 0 }} />
                   <Typography
                     variant='body2'
                     sx={{
-                      color: '#92400e',
+                      color: 'warning.dark',
                       fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                       lineHeight: { xs: 1.4, sm: 1.5 }
                     }}
@@ -666,7 +662,7 @@ export const ManageFolderModal = ({
                       variant='body2'
                       sx={{
                         fontWeight: 600,
-                        color: '#0f172a',
+                        color: 'text.primary',
                         mb: { xs: 0.75, sm: 1 },
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                       }}
@@ -682,30 +678,30 @@ export const ManageFolderModal = ({
                       variant='outlined'
                       sx={{
                         '& .MuiOutlinedInput-root': {
-                          backgroundColor: '#ffffff',
+                          backgroundColor: 'background.paper',
                           borderRadius: 2,
                           height: { xs: 44, sm: 48 },
                           fontSize: { xs: '0.875rem', sm: '1rem' },
                           '& .MuiOutlinedInput-notchedOutline': {
-                            border: '2px solid #e2e8f0',
+                            border: '2px solid divider',
                             transition: 'all 0.2s ease-in-out'
                           },
                           '&:hover': {
                             '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#cbd5e1'
+                              borderColor: 'grey.300'
                             },
-                            backgroundColor: '#ffffff'
+                            backgroundColor: 'background.paper'
                           },
                           '&.Mui-focused': {
                             '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#1877F2',
+                              borderColor: 'primary.main',
                               boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                             },
-                            backgroundColor: '#ffffff'
+                            backgroundColor: 'background.paper'
                           }
                         },
                         '& .MuiInputBase-input::placeholder': {
-                          color: '#9ca3af',
+                          color: 'text.disabled',
                           opacity: 1,
                           fontSize: { xs: '0.875rem', sm: '1rem' }
                         }
@@ -719,7 +715,7 @@ export const ManageFolderModal = ({
                       variant='body2'
                       sx={{
                         fontWeight: 600,
-                        color: '#0f172a',
+                        color: 'text.primary',
                         mb: { xs: 0.75, sm: 1 },
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                       }}
@@ -745,30 +741,30 @@ export const ManageFolderModal = ({
                       inputProps={{ min: 2000, max: new Date().getFullYear() }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
-                          backgroundColor: '#ffffff',
+                          backgroundColor: 'background.paper',
                           borderRadius: 2,
                           height: { xs: 44, sm: 48 },
                           fontSize: { xs: '0.875rem', sm: '1rem' },
                           '& .MuiOutlinedInput-notchedOutline': {
-                            border: '2px solid #e2e8f0',
+                            border: '2px solid divider',
                             transition: 'all 0.2s ease-in-out'
                           },
                           '&:hover': {
                             '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#cbd5e1'
+                              borderColor: 'grey.300'
                             },
-                            backgroundColor: '#ffffff'
+                            backgroundColor: 'background.paper'
                           },
                           '&.Mui-focused': {
                             '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#1877F2',
+                              borderColor: 'primary.main',
                               boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                             },
-                            backgroundColor: '#ffffff'
+                            backgroundColor: 'background.paper'
                           }
                         },
                         '& .MuiInputBase-input::placeholder': {
-                          color: '#9ca3af',
+                          color: 'text.disabled',
                           opacity: 1,
                           fontSize: { xs: '0.875rem', sm: '1rem' }
                         }
@@ -782,7 +778,7 @@ export const ManageFolderModal = ({
                       variant='body2'
                       sx={{
                         fontWeight: 600,
-                        color: '#0f172a',
+                        color: 'text.primary',
                         mb: { xs: 0.75, sm: 1 },
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                       }}
@@ -799,25 +795,25 @@ export const ManageFolderModal = ({
                       variant='outlined'
                       sx={{
                         '& .MuiOutlinedInput-root': {
-                          backgroundColor: '#ffffff',
+                          backgroundColor: 'background.paper',
                           borderRadius: 2,
                           fontSize: { xs: '0.875rem', sm: '1rem' },
                           '& .MuiOutlinedInput-notchedOutline': {
-                            border: '2px solid #e2e8f0',
+                            border: '2px solid divider',
                             transition: 'all 0.2s ease-in-out'
                           },
                           '&:hover': {
                             '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#cbd5e1'
+                              borderColor: 'grey.300'
                             },
-                            backgroundColor: '#ffffff'
+                            backgroundColor: 'background.paper'
                           },
                           '&.Mui-focused': {
                             '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#1877F2',
+                              borderColor: 'primary.main',
                               boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                             },
-                            backgroundColor: '#ffffff'
+                            backgroundColor: 'background.paper'
                           }
                         },
                         '& .MuiInputBase-input': {
@@ -825,7 +821,7 @@ export const ManageFolderModal = ({
                           padding: { xs: '12px 14px', sm: '14px 16px' }
                         },
                         '& .MuiInputBase-input::placeholder': {
-                          color: '#9ca3af',
+                          color: 'text.disabled',
                           opacity: 1,
                           fontSize: { xs: '0.875rem', sm: '1rem' }
                         }
@@ -837,8 +833,8 @@ export const ManageFolderModal = ({
                   <Box
                     sx={{
                       p: { xs: 2, sm: 3 },
-                      backgroundColor: '#f8fafc',
-                      borderTop: '1px solid #e2e8f0',
+                      backgroundColor: 'grey.50',
+                      borderTop: '1px solid divider',
                       display: 'flex',
                       flexDirection: { xs: 'column-reverse', sm: 'row' },
                       justifyContent: 'flex-end',
@@ -853,8 +849,8 @@ export const ManageFolderModal = ({
                       sx={{
                         textTransform: 'none',
                         borderRadius: 2,
-                        borderColor: '#E4E6EB',
-                        color: '#212121',
+                        borderColor: 'divider',
+                        color: 'text.primary',
                         px: { xs: 2.5, sm: 3 },
                         py: { xs: 1.125, sm: 1.25 },
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' },
@@ -862,7 +858,7 @@ export const ManageFolderModal = ({
                         width: { xs: '100%', sm: 'auto' },
                         '&:hover': {
                           borderColor: '#CBD5E1',
-                          backgroundColor: '#F8F9FA'
+                          backgroundColor: 'grey.50'
                         },
                         '&:disabled': {
                           opacity: 0.5,
@@ -879,7 +875,7 @@ export const ManageFolderModal = ({
                       sx={{
                         textTransform: 'none',
                         borderRadius: 2,
-                        backgroundColor: '#1877F2',
+                        backgroundColor: 'primary.main',
                         color: '#FFFFFF',
                         px: { xs: 2.5, sm: 4 },
                         py: { xs: 1.125, sm: 1.25 },
@@ -887,11 +883,11 @@ export const ManageFolderModal = ({
                         fontWeight: 600,
                         width: { xs: '100%', sm: 'auto' },
                         '&:hover': {
-                          backgroundColor: '#166fe5'
+                          backgroundColor: 'primary.dark'
                         },
                         '&:disabled': {
-                          backgroundColor: '#E4E6EB',
-                          color: '#8A8D91'
+                          backgroundColor: 'divider',
+                          color: 'text.disabled'
                         }
                       }}
                     >
@@ -929,11 +925,11 @@ export const ManageFolderModal = ({
                       width: '8px'
                     },
                     '&::-webkit-scrollbar-thumb': {
-                      backgroundColor: '#cbd5e1',
+                      backgroundColor: 'grey.300',
                       borderRadius: '4px'
                     },
                     '&::-webkit-scrollbar-track': {
-                      backgroundColor: '#f1f5f9'
+                      backgroundColor: 'grey.100'
                     }
                   }}
                 >
@@ -943,7 +939,7 @@ export const ManageFolderModal = ({
                       variant='body2'
                       sx={{
                         fontWeight: 600,
-                        color: '#0f172a',
+                        color: 'text.primary',
                         mb: { xs: 0.75, sm: 1 },
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                       }}
@@ -958,7 +954,7 @@ export const ManageFolderModal = ({
                         renderValue={(value) => {
                           if (!value) {
                             return (
-                              <Typography sx={{ color: '#9ca3af', fontSize: '0.875rem' }}>
+                              <Typography sx={{ color: 'text.disabled', fontSize: '0.875rem' }}>
                                 {loadingFolders
                                   ? 'Carregando pastas...'
                                   : filteredAvailableFolders.length === 0
@@ -970,14 +966,14 @@ export const ManageFolderModal = ({
                           const selectedFolder = availableFolders.find((f) => f._id === value);
                           if (!selectedFolder) return null;
                           const isPlanco = selectedFolder.name?.toLowerCase().includes('planco');
-                          const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
+                          const folderIconColor = isPlanco ? 'primary.main' : 'warning.main';
 
                           return (
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
                               <FolderIcon sx={{ fontSize: { xs: 18, sm: 20 }, color: folderIconColor }} />
                               <Typography
                                 sx={{
-                                  color: '#0f172a',
+                                  color: 'text.primary',
                                   fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                                   fontWeight: 400
                                 }}
@@ -990,20 +986,20 @@ export const ManageFolderModal = ({
                         sx={{
                           height: { xs: 44, sm: 48 },
                           borderRadius: 2,
-                          backgroundColor: '#ffffff',
+                          backgroundColor: 'background.paper',
                           fontSize: { xs: '0.875rem', sm: '1rem' },
                           '& .MuiOutlinedInput-notchedOutline': {
-                            border: '2px solid #e2e8f0',
+                            border: '2px solid divider',
                             transition: 'all 0.2s ease-in-out'
                           },
                           '&:hover': {
                             '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#cbd5e1'
+                              borderColor: 'grey.300'
                             }
                           },
                           '&.Mui-focused': {
                             '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#1877F2',
+                              borderColor: 'primary.main',
                               boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                             }
                           },
@@ -1028,7 +1024,7 @@ export const ManageFolderModal = ({
                         </MenuItem>
                         {filteredAvailableFolders.map((f) => {
                           const isPlanco = f.name?.toLowerCase().includes('planco');
-                          const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
+                          const folderIconColor = isPlanco ? 'primary.main' : 'warning.main';
 
                           return (
                             <MenuItem
@@ -1036,9 +1032,9 @@ export const ManageFolderModal = ({
                               value={f._id}
                               sx={{
                                 '&.Mui-selected': {
-                                  backgroundColor: '#f1f5f9',
+                                  backgroundColor: 'grey.100',
                                   '&:hover': {
-                                    backgroundColor: '#f1f5f9'
+                                    backgroundColor: 'grey.100'
                                   }
                                 }
                               }}
@@ -1054,7 +1050,7 @@ export const ManageFolderModal = ({
                                     variant='body2'
                                     sx={{
                                       fontWeight: 500,
-                                      color: '#0f172a',
+                                      color: 'text.primary',
                                       fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                                       wordBreak: 'break-word'
                                     }}
@@ -1086,7 +1082,7 @@ export const ManageFolderModal = ({
                         variant='body2'
                         sx={{
                           fontWeight: 600,
-                          color: '#0f172a',
+                          color: 'text.primary',
                           fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                         }}
                       >
@@ -1097,7 +1093,7 @@ export const ManageFolderModal = ({
                           variant='body2'
                           sx={{
                             fontWeight: 500,
-                            color: '#1877F2',
+                            color: 'primary.main',
                             fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                           }}
                         >
@@ -1124,7 +1120,7 @@ export const ManageFolderModal = ({
                               height: { xs: 18, sm: 20 }
                             }}
                           >
-                            <SearchIcon sx={{ color: '#94a3b8', fontSize: { xs: '1.125rem', sm: '1.25rem' } }} />
+                            <SearchIcon sx={{ color: 'text.disabled', fontSize: { xs: '1.125rem', sm: '1.25rem' } }} />
                           </Box>
                         )
                       }}
@@ -1132,27 +1128,27 @@ export const ManageFolderModal = ({
                         mb: { xs: 1, sm: 1.5 },
                         '& .MuiOutlinedInput-root': {
                           borderRadius: 2,
-                          backgroundColor: '#ffffff',
+                          backgroundColor: 'background.paper',
                           height: { xs: 44, sm: 48 },
                           fontSize: { xs: '0.875rem', sm: '1rem' },
                           '& .MuiOutlinedInput-notchedOutline': {
-                            border: '2px solid #e2e8f0',
+                            border: '2px solid divider',
                             transition: 'all 0.2s ease-in-out'
                           },
                           '&:hover': {
                             '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#cbd5e1'
+                              borderColor: 'grey.300'
                             }
                           },
                           '&.Mui-focused': {
                             '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#1877F2',
+                              borderColor: 'primary.main',
                               boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                             }
                           }
                         },
                         '& .MuiInputBase-input::placeholder': {
-                          color: '#9ca3af',
+                          color: 'text.disabled',
                           opacity: 1,
                           fontSize: { xs: '0.875rem', sm: '1rem' }
                         }
@@ -1163,13 +1159,13 @@ export const ManageFolderModal = ({
                     <TableContainer
                       sx={{
                         borderRadius: 2,
-                        border: '1px solid #e2e8f0',
-                        backgroundColor: '#ffffff',
+                        border: '1px solid divider',
+                        backgroundColor: 'background.paper',
                         overflow: 'visible',
                         '& .MuiTableHead-root': {
                           '& .MuiTableCell-root': {
-                            bgcolor: '#f8fafc',
-                            borderBottom: '1px solid #e2e8f0',
+                            bgcolor: 'grey.50',
+                            borderBottom: '1px solid divider',
                             '&::before': {
                               content: '""',
                               position: 'absolute',
@@ -1177,7 +1173,7 @@ export const ManageFolderModal = ({
                               top: 0,
                               width: '100%',
                               height: '100%',
-                              bgcolor: '#f8fafc',
+                              bgcolor: 'grey.50',
                               zIndex: -1
                             }
                           }
@@ -1188,24 +1184,24 @@ export const ManageFolderModal = ({
                         sx={{
                           minWidth: { xs: 600, sm: 'auto' },
                           '& .MuiTableHead-root': {
-                            bgcolor: '#f8fafc'
+                            bgcolor: 'grey.50'
                           }
                         }}
                       >
                         <TableHead
                           sx={{
-                            bgcolor: '#f8fafc',
+                            bgcolor: 'grey.50',
                             '& .MuiTableRow-root': {
-                              bgcolor: '#f8fafc'
+                              bgcolor: 'grey.50'
                             }
                           }}
                         >
-                          <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                          <TableRow sx={{ bgcolor: 'grey.50' }}>
                             <TableCell
                               padding='checkbox'
                               sx={{
-                                bgcolor: '#f8fafc',
-                                borderBottom: '1px solid #e2e8f0',
+                                bgcolor: 'grey.50',
+                                borderBottom: '1px solid divider',
                                 py: { xs: 1, sm: 1.5 },
                                 position: 'sticky',
                                 left: 0,
@@ -1217,7 +1213,7 @@ export const ManageFolderModal = ({
                                   top: 0,
                                   width: '100%',
                                   height: '100%',
-                                  bgcolor: '#f8fafc',
+                                  bgcolor: 'grey.50',
                                   zIndex: -1
                                 }
                               }}
@@ -1232,20 +1228,20 @@ export const ManageFolderModal = ({
                                 onChange={handleSelectAll}
                                 size={isMobile ? 'small' : 'medium'}
                                 sx={{
-                                  color: '#64748b',
+                                  color: 'text.secondary',
                                   '&.Mui-checked': {
-                                    color: '#1877F2'
+                                    color: 'primary.main'
                                   }
                                 }}
                               />
                             </TableCell>
                             <TableCell
                               sx={{
-                                bgcolor: '#f8fafc',
+                                bgcolor: 'grey.50',
                                 fontWeight: 600,
-                                color: '#0f172a',
+                                color: 'text.primary',
                                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                                borderBottom: '1px solid #e2e8f0',
+                                borderBottom: '1px solid divider',
                                 py: { xs: 1, sm: 1.5 },
                                 position: 'sticky',
                                 left: { xs: 48, sm: 58 },
@@ -1257,7 +1253,7 @@ export const ManageFolderModal = ({
                                   top: 0,
                                   width: '100%',
                                   height: '100%',
-                                  bgcolor: '#f8fafc',
+                                  bgcolor: 'grey.50',
                                   zIndex: -1
                                 }
                               }}
@@ -1276,7 +1272,7 @@ export const ManageFolderModal = ({
                                   componentsProps={{
                                     tooltip: {
                                       sx: {
-                                        backgroundColor: '#212121',
+                                        backgroundColor: 'text.primary',
                                         color: '#FFFFFF',
                                         border: 'none',
                                         fontSize: { xs: '11px', sm: '12px' },
@@ -1286,7 +1282,7 @@ export const ManageFolderModal = ({
                                     },
                                     arrow: {
                                       sx: {
-                                        color: '#212121'
+                                        color: 'text.primary'
                                       }
                                     }
                                   }}
@@ -1301,7 +1297,7 @@ export const ManageFolderModal = ({
                                       transition: 'all 200ms ease',
                                       '&:hover': {
                                         '& .sort-icon': {
-                                          color: '#1877F2',
+                                          color: 'primary.main',
                                           transform: 'scale(1.1)'
                                         }
                                       },
@@ -1315,7 +1311,7 @@ export const ManageFolderModal = ({
                                       className='sort-icon'
                                       sx={{
                                         fontSize: { xs: '12px', sm: '14px' },
-                                        color: '#8A8D91',
+                                        color: 'text.disabled',
                                         transition: 'transform 200ms ease, color 200ms ease'
                                       }}
                                     />
@@ -1325,11 +1321,11 @@ export const ManageFolderModal = ({
                             </TableCell>
                             <TableCell
                               sx={{
-                                backgroundColor: '#f8fafc',
+                                backgroundColor: 'grey.50',
                                 fontWeight: 600,
-                                color: '#0f172a',
+                                color: 'text.primary',
                                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                                borderBottom: '1px solid #e2e8f0',
+                                borderBottom: '1px solid divider',
                                 py: { xs: 1, sm: 1.5 }
                               }}
                             >
@@ -1337,11 +1333,11 @@ export const ManageFolderModal = ({
                             </TableCell>
                             <TableCell
                               sx={{
-                                backgroundColor: '#f8fafc',
+                                backgroundColor: 'grey.50',
                                 fontWeight: 600,
-                                color: '#0f172a',
+                                color: 'text.primary',
                                 fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                                borderBottom: '1px solid #e2e8f0',
+                                borderBottom: '1px solid divider',
                                 py: { xs: 1, sm: 1.5 }
                               }}
                             >
@@ -1354,7 +1350,7 @@ export const ManageFolderModal = ({
                             <TableRow>
                               <TableCell
                                 colSpan={4}
-                                sx={{ textAlign: 'center', py: 4, color: '#64748b' }}
+                                sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}
                               >
                                 Carregando processos...
                               </TableCell>
@@ -1363,7 +1359,7 @@ export const ManageFolderModal = ({
                             <TableRow>
                               <TableCell
                                 colSpan={4}
-                                sx={{ textAlign: 'center', py: 4, color: '#64748b' }}
+                                sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}
                               >
                                 Nenhum processo encontrado
                               </TableCell>
@@ -1373,17 +1369,17 @@ export const ManageFolderModal = ({
                               <TableRow
                                 key={process._id}
                                 sx={{
-                                  backgroundColor: '#ffffff',
+                                  backgroundColor: 'background.paper',
                                   '&:hover': {
-                                    backgroundColor: '#f8fafc'
+                                    backgroundColor: 'grey.50'
                                   },
                                   '&:last-child td': {
                                     borderBottom: 'none'
                                   },
                                   '&.Mui-selected': {
-                                    backgroundColor: '#ffffff',
+                                    backgroundColor: 'background.paper',
                                     '&:hover': {
-                                      backgroundColor: '#f8fafc'
+                                      backgroundColor: 'grey.50'
                                     }
                                   }
                                 }}
@@ -1395,7 +1391,7 @@ export const ManageFolderModal = ({
                                     position: 'sticky',
                                     left: 0,
                                     zIndex: 5,
-                                    backgroundColor: '#ffffff'
+                                    backgroundColor: 'background.paper'
                                   }}
                                 >
                                   <Checkbox
@@ -1403,9 +1399,9 @@ export const ManageFolderModal = ({
                                     onChange={() => handleToggleProcess(process._id)}
                                     size={isMobile ? 'small' : 'medium'}
                                     sx={{
-                                      color: '#64748b',
+                                      color: 'text.secondary',
                                       '&.Mui-checked': {
-                                        color: '#1877F2'
+                                        color: 'primary.main'
                                       }
                                     }}
                                   />
@@ -1413,12 +1409,12 @@ export const ManageFolderModal = ({
                                 <TableCell
                                   sx={{
                                     py: { xs: 1, sm: 1.5 },
-                                    color: '#0f172a',
+                                    color: 'text.primary',
                                     fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                                     position: 'sticky',
                                     left: { xs: 48, sm: 58 },
                                     zIndex: 5,
-                                    backgroundColor: '#ffffff'
+                                    backgroundColor: 'background.paper'
                                   }}
                                 >
                                   {process.processNumber}
@@ -1435,7 +1431,7 @@ export const ManageFolderModal = ({
                                 <TableCell
                                   sx={{
                                     py: { xs: 1, sm: 1.5 },
-                                    color: '#64748b',
+                                    color: 'text.secondary',
                                     fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                                   }}
                                 >
@@ -1458,8 +1454,8 @@ export const ManageFolderModal = ({
                           justifyContent: 'space-between',
                           alignItems: 'center',
                           gap: 2,
-                          backgroundColor: '#f8fafc',
-                          borderTop: '1px solid #e2e8f0',
+                          backgroundColor: 'grey.50',
+                          borderTop: '1px solid divider',
                           mt: 2,
                           borderRadius: '0 0 12px 12px'
                         }}
@@ -1482,7 +1478,7 @@ export const ManageFolderModal = ({
                               minWidth: 120,
                               height: 32,
                               fontSize: '0.875rem',
-                              backgroundColor: '#ffffff'
+                              backgroundColor: 'background.paper'
                             }}
                           >
                             {[5, 10, 25, 50].map((limit) => (
@@ -1491,9 +1487,9 @@ export const ManageFolderModal = ({
                                 value={limit}
                                 sx={{
                                   '&.Mui-selected': {
-                                    backgroundColor: '#f1f5f9',
+                                    backgroundColor: 'grey.100',
                                     '&:hover': {
-                                      backgroundColor: '#f1f5f9'
+                                      backgroundColor: 'grey.100'
                                     }
                                   }
                                 }}
@@ -1520,8 +1516,8 @@ export const ManageFolderModal = ({
                 <Box
                   sx={{
                     p: { xs: 2, sm: 3 },
-                    backgroundColor: '#f8fafc',
-                    borderTop: '1px solid #e2e8f0',
+                    backgroundColor: 'grey.50',
+                    borderTop: '1px solid divider',
                     display: 'flex',
                     flexDirection: { xs: 'column-reverse', sm: 'row' },
                     justifyContent: 'flex-end',
@@ -1537,8 +1533,8 @@ export const ManageFolderModal = ({
                     sx={{
                       textTransform: 'none',
                       borderRadius: 2,
-                      borderColor: '#E4E6EB',
-                      color: '#212121',
+                      borderColor: 'divider',
+                      color: 'text.primary',
                       px: { xs: 2.5, sm: 3 },
                       py: { xs: 1.125, sm: 1.25 },
                       fontSize: { xs: '0.8125rem', sm: '0.875rem' },
@@ -1546,7 +1542,7 @@ export const ManageFolderModal = ({
                       width: { xs: '100%', sm: 'auto' },
                       '&:hover': {
                         borderColor: '#CBD5E1',
-                        backgroundColor: '#F8F9FA'
+                        backgroundColor: 'grey.50'
                       },
                       '&:disabled': {
                         opacity: 0.5,
@@ -1564,7 +1560,7 @@ export const ManageFolderModal = ({
                     sx={{
                       textTransform: 'none',
                       borderRadius: 2,
-                      backgroundColor: '#1877F2',
+                      backgroundColor: 'primary.main',
                       color: '#FFFFFF',
                       px: { xs: 2.5, sm: 4 },
                       py: { xs: 1.125, sm: 1.25 },
@@ -1572,11 +1568,11 @@ export const ManageFolderModal = ({
                       fontWeight: 600,
                       width: { xs: '100%', sm: 'auto' },
                       '&:hover': {
-                        backgroundColor: '#166fe5'
+                        backgroundColor: 'primary.dark'
                       },
                       '&:disabled': {
-                        backgroundColor: '#E4E6EB',
-                        color: '#8A8D91'
+                        backgroundColor: 'divider',
+                        color: 'text.disabled'
                       }
                     }}
                   >
@@ -1595,18 +1591,18 @@ export const ManageFolderModal = ({
                   sx={{
                     p: { xs: 2, sm: 2.5 },
                     borderRadius: 2,
-                    backgroundColor: '#fef3c7',
-                    border: '1px solid #fcd34d',
+                    backgroundColor: 'warning.light',
+                    border: '1px solid warning.main',
                     display: 'flex',
                     alignItems: 'center',
                     gap: { xs: 1, sm: 1.5 }
                   }}
                 >
-                  <WarningIcon sx={{ color: '#92400e', fontSize: { xs: 18, sm: 20 }, flexShrink: 0 }} />
+                  <WarningIcon sx={{ color: 'warning.dark', fontSize: { xs: 18, sm: 20 }, flexShrink: 0 }} />
                   <Typography
                     variant='body2'
                     sx={{
-                      color: '#92400e',
+                      color: 'warning.dark',
                       fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                       lineHeight: { xs: 1.4, sm: 1.5 }
                     }}
@@ -1619,18 +1615,18 @@ export const ManageFolderModal = ({
                   {/* Informações da pasta */}
                   <Box
                     sx={{
-                      backgroundColor: '#ffffff',
+                      backgroundColor: 'background.paper',
                       borderRadius: 2,
-                      border: '1px solid #e2e8f0',
+                      border: '1px solid divider',
                       overflow: 'hidden'
                     }}
                   >
                     {/* Header do card */}
                     <Box
                       sx={{
-                        backgroundColor: '#f8fafc',
+                        backgroundColor: 'grey.50',
                         p: 2.5,
-                        borderBottom: '1px solid #e2e8f0',
+                        borderBottom: '1px solid divider',
                         display: 'flex',
                         alignItems: 'center',
                         gap: { xs: 1.5, sm: 2 },
@@ -1639,8 +1635,8 @@ export const ManageFolderModal = ({
                     >
                       {(() => {
                         const isPlanco = folder.name?.toLowerCase().includes('planco');
-                        const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
-                        const folderBgColor = isPlanco ? '#dbeafe' : '#fef3c7';
+                        const folderIconColor = isPlanco ? 'primary.main' : 'warning.main';
+                        const folderBgColor = isPlanco ? 'secondary.light' : 'warning.light';
 
                         return (
                           <Box
@@ -1670,7 +1666,7 @@ export const ManageFolderModal = ({
                           variant='h6'
                           sx={{
                             fontWeight: 600,
-                            color: '#0f172a',
+                            color: 'text.primary',
                             fontSize: { xs: '1rem', sm: '1.125rem' },
                             lineHeight: 1.3,
                             wordBreak: 'break-word'
@@ -1682,7 +1678,7 @@ export const ManageFolderModal = ({
                           <Typography
                             variant='body2'
                             sx={{
-                              color: '#64748b',
+                              color: 'text.secondary',
                               fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                               mt: 0.5
                             }}
@@ -1703,7 +1699,7 @@ export const ManageFolderModal = ({
                               variant='body2'
                               sx={{
                                 fontWeight: 600,
-                                color: '#0f172a',
+                                color: 'text.primary',
                                 fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                                 mb: { xs: 0.75, sm: 1 }
                               }}
@@ -1731,7 +1727,7 @@ export const ManageFolderModal = ({
                             gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
                             gap: { xs: 2, sm: 2.5 },
                             pt: { xs: 2, sm: 2.5 },
-                            borderTop: '1px solid #e2e8f0'
+                            borderTop: '1px solid divider'
                           }}
                         >
                           {/* Quantidade de processos */}
@@ -1741,7 +1737,7 @@ export const ManageFolderModal = ({
                                 variant='body2'
                                 sx={{
                                   fontWeight: 600,
-                                  color: '#0f172a',
+                                  color: 'text.primary',
                                   fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                                   mb: { xs: 0.5, sm: 0.75 }
                                 }}
@@ -1771,7 +1767,7 @@ export const ManageFolderModal = ({
                                 variant='body2'
                                 sx={{
                                   fontWeight: 600,
-                                  color: '#0f172a',
+                                  color: 'text.primary',
                                   fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                                   mb: { xs: 0.5, sm: 0.75 }
                                 }}
@@ -1801,7 +1797,7 @@ export const ManageFolderModal = ({
                                 variant='body2'
                                 sx={{
                                   fontWeight: 600,
-                                  color: '#0f172a',
+                                  color: 'text.primary',
                                   fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                                   mb: { xs: 0.5, sm: 0.75 }
                                 }}
@@ -1835,8 +1831,8 @@ export const ManageFolderModal = ({
                       alignItems: 'flex-start',
                       p: { xs: 2, sm: 2.5 },
                       borderRadius: 2,
-                      backgroundColor: '#FEF3C7',
-                      border: '1px solid #FCD34D'
+                      backgroundColor: 'warning.light',
+                      border: '1px solid warning.main'
                     }}
                   >
                     <WarningIcon
@@ -1886,7 +1882,7 @@ export const ManageFolderModal = ({
                       gap: { xs: 1.5, sm: 2 },
                       mt: 1,
                       pt: 2,
-                      borderTop: '1px solid #e2e8f0'
+                      borderTop: '1px solid divider'
                     }}
                   >
                     <Button
@@ -1897,15 +1893,15 @@ export const ManageFolderModal = ({
                         py: { xs: 1.125, sm: 1.25 },
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                         fontWeight: 600,
-                        color: '#64748b',
+                        color: 'text.secondary',
                         textTransform: 'none',
                         borderRadius: 2,
-                        border: '1px solid #e2e8f0',
-                        backgroundColor: '#ffffff',
+                        border: '1px solid divider',
+                        backgroundColor: 'background.paper',
                         width: { xs: '100%', sm: 'auto' },
                         '&:hover': {
-                          backgroundColor: '#f8fafc',
-                          borderColor: '#cbd5e1'
+                          backgroundColor: 'grey.50',
+                          borderColor: 'grey.300'
                         },
                         transition: 'all 0.2s ease-in-out'
                       }}
@@ -1922,17 +1918,17 @@ export const ManageFolderModal = ({
                         py: { xs: 1.125, sm: 1.25 },
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                         fontWeight: 600,
-                        backgroundColor: '#DC2626',
+                        backgroundColor: 'error.main',
                         textTransform: 'none',
                         borderRadius: 2,
                         boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                         width: { xs: '100%', sm: 'auto' },
                         '&:hover': {
-                          backgroundColor: '#B91C1C',
+                          backgroundColor: 'error.dark',
                           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                         },
                         '&:disabled': {
-                          backgroundColor: '#9ca3af',
+                          backgroundColor: 'text.disabled',
                           boxShadow: 'none'
                         },
                         transition: 'all 0.2s ease-in-out'
@@ -1972,7 +1968,7 @@ export const ManageFolderModal = ({
               alignItems: 'center',
               justifyContent: 'space-between',
               p: { xs: 2, sm: 3 },
-              borderBottom: '1px solid #e2e8f0'
+              borderBottom: '1px solid divider'
             }}
           >
             <Typography
@@ -1980,7 +1976,7 @@ export const ManageFolderModal = ({
               sx={{
                 fontWeight: 700,
                 fontSize: { xs: '1.125rem', sm: '1.25rem' },
-                color: '#0f172a',
+                color: 'text.primary',
                 lineHeight: { xs: 1.3, sm: 1.2 }
               }}
             >
@@ -1990,11 +1986,11 @@ export const ManageFolderModal = ({
               onClick={handleCancelDelete}
               size='small'
               sx={{
-                color: '#64748b',
+                color: 'text.secondary',
                 width: { xs: 32, sm: 40 },
                 height: { xs: 32, sm: 40 },
                 '&:hover': {
-                  backgroundColor: '#f1f5f9'
+                  backgroundColor: 'grey.100'
                 }
               }}
             >
@@ -2011,8 +2007,8 @@ export const ManageFolderModal = ({
                 alignItems: 'flex-start',
                 p: { xs: 2, sm: 2.5 },
                 borderRadius: 2,
-                backgroundColor: '#FEF3C7',
-                border: '1px solid #FCD34D',
+                backgroundColor: 'warning.light',
+                border: '1px solid warning.main',
                 mb: { xs: 2, sm: 3 },
                 gap: { xs: 1, sm: 1.5 }
               }}
@@ -2100,7 +2096,7 @@ export const ManageFolderModal = ({
             <Typography
               variant='body1'
               sx={{
-                color: '#0f172a',
+                color: 'text.primary',
                 fontSize: { xs: '0.9375rem', sm: '1rem' },
                 lineHeight: { xs: 1.5, sm: 1.6 },
                 textAlign: 'center',
@@ -2124,8 +2120,8 @@ export const ManageFolderModal = ({
           <Box
             sx={{
               p: { xs: 2, sm: 3 },
-              backgroundColor: '#f8fafc',
-              borderTop: '1px solid #e2e8f0',
+              backgroundColor: 'grey.50',
+              borderTop: '1px solid divider',
               display: 'flex',
               flexDirection: { xs: 'column-reverse', sm: 'row' },
               justifyContent: 'flex-end',
@@ -2140,8 +2136,8 @@ export const ManageFolderModal = ({
               sx={{
                 textTransform: 'none',
                 borderRadius: 2,
-                borderColor: '#E4E6EB',
-                color: '#212121',
+                borderColor: 'divider',
+                color: 'text.primary',
                 px: { xs: 2.5, sm: 3 },
                 py: { xs: 1.125, sm: 1.25 },
                 fontSize: { xs: '0.8125rem', sm: '0.875rem' },
@@ -2149,7 +2145,7 @@ export const ManageFolderModal = ({
                 width: { xs: '100%', sm: 'auto' },
                 '&:hover': {
                   borderColor: '#CBD5E1',
-                  backgroundColor: '#F8F9FA'
+                  backgroundColor: 'grey.50'
                 },
                 '&:disabled': {
                   opacity: 0.5,
@@ -2167,7 +2163,7 @@ export const ManageFolderModal = ({
               sx={{
                 textTransform: 'none',
                 borderRadius: 2,
-                backgroundColor: '#DC2626',
+                backgroundColor: 'error.main',
                 color: '#FFFFFF',
                 px: { xs: 2.5, sm: 4 },
                 py: { xs: 1.125, sm: 1.25 },
@@ -2175,11 +2171,11 @@ export const ManageFolderModal = ({
                 fontWeight: 600,
                 width: { xs: '100%', sm: 'auto' },
                 '&:hover': {
-                  backgroundColor: '#B91C1C'
+                  backgroundColor: 'error.dark'
                 },
                 '&:disabled': {
-                  backgroundColor: '#E4E6EB',
-                  color: '#8A8D91'
+                  backgroundColor: 'divider',
+                  color: 'text.disabled'
                 }
               }}
             >

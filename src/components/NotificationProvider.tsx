@@ -1,4 +1,4 @@
-import { Alert, Snackbar } from '@mui/material';
+import { Alert, alpha, Snackbar, useTheme } from '@mui/material';
 import { createContext, type ReactNode, useContext, useState } from 'react';
 
 type NotificationType = 'success' | 'error' | 'warning' | 'info';
@@ -23,6 +23,7 @@ type Props = {
 
 export const NotificationProvider = ({ children }: Props) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const theme = useTheme();
 
   const showNotification = (message: string, type: NotificationType) => {
     const id = Date.now().toString();
@@ -47,7 +48,7 @@ export const NotificationProvider = ({ children }: Props) => {
 
     setTimeout(() => {
       handleClose(id);
-    }, 5000); // 5 seconds duration
+    }, 5000);
   };
 
   const handleClose = (id: string) => {
@@ -58,6 +59,16 @@ export const NotificationProvider = ({ children }: Props) => {
     setTimeout(() => {
       setNotifications((prev) => prev.filter((notification) => notification.id !== id));
     }, 300);
+  };
+
+  const getNotificationBackgroundColor = (type: NotificationType) => {
+    const colorMap = {
+      success: alpha(theme.palette.success.main, 0.9),
+      error: alpha(theme.palette.error.main, 0.9),
+      warning: alpha(theme.palette.warning.main, 0.9),
+      info: alpha(theme.palette.info.main, 0.9)
+    };
+    return colorMap[type];
   };
 
   return (
@@ -83,15 +94,8 @@ export const NotificationProvider = ({ children }: Props) => {
               minWidth: '300px',
               maxWidth: '400px',
               borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              backgroundColor:
-                notification.type === 'success'
-                  ? 'rgba(76, 175, 80, 0.9)'
-                  : notification.type === 'error'
-                    ? 'rgba(244, 67, 54, 0.9)'
-                    : notification.type === 'warning'
-                      ? 'rgba(255, 152, 0, 0.9)'
-                      : 'rgba(33, 150, 243, 0.9)', // info
+              boxShadow: theme.shadows[4],
+              backgroundColor: getNotificationBackgroundColor(notification.type),
               backdropFilter: 'blur(8px)',
               '& .MuiAlert-icon': {
                 color: 'white'

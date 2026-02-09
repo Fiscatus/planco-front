@@ -1,8 +1,16 @@
 import {
+  CalendarMonth as CalendarMonthIcon,
+  Clear as ClearIcon,
+  CreateNewFolder as CreateNewFolderIcon,
+  Edit as EditIcon,
+  FilterAlt as FilterAltIcon,
+  Search as SearchIcon,
+  Sort as SortIcon
+} from '@mui/icons-material';
+import {
   Box,
   Button,
   Card,
-  Chip,
   FormControl,
   Grid,
   MenuItem,
@@ -13,34 +21,24 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
-import {
-  CalendarMonth as CalendarMonthIcon,
-  Clear as ClearIcon,
-  CreateNewFolder as CreateNewFolderIcon,
-  Edit as EditIcon,
-  FilterAlt as FilterAltIcon,
-  Search as SearchIcon,
-  Sort as SortIcon
-} from '@mui/icons-material';
-import type { CreateFolderDto, FilterFoldersDto, Folder, MoveProcessesDto, UpdateFolderDto } from '@/globals/types';
-import { CreateFolderModal, ManageFolderModal, SelectFolderModal } from '@/components/modals';
-import { Loading, useNotification } from '@/components';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useFavoriteFolders, useFolders, useSearchWithDebounce } from '@/hooks';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-
-import { FolderCard } from './components/FolderCard';
+import { Loading, useNotification } from '@/components';
+import { CreateFolderModal, ManageFolderModal, SelectFolderModal } from '@/components/modals';
 import { years } from '@/globals/constants';
+import type { CreateFolderDto, FilterFoldersDto, Folder, UpdateFolderDto } from '@/globals/types';
+import { useFavoriteFolders, useFolders, useSearchWithDebounce } from '@/hooks';
+import { FolderCard } from './components/FolderCard';
 
 const FolderManagement = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const _isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { showNotification } = useNotification();
   const [urlParams, setUrlParams] = useSearchParams();
-  
+
   const {
     search: folderSearch,
     debouncedSearch: debouncedFolderSearch,
@@ -62,7 +60,7 @@ const FolderManagement = () => {
   const yearParam = urlParams.get('year') || '';
   const sortByParam = urlParams.get('sortBy') || 'name';
   const sortOrderParam = urlParams.get('sortOrder') || 'asc';
-  
+
   const page = useMemo(() => Number(pageParam), [pageParam]);
   const limit = useMemo(() => Number(limitParam), [limitParam]);
   const year = useMemo(() => yearParam, [yearParam]);
@@ -187,7 +185,7 @@ const FolderManagement = () => {
   }, []);
 
   const { toggleFavorite, getFavoriteIds } = useFavoriteFolders();
-  const [favoritesUpdateTrigger, setFavoritesUpdateTrigger] = useState(0);
+  const [_favoritesUpdateTrigger, setFavoritesUpdateTrigger] = useState(0);
 
   const handleToggleFavorite = useCallback(
     (id: string) => {
@@ -201,34 +199,34 @@ const FolderManagement = () => {
   // Função para ordenar pastas: permanentes primeiro, depois favoritas (mais recente primeiro), depois as outras (mais recente primeiro)
   const sortedFolders = useMemo(() => {
     if (!foldersData?.folders) return [];
-    
+
     const favoriteIds = getFavoriteIds();
     const favoriteIdsSet = new Set(favoriteIds);
-    
+
     // Função auxiliar para obter a data mais recente de uma pasta
     const getLatestDate = (folder: Folder): number => {
       const updatedAt = folder.updatedAt ? new Date(folder.updatedAt).getTime() : 0;
       const createdAt = folder.createdAt ? new Date(folder.createdAt).getTime() : 0;
       return Math.max(updatedAt, createdAt);
     };
-    
+
     return [...foldersData.folders].sort((a, b) => {
       const aIsPermanent = a.isPermanent || false;
       const bIsPermanent = b.isPermanent || false;
       const aIsFavorite = favoriteIdsSet.has(a._id);
       const bIsFavorite = favoriteIdsSet.has(b._id);
-      
+
       // Pastas permanentes primeiro
       if (aIsPermanent && !bIsPermanent) return -1;
       if (!aIsPermanent && bIsPermanent) return 1;
-      
+
       // Se ambas são permanentes, manter ordem original entre elas
       if (aIsPermanent && bIsPermanent) return 0;
-      
+
       // Depois pastas favoritadas (não permanentes)
       if (aIsFavorite && !bIsFavorite) return -1;
       if (!aIsFavorite && bIsFavorite) return 1;
-      
+
       // Se ambas são favoritas ou ambas não são favoritas, ordenar por data (mais recente primeiro)
       if ((aIsFavorite && bIsFavorite) || (!aIsFavorite && !bIsFavorite)) {
         const aDate = getLatestDate(a);
@@ -236,107 +234,132 @@ const FolderManagement = () => {
         // Mais recente primeiro (data maior vem primeiro)
         return bDate - aDate;
       }
-      
+
       return 0;
     });
-  }, [foldersData?.folders, getFavoriteIds, favoritesUpdateTrigger]);
+  }, [foldersData?.folders, getFavoriteIds]);
 
-  const handleCardClick = useCallback((id: string) => {
-    navigate(`/pasta/${id}`);
-  }, [navigate]);
+  const handleCardClick = useCallback(
+    (id: string) => {
+      navigate(`/pasta/${id}`);
+    },
+    [navigate]
+  );
 
   const handleClearFilters = useCallback(() => {
     clearFolderSearch();
-    
-    setUrlParams((prev) => {
-      const newParams = new URLSearchParams();
-      // Manter page e limit ao limpar filtros
-      const currentPage = prev.get('page') || '1';
-      const currentLimit = prev.get('limit') || '10';
-      newParams.set('page', currentPage);
-      newParams.set('limit', currentLimit);
-      return newParams;
-    }, { replace: true });
+
+    setUrlParams(
+      (prev) => {
+        const newParams = new URLSearchParams();
+        // Manter page e limit ao limpar filtros
+        const currentPage = prev.get('page') || '1';
+        const currentLimit = prev.get('limit') || '10';
+        newParams.set('page', currentPage);
+        newParams.set('limit', currentLimit);
+        return newParams;
+      },
+      { replace: true }
+    );
   }, [setUrlParams, clearFolderSearch]);
 
-  const hasActiveFilters = useMemo(() => !!(
-    (year && year !== '') ||
-    (sortBy && sortBy !== 'name') ||
-    (sortOrder && sortOrder !== 'asc') ||
-    (folderSearch && folderSearch.trim() !== '')
-  ), [year, sortBy, sortOrder, folderSearch]);
+  const hasActiveFilters = useMemo(
+    () =>
+      !!(
+        (year && year !== '') ||
+        (sortBy && sortBy !== 'name') ||
+        (sortOrder && sortOrder !== 'asc') ||
+        (folderSearch && folderSearch.trim() !== '')
+      ),
+    [year, sortBy, sortOrder, folderSearch]
+  );
 
   const handlePageChange = useCallback(
     (newPage: number) => {
-      setUrlParams((prev) => {
-        const newParams = new URLSearchParams(prev);
-        newParams.set('page', String(newPage));
-        if (!newParams.get('limit')) {
-          newParams.set('limit', '10');
-        }
-        return newParams;
-      }, { replace: true });
+      setUrlParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          newParams.set('page', String(newPage));
+          if (!newParams.get('limit')) {
+            newParams.set('limit', '10');
+          }
+          return newParams;
+        },
+        { replace: true }
+      );
     },
     [setUrlParams]
   );
 
   const handleLimitChange = useCallback(
     (newLimit: number) => {
-      setUrlParams((prev) => {
-        const newParams = new URLSearchParams(prev);
-        newParams.set('limit', String(newLimit));
-        newParams.set('page', '1');
-        return newParams;
-      }, { replace: true });
+      setUrlParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          newParams.set('limit', String(newLimit));
+          newParams.set('page', '1');
+          return newParams;
+        },
+        { replace: true }
+      );
     },
     [setUrlParams]
   );
 
   const handleYearChange = useCallback(
     (newYear: string) => {
-      setUrlParams((prev) => {
-        const newParams = new URLSearchParams(prev);
-        if (newYear === 'all') {
-          newParams.delete('year');
-        } else {
-          newParams.set('year', newYear);
-        }
-        newParams.set('page', '1');
-        if (!newParams.get('limit')) {
-          newParams.set('limit', '10');
-        }
-        return newParams;
-      }, { replace: true });
+      setUrlParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          if (newYear === 'all') {
+            newParams.delete('year');
+          } else {
+            newParams.set('year', newYear);
+          }
+          newParams.set('page', '1');
+          if (!newParams.get('limit')) {
+            newParams.set('limit', '10');
+          }
+          return newParams;
+        },
+        { replace: true }
+      );
     },
     [setUrlParams]
   );
 
   const handleSortByChange = useCallback(
     (newSortBy: string) => {
-      setUrlParams((prev) => {
-        const newParams = new URLSearchParams(prev);
-        newParams.set('sortBy', newSortBy);
-        newParams.set('page', '1');
-        if (!newParams.get('limit')) {
-          newParams.set('limit', '10');
-        }
-        return newParams;
-      }, { replace: true });
+      setUrlParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          newParams.set('sortBy', newSortBy);
+          newParams.set('page', '1');
+          if (!newParams.get('limit')) {
+            newParams.set('limit', '10');
+          }
+          return newParams;
+        },
+        { replace: true }
+      );
     },
     [setUrlParams]
   );
 
   const handleSortOrderChange = useCallback(
     (newSortOrder: string) => {
-      setUrlParams((prev) => {
-        const newParams = new URLSearchParams(prev);
-        newParams.set('sortOrder', newSortOrder);
-        newParams.set('page', '1');
-        if (!newParams.get('limit')) {
-          newParams.set('limit', '10');
-        }
-        return newParams;
-      }, { replace: true });
+      setUrlParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          newParams.set('sortOrder', newSortOrder);
+          newParams.set('page', '1');
+          if (!newParams.get('limit')) {
+            newParams.set('limit', '10');
+          }
+          return newParams;
+        },
+        { replace: true }
+      );
     },
     [setUrlParams]
   );
@@ -347,18 +370,21 @@ const FolderManagement = () => {
   // Garantir que page e limit sempre estejam na URL (apenas na montagem inicial)
   useEffect(() => {
     if (!pageParam || !limitParam) {
-      setUrlParams((prev) => {
-        const newParams = new URLSearchParams(prev);
-        if (!pageParam) {
-          newParams.set('page', '1');
-        }
-        if (!limitParam) {
-          newParams.set('limit', '10');
-        }
-        return newParams;
-      }, { replace: true });
+      setUrlParams(
+        (prev) => {
+          const newParams = new URLSearchParams(prev);
+          if (!pageParam) {
+            newParams.set('page', '1');
+          }
+          if (!limitParam) {
+            newParams.set('limit', '10');
+          }
+          return newParams;
+        },
+        { replace: true }
+      );
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [limitParam, pageParam, setUrlParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (foldersLoading) return <Loading isLoading={true} />;
 
@@ -379,7 +405,7 @@ const FolderManagement = () => {
             variant='h6'
             sx={{
               fontWeight: 600,
-              color: '#dc2626',
+              color: 'error.main',
               mb: 2
             }}
           >
@@ -388,7 +414,7 @@ const FolderManagement = () => {
           <Typography
             variant='body1'
             sx={{
-              color: '#64748b',
+              color: 'text.secondary',
               mb: 2
             }}
           >
@@ -397,7 +423,7 @@ const FolderManagement = () => {
           <Typography
             variant='body2'
             sx={{
-              color: '#9ca3af',
+              color: 'text.disabled',
               fontSize: '0.875rem'
             }}
           >
@@ -432,7 +458,7 @@ const FolderManagement = () => {
             sx={{
               fontWeight: 700,
               fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' },
-              color: '#0f172a',
+              color: 'text.primary',
               mb: { xs: 0.75, md: 1 },
               lineHeight: { xs: 1.3, md: 1.2 }
             }}
@@ -442,7 +468,7 @@ const FolderManagement = () => {
           <Typography
             variant='body1'
             sx={{
-              color: '#64748b',
+              color: 'text.secondary',
               fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' },
               maxWidth: { xs: '100%', md: '600px' },
               lineHeight: { xs: 1.5, md: 1.6 },
@@ -453,10 +479,10 @@ const FolderManagement = () => {
           </Typography>
         </Box>
 
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            gap: { xs: 1.5, sm: 2 }, 
+        <Box
+          sx={{
+            display: 'flex',
+            gap: { xs: 1.5, sm: 2 },
             flexWrap: { xs: 'wrap', sm: 'nowrap' },
             width: { xs: '100%', sm: 'auto' },
             mt: { xs: 2, sm: 0 }
@@ -473,13 +499,13 @@ const FolderManagement = () => {
               fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600,
               textTransform: 'none',
-              backgroundColor: '#1877F2',
+              backgroundColor: 'primary.main',
               boxShadow: 'none',
               width: { xs: '100%', sm: 'auto' },
               minWidth: { xs: '100%', sm: '140px' },
               flexShrink: 0,
               '&:hover': {
-                backgroundColor: '#166fe5',
+                backgroundColor: 'primary.dark',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               }
             }}
@@ -497,14 +523,14 @@ const FolderManagement = () => {
               fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600,
               textTransform: 'none',
-              borderColor: '#1877F2',
-              color: '#1877F2',
+              borderColor: 'primary.main',
+              color: 'primary.main',
               width: { xs: '100%', sm: 'auto' },
               minWidth: { xs: '100%', sm: '160px' },
               flexShrink: 0,
               '&:hover': {
-                borderColor: '#166fe5',
-                backgroundColor: '#f0f9ff'
+                borderColor: 'primary.dark',
+                backgroundColor: 'action.hover'
               }
             }}
           >
@@ -527,10 +553,10 @@ const FolderManagement = () => {
           sx={{
             borderRadius: 2,
             border: '1px solid',
-            borderColor: '#e2e8f0',
+            borderColor: 'divider',
             boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
             overflow: 'hidden',
-            backgroundColor: '#ffffff'
+            backgroundColor: 'background.paper'
           }}
         >
           <Box
@@ -541,20 +567,20 @@ const FolderManagement = () => {
               alignItems: 'center',
               justifyContent: 'space-between',
               borderBottom: '1px solid',
-              borderColor: '#f1f5f9',
-              backgroundColor: '#fafbfc',
+              borderColor: 'grey.100',
+              backgroundColor: 'background.default',
               flexWrap: { xs: 'wrap', sm: 'nowrap' },
               gap: { xs: 1.5, sm: 0 }
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
-              <FilterAltIcon sx={{ color: '#1877F2', fontSize: { xs: 18, sm: 20 } }} />
+              <FilterAltIcon sx={{ color: 'primary.main', fontSize: { xs: 18, sm: 20 } }} />
               <Typography
                 variant='subtitle1'
                 sx={{
                   fontWeight: 600,
                   fontSize: { xs: '0.875rem', sm: '0.9375rem' },
-                  color: '#0f172a',
+                  color: 'text.primary',
                   letterSpacing: '-0.01em'
                 }}
               >
@@ -573,18 +599,18 @@ const FolderManagement = () => {
                   py: { xs: 0.75, sm: 0.875 },
                   fontSize: { xs: '0.75rem', sm: '0.8125rem' },
                   fontWeight: 600,
-                  color: '#64748b',
-                  borderColor: '#cbd5e1',
+                  color: 'text.secondary',
+                  borderColor: 'divider',
                   textTransform: 'none',
                   borderRadius: 2,
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'background.paper',
                   transition: 'all 0.2s ease-in-out',
                   width: { xs: '100%', sm: 'auto' },
                   mt: { xs: 1, sm: 0 },
                   '&:hover': {
-                    backgroundColor: '#f8fafc',
-                    borderColor: '#94a3b8',
-                    color: '#475569',
+                    backgroundColor: 'background.default',
+                    borderColor: 'text.disabled',
+                    color: 'text.secondary',
                     boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
                   }
                 }}
@@ -594,7 +620,10 @@ const FolderManagement = () => {
             )}
           </Box>
           <Box sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
-            <Grid container spacing={{ xs: 2, sm: 2.5, md: 2.5 }}>
+            <Grid
+              container
+              spacing={{ xs: 2, sm: 2.5, md: 2.5 }}
+            >
               {/* Campo de busca */}
               <Grid size={{ xs: 12, sm: 12, md: 6 }}>
                 <TextField
@@ -604,19 +633,21 @@ const FolderManagement = () => {
                   onChange={(e) => handleFolderSearchChange(e.target.value)}
                   InputProps={{
                     startAdornment: (
-                      <SearchIcon sx={{ color: '#94a3b8', fontSize: { xs: 18, sm: 20 }, mr: { xs: 1, sm: 1.5 } }} />
+                      <SearchIcon
+                        sx={{ color: 'text.disabled', fontSize: { xs: 18, sm: 20 }, mr: { xs: 1, sm: 1.5 } }}
+                      />
                     )
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       height: { xs: 40, sm: 42 },
                       borderRadius: 2,
-                      backgroundColor: '#ffffff',
+                      backgroundColor: 'background.paper',
                       fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                       transition: 'all 0.2s ease-in-out',
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#cbd5e1'
+                          borderColor: 'divider'
                         }
                       },
                       '&.Mui-focused': {
@@ -627,10 +658,10 @@ const FolderManagement = () => {
                       }
                     },
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#e2e8f0'
+                      borderColor: 'divider'
                     },
                     '& .MuiInputBase-input::placeholder': {
-                      color: '#94a3b8',
+                      color: 'text.disabled',
                       opacity: 1,
                       fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                     }
@@ -649,10 +680,10 @@ const FolderManagement = () => {
                       height: { xs: 40, sm: 42 },
                       borderRadius: 2,
                       fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                      backgroundColor: '#ffffff',
+                      backgroundColor: 'background.paper',
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#cbd5e1'
+                          borderColor: 'divider'
                         }
                       },
                       '&.Mui-focused': {
@@ -662,7 +693,7 @@ const FolderManagement = () => {
                         }
                       },
                       '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#e2e8f0'
+                        borderColor: 'divider'
                       },
                       '& .MuiSelect-select': {
                         display: 'flex',
@@ -671,7 +702,7 @@ const FolderManagement = () => {
                         px: { xs: 1.25, sm: 1.5 }
                       },
                       '& .MuiSelect-icon': {
-                        color: '#64748b',
+                        color: 'text.secondary',
                         fontSize: { xs: 20, sm: 24 }
                       }
                     }}
@@ -679,54 +710,64 @@ const FolderManagement = () => {
                       const selectedYear = value === 'all' ? 'Todos os anos' : value;
                       return (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1 } }}>
-                          <CalendarMonthIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: '#64748b' }} />
-                          <Typography component='span' sx={{ fontSize: { xs: '0.8125rem', sm: '0.875rem' }, color: '#0f172a' }}>
+                          <CalendarMonthIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: 'text.secondary' }} />
+                          <Typography
+                            component='span'
+                            sx={{ fontSize: { xs: '0.8125rem', sm: '0.875rem' }, color: 'text.primary' }}
+                          >
                             {selectedYear}
                           </Typography>
                         </Box>
                       );
                     }}
                   >
-                    <MenuItem 
-                      value='all' 
-                      sx={{ 
+                    <MenuItem
+                      value='all'
+                      sx={{
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                         '&:hover': {
-                          backgroundColor: '#f8fafc'
+                          backgroundColor: 'background.default'
                         },
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1 } }}>
-                        <CalendarMonthIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: '#64748b' }} />
-                        <Typography component='span' sx={{ fontSize: { xs: '0.8125rem', sm: '0.875rem' } }}>Todos os anos</Typography>
+                        <CalendarMonthIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: 'text.secondary' }} />
+                        <Typography
+                          component='span'
+                          sx={{ fontSize: { xs: '0.8125rem', sm: '0.875rem' } }}
+                        >
+                          Todos os anos
+                        </Typography>
                       </Box>
                     </MenuItem>
-                    {years().slice(0, 10).map((year) => (
-                      <MenuItem 
-                        key={year} 
-                        value={year} 
-                        sx={{ 
-                          fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                          '&:hover': {
-                            backgroundColor: '#f8fafc'
-                          },
-                          '&.Mui-selected': {
-                            backgroundColor: '#f1f5f9',
+                    {years()
+                      .slice(0, 10)
+                      .map((year) => (
+                        <MenuItem
+                          key={year}
+                          value={year}
+                          sx={{
+                            fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                             '&:hover': {
-                              backgroundColor: '#f1f5f9'
+                              backgroundColor: 'background.default'
+                            },
+                            '&.Mui-selected': {
+                              backgroundColor: 'grey.100',
+                              '&:hover': {
+                                backgroundColor: 'grey.100'
+                              }
                             }
-                          }
-                        }}
-                      >
-                        {year}
-                      </MenuItem>
-                    ))}
+                          }}
+                        >
+                          {year}
+                        </MenuItem>
+                      ))}
                   </Select>
                 </FormControl>
               </Grid>
@@ -745,10 +786,10 @@ const FolderManagement = () => {
                       height: { xs: 40, sm: 42 },
                       borderRadius: 2,
                       fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                      backgroundColor: '#ffffff',
+                      backgroundColor: 'background.paper',
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#cbd5e1'
+                          borderColor: 'divider'
                         }
                       },
                       '&.Mui-focused': {
@@ -758,7 +799,7 @@ const FolderManagement = () => {
                         }
                       },
                       '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#e2e8f0'
+                        borderColor: 'divider'
                       },
                       '& .MuiSelect-select': {
                         display: 'flex',
@@ -767,50 +808,54 @@ const FolderManagement = () => {
                         px: { xs: 1.25, sm: 1.5 }
                       },
                       '& .MuiSelect-icon': {
-                        color: '#64748b',
+                        color: 'text.secondary',
                         fontSize: { xs: 20, sm: 24 }
                       }
                     }}
                     renderValue={(value) => {
-                      const sortText = value === 'name-asc' ? 'Nome (A-Z)' : value === 'name-desc' ? 'Nome (Z-A)' : 'Nome (A-Z)';
+                      const sortText =
+                        value === 'name-asc' ? 'Nome (A-Z)' : value === 'name-desc' ? 'Nome (Z-A)' : 'Nome (A-Z)';
                       return (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.75, sm: 1 } }}>
-                          <SortIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: '#64748b' }} />
-                          <Typography component='span' sx={{ fontSize: { xs: '0.8125rem', sm: '0.875rem' }, color: '#0f172a' }}>
+                          <SortIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: 'text.secondary' }} />
+                          <Typography
+                            component='span'
+                            sx={{ fontSize: { xs: '0.8125rem', sm: '0.875rem' }, color: 'text.primary' }}
+                          >
                             {sortText}
                           </Typography>
                         </Box>
                       );
                     }}
                   >
-                    <MenuItem 
-                      value='name-asc' 
-                      sx={{ 
+                    <MenuItem
+                      value='name-asc'
+                      sx={{
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                         '&:hover': {
-                          backgroundColor: '#f8fafc'
+                          backgroundColor: 'background.default'
                         },
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}
                     >
                       Nome (A-Z)
                     </MenuItem>
-                    <MenuItem 
-                      value='name-desc' 
-                      sx={{ 
+                    <MenuItem
+                      value='name-desc'
+                      sx={{
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                         '&:hover': {
-                          backgroundColor: '#f8fafc'
+                          backgroundColor: 'background.default'
                         },
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}
@@ -840,7 +885,7 @@ const FolderManagement = () => {
           <Typography
             variant='body2'
             sx={{
-              color: '#475569',
+              color: 'text.secondary',
               fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600
             }}
@@ -865,19 +910,19 @@ const FolderManagement = () => {
             container
             spacing={{ xs: 2, sm: 2.5, md: 3 }}
           >
-              {sortedFolders.map((folder) => (
-                <Grid
-                  key={folder._id}
-                  size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
-                >
-                  <FolderCard
-                    folder={folder}
-                    onToggleFavorite={handleToggleFavorite}
-                    onClick={handleCardClick}
-                  />
-                </Grid>
-              ))}
-            </Grid>
+            {sortedFolders.map((folder) => (
+              <Grid
+                key={folder._id}
+                size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
+              >
+                <FolderCard
+                  folder={folder}
+                  onToggleFavorite={handleToggleFavorite}
+                  onClick={handleCardClick}
+                />
+              </Grid>
+            ))}
+          </Grid>
         ) : (
           <Card
             sx={{
@@ -892,7 +937,7 @@ const FolderManagement = () => {
             <Typography
               variant='body1'
               sx={{
-                color: '#64748b',
+                color: 'text.secondary',
                 fontSize: { xs: '0.9375rem', sm: '1rem' }
               }}
             >
@@ -917,17 +962,17 @@ const FolderManagement = () => {
             justifyContent: 'space-between',
             alignItems: 'center',
             gap: 2,
-            backgroundColor: '#f8fafc',
-            borderTop: '1px solid #e5e7eb'
+            backgroundColor: 'background.default',
+            borderTop: '1px solid',
+            borderColor: 'divider'
           }}
         >
           {/* Pagination Info */}
           <Typography
             variant='body2'
-            sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+            sx={{ color: 'text.secondary', fontSize: '0.875rem' }}
           >
-            {((page - 1) * limit) + 1}-
-            {Math.min(page * limit, foldersTotal)} de {foldersTotal}
+            {(page - 1) * limit + 1}-{Math.min(page * limit, foldersTotal)} de {foldersTotal}
           </Typography>
 
           {/* Pagination Controls */}
@@ -938,14 +983,14 @@ const FolderManagement = () => {
               sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
             >
               {[5, 10, 25, 50].map((limit) => (
-                <MenuItem 
-                  key={limit} 
+                <MenuItem
+                  key={limit}
                   value={limit}
                   sx={{
                     '&.Mui-selected': {
-                      backgroundColor: '#f1f5f9',
+                      backgroundColor: 'grey.100',
                       '&:hover': {
-                        backgroundColor: '#f1f5f9'
+                        backgroundColor: 'grey.100'
                       }
                     }
                   }}
@@ -1008,4 +1053,3 @@ const FolderManagement = () => {
 };
 
 export default FolderManagement;
-

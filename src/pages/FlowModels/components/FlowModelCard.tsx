@@ -1,20 +1,21 @@
-import React, { useCallback } from "react";
-import { Box, Card, Typography, IconButton, Chip, Tooltip } from "@mui/material";
 import {
   MoreVert as MoreVertIcon,
   PushPin as PushPinIcon,
-  Star as StarIcon,
   StarBorder as StarBorderIcon,
-} from "@mui/icons-material";
-import type { FlowModel } from "@/hooks/useFlowModels";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
-import "dayjs/locale/pt-br";
+  Star as StarIcon
+} from '@mui/icons-material';
+import { Box, Card, Chip, IconButton, Tooltip, Typography } from '@mui/material';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import type React from 'react';
+import { useCallback } from 'react';
+import type { FlowModel } from '@/hooks/useFlowModels';
+import 'dayjs/locale/pt-br';
 
-import { useFavoriteFlowModels } from "@/hooks/useFavoriteFlowModels";
+import { useFavoriteFlowModels } from '@/hooks/useFavoriteFlowModels';
 
 dayjs.extend(relativeTime);
-dayjs.locale("pt-br");
+dayjs.locale('pt-br');
 
 type FlowModelCardProps = {
   model: FlowModel;
@@ -29,109 +30,108 @@ export const FlowModelCard = ({ model, isSelected, onClick, onMenuClick, hideMen
   const isSystem = model.isDefaultPlanco === true;
   const isModelFavorite = !isSystem && isFavorite(model._id);
   const stageCount = model.stages?.length || 0;
-  const timeAgo = (model.updatedAt || model.createdAt) ? dayjs(model.updatedAt || model.createdAt).fromNow() : "";
+  const timeAgo = model.updatedAt || model.createdAt ? dayjs(model.updatedAt || model.createdAt).fromNow() : '';
 
-  const handleFavoriteClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    if (!isSystem) toggleFavorite(model._id);
-  }, [toggleFavorite, model._id, isSystem]);
+  const handleFavoriteClick = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      if (!isSystem) toggleFavorite(model._id);
+    },
+    [toggleFavorite, model._id, isSystem]
+  );
 
   return (
     <Card
       onClick={onClick}
       sx={{
         p: 2,
-        cursor: "pointer",
+        cursor: 'pointer',
         border: isSelected ? 2 : 1,
-        borderColor: isSelected ? "#1877F2" : "#E4E6EB",
-        bgcolor: isSelected ? "#E7F3FF" : "background.paper",
+        borderColor: isSelected ? 'primary.main' : 'grey.300',
+        bgcolor: isSelected ? 'secondary.light' : 'background.paper',
         borderRadius: 2,
-        transition: "all 0.2s ease-in-out",
-        boxShadow: isSelected
-          ? "0 2px 8px rgba(24, 119, 242, 0.15)"
-          : "0 1px 3px rgba(0, 0, 0, 0.05)",
-        "&:hover": {
-          bgcolor: isSelected ? "#E7F3FF" : "#F0F2F5",
-          borderColor: "#1877F2",
-          boxShadow: "0 2px 8px rgba(24, 119, 242, 0.15)",
-          transform: "translateY(-1px)",
-        },
+        transition: 'all 0.2s ease-in-out',
+        boxShadow: isSelected ? '0 2px 8px rgba(24, 119, 242, 0.15)' : '0 1px 3px rgba(0, 0, 0, 0.05)',
+        '&:hover': {
+          bgcolor: isSelected ? 'secondary.light' : 'grey.100',
+          borderColor: 'primary.main',
+          boxShadow: '0 2px 8px rgba(24, 119, 242, 0.15)',
+          transform: 'translateY(-1px)'
+        }
       }}
     >
       <Box
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-start',
           mb: 1,
-          gap: 1,
+          gap: 1
         }}
       >
         <Typography
-          variant="subtitle1"
+          variant='subtitle1'
           sx={{
             fontWeight: 700,
-            color: "text.primary",
+            color: 'text.primary',
             flex: 1,
-            pr: 1,
+            pr: 1
           }}
         >
           {model.name}
         </Typography>
 
         {/* ✅ Indicadores (igual pasta): sistema = fixado; pessoal = favoritos */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
           {isSystem ? (
-            <Tooltip title="Modelo Padrão do Sistema">
+            <Tooltip title='Modelo Padrão do Sistema'>
               <IconButton
-                size="small"
+                size='small'
                 sx={{
-                  color: "#1877F2",
-                  cursor: "default",
+                  color: 'primary.main',
+                  cursor: 'default',
                   padding: 0.75,
-                  minWidth: "auto",
+                  minWidth: 'auto',
                   width: { xs: 32, sm: 36 },
                   height: { xs: 32, sm: 36 },
-                  "&:hover": { backgroundColor: "transparent" },
+                  '&:hover': { backgroundColor: 'transparent' }
                 }}
               >
                 <PushPinIcon sx={{ fontSize: { xs: 20, sm: 22 } }} />
               </IconButton>
             </Tooltip>
           ) : (
-            <Tooltip
-              title={isModelFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-            >
+            <Tooltip title={isModelFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}>
               <IconButton
                 onClick={handleFavoriteClick}
-                size="small"
+                size='small'
                 sx={{
                   padding: 0.75,
-                  minWidth: "auto",
+                  minWidth: 'auto',
                   width: { xs: 32, sm: 36 },
                   height: { xs: 32, sm: 36 },
-                  color: isModelFavorite ? "#fbbf24" : "#94a3b8",
-                  "&:hover": {
-                    backgroundColor: "transparent",
-                    color: "#fbbf24",
+                  color: isModelFavorite ? 'warning.main' : 'text.disabled',
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                    color: 'warning.main'
                   },
-                  transition: "all 0.2s ease-in-out",
+                  transition: 'all 0.2s ease-in-out'
                 }}
               >
                 {isModelFavorite ? (
                   <StarIcon
                     sx={{
                       fontSize: { xs: 20, sm: 22 },
-                      color: "#fbbf24",
-                      transition: "all 0.2s ease-in-out",
+                      color: 'warning.main',
+                      transition: 'all 0.2s ease-in-out'
                     }}
                   />
                 ) : (
                   <StarBorderIcon
                     sx={{
                       fontSize: { xs: 20, sm: 22 },
-                      color: "#94a3b8",
-                      transition: "all 0.2s ease-in-out",
+                      color: 'text.disabled',
+                      transition: 'all 0.2s ease-in-out'
                     }}
                   />
                 )}
@@ -142,46 +142,58 @@ export const FlowModelCard = ({ model, isSelected, onClick, onMenuClick, hideMen
           {/* Menu (não aparece em modelo do sistema) */}
           {!hideMenu && (
             <IconButton
-              size="small"
+              size='small'
               onClick={(e) => {
                 e.stopPropagation();
                 onMenuClick(e);
               }}
-              sx={{ color: "text.secondary" }}
+              sx={{ color: 'text.secondary' }}
             >
-              <MoreVertIcon fontSize="small" />
+              <MoreVertIcon fontSize='small' />
             </IconButton>
           )}
         </Box>
       </Box>
 
-      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 1, flexWrap: "wrap" }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1, flexWrap: 'wrap' }}>
         <Chip
-          label={isSystem ? "Sistema" : "Pessoal"}
-          size="small"
+          label={isSystem ? 'Sistema' : 'Pessoal'}
+          size='small'
           sx={{
             height: 22,
-            fontSize: "0.7rem",
-            bgcolor: "#F0F2F5",
-            color: "#212121",
-            fontWeight: 600,
+            fontSize: '0.7rem',
+            bgcolor: 'grey.100',
+            color: 'text.primary',
+            fontWeight: 600
           }}
         />
 
-        <Typography variant="caption" sx={{ color: "text.secondary", mx: 0.5 }}>
+        <Typography
+          variant='caption'
+          sx={{ color: 'text.secondary', mx: 0.5 }}
+        >
           •
         </Typography>
 
-        <Typography variant="caption" sx={{ color: "text.secondary" }}>
-          {stageCount} {stageCount === 1 ? "etapa" : "etapas"}
+        <Typography
+          variant='caption'
+          sx={{ color: 'text.secondary' }}
+        >
+          {stageCount} {stageCount === 1 ? 'etapa' : 'etapas'}
         </Typography>
 
         {timeAgo && (
           <>
-            <Typography variant="caption" sx={{ color: "text.secondary", mx: 0.5 }}>
+            <Typography
+              variant='caption'
+              sx={{ color: 'text.secondary', mx: 0.5 }}
+            >
               •
             </Typography>
-            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+            <Typography
+              variant='caption'
+              sx={{ color: 'text.secondary' }}
+            >
               {timeAgo}
             </Typography>
           </>
@@ -190,14 +202,14 @@ export const FlowModelCard = ({ model, isSelected, onClick, onMenuClick, hideMen
 
       {model.description && (
         <Typography
-          variant="body2"
+          variant='body2'
           sx={{
-            color: "text.secondary",
-            display: "-webkit-box",
+            color: 'text.secondary',
+            display: '-webkit-box',
             WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
           }}
         >
           {model.description}

@@ -1,17 +1,5 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogContent,
-  Grid,
-  TextField,
-  Typography
-} from '@mui/material';
-import {
-  Close as CloseIcon,
-  Folder as FolderIcon,
-  Search as SearchIcon
-} from '@mui/icons-material';
+import { Close as CloseIcon, Folder as FolderIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Box, Button, Dialog, DialogContent, Grid, TextField, Typography } from '@mui/material';
 import { useCallback, useState } from 'react';
 
 import type { Folder } from '@/globals/types';
@@ -37,11 +25,14 @@ export const SelectFolderModal = ({
   const [searchTerm, setSearchTerm] = useState('');
   const debouncedSearch = useDebounce(searchTerm, 300);
 
-  const handleSelect = useCallback((folder: Folder) => {
-    onSelect(folder);
-    setSearchTerm('');
-    onClose();
-  }, [onSelect, onClose]);
+  const handleSelect = useCallback(
+    (folder: Folder) => {
+      onSelect(folder);
+      setSearchTerm('');
+      onClose();
+    },
+    [onSelect, onClose]
+  );
 
   const handleClose = useCallback(() => {
     setSearchTerm('');
@@ -121,9 +112,9 @@ export const SelectFolderModal = ({
         </Box>
 
         {/* Search */}
-        <Box 
-          sx={{ 
-            p: 3, 
+        <Box
+          sx={{
+            p: 3,
             pb: 2,
             position: 'relative',
             zIndex: 2,
@@ -235,10 +226,8 @@ export const SelectFolderModal = ({
                       {(() => {
                         const isPlanco = folder.name?.toLowerCase().includes('planco');
                         const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
-                        
-                        return (
-                          <FolderIcon sx={{ fontSize: 24, color: folderIconColor }} />
-                        );
+
+                        return <FolderIcon sx={{ fontSize: 24, color: folderIconColor }} />;
                       })()}
                       <Box sx={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                         <Typography
@@ -278,4 +267,3 @@ export const SelectFolderModal = ({
     </Dialog>
   );
 };
-

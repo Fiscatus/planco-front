@@ -1,6 +1,6 @@
-import { useCallback } from "react";
-import { api } from "@/services";
-import { useAuth } from "@/hooks";
+import { useCallback } from 'react';
+import { useAuth } from '@/hooks';
+import { api } from '@/services';
 
 export type RoleOption = {
   _id: string;
@@ -17,7 +17,7 @@ export const useRolesAndDepartments = () => {
   const { user } = useAuth();
 
   const fetchRolesByOrg = useCallback(async (): Promise<RoleOption[]> => {
-    const orgId = (user as any)?.org?._id || (user as any)?.org; // tolera org como string
+    const orgId = user?.org?._id;
     if (!orgId) return [];
 
     const res = await api.get<RoleOption[]>(`/roles/org/${orgId}`);
@@ -31,11 +31,11 @@ export const useRolesAndDepartments = () => {
       page: number;
       limit: number;
       totalPages: number;
-    }>("/departments", {
+    }>('/departments', {
       params: {
         page: 1,
-        limit: 100,
-      },
+        limit: 100
+      }
     });
 
     const payload = res.data;
@@ -44,6 +44,6 @@ export const useRolesAndDepartments = () => {
 
   return {
     fetchRolesByOrg,
-    fetchDepartments,
+    fetchDepartments
   };
 };

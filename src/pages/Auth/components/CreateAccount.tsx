@@ -1,18 +1,13 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { Box, Button, Checkbox, Grid, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
-import { Controller, useForm } from 'react-hook-form';
-import {
-  PersonAdd,
-  Visibility,
-  VisibilityOff
-} from '@mui/icons-material';
-import { PrivacyPolicyModal, TermsOfUseModal, useNotification } from '@/components';
-
-import type { RegisterDto } from '@/globals/types/User';
-import { useAuth } from '@/hooks';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { PrivacyPolicyModal, TermsOfUseModal, useNotification } from '@/components';
+import type { RegisterDto } from '@/globals/types/User';
+import { useAuth } from '@/hooks';
 import logo from '/assets/isologo.svg';
 
 type Props = {
@@ -50,14 +45,8 @@ const formatPhone = (value: string) => {
 
 const authSchema = z
   .object({
-    name: z
-      .string()
-      .min(2, 'Mínimo de 2 caracteres')
-      .max(100, 'Máximo 100 caracteres'),
-    lastName: z
-      .string()
-      .min(2, 'Mínimo de 2 caracteres')
-      .max(100, 'Máximo 100 caracteres'),
+    name: z.string().min(2, 'Mínimo de 2 caracteres').max(100, 'Máximo 100 caracteres'),
+    lastName: z.string().min(2, 'Mínimo de 2 caracteres').max(100, 'Máximo 100 caracteres'),
     email: z.email('Email não é válido'),
     cpf: z
       .string()
@@ -116,7 +105,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
         showNotification('Erro ao criar conta. Tente novamente.', 'error');
       }
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       setRegisteredEmail(variables.email);
       setRegistrationSuccess(true);
       showNotification('Conta criada! Verifique seu email para ativar.', 'success');
@@ -150,23 +139,23 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
       <form onSubmit={handleSubmit(onSubmit)}>
         {/* Cabeçalho */}
         <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <img 
-            src={logo} 
-            alt="Planco Logo" 
-            style={{ 
-              width: '40px', 
+          <img
+            src={logo}
+            alt='Planco Logo'
+            style={{
+              width: '40px',
               height: '40px',
               objectFit: 'contain',
               display: 'block',
               margin: '0 auto 8px auto'
-            }} 
+            }}
           />
           <Typography
             variant='h4'
             component='h1'
             fontWeight={700}
             sx={{
-              color: '#212529',
+              color: 'text.primary',
               mb: 0.5,
               fontSize: { xs: '1.5rem', sm: '1.75rem' }
             }}
@@ -175,7 +164,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
           </Typography>
           <Typography
             sx={{
-              color: '#6C757D',
+              color: 'text.secondary',
               fontSize: '0.875rem'
             }}
           >
@@ -189,7 +178,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
             sx={{
               fontSize: '1rem',
               fontWeight: 600,
-              color: '#212529',
+              color: 'text.primary',
               mb: 1.5
             }}
           >
@@ -200,15 +189,13 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
             container
             spacing={2}
           >
-            <Grid
-              size={{ xs: 12, sm: 6 }}
-            >
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography
                 variant='body2'
                 sx={{
                   mb: 1,
                   fontWeight: 500,
-                  color: '#495057',
+                  color: 'text.primary',
                   fontSize: '0.875rem'
                 }}
               >
@@ -232,14 +219,14 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                           borderRadius: '8px',
                           backgroundColor: 'white',
                           '& fieldset': {
-                            borderColor: errors.name ? '#DC3545' : '#CED4DA',
+                            borderColor: errors.name ? 'error.main' : 'grey.300',
                             borderWidth: '1px'
                           },
                           '&:hover fieldset': {
-                            borderColor: errors.name ? '#DC3545' : '#ADB5BD'
+                            borderColor: errors.name ? 'error.main' : 'grey.400'
                           },
                           '&.Mui-focused fieldset': {
-                            borderColor: '#1877F2',
+                            borderColor: 'primary.main',
                             borderWidth: '2px'
                           }
                         },
@@ -247,7 +234,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                           padding: '8px 12px',
                           fontSize: '0.875rem',
                           '&::placeholder': {
-                            color: '#6C757D',
+                            color: 'text.secondary',
                             opacity: 1
                           }
                         }
@@ -256,7 +243,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                     {errors.name && (
                       <Typography
                         sx={{
-                          color: '#DC3545',
+                          color: 'error.main',
                           fontSize: '0.75rem',
                           mt: 0.5,
                           ml: 1
@@ -269,15 +256,13 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                 )}
               />
             </Grid>
-            <Grid
-              size={{ xs: 12, sm: 6 }}
-            >
+            <Grid size={{ xs: 12, sm: 6 }}>
               <Typography
                 variant='body2'
                 sx={{
                   mb: 1,
                   fontWeight: 500,
-                  color: '#495057',
+                  color: 'text.primary',
                   fontSize: '0.875rem'
                 }}
               >
@@ -301,14 +286,14 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                           borderRadius: '8px',
                           backgroundColor: 'white',
                           '& fieldset': {
-                            borderColor: errors.lastName ? '#DC3545' : '#CED4DA',
+                            borderColor: errors.lastName ? 'error.main' : 'grey.300',
                             borderWidth: '1px'
                           },
                           '&:hover fieldset': {
-                            borderColor: errors.lastName ? '#DC3545' : '#ADB5BD'
+                            borderColor: errors.lastName ? 'error.main' : 'grey.400'
                           },
                           '&.Mui-focused fieldset': {
-                            borderColor: '#1877F2',
+                            borderColor: 'primary.main',
                             borderWidth: '2px'
                           }
                         },
@@ -316,7 +301,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                           padding: '8px 12px',
                           fontSize: '0.875rem',
                           '&::placeholder': {
-                            color: '#6C757D',
+                            color: 'text.secondary',
                             opacity: 1
                           }
                         }
@@ -325,7 +310,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                     {errors.lastName && (
                       <Typography
                         sx={{
-                          color: '#DC3545',
+                          color: 'error.main',
                           fontSize: '0.75rem',
                           mt: 0.5,
                           ml: 1
@@ -347,15 +332,13 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
             container
             spacing={2}
           >
-            <Grid
-              size={{ xs: 12 }}
-            >
+            <Grid size={{ xs: 12 }}>
               <Typography
                 variant='body2'
                 sx={{
                   mb: 1,
                   fontWeight: 500,
-                  color: '#495057',
+                  color: 'text.primary',
                   fontSize: '0.875rem'
                 }}
               >
@@ -386,14 +369,14 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                           borderRadius: '8px',
                           backgroundColor: 'white',
                           '& fieldset': {
-                            borderColor: errors.cpf ? '#DC3545' : '#CED4DA',
+                            borderColor: errors.cpf ? 'error.main' : 'grey.300',
                             borderWidth: '1px'
                           },
                           '&:hover fieldset': {
-                            borderColor: errors.cpf ? '#DC3545' : '#ADB5BD'
+                            borderColor: errors.cpf ? 'error.main' : 'grey.400'
                           },
                           '&.Mui-focused fieldset': {
-                            borderColor: '#1877F2',
+                            borderColor: 'primary.main',
                             borderWidth: '2px'
                           }
                         },
@@ -401,7 +384,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                           padding: '8px 12px',
                           fontSize: '0.875rem',
                           '&::placeholder': {
-                            color: '#6C757D',
+                            color: 'text.secondary',
                             opacity: 1
                           }
                         }
@@ -410,7 +393,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                     {errors.cpf && (
                       <Typography
                         sx={{
-                          color: '#DC3545',
+                          color: 'error.main',
                           fontSize: '0.75rem',
                           mt: 0.5,
                           ml: 1
@@ -423,15 +406,13 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                 )}
               />
             </Grid>
-            <Grid
-              size={{ xs: 12 }}
-            >
+            <Grid size={{ xs: 12 }}>
               <Typography
                 variant='body2'
                 sx={{
                   mb: 1,
                   fontWeight: 500,
-                  color: '#495057',
+                  color: 'text.primary',
                   fontSize: '0.875rem'
                 }}
               >
@@ -462,14 +443,14 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                           borderRadius: '8px',
                           backgroundColor: 'white',
                           '& fieldset': {
-                            borderColor: errors.phone ? '#DC3545' : '#CED4DA',
+                            borderColor: errors.phone ? 'error.main' : 'grey.300',
                             borderWidth: '1px'
                           },
                           '&:hover fieldset': {
-                            borderColor: errors.phone ? '#DC3545' : '#ADB5BD'
+                            borderColor: errors.phone ? 'error.main' : 'grey.400'
                           },
                           '&.Mui-focused fieldset': {
-                            borderColor: '#1877F2',
+                            borderColor: 'primary.main',
                             borderWidth: '2px'
                           }
                         },
@@ -477,7 +458,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                           padding: '8px 12px',
                           fontSize: '0.875rem',
                           '&::placeholder': {
-                            color: '#6C757D',
+                            color: 'text.secondary',
                             opacity: 1
                           }
                         }
@@ -486,7 +467,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                     {errors.phone && (
                       <Typography
                         sx={{
-                          color: '#DC3545',
+                          color: 'error.main',
                           fontSize: '0.75rem',
                           mt: 0.5,
                           ml: 1
@@ -509,7 +490,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
             sx={{
               fontSize: '1rem',
               fontWeight: 600,
-              color: '#212529',
+              color: 'text.primary',
               mb: 1.5
             }}
           >
@@ -522,7 +503,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
               sx={{
                 mb: 1,
                 fontWeight: 500,
-                color: '#495057',
+                color: 'text.primary',
                 fontSize: '0.875rem'
               }}
             >
@@ -546,14 +527,14 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                         borderRadius: '8px',
                         backgroundColor: 'white',
                         '& fieldset': {
-                          borderColor: errors.email ? '#DC3545' : '#CED4DA',
+                          borderColor: errors.email ? 'error.main' : 'grey.300',
                           borderWidth: '1px'
                         },
                         '&:hover fieldset': {
-                          borderColor: errors.email ? '#DC3545' : '#ADB5BD'
+                          borderColor: errors.email ? 'error.main' : 'grey.400'
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#1877F2',
+                          borderColor: 'primary.main',
                           borderWidth: '2px'
                         }
                       },
@@ -561,7 +542,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                         padding: '8px 12px',
                         fontSize: '0.875rem',
                         '&::placeholder': {
-                          color: '#6C757D',
+                          color: 'text.secondary',
                           opacity: 1
                         }
                       }
@@ -570,7 +551,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                   {errors.email && (
                     <Typography
                       sx={{
-                        color: '#DC3545',
+                        color: 'error.main',
                         fontSize: '0.75rem',
                         mt: 0.5,
                         ml: 1
@@ -590,7 +571,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
               sx={{
                 mb: 1,
                 fontWeight: 500,
-                color: '#495057',
+                color: 'text.primary',
                 fontSize: '0.875rem'
               }}
             >
@@ -613,7 +594,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                           <IconButton
                             onClick={() => setShowPassword(!showPassword)}
                             edge='end'
-                            sx={{ color: '#6C757D' }}
+                            sx={{ color: 'text.secondary' }}
                           >
                             {showPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
@@ -627,14 +608,14 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                         borderRadius: '8px',
                         backgroundColor: 'white',
                         '& fieldset': {
-                          borderColor: errors.password ? '#DC3545' : '#CED4DA',
+                          borderColor: errors.password ? 'error.main' : 'grey.300',
                           borderWidth: '1px'
                         },
                         '&:hover fieldset': {
-                          borderColor: errors.password ? '#DC3545' : '#ADB5BD'
+                          borderColor: errors.password ? 'error.main' : 'grey.400'
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#1877F2',
+                          borderColor: 'primary.main',
                           borderWidth: '2px'
                         }
                       },
@@ -642,7 +623,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                         padding: '8px 12px',
                         fontSize: '0.875rem',
                         '&::placeholder': {
-                          color: '#6C757D',
+                          color: 'text.secondary',
                           opacity: 1
                         }
                       }
@@ -651,7 +632,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                   {errors.password && (
                     <Typography
                       sx={{
-                        color: '#DC3545',
+                        color: 'error.main',
                         fontSize: '0.75rem',
                         mt: 0.5,
                         ml: 1
@@ -671,7 +652,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
               sx={{
                 mb: 1,
                 fontWeight: 500,
-                color: '#495057',
+                color: 'text.primary',
                 fontSize: '0.875rem'
               }}
             >
@@ -694,7 +675,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                           <IconButton
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             edge='end'
-                            sx={{ color: '#6C757D' }}
+                            sx={{ color: 'text.secondary' }}
                           >
                             {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                           </IconButton>
@@ -708,14 +689,14 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                         borderRadius: '8px',
                         backgroundColor: 'white',
                         '& fieldset': {
-                          borderColor: errors.confirmPassword ? '#DC3545' : '#CED4DA',
+                          borderColor: errors.confirmPassword ? 'error.main' : 'grey.300',
                           borderWidth: '1px'
                         },
                         '&:hover fieldset': {
-                          borderColor: errors.confirmPassword ? '#DC3545' : '#ADB5BD'
+                          borderColor: errors.confirmPassword ? 'error.main' : 'grey.400'
                         },
                         '&.Mui-focused fieldset': {
-                          borderColor: '#1877F2',
+                          borderColor: 'primary.main',
                           borderWidth: '2px'
                         }
                       },
@@ -723,7 +704,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                         padding: '8px 12px',
                         fontSize: '0.875rem',
                         '&::placeholder': {
-                          color: '#6C757D',
+                          color: 'text.secondary',
                           opacity: 1
                         }
                       }
@@ -732,7 +713,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                   {errors.confirmPassword && (
                     <Typography
                       sx={{
-                        color: '#DC3545',
+                        color: 'error.main',
                         fontSize: '0.75rem',
                         mt: 0.5,
                         ml: 1
@@ -755,7 +736,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
               sx={{
                 mt: 0.5,
                 '&.Mui-checked': {
-                  color: '#1877F2'
+                  color: 'primary.main'
                 }
               }}
             />
@@ -763,7 +744,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
               variant='body2'
               sx={{
                 fontSize: '0.875rem',
-                color: '#6C757D',
+                color: 'text.secondary',
                 lineHeight: 1.5
               }}
             >
@@ -772,7 +753,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                 component='span'
                 onClick={() => setPrivacyModalOpen(true)}
                 sx={{
-                  color: '#1877F2',
+                  color: 'primary.main',
                   textDecoration: 'underline',
                   cursor: 'pointer',
                   fontWeight: 500,
@@ -788,7 +769,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                 component='span'
                 onClick={() => setTermsModalOpen(true)}
                 sx={{
-                  color: '#1877F2',
+                  color: 'primary.main',
                   textDecoration: 'underline',
                   cursor: 'pointer',
                   fontWeight: 500,
@@ -812,18 +793,18 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
           sx={{
             height: '48px',
             borderRadius: '8px',
-            backgroundColor: '#1877F2',
+            backgroundColor: 'primary.main',
             color: 'white',
             fontSize: '1rem',
             fontWeight: 600,
             textTransform: 'none',
             mb: 2,
             '&:hover': {
-              backgroundColor: '#166FE5'
+              backgroundColor: 'primary.dark'
             },
             '&:disabled': {
-              backgroundColor: '#E9ECEF',
-              color: '#6C757D'
+              backgroundColor: 'grey.100',
+              color: 'text.secondary'
             },
             transition: 'all 0.2s ease-in-out'
           }}
@@ -835,7 +816,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
         <Typography
           sx={{
             fontSize: '0.875rem',
-            color: '#6C757D',
+            color: 'text.secondary',
             textAlign: 'center'
           }}
         >
@@ -847,7 +828,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
             }}
             sx={{
               fontSize: '0.875rem',
-              color: '#1877F2',
+              color: 'primary.main',
               textDecoration: 'none',
               fontWeight: 500,
               cursor: 'pointer',

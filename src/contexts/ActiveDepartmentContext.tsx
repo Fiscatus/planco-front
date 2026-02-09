@@ -51,7 +51,10 @@ const createSafeDepartmentForStorage = (dept: Department) => {
   };
 };
 
-const findDepartmentFromSafeData = (safeData: any, availableDepartments: Department[]) => {
+const findDepartmentFromSafeData = (
+  safeData: { _id: string; department_name?: string; department_acronym?: string },
+  availableDepartments: Department[]
+) => {
   return availableDepartments.find((dept) => dept._id === safeData._id);
 };
 

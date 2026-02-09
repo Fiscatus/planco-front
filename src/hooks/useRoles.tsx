@@ -1,8 +1,7 @@
 import { useCallback, useState } from 'react';
-
+import type { CreateRoleDto, Role, RoleDeleteImpact, RoleDeleteResponse, UpdateRoleDto } from '@/globals/types';
 import { api } from '@/services';
 import { useAuth } from './useAuth';
-import type { CreateRoleDto, Role, RoleDeleteImpact, RoleDeleteResponse, UpdateRoleDto } from '@/globals/types';
 
 export const useRoles = () => {
   const { user } = useAuth();

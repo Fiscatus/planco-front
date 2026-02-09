@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { type MouseEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/hooks';
 
 import logo from '/assets/isologo.svg';
@@ -51,12 +52,12 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
     };
   }, []);
 
-  const getBackgroundOpacity = () => {
+  const _getBackgroundOpacity = () => {
     if (scrollY <= 10) return 0.9;
     return 0.6;
   };
 
-  const getBlurIntensity = () => {
+  const _getBlurIntensity = () => {
     if (scrollY <= 10) return '8px';
     return '4px';
   };
@@ -88,7 +89,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
     <AppBar
       position='sticky'
       sx={{
-        backgroundColor: '#ffffff',
+        backgroundColor: 'background.paper',
         boxShadow: 1,
         zIndex: 50,
         width: '100%',
@@ -123,10 +124,10 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             sx={{
               width: 40,
               height: 40,
-              color: '#616161',
+              color: 'text.secondary',
               borderRadius: '50%',
               '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                backgroundColor: 'action.hover'
               }
             }}
             aria-label='Menu'
@@ -147,7 +148,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             variant='h6'
             sx={{
               fontWeight: 700,
-              color: '#212121',
+              color: 'text.primary',
               fontSize: '1.25rem',
               whiteSpace: 'nowrap'
             }}
@@ -178,7 +179,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
               sx={{
                 position: 'absolute',
                 left: 16,
-                color: '#64748B',
+                color: 'text.disabled',
                 fontSize: 20,
                 pointerEvents: 'none',
                 zIndex: 1,
@@ -193,36 +194,37 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
                 width: '100%',
                 height: 44,
                 borderRadius: '12px',
-                backgroundColor: '#F8FAFC',
-                border: '1px solid #E2E8F0',
+                backgroundColor: 'grey.100',
+                border: '1px solid',
+                borderColor: 'divider',
                 pl: 6,
                 pr: 3,
                 fontSize: '0.875rem',
                 fontWeight: 400,
-                color: '#1E293B',
+                color: 'text.primary',
                 transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                 boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                 '&:focus': {
                   outline: 'none',
-                  borderColor: '#1877F2',
-                  backgroundColor: '#FFFFFF',
+                  borderColor: 'primary.main',
+                  backgroundColor: 'background.paper',
                   boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1), 0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                   '& + .MuiSvgIcon-root': {
-                    color: '#1877F2'
+                    color: 'primary.main'
                   }
                 },
                 '&:hover': {
-                  borderColor: '#CBD5E1',
-                  backgroundColor: '#F1F5F9',
+                  borderColor: 'grey.300',
+                  backgroundColor: 'grey.50',
                   boxShadow: '0 2px 4px -1px rgba(0, 0, 0, 0.1)'
                 },
                 '&::placeholder': {
-                  color: '#94A3B8',
+                  color: 'text.disabled',
                   fontWeight: 400,
                   opacity: 1
                 },
                 '&:focus::placeholder': {
-                  color: '#CBD5E1'
+                  color: 'grey.400'
                 }
               }}
             />
@@ -238,15 +240,17 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             minWidth: 0
           }}
         >
+          <ThemeToggle />
+
           <IconButton
             sx={{
               width: 40,
               height: 40,
               position: 'relative',
-              color: '#616161',
+              color: 'text.secondary',
               borderRadius: '50%',
               '&:hover': {
-                backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                backgroundColor: 'action.hover'
               }
             }}
             aria-label='Notificações'
@@ -261,23 +265,23 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
               width: 40,
               height: 40,
               borderRadius: '50%',
-              backgroundColor: '#1877F2',
+              backgroundColor: 'primary.main',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: 'white',
+              color: 'primary.contrastText',
               fontWeight: 700,
               fontSize: '1.125rem',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
               '&:hover': {
-                backgroundColor: '#166fe5',
+                backgroundColor: 'primary.dark',
                 transform: 'scale(1.05)'
               }
             }}
           >
             {getInitials(
-              ((user?.firstName ? user.firstName : '') + ' ' + (user?.lastName ? user.lastName : '')).trim() || 'U'
+              `${user?.firstName ? user.firstName : ''} ${user?.lastName ? user.lastName : ''}`.trim() || 'U'
             )}
           </Box>
 
@@ -305,14 +309,14 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             <Box sx={{ px: 2, py: 1 }}>
               <Typography
                 variant='subtitle2'
-                sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: '0.875rem' }}
+                sx={{ fontWeight: 600, lineHeight: 1.2, fontSize: '0.875rem', color: 'text.primary' }}
               >
                 {user?.firstName || 'Usuário'}
               </Typography>
               <Typography
                 variant='caption'
                 sx={{
-                  color: '#6b7280',
+                  color: 'text.secondary',
                   display: 'block',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -364,14 +368,15 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
               sx={{
                 py: 1,
                 minHeight: 36,
-                color: '#dc2626',
+                color: 'error.main',
                 '&:hover': {
-                  backgroundColor: '#fef2f2'
+                  backgroundColor: 'error.light',
+                  opacity: 0.1
                 }
               }}
             >
               <ListItemIcon sx={{ minWidth: 32 }}>
-                <Logout sx={{ fontSize: 16, color: '#dc2626' }} />
+                <Logout sx={{ fontSize: 16, color: 'error.main' }} />
               </ListItemIcon>
               <ListItemText
                 primary='Sair do sistema'

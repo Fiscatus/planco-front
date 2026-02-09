@@ -35,9 +35,9 @@ export const EditGerenciaModal = ({
   const { fetchUsers } = useUsers();
 
   const [gerenciaForm, setGerenciaForm] = useState<Partial<CreateDepartmentDto>>({});
-  const [responsavelSearch, setResponsavelSearch] = useState('');
+  const [_responsavelSearch, setResponsavelSearch] = useState('');
   const [responsavelUsers, setResponsavelUsers] = useState<User[]>([]);
-  const [loadingResponsavel, setLoadingResponsavel] = useState(false);
+  const [_loadingResponsavel, setLoadingResponsavel] = useState(false);
 
   const searchResponsavel = useCallback(
     async (query: string) => {
@@ -122,7 +122,7 @@ export const EditGerenciaModal = ({
         <Box
           sx={{
             p: 3,
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: '1px solid divider',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
@@ -133,7 +133,7 @@ export const EditGerenciaModal = ({
               variant='h5'
               sx={{
                 fontWeight: 700,
-                color: '#0f172a',
+                color: 'text.primary',
                 fontSize: '1.5rem'
               }}
             >
@@ -142,7 +142,7 @@ export const EditGerenciaModal = ({
             <Typography
               variant='body2'
               sx={{
-                color: '#64748b',
+                color: 'text.secondary',
                 fontSize: '0.875rem',
                 mt: 0.5
               }}
@@ -166,7 +166,7 @@ export const EditGerenciaModal = ({
                     variant='body2'
                     sx={{
                       fontWeight: 500,
-                      color: '#64748b',
+                      color: 'text.secondary',
                       mb: 1,
                       fontSize: '0.875rem'
                     }}
@@ -182,22 +182,22 @@ export const EditGerenciaModal = ({
                     variant='outlined'
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        backgroundColor: '#ffffff',
+                        backgroundColor: 'background.paper',
                         borderRadius: 2,
                         '& .MuiOutlinedInput-notchedOutline': {
-                          border: '2px solid #e2e8f0',
+                          border: '2px solid divider',
                           transition: 'all 0.2s ease-in-out'
                         },
                         '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#cbd5e1'
+                          borderColor: 'grey.300'
                         },
                         '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1877F2',
+                          borderColor: 'primary.main',
                           boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                         }
                       },
                       '& .MuiInputBase-input::placeholder': {
-                        color: '#9ca3af',
+                        color: 'text.disabled',
                         opacity: 1
                       }
                     }}
@@ -210,7 +210,7 @@ export const EditGerenciaModal = ({
                     variant='body2'
                     sx={{
                       fontWeight: 500,
-                      color: '#64748b',
+                      color: 'text.secondary',
                       mb: 1,
                       fontSize: '0.875rem'
                     }}
@@ -228,22 +228,22 @@ export const EditGerenciaModal = ({
                     variant='outlined'
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        backgroundColor: '#ffffff',
+                        backgroundColor: 'background.paper',
                         borderRadius: 2,
                         '& .MuiOutlinedInput-notchedOutline': {
-                          border: '2px solid #e2e8f0',
+                          border: '2px solid divider',
                           transition: 'all 0.2s ease-in-out'
                         },
                         '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#cbd5e1'
+                          borderColor: 'grey.300'
                         },
                         '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1877F2',
+                          borderColor: 'primary.main',
                           boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                         }
                       },
                       '& .MuiInputBase-input::placeholder': {
-                        color: '#9ca3af',
+                        color: 'text.disabled',
                         opacity: 1
                       }
                     }}
@@ -263,7 +263,7 @@ export const EditGerenciaModal = ({
                     variant='body2'
                     sx={{
                       fontWeight: 500,
-                      color: '#64748b',
+                      color: 'text.secondary',
                       mb: 1,
                       fontSize: '0.875rem'
                     }}
@@ -293,22 +293,22 @@ export const EditGerenciaModal = ({
                     variant='outlined'
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        backgroundColor: '#ffffff',
+                        backgroundColor: 'background.paper',
                         borderRadius: 2,
                         '& .MuiOutlinedInput-notchedOutline': {
-                          border: '2px solid #e2e8f0',
+                          border: '2px solid divider',
                           transition: 'all 0.2s ease-in-out'
                         },
                         '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#cbd5e1'
+                          borderColor: 'grey.300'
                         },
                         '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1877F2',
+                          borderColor: 'primary.main',
                           boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                         }
                       },
                       '& .MuiInputBase-input::placeholder': {
-                        color: '#9ca3af',
+                        color: 'text.disabled',
                         opacity: 1
                       }
                     }}
@@ -321,7 +321,7 @@ export const EditGerenciaModal = ({
                     variant='body2'
                     sx={{
                       fontWeight: 500,
-                      color: '#64748b',
+                      color: 'text.secondary',
                       mb: 1,
                       fontSize: '0.875rem'
                     }}
@@ -340,22 +340,22 @@ export const EditGerenciaModal = ({
                     variant='outlined'
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        backgroundColor: '#ffffff',
+                        backgroundColor: 'background.paper',
                         borderRadius: 2,
                         '& .MuiOutlinedInput-notchedOutline': {
-                          border: '2px solid #e2e8f0',
+                          border: '2px solid divider',
                           transition: 'all 0.2s ease-in-out'
                         },
                         '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#cbd5e1'
+                          borderColor: 'grey.300'
                         },
                         '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#1877F2',
+                          borderColor: 'primary.main',
                           boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                         }
                       },
                       '& .MuiInputBase-input::placeholder': {
-                        color: '#9ca3af',
+                        color: 'text.disabled',
                         opacity: 1
                       }
                     }}
@@ -375,7 +375,7 @@ export const EditGerenciaModal = ({
                     variant='body2'
                     sx={{
                       fontWeight: 500,
-                      color: '#64748b',
+                      color: 'text.secondary',
                       mb: 1,
                       fontSize: '0.875rem'
                     }}
@@ -403,30 +403,30 @@ export const EditGerenciaModal = ({
                       }}
                       displayEmpty
                       sx={{
-                        backgroundColor: '#ffffff',
+                        backgroundColor: 'background.paper',
                         borderRadius: 2,
                         '& .MuiOutlinedInput-notchedOutline': {
-                          border: '2px solid #e2e8f0',
+                          border: '2px solid divider',
                           transition: 'all 0.2s ease-in-out'
                         },
                         '&:hover': {
                           '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
+                            borderColor: 'grey.300'
                           }
                         },
                         '&.Mui-focused': {
                           '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
+                            borderColor: 'primary.main',
                             boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                           }
                         },
                         '& .MuiSelect-select': {
-                          color: gerenciaForm.responsavelUserId ? '#0f172a' : '#9ca3af'
+                          color: gerenciaForm.responsavelUserId ? 'text.primary' : 'text.disabled'
                         }
                       }}
                       renderValue={(value) => {
                         if (!value) {
-                          return <span style={{ color: '#9ca3af' }}>Selecione um responsável</span>;
+                          return <span style={{ color: 'text.disabled' }}>Selecione um responsável</span>;
                         }
                         const user = responsavelUsers.find((u) => u._id === value);
                         return user ? `${user.firstName} ${user.lastName}` : '';
@@ -444,9 +444,9 @@ export const EditGerenciaModal = ({
                         value=''
                         sx={{
                           '&.Mui-selected': {
-                            backgroundColor: '#f1f5f9',
+                            backgroundColor: 'grey.100',
                             '&:hover': {
-                              backgroundColor: '#f1f5f9'
+                              backgroundColor: 'grey.100'
                             }
                           }
                         }}
@@ -459,9 +459,9 @@ export const EditGerenciaModal = ({
                           value={user._id}
                           sx={{
                             '&.Mui-selected': {
-                              backgroundColor: '#f1f5f9',
+                              backgroundColor: 'grey.100',
                               '&:hover': {
-                                backgroundColor: '#f1f5f9'
+                                backgroundColor: 'grey.100'
                               }
                             }
                           }}
@@ -492,7 +492,7 @@ export const EditGerenciaModal = ({
                     variant='body2'
                     sx={{
                       fontWeight: 500,
-                      color: '#64748b',
+                      color: 'text.secondary',
                       mb: 1,
                       fontSize: '0.875rem'
                     }}
@@ -511,18 +511,18 @@ export const EditGerenciaModal = ({
                     disabled
                     sx={{
                       '& .MuiOutlinedInput-root': {
-                        backgroundColor: '#f1f5f9',
+                        backgroundColor: 'grey.100',
                         borderRadius: 2,
                         '& .MuiOutlinedInput-notchedOutline': {
-                          border: '2px solid #e2e8f0'
+                          border: '2px solid divider'
                         }
                       },
                       '& .MuiInputBase-input': {
-                        color: '#64748b',
+                        color: 'text.secondary',
                         cursor: 'not-allowed'
                       },
                       '& .MuiInputBase-input::placeholder': {
-                        color: '#9ca3af',
+                        color: 'text.disabled',
                         opacity: 1
                       }
                     }}
@@ -530,7 +530,7 @@ export const EditGerenciaModal = ({
                   <Typography
                     variant='caption'
                     sx={{
-                      color: '#64748b',
+                      color: 'text.secondary',
                       fontSize: '0.75rem',
                       mt: 0.5,
                       display: 'block'
@@ -548,7 +548,7 @@ export const EditGerenciaModal = ({
                 variant='body2'
                 sx={{
                   fontWeight: 500,
-                  color: '#64748b',
+                  color: 'text.secondary',
                   mb: 1,
                   fontSize: '0.875rem'
                 }}
@@ -565,22 +565,22 @@ export const EditGerenciaModal = ({
                 variant='outlined'
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#ffffff',
+                    backgroundColor: 'background.paper',
                     borderRadius: 2,
                     '& .MuiOutlinedInput-notchedOutline': {
-                      border: '2px solid #e2e8f0',
+                      border: '2px solid divider',
                       transition: 'all 0.2s ease-in-out'
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#cbd5e1'
+                      borderColor: 'grey.300'
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1877F2',
+                      borderColor: 'primary.main',
                       boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                     }
                   },
                   '& .MuiInputBase-input::placeholder': {
-                    color: '#9ca3af',
+                    color: 'text.disabled',
                     opacity: 1
                   }
                 }}
@@ -593,8 +593,8 @@ export const EditGerenciaModal = ({
         <Box
           sx={{
             p: 3,
-            backgroundColor: '#f8fafc',
-            borderTop: '1px solid #e2e8f0',
+            backgroundColor: 'grey.50',
+            borderTop: '1px solid divider',
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
@@ -613,7 +613,7 @@ export const EditGerenciaModal = ({
               borderRadius: 2,
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                backgroundColor: '#f1f5f9',
+                backgroundColor: 'grey.100',
                 color: 'gray'
               }
             }}
@@ -631,13 +631,13 @@ export const EditGerenciaModal = ({
               py: 1.25,
               fontSize: '0.875rem',
               fontWeight: 600,
-              backgroundColor: '#1877F2',
+              backgroundColor: 'primary.main',
               textTransform: 'uppercase',
               borderRadius: 2,
               boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                backgroundColor: '#166fe5',
+                backgroundColor: 'primary.dark',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               },
               '&:focus': {
@@ -645,8 +645,8 @@ export const EditGerenciaModal = ({
                 boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
               },
               '&:disabled': {
-                backgroundColor: '#e5e7eb',
-                color: '#9ca3af',
+                backgroundColor: 'action.disabledBackground',
+                color: 'text.disabled',
                 boxShadow: 'none'
               }
             }}

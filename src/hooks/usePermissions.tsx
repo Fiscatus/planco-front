@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
-
-import { api } from '@/services';
 import type { PermissionDto, PermissionsResponseDto } from '@/globals/types';
+import { api } from '@/services';
 
 export const usePermissions = () => {
   const [permissions, setPermissions] = useState<PermissionDto[]>([]);
@@ -28,11 +27,11 @@ export const usePermissions = () => {
     setError(null);
   }, []);
 
-  return { 
-    permissions, 
-    loading, 
-    error, 
+  return {
+    permissions,
+    loading,
+    error,
     fetchPermissions,
-    clearError 
+    clearError
   };
 };

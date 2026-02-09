@@ -1,17 +1,8 @@
-import {
-  Box,
-  Card,
-  IconButton,
-  Typography
-} from '@mui/material';
-import {
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  CalendarToday as CalendarIcon
-} from '@mui/icons-material';
-import type { Process } from '@/globals/types';
-import { useState, useMemo } from 'react';
+import { ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon } from '@mui/icons-material';
+import { Box, Card, IconButton, Typography } from '@mui/material';
 import dayjs from 'dayjs';
+import { useMemo, useState } from 'react';
+import type { Process } from '@/globals/types';
 import 'dayjs/locale/pt-br';
 
 dayjs.locale('pt-br');
@@ -48,20 +39,16 @@ const getMonthDates = (date: Date) => {
 const getProcessStatusForDate = (process: Process, date: Date): string | null => {
   const deadline = process.dueDate;
   if (!deadline) return null;
-  
+
   const processDate = dayjs(deadline);
   const checkDate = dayjs(date);
-  
+
   if (!processDate.isSame(checkDate, 'day')) return null;
-  
+
   return process.status || null;
 };
 
-export const ProcessSidebar = ({
-  onDateClick,
-  selectedDate,
-  processes
-}: ProcessSidebarProps) => {
+export const ProcessSidebar = ({ onDateClick, selectedDate, processes }: ProcessSidebarProps) => {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
@@ -69,8 +56,8 @@ export const ProcessSidebar = ({
   const monthDates = useMemo(() => getMonthDates(currentMonth), [currentMonth]);
 
   const weekDeadlines = useMemo(() => {
-    return weekDates.filter(date => {
-      return processes.some(process => {
+    return weekDates.filter((date) => {
+      return processes.some((process) => {
         const deadline = process.dueDate;
         if (!deadline) return false;
         return dayjs(deadline).isSame(dayjs(date), 'day');
@@ -103,7 +90,7 @@ export const ProcessSidebar = ({
     const isPast = checkDate.isBefore(today, 'day');
 
     // Verificar se há processos com prazo nesta data
-    const hasProcesses = processes.some(process => {
+    const hasProcesses = processes.some((process) => {
       const deadline = process.dueDate;
       if (!deadline) return false;
       return dayjs(deadline).isSame(checkDate, 'day');
@@ -111,16 +98,16 @@ export const ProcessSidebar = ({
 
     if (!hasProcesses) return null;
 
-    if (isPast) return '#B81E34'; // Atrasado - vermelho
-    if (isToday) return '#B38800'; // Hoje - laranja
-    if (isTomorrow) return '#FCD34D'; // Amanhã - amarelo
-    if (isThisWeek) return '#1877F2'; // Esta semana - azul
+    if (isPast) return 'error.main'; // Atrasado - vermelho
+    if (isToday) return 'warning.main'; // Hoje - laranja
+    if (isTomorrow) return 'warning.light'; // Amanhã - amarelo
+    if (isThisWeek) return 'primary.main'; // Esta semana - azul
     return null;
   };
 
   const getDateStatus = (date: Date): string | null => {
     const processStatuses = processes
-      .map(process => getProcessStatusForDate(process, date))
+      .map((process) => getProcessStatusForDate(process, date))
       .filter(Boolean) as string[];
 
     if (processStatuses.length === 0) return null;
@@ -149,8 +136,9 @@ export const ProcessSidebar = ({
         sx={{
           p: 2,
           borderRadius: 2,
-          border: '1px solid #E4E6EB',
-          backgroundColor: '#FFFFFF'
+          border: 1,
+          borderColor: 'divider',
+          backgroundColor: 'background.paper'
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
@@ -159,7 +147,7 @@ export const ProcessSidebar = ({
             sx={{
               fontWeight: 700,
               fontSize: '1rem',
-              color: '#212121'
+              color: 'text.primary'
             }}
           >
             Prazos da Semana
@@ -169,8 +157,8 @@ export const ProcessSidebar = ({
               width: 32,
               height: 32,
               borderRadius: '50%',
-              backgroundColor: '#1877F2',
-              color: '#FFFFFF',
+              backgroundColor: 'primary.main',
+              color: 'background.paper',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -183,29 +171,41 @@ export const ProcessSidebar = ({
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <IconButton size='small' onClick={handlePreviousWeek}>
+          <IconButton
+            size='small'
+            onClick={handlePreviousWeek}
+          >
             <ChevronLeftIcon fontSize='small' />
           </IconButton>
-          <Typography variant='body2' sx={{ color: '#212121', fontWeight: 600 }}>
+          <Typography
+            variant='body2'
+            sx={{ color: 'text.primary', fontWeight: 600 }}
+          >
             Esta semana
           </Typography>
-          <IconButton size='small' onClick={handleNextWeek}>
+          <IconButton
+            size='small'
+            onClick={handleNextWeek}
+          >
             <ChevronRightIcon fontSize='small' />
           </IconButton>
         </Box>
 
         {weekDeadlines === 0 ? (
-          <Typography variant='body2' sx={{ color: '#8A8D91', textAlign: 'center', py: 2 }}>
+          <Typography
+            variant='body2'
+            sx={{ color: 'text.disabled', textAlign: 'center', py: 2 }}
+          >
             Nenhum prazo para esta semana
           </Typography>
         ) : (
           <Box sx={{ mb: 2 }}>
-            {weekDates.map((date, index) => {
+            {weekDates.map((date) => {
               const color = getDateColor(date);
               if (!color) return null;
               return (
                 <Box
-                  key={index}
+                  key={date}
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
@@ -221,7 +221,10 @@ export const ProcessSidebar = ({
                       backgroundColor: color
                     }}
                   />
-                  <Typography variant='caption' sx={{ color: '#212121' }}>
+                  <Typography
+                    variant='caption'
+                    sx={{ color: 'text.primary' }}
+                  >
                     {dayjs(date).format('DD/MM')}
                   </Typography>
                 </Box>
@@ -231,28 +234,50 @@ export const ProcessSidebar = ({
         )}
 
         {/* Legenda */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 2, pt: 2, borderTop: '1px solid #E4E6EB' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0.5,
+            mt: 2,
+            pt: 2,
+            borderTop: 1,
+            borderColor: 'divider'
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#B81E34' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'error.main' }} />
+            <Typography
+              variant='caption'
+              sx={{ color: 'text.disabled', fontSize: '0.75rem' }}
+            >
               Atrasado
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#B38800' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'warning.main' }} />
+            <Typography
+              variant='caption'
+              sx={{ color: 'text.disabled', fontSize: '0.75rem' }}
+            >
               Hoje
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#FCD34D' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'warning.light' }} />
+            <Typography
+              variant='caption'
+              sx={{ color: 'text.disabled', fontSize: '0.75rem' }}
+            >
               Amanhã
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#1877F2' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'primary.main' }} />
+            <Typography
+              variant='caption'
+              sx={{ color: 'text.disabled', fontSize: '0.75rem' }}
+            >
               Esta semana
             </Typography>
           </Box>
@@ -264,12 +289,16 @@ export const ProcessSidebar = ({
         sx={{
           p: 2,
           borderRadius: 2,
-          border: '1px solid #E4E6EB',
-          backgroundColor: '#FFFFFF'
+          border: 1,
+          borderColor: 'divider',
+          backgroundColor: 'background.paper'
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <IconButton size='small' onClick={handlePreviousMonth}>
+          <IconButton
+            size='small'
+            onClick={handlePreviousMonth}
+          >
             <ChevronLeftIcon fontSize='small' />
           </IconButton>
           <Typography
@@ -277,12 +306,15 @@ export const ProcessSidebar = ({
             sx={{
               fontWeight: 700,
               fontSize: '1rem',
-              color: '#212121'
+              color: 'text.primary'
             }}
           >
             {dayjs(currentMonth).format('MMMM YYYY')}
           </Typography>
-          <IconButton size='small' onClick={handleNextMonth}>
+          <IconButton
+            size='small'
+            onClick={handleNextMonth}
+          >
             <ChevronRightIcon fontSize='small' />
           </IconButton>
         </Box>
@@ -296,7 +328,7 @@ export const ProcessSidebar = ({
               sx={{
                 textAlign: 'center',
                 fontWeight: 600,
-                color: '#8A8D91',
+                color: 'text.disabled',
                 fontSize: '0.75rem'
               }}
             >
@@ -307,44 +339,44 @@ export const ProcessSidebar = ({
 
         {/* Calendário */}
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5 }}>
-          {monthDates.map((date, index) => {
+          {monthDates.map((date) => {
             const isCurrentMonth = dayjs(date).isSame(dayjs(currentMonth), 'month');
             const status = getDateStatus(date);
             const isSelected = selectedDate && dayjs(date).isSame(dayjs(selectedDate), 'day');
             const isToday = dayjs(date).isSame(dayjs(), 'day');
 
             let backgroundColor = 'transparent';
-            let color = isCurrentMonth ? '#212121' : '#8A8D91';
+            let color = isCurrentMonth ? 'text.primary' : 'text.disabled';
 
             if (status) {
               switch (status) {
                 case 'Atrasado':
-                  backgroundColor = '#FDE8EC';
-                  color = '#B81E34';
+                  backgroundColor = 'error.light';
+                  color = 'error.main';
                   break;
                 case 'Em andamento':
-                  backgroundColor = '#E7F3FF';
-                  color = '#105BBE';
+                  backgroundColor = 'secondary.light';
+                  color = 'primary.dark';
                   break;
                 case 'Concluído':
-                  backgroundColor = '#E6F4EA';
-                  color = '#1F7A37';
+                  backgroundColor = 'success.light';
+                  color = 'success.main';
                   break;
                 case 'Pendente':
-                  backgroundColor = '#FFF5D6';
-                  color = '#B38800';
+                  backgroundColor = 'warning.light';
+                  color = 'warning.main';
                   break;
               }
             }
 
             if (isSelected) {
-              backgroundColor = '#1877F2';
-              color = '#FFFFFF';
+              backgroundColor = 'primary.main';
+              color = 'background.paper';
             }
 
             return (
               <Box
-                key={index}
+                key={date}
                 onClick={() => onDateClick(date)}
                 sx={{
                   aspectRatio: '1',
@@ -355,9 +387,10 @@ export const ProcessSidebar = ({
                   backgroundColor,
                   color,
                   cursor: status ? 'pointer' : 'default',
-                  border: isToday ? '2px solid #1877F2' : 'none',
+                  border: isToday ? 2 : 0,
+                  borderColor: isToday ? 'primary.main' : 'transparent',
                   '&:hover': {
-                    backgroundColor: status ? (isSelected ? '#1877F2' : '#F8F9FA') : 'transparent'
+                    backgroundColor: status ? (isSelected ? 'primary.main' : 'action.hover') : 'transparent'
                   }
                 }}
               >
@@ -376,28 +409,50 @@ export const ProcessSidebar = ({
         </Box>
 
         {/* Legenda */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 2, pt: 2, borderTop: '1px solid #E4E6EB' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0.5,
+            mt: 2,
+            pt: 2,
+            borderTop: 1,
+            borderColor: 'divider'
+          }}
+        >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#B81E34' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'error.main' }} />
+            <Typography
+              variant='caption'
+              sx={{ color: 'text.disabled', fontSize: '0.75rem' }}
+            >
               Atrasado
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#1877F2' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'primary.main' }} />
+            <Typography
+              variant='caption'
+              sx={{ color: 'text.disabled', fontSize: '0.75rem' }}
+            >
               Em andamento
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#1F7A37' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'success.main' }} />
+            <Typography
+              variant='caption'
+              sx={{ color: 'text.disabled', fontSize: '0.75rem' }}
+            >
               Concluído
             </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#B38800' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'warning.main' }} />
+            <Typography
+              variant='caption'
+              sx={{ color: 'text.disabled', fontSize: '0.75rem' }}
+            >
               Pendente
             </Typography>
           </Box>
@@ -406,7 +461,7 @@ export const ProcessSidebar = ({
         <Typography
           variant='caption'
           sx={{
-            color: '#8A8D91',
+            color: 'text.disabled',
             fontSize: '0.75rem',
             mt: 1,
             display: 'block',
@@ -419,4 +474,3 @@ export const ProcessSidebar = ({
     </Box>
   );
 };
-

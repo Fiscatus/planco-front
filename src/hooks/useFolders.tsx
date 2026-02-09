@@ -1,38 +1,54 @@
-import type { CreateFolderDto, FilterFoldersDto, Folder, UpdateFolderDto, MoveProcessesDto } from '@/globals/types';
 import { useCallback } from 'react';
+import type { CreateFolderDto, FilterFoldersDto, Folder, MoveProcessesDto, UpdateFolderDto } from '@/globals/types';
 
 import { api } from '@/services';
 
+type FoldersApiResponse = {
+  items?: Folder[];
+  folders?: Folder[];
+  total?: number;
+  page?: number;
+  limit?: number;
+  totalPages?: number;
+};
+
+type FolderApiItem = Folder & {
+  observations?: string;
+};
+
 export const useFolders = () => {
-  const fetchFolders = useCallback(
-    async (filters: FilterFoldersDto = {}) => {
-      const params: { page?: number; limit?: number; name?: string; year?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' } = {};
+  const fetchFolders = useCallback(async (filters: FilterFoldersDto = {}) => {
+    const params: {
+      page?: number;
+      limit?: number;
+      name?: string;
+      year?: string;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+    } = {};
 
-      if (filters.page) params.page = filters.page;
-      if (filters.limit) params.limit = filters.limit;
-      if (filters.search) params.name = filters.search;
-      if (filters.year) params.year = filters.year;
-      if (filters.sortBy) params.sortBy = filters.sortBy;
-      if (filters.sortOrder) params.sortOrder = filters.sortOrder;
+    if (filters.page) params.page = filters.page;
+    if (filters.limit) params.limit = filters.limit;
+    if (filters.search) params.name = filters.search;
+    if (filters.year) params.year = filters.year;
+    if (filters.sortBy) params.sortBy = filters.sortBy;
+    if (filters.sortOrder) params.sortOrder = filters.sortOrder;
 
-      const response = await api.get<any>('/folders', { params });
+    const response = await api.get<FoldersApiResponse>('/folders', { params });
 
-      // A API retorna 'items', mapear para 'folders' e normalizar description/observations
-      const folders = (response.data.items || response.data.folders || []).map((folder: any) => ({
-        ...folder,
-        description: folder.description || folder.observations
-      }));
+    const folders = (response.data.items || response.data.folders || []).map((folder: FolderApiItem) => ({
+      ...folder,
+      description: folder.description || folder.observations
+    }));
 
-      return {
-        folders,
-        total: response.data.total || 0,
-        page: response.data.page || 1,
-        limit: response.data.limit || 12,
-        totalPages: response.data.totalPages || 1
-      };
-    },
-    []
-  );
+    return {
+      folders,
+      total: response.data.total || 0,
+      page: response.data.page || 1,
+      limit: response.data.limit || 12,
+      totalPages: response.data.totalPages || 1
+    };
+  }, []);
 
   const createFolder = useCallback(async (data: CreateFolderDto) => {
     const response = await api.post<Folder>('/folders', data);
@@ -50,11 +66,10 @@ export const useFolders = () => {
   }, []);
 
   const fetchFolderById = useCallback(async (id: string) => {
-    const response = await api.get<Folder>(`/folders/${id}`);
-    // Normalizar description/observations
+    const response = await api.get<FolderApiItem>(`/folders/${id}`);
     return {
       ...response.data,
-      description: (response.data as any).description || (response.data as any).observations
+      description: response.data.description || response.data.observations
     };
   }, []);
 
@@ -63,7 +78,7 @@ export const useFolders = () => {
     return response.data;
   }, []);
 
-  const toggleFavorite = useCallback(async (id: string) => {
+  const toggleFavorite = useCallback(async (_id: string) => {
     // Se a API não tiver este endpoint, implementar lógica local se necessário
     // Por enquanto, apenas um placeholder
     throw new Error('Toggle favorite não implementado na API');

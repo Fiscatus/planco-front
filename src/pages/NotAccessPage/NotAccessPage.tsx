@@ -1,8 +1,7 @@
 import { Block as BlockIcon, Home as HomeIcon } from '@mui/icons-material';
-import { Box, Button, Container, Link, Stack, Typography } from '@mui/material';
-
-import { useAuth } from '@/hooks';
+import { Box, Button, Link, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks';
 
 const NotAccessPage = () => {
   const navigate = useNavigate();
@@ -24,7 +23,7 @@ const NotAccessPage = () => {
     navigate('/auth');
   };
 
-  const handleGoBack = () => {
+  const _handleGoBack = () => {
     navigate(-1);
   };
 
@@ -66,70 +65,70 @@ const NotAccessPage = () => {
           <BlockIcon
             sx={{
               fontSize: { xs: 100, md: 120 },
-              color: '#1877F2',
+              color: 'primary.main',
               opacity: 0.8
             }}
           />
         </Box>
 
-         {/* Container do conteúdo principal */}
-         <Box
-           sx={{
-             display: 'flex',
-             flexDirection: 'column',
-             alignItems: 'center',
-             gap: { xs: 1.5, md: 2 },
-             maxWidth: 600,
-             width: '100%',
-             textAlign: 'center'
-           }}
-         >
-           {/* Título principal */}
-           <Typography
-             variant='h1'
-             sx={{
-               fontSize: { xs: '2.5rem', md: '3rem' },
-               fontWeight: 800,
-               color: '#1877F2',
-               lineHeight: 1.1,
-               letterSpacing: '-0.02em',
-               mb: { xs: 0.5, md: 1 }
-             }}
-           >
-             Acesso Negado
-           </Typography>
+        {/* Container do conteúdo principal */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: { xs: 1.5, md: 2 },
+            maxWidth: 600,
+            width: '100%',
+            textAlign: 'center'
+          }}
+        >
+          {/* Título principal */}
+          <Typography
+            variant='h1'
+            sx={{
+              fontSize: { xs: '2.5rem', md: '3rem' },
+              fontWeight: 800,
+              color: 'primary.main',
+              lineHeight: 1.1,
+              letterSpacing: '-0.02em',
+              mb: { xs: 0.5, md: 1 }
+            }}
+          >
+            Acesso Negado
+          </Typography>
 
-           {/* Subtítulo */}
-           <Typography
-             variant='h2'
-             sx={{
-               fontSize: { xs: '1.25rem', md: '1.5rem' },
-               fontWeight: 600,
-               color: 'rgb(31, 41, 55)',
-               lineHeight: 1.2,
-               letterSpacing: '-0.01em',
-               mb: { xs: 1.5, md: 2 }
-             }}
-           >
-             Sem acesso a esse recurso
-           </Typography>
+          {/* Subtítulo */}
+          <Typography
+            variant='h2'
+            sx={{
+              fontSize: { xs: '1.25rem', md: '1.5rem' },
+              fontWeight: 600,
+              color: 'rgb(31, 41, 55)',
+              lineHeight: 1.2,
+              letterSpacing: '-0.01em',
+              mb: { xs: 1.5, md: 2 }
+            }}
+          >
+            Sem acesso a esse recurso
+          </Typography>
 
-           {/* Descrição */}
-           <Typography
-             variant='body1'
-             sx={{
-               color: 'rgb(107, 114, 128)',
-               fontSize: { xs: '0.95rem', md: '1rem' },
-               lineHeight: 1.6,
-               maxWidth: 480,
-               textAlign: 'center',
-               mx: 'auto',
-               px: { xs: 1, md: 0 }
-             }}
-           >
-             Ops! Você não tem acesso a esse recurso. Verifique suas permissões ou entre em contato com o administrador.
-           </Typography>
-         </Box>
+          {/* Descrição */}
+          <Typography
+            variant='body1'
+            sx={{
+              color: 'rgb(107, 114, 128)',
+              fontSize: { xs: '0.95rem', md: '1rem' },
+              lineHeight: 1.6,
+              maxWidth: 480,
+              textAlign: 'center',
+              mx: 'auto',
+              px: { xs: 1, md: 0 }
+            }}
+          >
+            Ops! Você não tem acesso a esse recurso. Verifique suas permissões ou entre em contato com o administrador.
+          </Typography>
+        </Box>
 
         {/* Botão principal */}
         <Box
@@ -147,8 +146,8 @@ const NotAccessPage = () => {
             size='large'
             startIcon={<HomeIcon />}
             sx={{
-              bgcolor: '#1877F2',
-              color: '#ffffff',
+              bgcolor: 'primary.main',
+              color: 'common.white',
               textTransform: 'none',
               fontSize: { xs: '0.95rem', md: '1rem' },
               fontWeight: 500,
@@ -158,7 +157,7 @@ const NotAccessPage = () => {
               boxShadow: 'none',
               minWidth: { xs: 200, md: 220 },
               '&:hover': {
-                bgcolor: '#166fe5',
+                bgcolor: 'primary.dark',
                 boxShadow: '0 4px 12px rgba(24, 119, 242, 0.3)'
               },
               '&:focus': {
@@ -171,15 +170,15 @@ const NotAccessPage = () => {
           </Button>
         </Box>
 
-         {/* Link de suporte */}
-         <Box
-           sx={{
-             mt: { xs: 4, md: 5 },
-             width: '100%',
-             maxWidth: 400,
-             textAlign: 'center'
-           }}
-         >
+        {/* Link de suporte */}
+        <Box
+          sx={{
+            mt: { xs: 4, md: 5 },
+            width: '100%',
+            maxWidth: 400,
+            textAlign: 'center'
+          }}
+        >
           <Typography
             variant='body2'
             sx={{
@@ -192,7 +191,7 @@ const NotAccessPage = () => {
             <Link
               href='#'
               sx={{
-                color: '#1877F2',
+                color: 'primary.main',
                 textDecoration: 'none',
                 fontWeight: 500,
                 '&:hover': {

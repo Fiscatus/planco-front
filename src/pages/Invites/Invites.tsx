@@ -1,18 +1,10 @@
-import {
-  AccessTime,
-  CheckCircle,
-  InfoOutlined,
-  Mail,
-  PersonAdd,
-  Shield
-} from '@mui/icons-material';
+import { AccessTime, CheckCircle, InfoOutlined, Mail, PersonAdd, Shield } from '@mui/icons-material';
 import { Alert, Box, Button, Card, CardContent, CardHeader, Chip, Divider, Paper, Typography } from '@mui/material';
-import { useAuth, useInvites } from '@/hooks';
 import { useMutation, useQuery } from '@tanstack/react-query';
-
-import type { Invite } from '@/globals/types';
 import { useCallback } from 'react';
 import { useNotification } from '@/components';
+import type { Invite } from '@/globals/types';
+import { useAuth, useInvites } from '@/hooks';
 
 const Invites = () => {
   const { user, hasOrganization } = useAuth();

@@ -1,4 +1,18 @@
 export type {
+  CreateDepartmentDto,
+  Department,
+  PaginatedDepartments,
+  UpdateDepartmentDto
+} from './Department';
+export type {
+  CreateFolderDto,
+  FilterFoldersDto,
+  Folder,
+  PaginatedFolders,
+  ToggleFavoriteResponse,
+  UpdateFolderDto
+} from './Folder';
+export type {
   AcceptInviteResponse,
   CreateInviteDto,
   DeclineInviteResponse,
@@ -12,6 +26,24 @@ export type {
   InviteUser,
   PaginatedInvitesDto
 } from './Invite';
+export type { MoveProcessesDto } from './MoveProcesses';
+export type {
+  CreateProcessDto,
+  FilterProcessesDto,
+  FolderStatsDto,
+  PaginatedProcesses,
+  Process,
+  UpdateProcessDto
+} from './Process';
+export type {
+  CreateRoleDto,
+  PermissionDto,
+  PermissionsResponseDto,
+  Role,
+  RoleDeleteImpact,
+  RoleDeleteResponse,
+  UpdateRoleDto
+} from './Role';
 export type {
   AuthResponse,
   FilterUsersDto,
@@ -21,35 +53,3 @@ export type {
   ToggleUserStatusResponse,
   User
 } from './User';
-export type {
-  CreateRoleDto,
-  UpdateRoleDto,
-  Role,
-  RoleDeleteImpact,
-  RoleDeleteResponse,
-  PermissionDto,
-  PermissionsResponseDto
-} from './Role';
-export type {
-  Department,
-  PaginatedDepartments,
-  CreateDepartmentDto,
-  UpdateDepartmentDto
-} from './Department';
-export type {
-  Folder,
-  PaginatedFolders,
-  CreateFolderDto,
-  UpdateFolderDto,
-  FilterFoldersDto,
-  ToggleFavoriteResponse
-} from './Folder';
-export type {
-  Process,
-  PaginatedProcesses,
-  FilterProcessesDto,
-  CreateProcessDto,
-  UpdateProcessDto,
-  FolderStatsDto
-} from './Process';
-export type { MoveProcessesDto } from './MoveProcesses';

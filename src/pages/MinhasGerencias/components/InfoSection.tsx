@@ -1,17 +1,6 @@
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  Chip,
-  Grid,
-  Typography
-} from '@mui/material';
-
+import { Edit as EditIcon } from '@mui/icons-material';
+import { Alert, Box, Button, Card, Chip, Grid, Typography } from '@mui/material';
 import type { Department } from '@/globals/types';
-import {
-  Edit as EditIcon
-} from '@mui/icons-material';
 
 interface InfoSectionProps {
   gerencia: Department | null;
@@ -106,9 +95,7 @@ export const InfoSection = ({ gerencia, canEdit = true, onEdit }: InfoSectionPro
               >
                 E-mail do departamento
               </Typography>
-              <Typography variant='body2'>
-                {gerencia.deparment_email || 'Não informado'}
-              </Typography>
+              <Typography variant='body2'>{gerencia.deparment_email || 'Não informado'}</Typography>
             </Grid>
             <Grid size={{ xs: 12, md: 6 }}>
               <Typography
@@ -130,9 +117,7 @@ export const InfoSection = ({ gerencia, canEdit = true, onEdit }: InfoSectionPro
               >
                 Telefone
               </Typography>
-              <Typography variant='body2'>
-                {gerencia.department_phone || 'Não informado'}
-              </Typography>
+              <Typography variant='body2'>{gerencia.department_phone || 'Não informado'}</Typography>
             </Grid>
             {gerencia.description && (
               <Grid size={{ xs: 12, md: 6 }}>

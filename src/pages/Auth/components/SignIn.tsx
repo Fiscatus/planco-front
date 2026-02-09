@@ -1,20 +1,14 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Lock, Person, Visibility, VisibilityOff } from '@mui/icons-material';
 import { Box, Button, IconButton, InputAdornment, Link, TextField, Typography } from '@mui/material';
-import { Controller, useForm } from 'react-hook-form';
-import {
-  Lock,
-  Person,
-  Visibility,
-  VisibilityOff
-} from '@mui/icons-material';
+import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-
+import { Controller, useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
+import { useNotification } from '@/components';
 import type { LoginDto } from '@/globals/types/User';
 import { useAuth } from '@/hooks';
-import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { useNotification } from '@/components';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { api } from '@/services';
 import logo from '/assets/isologo.svg';
 
@@ -100,23 +94,23 @@ const SignIn = ({ setIsSignIn }: Props) => {
     <Box>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <img 
-            src={logo} 
-            alt="Planco Logo" 
-            style={{ 
-              width: '64px', 
+          <img
+            src={logo}
+            alt='Planco Logo'
+            style={{
+              width: '64px',
               height: '64px',
               objectFit: 'contain',
               display: 'block',
               margin: '0 auto 16px auto'
-            }} 
+            }}
           />
           <Typography
             variant='h4'
             component='h1'
             fontWeight={700}
             sx={{
-              color: '#212529',
+              color: 'text.primary',
               mb: 1,
               fontSize: { xs: '1.75rem', sm: '2rem' }
             }}
@@ -125,7 +119,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
           </Typography>
           <Typography
             sx={{
-              color: '#6C757D',
+              color: 'text.secondary',
               fontSize: '1rem'
             }}
           >
@@ -138,7 +132,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
             sx={{
               mb: 1,
               fontWeight: 500,
-              color: '#495057',
+              color: 'text.primary',
               fontSize: '0.875rem'
             }}
           >
@@ -158,7 +152,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position='start'>
-                        <Person sx={{ color: '#6C757D' }} />
+                        <Person sx={{ color: 'text.secondary' }} />
                       </InputAdornment>
                     )
                   }}
@@ -169,14 +163,14 @@ const SignIn = ({ setIsSignIn }: Props) => {
                       borderRadius: '8px',
                       backgroundColor: 'white',
                       '& fieldset': {
-                        borderColor: errors.email ? '#DC3545' : '#CED4DA',
+                        borderColor: errors.email ? 'error.main' : 'grey.300',
                         borderWidth: '1px'
                       },
                       '&:hover fieldset': {
-                        borderColor: errors.email ? '#DC3545' : '#ADB5BD'
+                        borderColor: errors.email ? 'error.main' : 'grey.400'
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#1877F2',
+                        borderColor: 'primary.main',
                         borderWidth: '2px'
                       }
                     },
@@ -184,7 +178,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
                       padding: '12px 14px',
                       fontSize: '0.875rem',
                       '&::placeholder': {
-                        color: '#6C757D',
+                        color: 'text.secondary',
                         opacity: 1
                       }
                     }
@@ -193,7 +187,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
                 {errors.email && (
                   <Typography
                     sx={{
-                      color: '#DC3545',
+                      color: 'error.main',
                       fontSize: '0.75rem',
                       mt: 0.5,
                       ml: 1
@@ -212,7 +206,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
               variant='body2'
               sx={{
                 fontWeight: 500,
-                color: '#495057',
+                color: 'text.primary',
                 fontSize: '0.875rem'
               }}
             >
@@ -222,7 +216,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
               href='/auth/forgot-password'
               sx={{
                 fontSize: '0.875rem',
-                color: '#1877F2',
+                color: 'primary.main',
                 textDecoration: 'none',
                 fontWeight: 500,
                 '&:hover': {
@@ -247,7 +241,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position='start'>
-                        <Lock sx={{ color: '#6C757D' }} />
+                        <Lock sx={{ color: 'text.secondary' }} />
                       </InputAdornment>
                     ),
                     endAdornment: (
@@ -255,7 +249,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
                         <IconButton
                           onClick={() => setShowPassword(!showPassword)}
                           edge='end'
-                          sx={{ color: '#6C757D' }}
+                          sx={{ color: 'text.secondary' }}
                         >
                           {showPassword ? <VisibilityOff /> : <Visibility />}
                         </IconButton>
@@ -269,14 +263,14 @@ const SignIn = ({ setIsSignIn }: Props) => {
                       borderRadius: '8px',
                       backgroundColor: 'white',
                       '& fieldset': {
-                        borderColor: errors.password ? '#DC3545' : '#CED4DA',
+                        borderColor: errors.password ? 'error.main' : 'grey.300',
                         borderWidth: '1px'
                       },
                       '&:hover fieldset': {
-                        borderColor: errors.password ? '#DC3545' : '#ADB5BD'
+                        borderColor: errors.password ? 'error.main' : 'grey.400'
                       },
                       '&.Mui-focused fieldset': {
-                        borderColor: '#1877F2',
+                        borderColor: 'primary.main',
                         borderWidth: '2px'
                       }
                     },
@@ -284,7 +278,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
                       padding: '12px 14px',
                       fontSize: '0.875rem',
                       '&::placeholder': {
-                        color: '#6C757D',
+                        color: 'text.secondary',
                         opacity: 1
                       }
                     }
@@ -293,7 +287,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
                 {errors.password && (
                   <Typography
                     sx={{
-                      color: '#DC3545',
+                      color: 'error.main',
                       fontSize: '0.75rem',
                       mt: 0.5,
                       ml: 1
@@ -313,18 +307,18 @@ const SignIn = ({ setIsSignIn }: Props) => {
           sx={{
             height: '48px',
             borderRadius: '8px',
-            backgroundColor: '#1877F2',
+            backgroundColor: 'primary.main',
             color: 'white',
             fontSize: '1rem',
             fontWeight: 600,
             textTransform: 'none',
             mb: 3,
             '&:hover': {
-              backgroundColor: '#166FE5'
+              backgroundColor: 'primary.dark'
             },
             '&:disabled': {
-              backgroundColor: '#E9ECEF',
-              color: '#6C757D'
+              backgroundColor: 'grey.100',
+              color: 'text.secondary'
             },
             transition: 'all 0.2s ease-in-out'
           }}
@@ -340,14 +334,15 @@ const SignIn = ({ setIsSignIn }: Props) => {
               height: '48px',
               borderRadius: '8px',
               backgroundColor: 'white',
-              color: '#1877F2',
+              color: 'primary.main',
               fontSize: '1rem',
               fontWeight: 600,
               textTransform: 'none',
               mb: 3,
-              border: '2px solid #1877F2',
+              border: '2px solid',
+              borderColor: 'primary.main',
               '&:hover': {
-                backgroundColor: '#F8F9FA'
+                backgroundColor: 'grey.50'
               }
             }}
           >
@@ -358,7 +353,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
         <Typography
           sx={{
             fontSize: '0.875rem',
-            color: '#6C757D',
+            color: 'text.secondary',
             textAlign: 'center'
           }}
         >
@@ -370,7 +365,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
             }}
             sx={{
               fontSize: '0.875rem',
-              color: '#1877F2',
+              color: 'primary.main',
               textDecoration: 'none',
               fontWeight: 500,
               cursor: 'pointer',

@@ -1,3 +1,4 @@
+import { Business, ExpandMore } from '@mui/icons-material';
 import {
   Box,
   Chip,
@@ -5,34 +6,25 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  SelectChangeEvent,
+  type SelectChangeEvent,
   Typography
 } from '@mui/material';
-import { Business, ExpandMore } from '@mui/icons-material';
-
-import type { Department } from '@/globals/types';
-import { Loading } from './Loading';
+import { useId } from 'react';
 import { useActiveDepartment } from '@/contexts';
+import { Loading } from './Loading';
 
 interface ActiveDepartmentSelectorProps {
   variant?: 'full' | 'compact';
   showLabel?: boolean;
 }
 
-export const ActiveDepartmentSelector = ({ 
-  variant = 'full', 
-  showLabel = true 
-}: ActiveDepartmentSelectorProps) => {
-  const { 
-    activeDepartment, 
-    setActiveDepartment, 
-    availableDepartments, 
-    isLoading 
-  } = useActiveDepartment();
+export const ActiveDepartmentSelector = ({ variant = 'full', showLabel = true }: ActiveDepartmentSelectorProps) => {
+  const { activeDepartment, setActiveDepartment, availableDepartments, isLoading } = useActiveDepartment();
+  const selectLabelId = useId();
 
   const handleDepartmentChange = (event: SelectChangeEvent<string>) => {
     const selectedId = event.target.value;
-    const selectedDepartment = availableDepartments.find(dept => dept._id === selectedId);
+    const selectedDepartment = availableDepartments.find((dept) => dept._id === selectedId);
     if (selectedDepartment) {
       setActiveDepartment(selectedDepartment);
     }
@@ -51,7 +43,10 @@ export const ActiveDepartmentSelector = ({
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Business sx={{ fontSize: 20, color: 'text.secondary' }} />
-        <Typography variant="body2" color="text.secondary">
+        <Typography
+          variant='body2'
+          color='text.secondary'
+        >
           Nenhuma gerência disponível
         </Typography>
       </Box>
@@ -62,12 +57,15 @@ export const ActiveDepartmentSelector = ({
     return (
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Business sx={{ fontSize: 20, color: 'primary.main' }} />
-        <Typography variant="body2" fontWeight={500}>
+        <Typography
+          variant='body2'
+          fontWeight={500}
+        >
           {availableDepartments[0].department_name}
         </Typography>
         <Chip
           label={availableDepartments[0].department_acronym}
-          size="small"
+          size='small'
           sx={{
             fontSize: '0.75rem',
             fontFamily: 'monospace',
@@ -85,34 +83,38 @@ export const ActiveDepartmentSelector = ({
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Business sx={{ fontSize: 20, color: 'primary.main' }} />
         {showLabel && (
-          <Typography variant="body2" fontWeight={500} color="text.secondary">
+          <Typography
+            variant='body2'
+            fontWeight={500}
+            color='text.secondary'
+          >
             Gerência Ativa:
           </Typography>
         )}
       </Box>
-      
-      <FormControl 
-        size="small" 
-          sx={{ 
-            minWidth: variant === 'full' ? 250 : 200,
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 2,
-              backgroundColor: 'background.paper',
-              border: '1px solid',
-              borderColor: 'divider',
-              '&:hover': {
-                borderColor: 'primary.main'
-              },
-              '&.Mui-focused': {
-                borderColor: 'primary.main',
-                boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.2)'
-              }
+
+      <FormControl
+        size='small'
+        sx={{
+          minWidth: variant === 'full' ? 250 : 200,
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 2,
+            backgroundColor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+            '&:hover': {
+              borderColor: 'primary.main'
+            },
+            '&.Mui-focused': {
+              borderColor: 'primary.main',
+              boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.2)'
             }
-          }}
+          }
+        }}
       >
-        <InputLabel 
-          id="active-department-select-label"
-          sx={{ 
+        <InputLabel
+          id={selectLabelId}
+          sx={{
             fontSize: '0.875rem',
             color: 'text.secondary',
             '&.Mui-focused': {
@@ -123,10 +125,10 @@ export const ActiveDepartmentSelector = ({
           Selecione a gerência
         </InputLabel>
         <Select
-          labelId="active-department-select-label"
+          labelId={selectLabelId}
           value={activeDepartment?._id || ''}
           onChange={handleDepartmentChange}
-          label="Selecione a gerência"
+          label='Selecione a gerência'
           IconComponent={ExpandMore}
           sx={{
             fontSize: '0.875rem',
@@ -139,8 +141,8 @@ export const ActiveDepartmentSelector = ({
           }}
         >
           {availableDepartments.map((department) => (
-            <MenuItem 
-              key={department._id} 
+            <MenuItem
+              key={department._id}
               value={department._id}
               sx={{
                 display: 'flex',
@@ -156,12 +158,15 @@ export const ActiveDepartmentSelector = ({
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
-                <Typography variant="body2" fontWeight={500}>
+                <Typography
+                  variant='body2'
+                  fontWeight={500}
+                >
                   {department.department_name}
                 </Typography>
                 <Chip
                   label={department.department_acronym}
-                  size="small"
+                  size='small'
                   sx={{
                     fontSize: '0.75rem',
                     fontFamily: 'monospace',

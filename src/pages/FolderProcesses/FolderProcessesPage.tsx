@@ -1,5 +1,5 @@
 import { ArrowBack as ArrowBackIcon, Edit as EditIcon, Info as InfoIcon } from '@mui/icons-material';
-import { Box, Button, Card, MenuItem, Pagination, Select, Typography } from '@mui/material';
+import { Box, Button, Card, MenuItem, Pagination, Select, Typography, useTheme } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
@@ -13,6 +13,7 @@ import { StatsCards } from './components/StatsCards';
 
 const FolderProcessesPage = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
   const { id: folderId } = useParams<{ id: string }>();
   const [urlParams, setUrlParams] = useSearchParams();
   const queryClient = useQueryClient();
@@ -150,7 +151,7 @@ const FolderProcessesPage = () => {
   });
 
   const handleProcessClick = useCallback(
-    (process: any) => {
+    (_process: any) => {
       // Navegar para detalhes do processo ou abrir modal
       showNotification('Funcionalidade de visualizar processo em desenvolvimento', 'info');
     },
@@ -233,7 +234,7 @@ const FolderProcessesPage = () => {
       sx={{
         width: '100%',
         minHeight: '100vh',
-        background: 'linear-gradient(180deg, #F7F9FB 0%, #F4F6F8 100%)',
+        background: `linear-gradient(180deg, ${theme.palette.background.default} 0%, ${theme.palette.background.default} 100%)`,
         pt: { xs: 2, sm: 3, md: 3.5 },
         px: { xs: 2, sm: 3, md: 4, lg: 5 },
         pb: { xs: 4, sm: 5, md: 6 },
@@ -276,7 +277,7 @@ const FolderProcessesPage = () => {
               startIcon={<ArrowBackIcon />}
               onClick={() => navigate('/gerenciamento-pastas')}
               sx={{
-                color: '#8A8D91',
+                color: 'text.secondary',
                 textTransform: 'none',
                 minWidth: 'auto',
                 p: { xs: 0.75, sm: 1 },
@@ -284,7 +285,7 @@ const FolderProcessesPage = () => {
                 flexShrink: 0,
                 '&:hover': {
                   backgroundColor: 'transparent',
-                  color: '#212121'
+                  color: 'text.primary'
                 },
                 '&:focus': {
                   backgroundColor: 'transparent'
@@ -300,7 +301,7 @@ const FolderProcessesPage = () => {
                 sx={{
                   fontWeight: 700,
                   fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem', lg: '1.875rem' },
-                  color: '#212121',
+                  color: 'text.primary',
                   mb: { xs: 0.25, sm: 0.5 },
                   lineHeight: { xs: 1.3, sm: 1.2 },
                   wordBreak: 'break-word'
@@ -311,7 +312,7 @@ const FolderProcessesPage = () => {
               <Typography
                 variant='body1'
                 sx={{
-                  color: '#8A8D91',
+                  color: 'text.secondary',
                   fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' },
                   lineHeight: { xs: 1.4, sm: 1.5 },
                   display: { xs: 'none', sm: 'block' }
@@ -333,13 +334,13 @@ const FolderProcessesPage = () => {
               fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600,
               textTransform: 'none',
-              borderColor: '#1877F2',
-              color: '#1877F2',
+              borderColor: 'primary.main',
+              color: 'primary.main',
               width: { xs: '100%', sm: 'auto' },
               mt: { xs: 1, sm: 0 },
               '&:hover': {
-                borderColor: '#166fe5',
-                backgroundColor: '#f0f9ff'
+                borderColor: 'primary.dark',
+                backgroundColor: 'info.light'
               }
             }}
           >
@@ -366,8 +367,9 @@ const FolderProcessesPage = () => {
             <Card
               sx={{
                 borderRadius: { xs: '10px', sm: '12px' },
-                border: '1px solid #BFDBFE',
-                backgroundColor: '#EFF6FF',
+                border: '1px solid',
+                borderColor: 'info.light',
+                backgroundColor: 'info.lighter',
                 boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
                 p: { xs: 2, sm: 2.5, md: 3 },
                 transition: 'box-shadow 0.2s ease-in-out',
@@ -382,7 +384,7 @@ const FolderProcessesPage = () => {
                     width: { xs: 40, sm: 44 },
                     height: { xs: 40, sm: 44 },
                     borderRadius: '50%',
-                    backgroundColor: '#DBEAFE',
+                    backgroundColor: 'info.light',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -390,7 +392,7 @@ const FolderProcessesPage = () => {
                     boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
                   }}
                 >
-                  <InfoIcon sx={{ fontSize: { xs: 20, sm: 22 }, color: '#2563EB' }} />
+                  <InfoIcon sx={{ fontSize: { xs: 20, sm: 22 }, color: 'info.dark' }} />
                 </Box>
                 <Box sx={{ flex: 1, pt: 0.25, minWidth: 0 }}>
                   <Typography
@@ -398,7 +400,7 @@ const FolderProcessesPage = () => {
                     sx={{
                       fontWeight: 700,
                       fontSize: { xs: '14px', sm: '15px' },
-                      color: '#1E3A8A',
+                      color: 'info.darker',
                       mb: { xs: 1, sm: 1.25 },
                       lineHeight: 1.4
                     }}
@@ -409,7 +411,7 @@ const FolderProcessesPage = () => {
                     variant='body2'
                     sx={{
                       fontSize: { xs: '13px', sm: '14px' },
-                      color: '#1E40AF',
+                      color: 'info.darker2',
                       lineHeight: { xs: 1.5, sm: 1.65 },
                       letterSpacing: '0.01em',
                       wordBreak: 'break-word'
@@ -420,7 +422,7 @@ const FolderProcessesPage = () => {
                       component='span'
                       sx={{
                         fontWeight: 700,
-                        color: '#2563EB'
+                        color: 'info.dark'
                       }}
                     >
                       Pasta Planco
@@ -463,8 +465,9 @@ const FolderProcessesPage = () => {
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   gap: 2,
-                  backgroundColor: '#f8fafc',
-                  borderTop: '1px solid #e5e7eb',
+                  backgroundColor: 'grey.50',
+                  borderTop: '1px solid',
+                  borderTopColor: 'divider',
                   borderRadius: '0 0 12px 12px',
                   mt: 2
                 }}
@@ -472,7 +475,7 @@ const FolderProcessesPage = () => {
                 {/* Pagination Info */}
                 <Typography
                   variant='body2'
-                  sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                  sx={{ color: 'text.disabled', fontSize: '0.875rem' }}
                 >
                   {(Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10) + 1}-
                   {Math.min(
@@ -495,9 +498,9 @@ const FolderProcessesPage = () => {
                         value={limit}
                         sx={{
                           '&.Mui-selected': {
-                            backgroundColor: '#f1f5f9',
+                            backgroundColor: 'grey.100',
                             '&:hover': {
-                              backgroundColor: '#f1f5f9'
+                              backgroundColor: 'grey.100'
                             }
                           }
                         }}

@@ -6,7 +6,6 @@ import {
   Refresh as RefreshIcon,
   Search as SearchIcon
 } from '@mui/icons-material';
-import { AddMembersModal, DeleteGerenciaModal, EditGerenciaModal } from '@/components/modals';
 import {
   Alert,
   Box,
@@ -32,14 +31,13 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import type { CreateDepartmentDto, Department, UpdateDepartmentDto } from '@/globals/types';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useDebounce, useDepartments, useSearchWithDebounce, useUsers } from '@/hooks';
 import { useMutation, useQuery } from '@tanstack/react-query';
-
-import type { User } from '@/globals/types';
-import { useNotification } from '@/components';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useNotification } from '@/components';
+import { AddMembersModal, DeleteGerenciaModal, EditGerenciaModal } from '@/components/modals';
+import type { CreateDepartmentDto, Department, UpdateDepartmentDto, User } from '@/globals/types';
+import { useDebounce, useDepartments, useSearchWithDebounce, useUsers } from '@/hooks';
 
 interface GerenciaSectionProps {
   currentTab: 'users' | 'gerencias' | 'invites' | 'roles';
@@ -48,10 +46,10 @@ interface GerenciaSectionProps {
 const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
   const { showNotification } = useNotification();
   const [urlParams, setUrlParams] = useSearchParams();
-  const { 
+  const {
     search: deptSearch,
     debouncedSearch: debouncedDeptSearch,
-    handleSearchChange: handleDeptSearchChange 
+    handleSearchChange: handleDeptSearchChange
   } = useSearchWithDebounce('search');
   const modalSearch = urlParams.get('modalSearch') || '';
   const debouncedModalSearch = useDebounce(modalSearch, 150);
@@ -104,7 +102,8 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
     if (!hasAnyModalOpen) {
       setUrlParams((prev) => {
         const newParams = new URLSearchParams(prev);
-        const hasModalParams = newParams.has('modalSearch') || newParams.has('modalPage') || newParams.has('modalLimit');
+        const hasModalParams =
+          newParams.has('modalSearch') || newParams.has('modalPage') || newParams.has('modalLimit');
         if (hasModalParams) {
           newParams.delete('modalSearch');
           newParams.delete('modalPage');
@@ -122,7 +121,8 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
     error: departmentsError,
     refetch: refetchDepartments
   } = useQuery({
-    queryKey: ['fetchDepartments', 
+    queryKey: [
+      'fetchDepartments',
       `page:${urlParams.get('page') || 1}`,
       `limit:${urlParams.get('limit') || 5}`,
       `search:${debouncedDeptSearch}`
@@ -137,10 +137,7 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
     }
   });
 
-  const {
-    data: usersData,
-    refetch: refetchUsers
-  } = useQuery({
+  const { data: usersData, refetch: refetchUsers } = useQuery({
     queryKey: ['fetchUsersForDepartments'],
     refetchOnWindowFocus: false,
     enabled: false,
@@ -177,16 +174,18 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
     isLoading: modalUsersLoading,
     refetch: refetchModalUsers
   } = useQuery({
-    queryKey: ['fetchUsersForModal',
-        `search:${debouncedModalSearch}`,
-        `page:${urlParams.get('modalPage') || 1}`,
-        `limit:${urlParams.get('modalLimit') || 5}`],
+    queryKey: [
+      'fetchUsersForModal',
+      `search:${debouncedModalSearch}`,
+      `page:${urlParams.get('modalPage') || 1}`,
+      `limit:${urlParams.get('modalLimit') || 5}`
+    ],
     refetchOnWindowFocus: false,
     enabled: addMembersModalOpen,
     queryFn: async () => {
       const page = Number(urlParams.get('modalPage') || 1);
       const limit = Number(urlParams.get('modalLimit') || 5);
-      
+
       return await fetchUsers({
         page,
         limit,
@@ -196,10 +195,7 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
     }
   });
 
-  const {
-    data: modalMembersData,
-    isLoading: modalMembersLoading
-  } = useQuery({
+  const { data: modalMembersData, isLoading: modalMembersLoading } = useQuery({
     queryKey: ['fetchDepartmentMembersForModal', `gerenciaId:${selectedGerencia?._id || ''}`],
     refetchOnWindowFocus: false,
     enabled: !!selectedGerencia && addMembersModalOpen,
@@ -215,7 +211,7 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
     }
 
     const memberIds = modalMembersData.map((member) => member._id);
-    
+
     return modalUsersData.users.map((user) => ({
       ...user,
       isMember: memberIds.includes(user._id)
@@ -224,22 +220,21 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
 
   const { mutate: saveDepartment, isPending: savingDepartment } = useMutation({
     mutationFn: async (data: CreateDepartmentDto | UpdateDepartmentDto) => {
-      
       if (selectedGerencia) {
         const getChangedFields = (newData: any, originalData: any) => {
           const changedFields: any = {};
-          
-          Object.keys(newData).forEach(key => {
+
+          Object.keys(newData).forEach((key) => {
             if (newData[key] !== undefined && newData[key] !== originalData[key]) {
               changedFields[key] = newData[key];
             }
           });
-          
+
           return changedFields;
         };
-        
+
         const updateData = getChangedFields(data, selectedGerencia);
-        
+
         return await updateDepartment(selectedGerencia._id, updateData);
       } else {
         return await createDepartment(data as CreateDepartmentDto);
@@ -247,7 +242,7 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
     },
     onError: (error: any) => {
       let errorMessage = 'Erro ao salvar gerência';
-      
+
       if (error?.response?.status === 409) {
         errorMessage = error?.response?.data?.message || 'Nome da gerência já existe ou email já está em uso';
       } else if (error?.response?.data?.message) {
@@ -255,7 +250,7 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-      
+
       showNotification(errorMessage, 'error');
     },
     onSuccess: () => {
@@ -328,39 +323,51 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
     refetchDepartments();
   }, [refetchDepartments]);
 
-  const handleSelectGerencia = useCallback((dept: Department) => {
-    setLoadingMembers(true);
-    setSelectedGerencia(dept);
-    
-    urlParams.set('selectedDept', dept._id);
-    setUrlParams(urlParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const handleSelectGerencia = useCallback(
+    (dept: Department) => {
+      setLoadingMembers(true);
+      setSelectedGerencia(dept);
 
-  const openMembersDialog = useCallback(async (dept: Department) => {
-    setSelectedGerencia(dept);
-    const newParams = new URLSearchParams(urlParams);
-    newParams.delete('modalSearch');
-    newParams.set('modalPage', '1');
-    newParams.set('modalLimit', '5');
-    setUrlParams(newParams, { replace: true });
-    
-    if (!usersData) {
-      await refetchUsers();
-    }
-    
-    setAddMembersModalOpen(true);
-  }, [urlParams, setUrlParams, usersData, refetchUsers]);
+      urlParams.set('selectedDept', dept._id);
+      setUrlParams(urlParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
-  const handleDeptPageChange = useCallback((page: number) => {
-    urlParams.set('page', String(page));
-    setUrlParams(urlParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const openMembersDialog = useCallback(
+    async (dept: Department) => {
+      setSelectedGerencia(dept);
+      const newParams = new URLSearchParams(urlParams);
+      newParams.delete('modalSearch');
+      newParams.set('modalPage', '1');
+      newParams.set('modalLimit', '5');
+      setUrlParams(newParams, { replace: true });
 
-  const handleDeptLimitChange = useCallback((limit: number) => {
-    urlParams.set('limit', String(limit));
-    urlParams.set('page', '1');
-    setUrlParams(urlParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+      if (!usersData) {
+        await refetchUsers();
+      }
+
+      setAddMembersModalOpen(true);
+    },
+    [urlParams, setUrlParams, usersData, refetchUsers]
+  );
+
+  const handleDeptPageChange = useCallback(
+    (page: number) => {
+      urlParams.set('page', String(page));
+      setUrlParams(urlParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
+
+  const handleDeptLimitChange = useCallback(
+    (limit: number) => {
+      urlParams.set('limit', String(limit));
+      urlParams.set('page', '1');
+      setUrlParams(urlParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
   const handleOpenCreate = useCallback(() => {
     setSelectedGerencia(null);
@@ -377,41 +384,54 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
     setDeleteModalOpen(true);
   }, []);
 
-  const handleSaveGerencia = useCallback((data: CreateDepartmentDto | UpdateDepartmentDto) => {
-    saveDepartment(data);
-  }, [saveDepartment]);
+  const handleSaveGerencia = useCallback(
+    (data: CreateDepartmentDto | UpdateDepartmentDto) => {
+      saveDepartment(data);
+    },
+    [saveDepartment]
+  );
 
   const handleDeleteGerencia = useCallback(async () => {
     if (!selectedGerencia) return;
     deleteDepartmentMutation(selectedGerencia._id);
   }, [selectedGerencia, deleteDepartmentMutation]);
 
-
-  const handleSaveMembers = useCallback(({ userIds, type }: { userIds: string[]; type: 'add' | 'remove' }) => {
+  const handleSaveMembers = useCallback(
+    ({ userIds, type }: { userIds: string[]; type: 'add' | 'remove' }) => {
       if (!selectedGerencia) return;
-    addMembersMutation({ deptId: selectedGerencia._id, userIds });
-  }, [selectedGerencia, addMembersMutation]);
+      addMembersMutation({ deptId: selectedGerencia._id, userIds });
+    },
+    [selectedGerencia, addMembersMutation]
+  );
 
+  const handleMembersPageChange = useCallback(
+    (page: number) => {
+      urlParams.set('membersPage', String(page));
+      setUrlParams(urlParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
-  const handleMembersPageChange = useCallback((page: number) => {
-    urlParams.set('membersPage', String(page));
-    setUrlParams(urlParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const handleMembersLimitChange = useCallback(
+    (limit: number) => {
+      urlParams.set('membersLimit', String(limit));
+      urlParams.set('membersPage', '1');
+      setUrlParams(urlParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
-  const handleMembersLimitChange = useCallback((limit: number) => {
-    urlParams.set('membersLimit', String(limit));
-    urlParams.set('membersPage', '1');
-    setUrlParams(urlParams, { replace: true });
-  }, [urlParams, setUrlParams]);
-
-
-  const handleSelectDepartment = useCallback((dept: Department) => {
-    handleSelectGerencia(dept);
-  }, [handleSelectGerencia]);
+  const handleSelectDepartment = useCallback(
+    (dept: Department) => {
+      handleSelectGerencia(dept);
+    },
+    [handleSelectGerencia]
+  );
 
   const departments = (departmentsData?.departments || departmentsData || []) as Department[];
   const departmentsTotal = departmentsData?.total || departments.length;
-  const departmentsTotalPages = departmentsData?.totalPages || Math.ceil(departments.length / Number(urlParams.get('limit') || 5));
+  const departmentsTotalPages =
+    departmentsData?.totalPages || Math.ceil(departments.length / Number(urlParams.get('limit') || 5));
   const selectedDeptId = urlParams.get('selectedDept');
   const selected = departments.find((d) => d._id === selectedDeptId) || null;
   const effectiveUsersForCounts: User[] = usersData?.users || [];
@@ -471,7 +491,7 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
                       p: 1,
                       borderRadius: '50%',
                       color: 'white',
-                      '&:hover': { bgcolor: 'grey.100', color: '#1f2937'}
+                      '&:hover': { bgcolor: 'grey.100', color: 'text.primary' }
                     }}
                   >
                     <RefreshIcon />
@@ -517,11 +537,11 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
                     zIndex: 1
                   }}
                 />
-                 <TextField
-                   fullWidth
-                   placeholder='Buscar gerências...'
-                   value={deptSearch}
-                   onChange={(e) => handleDeptSearchChange(e.target.value)}
+                <TextField
+                  fullWidth
+                  placeholder='Buscar gerências...'
+                  value={deptSearch}
+                  onChange={(e) => handleDeptSearchChange(e.target.value)}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       pl: 6,
@@ -647,10 +667,14 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
                     {/* Pagination Info */}
                     <Typography
                       variant='body2'
-                      sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                      sx={{ color: 'text.secondary', fontSize: '0.875rem' }}
                     >
-                      {((Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 5)) + 1}-
-                      {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 5), departmentsTotal)} de {departmentsTotal}
+                      {(Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 5) + 1}-
+                      {Math.min(
+                        Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 5),
+                        departmentsTotal
+                      )}{' '}
+                      de {departmentsTotal}
                     </Typography>
 
                     {/* Pagination Controls */}
@@ -666,12 +690,12 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
                             value={limit}
                             sx={{
                               '&:hover': {
-                                backgroundColor: '#f8fafc'
+                                backgroundColor: 'grey.50'
                               },
                               '&.Mui-selected': {
-                                backgroundColor: '#f1f5f9',
+                                backgroundColor: 'grey.100',
                                 '&:hover': {
-                                  backgroundColor: '#f1f5f9'
+                                  backgroundColor: 'grey.100'
                                 }
                               }
                             }}
@@ -911,8 +935,14 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
                   </Box>
                 ) : loadingMembers ? (
                   <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    <CircularProgress size={24} sx={{ mr: 2 }} />
-                    <Typography variant='body2' color='text.secondary'>
+                    <CircularProgress
+                      size={24}
+                      sx={{ mr: 2 }}
+                    />
+                    <Typography
+                      variant='body2'
+                      color='text.secondary'
+                    >
                       Carregando membros...
                     </Typography>
                   </Box>
@@ -1019,9 +1049,9 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
                         {/* Pagination Info */}
                         <Typography
                           variant='body2'
-                          sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                          sx={{ color: 'text.secondary', fontSize: '0.875rem' }}
                         >
-                          {((membersPage - 1) * membersLimit) + 1}-
+                          {(membersPage - 1) * membersLimit + 1}-
                           {Math.min(membersPage * membersLimit, membersOfSelected.length)} de {membersOfSelected.length}
                         </Typography>
 
@@ -1038,12 +1068,12 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
                                 value={limit}
                                 sx={{
                                   '&:hover': {
-                                    backgroundColor: '#f8fafc'
+                                    backgroundColor: 'grey.50'
                                   },
                                   '&.Mui-selected': {
-                                    backgroundColor: '#f1f5f9',
+                                    backgroundColor: 'grey.100',
                                     '&:hover': {
-                                      backgroundColor: '#f1f5f9'
+                                      backgroundColor: 'grey.100'
                                     }
                                   }
                                 }}

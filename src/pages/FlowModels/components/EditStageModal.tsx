@@ -1,5 +1,16 @@
-import { useEffect, useState } from "react";
 import {
+  Add as AddIcon,
+  Close as CloseIcon,
+  Delete as DeleteIcon,
+  DragIndicator as DragIndicatorIcon,
+  Edit as EditIcon,
+  FullscreenExit as FullscreenExitIcon,
+  Fullscreen as FullscreenIcon,
+  Info as InfoIcon,
+  Visibility as VisibilityIcon
+} from '@mui/icons-material';
+import {
+  Autocomplete,
   Box,
   Button,
   Chip,
@@ -8,42 +19,28 @@ import {
   Divider,
   FormControlLabel,
   IconButton,
-  Switch,
-  TextField,
-  Typography,
-  Autocomplete,
   List,
   ListItem,
   ListItemText,
+  Switch,
+  TextField,
   Tooltip,
-} from "@mui/material";
-import {
-  Add as AddIcon,
-  Close as CloseIcon,
-  Delete as DeleteIcon,
-  Visibility as VisibilityIcon,
-  Fullscreen as FullscreenIcon,
-  FullscreenExit as FullscreenExitIcon,
-  DragIndicator as DragIndicatorIcon,
-  Info as InfoIcon,
-  Edit as EditIcon,
-} from "@mui/icons-material";
-import { useQuery } from "@tanstack/react-query";
-import type {
-  FlowModelComponent,
-  FlowModelStage,
-} from "@/hooks/useFlowModels";
-import { useRolesAndDepartments } from "@/hooks/useRolesAndDepartments";
-import { AddComponentModal } from "./AddComponentModal";
-import { SignatureComponent } from "./SignatureComponent";
-import { FilesManagementComponent } from "./FilesManagementComponent";
-import { ApprovalComponent } from "./ApprovalComponent";
+  Typography
+} from '@mui/material';
+import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import type { FlowModelComponent, FlowModelStage } from '@/hooks/useFlowModels';
+import { useRolesAndDepartments } from '@/hooks/useRolesAndDepartments';
+import { AddComponentModal } from './AddComponentModal';
+import { ApprovalComponent } from './ApprovalComponent';
+import { FilesManagementComponent } from './FilesManagementComponent';
+import { SignatureComponent } from './SignatureComponent';
 
 // Mapeamento de componentes implementados
 const COMPONENT_MAP: Record<string, React.ComponentType<any>> = {
   SIGNATURE: SignatureComponent,
   FILES_MANAGEMENT: FilesManagementComponent,
-  APPROVAL: ApprovalComponent,
+  APPROVAL: ApprovalComponent
 };
 
 // Componentes que têm implementação de preview
@@ -61,13 +58,7 @@ function deepClone<T>(v: T): T {
   return JSON.parse(JSON.stringify(v)) as T;
 }
 
-export const EditStageModal = ({
-  open,
-  onClose,
-  stage,
-  onSaveStage,
-  editable = true,
-}: EditStageModalProps) => {
+export const EditStageModal = ({ open, onClose, stage, onSaveStage, editable = true }: EditStageModalProps) => {
   const [localStage, setLocalStage] = useState<FlowModelStage | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
@@ -81,17 +72,17 @@ export const EditStageModal = ({
   const { fetchRolesByOrg, fetchDepartments } = useRolesAndDepartments();
 
   const { data: roles = [] } = useQuery({
-    queryKey: ["roles"],
+    queryKey: ['roles'],
     queryFn: fetchRolesByOrg,
-    enabled: open,
+    enabled: open
   });
 
   const { data: departments = [] } = useQuery({
-    queryKey: ["departments"],
+    queryKey: ['departments'],
     queryFn: fetchDepartments,
     enabled: open && shouldFetchDepartments,
     staleTime: 0,
-    refetchOnMount: true,
+    refetchOnMount: true
   });
 
   const isReadOnly = !editable;
@@ -109,9 +100,7 @@ export const EditStageModal = ({
     const clone = deepClone(stage);
     clone.components = Array.isArray(clone.components) ? clone.components : [];
     clone.approverRoles = Array.isArray(clone.approverRoles) ? clone.approverRoles : [];
-    clone.approverDepartments = Array.isArray(clone.approverDepartments)
-      ? clone.approverDepartments
-      : [];
+    clone.approverDepartments = Array.isArray(clone.approverDepartments) ? clone.approverDepartments : [];
 
     clone.components = (clone.components || []).map((c) => ({
       ...c,
@@ -119,7 +108,7 @@ export const EditStageModal = ({
       editableRoles: Array.isArray(c.editableRoles) ? c.editableRoles : [],
       config: c.config ?? {},
       lockedAfterCompletion: !!c.lockedAfterCompletion,
-      required: !!c.required,
+      required: !!c.required
     }));
 
     clone.components.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
@@ -132,15 +121,15 @@ export const EditStageModal = ({
   const handleChangeStageField = <K extends keyof FlowModelStage>(key: K, value: FlowModelStage[K]) => {
     if (!localStage) return;
 
-    if (key === "requiresApproval" && !value) {
+    if (key === 'requiresApproval' && !value) {
       setSelectedRoles([]);
       setSelectedDepartments([]);
       setLocalStage({ ...localStage, requiresApproval: false, approverRoles: [], approverDepartments: [] });
       return;
     }
 
-    if (key === "canRepeat" && !value) {
-      setLocalStage({ ...localStage, canRepeat: false, repeatCondition: "" });
+    if (key === 'canRepeat' && !value) {
+      setLocalStage({ ...localStage, canRepeat: false, repeatCondition: '' });
       return;
     }
 
@@ -154,7 +143,7 @@ export const EditStageModal = ({
       approverRoles: localStage.requiresApproval ? selectedRoles : [],
       approverDepartments: localStage.requiresApproval ? selectedDepartments : [],
       canRepeat: !!localStage.canRepeat,
-      requiresApproval: !!localStage.requiresApproval,
+      requiresApproval: !!localStage.requiresApproval
     });
     onClose();
   };
@@ -162,7 +151,7 @@ export const EditStageModal = ({
   const handleAddComponent = (component: FlowModelComponent) => {
     if (!localStage) return;
     if (editingComponent) {
-      const updated = (localStage.components || []).map(c => c.key === component.key ? component : c);
+      const updated = (localStage.components || []).map((c) => (c.key === component.key ? component : c));
       setLocalStage({ ...localStage, components: updated });
     } else {
       setLocalStage({ ...localStage, components: [...(localStage.components || []), component] });
@@ -181,20 +170,20 @@ export const EditStageModal = ({
   };
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
-    e.dataTransfer.effectAllowed = "move";
-    e.dataTransfer.setData("text/plain", String(index));
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(index));
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
+    e.dataTransfer.dropEffect = 'move';
   };
 
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
     if (!localStage) return;
 
-    const dragIndex = Number(e.dataTransfer.getData("text/plain"));
+    const dragIndex = Number(e.dataTransfer.getData('text/plain'));
     if (dragIndex === dropIndex) return;
 
     const components = [...(localStage.components || [])];
@@ -211,94 +200,101 @@ export const EditStageModal = ({
       onClose={onClose}
       fullWidth
       fullScreen={editModalFullscreen}
-      maxWidth={editModalFullscreen ? false : "md"}
+      maxWidth={editModalFullscreen ? false : 'md'}
       PaperProps={{
         sx: {
           borderRadius: editModalFullscreen ? 0 : { xs: 2, sm: 3 },
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-          overflow: "hidden",
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          overflow: 'hidden',
           margin: editModalFullscreen ? 0 : { xs: 1, sm: 2 },
-          maxWidth: editModalFullscreen ? "none" : { xs: "calc(100% - 16px)", sm: "600px", md: "800px" },
-          width: "100%",
-          maxHeight: editModalFullscreen ? "100vh" : { xs: "calc(100vh - 32px)", sm: "calc(100vh - 64px)" },
-          display: "flex",
-          flexDirection: "column",
-        },
+          maxWidth: editModalFullscreen ? 'none' : { xs: 'calc(100% - 16px)', sm: '600px', md: '800px' },
+          width: '100%',
+          maxHeight: editModalFullscreen ? '100vh' : { xs: 'calc(100vh - 32px)', sm: 'calc(100vh - 64px)' },
+          display: 'flex',
+          flexDirection: 'column'
+        }
       }}
     >
       <DialogContent
         sx={{
           p: 0,
-          display: "flex",
-          flexDirection: "column",
+          display: 'flex',
+          flexDirection: 'column',
           flex: 1,
           minHeight: 0,
-          overflow: "hidden",
-          bgcolor: "#ffffff",
+          overflow: 'hidden',
+          bgcolor: 'background.paper'
         }}
       >
         <Box
           sx={{
             px: { xs: 2, sm: 3, md: 4 },
             py: { xs: 2, sm: 2.5, md: 3 },
-            borderBottom: "1px solid #e2e8f0",
+            borderBottom: '1px solid divider',
             flexShrink: 0,
-            backgroundColor: "#ffffff",
+            backgroundColor: 'background.paper'
           }}
         >
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
               mb: { xs: 1, sm: 1.5 },
-              gap: 1,
+              gap: 1
             }}
           >
             <Box sx={{ minWidth: 0 }}>
               <Typography
-                variant="h5"
+                variant='h5'
                 sx={{
                   fontWeight: 800,
-                  color: "#212121",
-                  fontSize: { xs: "1.25rem", sm: "1.375rem", md: "1.5rem" },
-                  lineHeight: { xs: 1.3, sm: 1.2 },
+                  color: 'text.primary',
+                  fontSize: { xs: '1.25rem', sm: '1.375rem', md: '1.5rem' },
+                  lineHeight: { xs: 1.3, sm: 1.2 }
                 }}
               >
                 Editar Etapa
               </Typography>
-              <Typography variant="body2" sx={{ color: "#616161", mt: 0.25 }}>
+              <Typography
+                variant='body2'
+                sx={{ color: 'text.secondary', mt: 0.25 }}
+              >
                 Configure os detalhes da etapa do fluxo
               </Typography>
             </Box>
 
-            <Box sx={{ display: "flex", gap: 1 }}>
+            <Box sx={{ display: 'flex', gap: 1 }}>
               <IconButton
                 onClick={() => setEditModalFullscreen(!editModalFullscreen)}
                 sx={{
                   width: { xs: 36, sm: 40 },
                   height: { xs: 36, sm: 40 },
-                  color: "#1877F2",
-                  backgroundColor: "transparent",
+                  color: 'primary.main',
+                  backgroundColor: 'transparent',
                   flexShrink: 0,
-                  "&:hover": {
-                    backgroundColor: "#E7F3FF",
-                  },
+                  '&:hover': {
+                    backgroundColor: 'secondary.light'
+                  }
                 }}
               >
-                {editModalFullscreen ? <FullscreenExitIcon sx={{ fontSize: { xs: 18, sm: 20 } }} /> : <FullscreenIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />}
+                {editModalFullscreen ? (
+                  <FullscreenExitIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                ) : (
+                  <FullscreenIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
+                )}
               </IconButton>
               <IconButton
                 onClick={onClose}
                 sx={{
                   width: { xs: 36, sm: 40 },
                   height: { xs: 36, sm: 40 },
-                  color: "#64748b",
-                  backgroundColor: "transparent",
+                  color: 'text.secondary',
+                  backgroundColor: 'transparent',
                   flexShrink: 0,
-                  "&:hover": {
-                    backgroundColor: "#f1f5f9",
-                  },
+                  '&:hover': {
+                    backgroundColor: 'grey.100'
+                  }
                 }}
               >
                 <CloseIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
@@ -306,25 +302,25 @@ export const EditStageModal = ({
             </Box>
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
             {isReadOnly ? (
               <Chip
-                label="Somente leitura"
-                size="small"
+                label='Somente leitura'
+                size='small'
                 sx={{
-                  bgcolor: "#F0F2F5",
-                  color: "#212121",
-                  fontWeight: 800,
+                  bgcolor: 'grey.50',
+                  color: 'text.primary',
+                  fontWeight: 800
                 }}
               />
             ) : (
               <Chip
-                label="Editável"
-                size="small"
+                label='Editável'
+                size='small'
                 sx={{
-                  bgcolor: "#E7F3FF",
-                  color: "#1877F2",
-                  fontWeight: 800,
+                  bgcolor: 'secondary.light',
+                  color: 'primary.main',
+                  fontWeight: 800
                 }}
               />
             )}
@@ -335,79 +331,76 @@ export const EditStageModal = ({
           sx={{
             px: { xs: 2, sm: 3, md: 4 },
             py: { xs: 2, sm: 2.5, md: 3 },
-            display: "flex",
-            flexDirection: "column",
+            display: 'flex',
+            flexDirection: 'column',
             flex: 1,
             minHeight: 0,
-            overflow: "auto",
-            bgcolor: "#FAFBFC",
+            overflow: 'auto',
+            bgcolor: 'grey.50'
           }}
         >
           {!localStage ? (
-            <Typography variant="body2" sx={{ color: "#616161" }}>
+            <Typography
+              variant='body2'
+              sx={{ color: 'text.secondary' }}
+            >
               Nenhuma etapa selecionada.
             </Typography>
           ) : (
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
               <Box
                 sx={{
-                  bgcolor: "background.paper",
-                  border: "1px solid #E4E6EB",
+                  bgcolor: 'background.paper',
+                  border: '1px solid grey.300',
                   borderRadius: 2,
-                  p: 2.5,
+                  p: 2.5
                 }}
               >
-                <Typography sx={{ fontWeight: 800, color: "#212121", mb: 1.5 }}>
-                  Informações Básicas
-                </Typography>
+                <Typography sx={{ fontWeight: 800, color: 'text.primary', mb: 1.5 }}>Informações Básicas</Typography>
 
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <TextField
-                    label="Nome"
-                    value={localStage.name || ""}
-                    onChange={(e) => handleChangeStageField("name", e.target.value)}
+                    label='Nome'
+                    value={localStage.name || ''}
+                    onChange={(e) => handleChangeStageField('name', e.target.value)}
                     fullWidth
                     disabled={isReadOnly}
-                    error={!String(localStage.name || "").trim()}
+                    error={!String(localStage.name || '').trim()}
                     required
                   />
 
                   <TextField
-                    label="Descrição"
-                    value={localStage.description || ""}
-                    onChange={(e) => handleChangeStageField("description", e.target.value)}
+                    label='Descrição'
+                    value={localStage.description || ''}
+                    onChange={(e) => handleChangeStageField('description', e.target.value)}
                     fullWidth
                     disabled={isReadOnly}
                     inputProps={{ maxLength: 100 }}
-                    helperText={`${(localStage.description || "").length}/100 caracteres`}
+                    helperText={`${(localStage.description || '').length}/100 caracteres`}
                   />
                 </Box>
               </Box>
 
               <Box
                 sx={{
-                  bgcolor: "background.paper",
-                  border: "1px solid #E4E6EB",
+                  bgcolor: 'background.paper',
+                  border: '1px solid grey.300',
                   borderRadius: 2,
-                  p: 2.5,
+                  p: 2.5
                 }}
               >
-                <Typography sx={{ fontWeight: 800, color: "#212121", mb: 1.5 }}>
-                  Configurações
-                </Typography>
+                <Typography sx={{ fontWeight: 800, color: 'text.primary', mb: 1.5 }}>Configurações</Typography>
 
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   <FormControlLabel
                     control={
                       <Switch
                         checked={!!localStage.requiresApproval}
-                        onChange={(e) =>
-                          handleChangeStageField("requiresApproval", e.target.checked)
-                        }
+                        onChange={(e) => handleChangeStageField('requiresApproval', e.target.checked)}
                         disabled={isReadOnly}
                       />
                     }
-                    label="Requer aprovação"
+                    label='Requer aprovação'
                   />
 
                   {localStage.requiresApproval && (
@@ -422,7 +415,10 @@ export const EditStageModal = ({
                         }}
                         disabled={isReadOnly}
                         renderInput={(params) => (
-                          <TextField {...params} label="Cargos aprovadores" />
+                          <TextField
+                            {...params}
+                            label='Cargos aprovadores'
+                          />
                         )}
                       />
 
@@ -439,11 +435,11 @@ export const EditStageModal = ({
                         }}
                         onOpen={() => setShouldFetchDepartments(true)}
                         disabled={isReadOnly}
-                        noOptionsText="Nenhum departamento encontrado"
+                        noOptionsText='Nenhum departamento encontrado'
                         renderInput={(params) => (
                           <TextField
                             {...params}
-                            label="Departamentos aprovadores"
+                            label='Departamentos aprovadores'
                             helperText={`${departments.length} departamentos disponíveis`}
                           />
                         )}
@@ -457,20 +453,18 @@ export const EditStageModal = ({
                     control={
                       <Switch
                         checked={!!localStage.canRepeat}
-                        onChange={(e) => handleChangeStageField("canRepeat", e.target.checked)}
+                        onChange={(e) => handleChangeStageField('canRepeat', e.target.checked)}
                         disabled={isReadOnly}
                       />
                     }
-                    label="Pode repetir"
+                    label='Pode repetir'
                   />
 
                   {localStage.canRepeat && (
                     <TextField
-                      label="Condição de repetição"
-                      value={localStage.repeatCondition || ""}
-                      onChange={(e) =>
-                        handleChangeStageField("repeatCondition", e.target.value)
-                      }
+                      label='Condição de repetição'
+                      value={localStage.repeatCondition || ''}
+                      onChange={(e) => handleChangeStageField('repeatCondition', e.target.value)}
                       fullWidth
                       disabled={isReadOnly}
                       placeholder='Ex: "enquanto status != APROVADO"'
@@ -478,11 +472,9 @@ export const EditStageModal = ({
                   )}
 
                   <TextField
-                    label="Condição de visibilidade"
-                    value={localStage.visibilityCondition || ""}
-                    onChange={(e) =>
-                      handleChangeStageField("visibilityCondition", e.target.value)
-                    }
+                    label='Condição de visibilidade'
+                    value={localStage.visibilityCondition || ''}
+                    onChange={(e) => handleChangeStageField('visibilityCondition', e.target.value)}
                     fullWidth
                     disabled={isReadOnly}
                     placeholder='Ex: "se tipo_processo == MEDICAMENTO"'
@@ -492,29 +484,32 @@ export const EditStageModal = ({
 
               <Box
                 sx={{
-                  bgcolor: "background.paper",
-                  border: "1px solid #E4E6EB",
+                  bgcolor: 'background.paper',
+                  border: '1px solid grey.300',
                   borderRadius: 2,
-                  p: 2.5,
+                  p: 2.5
                 }}
               >
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
-                  <Typography sx={{ fontWeight: 800, color: "#212121" }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                  <Typography sx={{ fontWeight: 800, color: 'text.primary' }}>
                     Componentes ({(localStage.components || []).length})
                   </Typography>
                   {!isReadOnly && (
                     <Button
-                      variant="contained"
-                      size="small"
+                      variant='contained'
+                      size='small'
                       startIcon={<AddIcon />}
-                      onClick={() => { setEditingComponent(null); setAddComponentOpen(true); }}
+                      onClick={() => {
+                        setEditingComponent(null);
+                        setAddComponentOpen(true);
+                      }}
                       sx={{
-                        bgcolor: "#1877F2",
-                        "&:hover": { bgcolor: "#166FE5" },
-                        textTransform: "none",
+                        bgcolor: 'primary.main',
+                        '&:hover': { bgcolor: 'primary.dark' },
+                        textTransform: 'none',
                         fontWeight: 700,
                         borderRadius: 2,
-                        boxShadow: "none",
+                        boxShadow: 'none'
                       }}
                     >
                       Adicionar
@@ -523,7 +518,10 @@ export const EditStageModal = ({
                 </Box>
 
                 {(localStage.components || []).length === 0 ? (
-                  <Typography variant="body2" sx={{ color: "#94a3b8", textAlign: "center", py: 2 }}>
+                  <Typography
+                    variant='body2'
+                    sx={{ color: 'text.disabled', textAlign: 'center', py: 2 }}
+                  >
                     Nenhum componente adicionado
                   </Typography>
                 ) : (
@@ -538,39 +536,42 @@ export const EditStageModal = ({
                           onDragOver={handleDragOver}
                           onDrop={(e) => handleDrop(e, index)}
                           sx={{
-                            border: "1px solid #E4E6EB",
+                            border: '1px solid grey.300',
                             borderRadius: 1,
                             mb: 1,
-                            bgcolor: "#FAFBFC",
-                            cursor: isReadOnly ? "default" : "grab",
-                            "&:active": { cursor: isReadOnly ? "default" : "grabbing" },
+                            bgcolor: 'grey.50',
+                            cursor: isReadOnly ? 'default' : 'grab',
+                            '&:active': { cursor: isReadOnly ? 'default' : 'grabbing' }
                           }}
                           secondaryAction={
-                            <Box sx={{ display: "flex", gap: 0.5 }}>
+                            <Box sx={{ display: 'flex', gap: 0.5 }}>
                               {COMPONENTS_WITH_PREVIEW.includes(comp.type) && (
                                 <IconButton
-                                  edge="end"
+                                  edge='end'
                                   onClick={() => handlePreviewComponent(comp.key)}
-                                  sx={{ color: "#1877F2" }}
+                                  sx={{ color: 'primary.main' }}
                                 >
-                                  <VisibilityIcon fontSize="small" />
+                                  <VisibilityIcon fontSize='small' />
                                 </IconButton>
                               )}
                               {!isReadOnly && (
                                 <>
                                   <IconButton
-                                    edge="end"
-                                    onClick={() => { setEditingComponent(comp); setAddComponentOpen(true); }}
-                                    sx={{ color: "#1877F2" }}
+                                    edge='end'
+                                    onClick={() => {
+                                      setEditingComponent(comp);
+                                      setAddComponentOpen(true);
+                                    }}
+                                    sx={{ color: 'primary.main' }}
                                   >
-                                    <EditIcon fontSize="small" />
+                                    <EditIcon fontSize='small' />
                                   </IconButton>
                                   <IconButton
-                                    edge="end"
+                                    edge='end'
                                     onClick={() => handleDeleteComponent(comp.key)}
-                                    sx={{ color: "#F02849" }}
+                                    sx={{ color: 'error.main' }}
                                   >
-                                    <DeleteIcon fontSize="small" />
+                                    <DeleteIcon fontSize='small' />
                                   </IconButton>
                                 </>
                               )}
@@ -578,35 +579,33 @@ export const EditStageModal = ({
                           }
                         >
                           {!isReadOnly && (
-                            <Box sx={{ mr: 1, display: "flex", alignItems: "center", color: "#94a3b8" }}>
-                              <DragIndicatorIcon fontSize="small" />
+                            <Box sx={{ mr: 1, display: 'flex', alignItems: 'center', color: 'text.disabled' }}>
+                              <DragIndicatorIcon fontSize='small' />
                             </Box>
                           )}
                           <ListItemText
                             primary={
-                              <Box sx={{ display: "flex", gap: 1, alignItems: "center", flexWrap: "wrap" }}>
-                                <Typography sx={{ fontWeight: 700, fontSize: "0.875rem" }}>
-                                  {comp.label}
-                                </Typography>
+                              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                                <Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>{comp.label}</Typography>
                                 <Chip
                                   label={comp.type}
-                                  size="small"
+                                  size='small'
                                   sx={{
                                     height: 20,
-                                    fontSize: "0.7rem",
-                                    bgcolor: "#E7F3FF",
-                                    color: "#1877F2",
+                                    fontSize: '0.7rem',
+                                    bgcolor: 'secondary.light',
+                                    color: 'primary.main'
                                   }}
                                 />
                                 {comp.required && (
                                   <Chip
-                                    label="Obrigatório"
-                                    size="small"
+                                    label='Obrigatório'
+                                    size='small'
                                     sx={{
                                       height: 20,
-                                      fontSize: "0.7rem",
-                                      bgcolor: "#FEF3C7",
-                                      color: "#92400E",
+                                      fontSize: '0.7rem',
+                                      bgcolor: 'warning.light',
+                                      color: 'warning.dark'
                                     }}
                                   />
                                 )}
@@ -626,33 +625,33 @@ export const EditStageModal = ({
         <Box
           sx={{
             p: { xs: 2, sm: 3 },
-            backgroundColor: "#f8fafc",
-            borderTop: "1px solid #e2e8f0",
-            display: "flex",
-            flexDirection: { xs: "column-reverse", sm: "row" },
-            justifyContent: "flex-end",
-            alignItems: "stretch",
+            backgroundColor: 'grey.50',
+            borderTop: '1px solid divider',
+            display: 'flex',
+            flexDirection: { xs: 'column-reverse', sm: 'row' },
+            justifyContent: 'flex-end',
+            alignItems: 'stretch',
             gap: { xs: 1.5, sm: 1 },
-            flexShrink: 0,
+            flexShrink: 0
           }}
         >
           <Button
             onClick={onClose}
-            variant="outlined"
+            variant='outlined'
             sx={{
-              textTransform: "none",
+              textTransform: 'none',
               borderRadius: 2,
-              borderColor: "#E4E6EB",
-              color: "#212121",
+              borderColor: 'grey.300',
+              color: 'text.primary',
               px: { xs: 2.5, sm: 3 },
               py: { xs: 1.125, sm: 1.25 },
-              fontSize: { xs: "0.8125rem", sm: "0.875rem" },
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 700,
-              width: { xs: "100%", sm: "auto" },
-              "&:hover": {
-                borderColor: "#CBD5E1",
-                backgroundColor: "#F8F9FA",
-              },
+              width: { xs: '100%', sm: 'auto' },
+              '&:hover': {
+                borderColor: 'grey.300',
+                backgroundColor: 'grey.50'
+              }
             }}
           >
             Cancelar
@@ -660,22 +659,22 @@ export const EditStageModal = ({
 
           <Button
             onClick={handleSave}
-            variant="contained"
+            variant='contained'
             disabled={!localStage || isReadOnly}
             sx={{
-              bgcolor: "#1877F2",
-              "&:hover": { bgcolor: "#166FE5" },
-              textTransform: "none",
+              bgcolor: 'primary.main',
+              '&:hover': { bgcolor: 'primary.dark' },
+              textTransform: 'none',
               fontWeight: 800,
               borderRadius: 2,
-              boxShadow: "none",
+              boxShadow: 'none',
               px: { xs: 2.5, sm: 4 },
               py: { xs: 1.125, sm: 1.25 },
-              width: { xs: "100%", sm: "auto" },
-              "&:disabled": {
-                backgroundColor: "#E4E6EB",
-                color: "#8A8D91",
-              },
+              width: { xs: '100%', sm: 'auto' },
+              '&:disabled': {
+                backgroundColor: 'grey.300',
+                color: 'text.disabled'
+              }
             }}
           >
             Salvar etapa
@@ -685,7 +684,10 @@ export const EditStageModal = ({
 
       <AddComponentModal
         open={addComponentOpen}
-        onClose={() => { setAddComponentOpen(false); setEditingComponent(null); }}
+        onClose={() => {
+          setAddComponentOpen(false);
+          setEditingComponent(null);
+        }}
         onAdd={handleAddComponent}
         existingComponents={localStage?.components || []}
         editingComponent={editingComponent}
@@ -696,35 +698,55 @@ export const EditStageModal = ({
         onClose={() => setPreviewComponentKey(null)}
         fullWidth
         fullScreen={previewFullscreen}
-        maxWidth={previewFullscreen ? false : "md"}
-        PaperProps={{ sx: { borderRadius: previewFullscreen ? 0 : 3, overflow: "hidden" } }}
+        maxWidth={previewFullscreen ? false : 'md'}
+        PaperProps={{ sx: { borderRadius: previewFullscreen ? 0 : 3, overflow: 'hidden' } }}
       >
         <DialogContent sx={{ p: 0 }}>
-          <Box sx={{ px: 3, py: 2.5, borderBottom: "1px solid #E4E6EB", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+          <Box
+            sx={{
+              px: 3,
+              py: 2.5,
+              borderBottom: '1px solid grey.300',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexShrink: 0
+            }}
+          >
             <Box sx={{ flex: 1 }}>
-              {previewComponentKey && (() => {
-                const comp = localStage?.components?.find((c) => c.key === previewComponentKey);
-                return comp ? (
-                  <>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "1.25rem" }}>
-                        {comp.label}
+              {previewComponentKey &&
+                (() => {
+                  const comp = localStage?.components?.find((c) => c.key === previewComponentKey);
+                  return comp ? (
+                    <>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.25rem' }}>
+                          {comp.label}
+                        </Typography>
+                        {comp.description && (
+                          <Tooltip
+                            title={comp.description}
+                            arrow
+                          >
+                            <InfoIcon sx={{ fontSize: 20, color: 'primary.main', cursor: 'help' }} />
+                          </Tooltip>
+                        )}
+                      </Box>
+                      <Typography
+                        variant='body2'
+                        sx={{ color: 'text.secondary', mt: 0.25 }}
+                      >
+                        Visualização com dados simulados
                       </Typography>
-                      {comp.description && (
-                        <Tooltip title={comp.description} arrow>
-                          <InfoIcon sx={{ fontSize: 20, color: "#1877F2", cursor: "help" }} />
-                        </Tooltip>
-                      )}
-                    </Box>
-                    <Typography variant="body2" sx={{ color: "#64748b", mt: 0.25 }}>
-                      Visualização com dados simulados
-                    </Typography>
-                  </>
-                ) : null;
-              })()}
+                    </>
+                  ) : null;
+                })()}
             </Box>
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <IconButton onClick={() => setPreviewFullscreen(!previewFullscreen)} sx={{ color: "#1877F2" }}>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <IconButton
+                onClick={() => setPreviewFullscreen(!previewFullscreen)}
+                sx={{ color: 'primary.main' }}
+              >
                 {previewFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
               </IconButton>
               <IconButton onClick={() => setPreviewComponentKey(null)}>
@@ -732,12 +754,20 @@ export const EditStageModal = ({
               </IconButton>
             </Box>
           </Box>
-          <Box sx={{ p: 3, bgcolor: "#FAFBFC", height: previewFullscreen ? "calc(100vh - 80px)" : "auto", overflow: "auto" }}>
-            {previewComponentKey && (() => {
-              const comp = localStage?.components?.find((c) => c.key === previewComponentKey);
-              const Component = comp ? COMPONENT_MAP[comp.type] : null;
-              return Component ? <Component config={comp.config} /> : null;
-            })()}
+          <Box
+            sx={{
+              p: 3,
+              bgcolor: 'grey.50',
+              height: previewFullscreen ? 'calc(100vh - 80px)' : 'auto',
+              overflow: 'auto'
+            }}
+          >
+            {previewComponentKey &&
+              (() => {
+                const comp = localStage?.components?.find((c) => c.key === previewComponentKey);
+                const Component = comp ? COMPONENT_MAP[comp.type] : null;
+                return Component ? <Component config={comp.config} /> : null;
+              })()}
           </Box>
         </DialogContent>
       </Dialog>

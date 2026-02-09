@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-
-import { useDebounce } from './useDebounce';
 import { useSearchParams } from 'react-router-dom';
+import { useDebounce } from './useDebounce';
 
 export const useSearchWithDebounce = (paramName: string, delay: number = 300) => {
   const [urlParams, setUrlParams] = useSearchParams();
@@ -12,7 +11,7 @@ export const useSearchWithDebounce = (paramName: string, delay: number = 300) =>
 
   useEffect(() => {
     if (isClearingRef.current) return;
-    
+
     const urlValue = urlParams.get(paramName) || '';
     // Só sincronizar se:
     // 1. Não estivermos digitando
@@ -40,7 +39,7 @@ export const useSearchWithDebounce = (paramName: string, delay: number = 300) =>
 
   useEffect(() => {
     if (isClearingRef.current) return;
-    
+
     setUrlParams((prev) => {
       const currentValue = prev.get(paramName) || '';
       if (debouncedSearch !== currentValue) {

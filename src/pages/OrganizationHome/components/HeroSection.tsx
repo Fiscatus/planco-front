@@ -1,7 +1,4 @@
-import { 
-  Widgets as WidgetsIcon,
-  PlayCircle as PlayCircleIcon
-} from '@mui/icons-material';
+import { PlayCircle as PlayCircleIcon, Widgets as WidgetsIcon } from '@mui/icons-material';
 import { Box, Button, Container, Stack, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 
@@ -34,12 +31,15 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
         }
       }}
     >
-      <Container maxWidth={false} sx={{ 
-        px: { xs: 2, sm: 4, md: 6, lg: 8 },
-        '@media (max-width: 767px)': {
-          px: 1.5 // 12px para mobile
-        }
-      }}>
+      <Container
+        maxWidth={false}
+        sx={{
+          px: { xs: 2, sm: 4, md: 6, lg: 8 },
+          '@media (max-width: 767px)': {
+            px: 1.5 // 12px para mobile
+          }
+        }}
+      >
         <Box
           sx={{
             maxWidth: '1200px',
@@ -64,26 +64,31 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
           }}
         >
           {/* Conteúdo de texto */}
-          <Box sx={{ 
-            p: { xs: 3, md: 4 }, // 24px/32px - baseline 8px
-            '@media (max-width: 767px)': {
-              p: 2 // 16px para mobile
-            },
-            textAlign: { xs: 'center', md: 'left' },
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: { xs: 'center', md: 'flex-start' }
-          }}>
-            <Box sx={{ 
-              maxWidth: '62ch', // Largura controlada para leitura confortável
-              width: '100%'
-            }}>
+          <Box
+            sx={{
+              p: { xs: 3, md: 4 }, // 24px/32px - baseline 8px
+              '@media (max-width: 767px)': {
+                p: 2 // 16px para mobile
+              },
+              textAlign: { xs: 'center', md: 'left' },
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: { xs: 'center', md: 'flex-start' }
+            }}
+          >
+            <Box
+              sx={{
+                maxWidth: '62ch', // Largura controlada para leitura confortável
+                width: '100%'
+              }}
+            >
               {/* Headline Stack - Duas linhas controladas */}
               <Box
                 sx={{
                   opacity: isVisible ? 1 : 0,
                   transform: isVisible ? 'translateY(0)' : 'translateY(8px)',
-                  transition: 'opacity 350ms cubic-bezier(0.4, 0, 0.2, 1), transform 350ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  transition:
+                    'opacity 350ms cubic-bezier(0.4, 0, 0.2, 1), transform 350ms cubic-bezier(0.4, 0, 0.2, 1)',
                   mb: { xs: 2.5, md: 3 } // Espaçamento profissional entre headline e descrição
                 }}
               >
@@ -123,7 +128,7 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                   {firstName}
                 </Typography>
               </Box>
-              
+
               <Typography
                 variant='body1'
                 sx={{
@@ -143,13 +148,14 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                   fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif'
                 }}
               >
-                A sua plataforma inteligente para conectar todas as fases da licitação pública com agilidade, transparência e&nbsp;eficiência.
+                A sua plataforma inteligente para conectar todas as fases da licitação pública com agilidade,
+                transparência e&nbsp;eficiência.
               </Typography>
-              
+
               <Stack
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={{ xs: 2, sm: 2.5 }} // Espaçamento profissional entre botões
-                sx={{ 
+                sx={{
                   '@media (max-width: 767px)': {
                     '& > * + *': {
                       mt: 1.5 // 12px entre botões no mobile
@@ -159,7 +165,8 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                   justifyContent: { xs: 'center', md: 'flex-start' },
                   opacity: isVisible ? 1 : 0,
                   transform: isVisible ? 'scale(1)' : 'scale(1.02)',
-                  transition: 'opacity 260ms cubic-bezier(0.4, 0, 0.2, 1), transform 260ms cubic-bezier(0.4, 0, 0.2, 1)',
+                  transition:
+                    'opacity 260ms cubic-bezier(0.4, 0, 0.2, 1), transform 260ms cubic-bezier(0.4, 0, 0.2, 1)',
                   transitionDelay: '140ms'
                 }}
               >
@@ -168,9 +175,9 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                   onClick={onPrimaryClick}
                   size='large'
                   startIcon={<WidgetsIcon />}
-                  aria-label="Explorar módulos da plataforma"
+                  aria-label='Explorar módulos da plataforma'
                   sx={{
-                    bgcolor: '#1877F2',
+                    bgcolor: 'primary.main',
                     color: 'white',
                     fontWeight: 600,
                     fontSize: '1rem',
@@ -178,8 +185,8 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                     px: 3.5,
                     borderRadius: 2,
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)',
-                    '&:hover': { 
-                      bgcolor: '#166fe5',
+                    '&:hover': {
+                      bgcolor: 'primary.dark',
                       boxShadow: '0 8px 15px -3px rgba(0, 0, 0, 0.15), 0 4px 6px -4px rgba(0, 0, 0, 0.1)',
                       transform: 'translateY(-1px)'
                     },
@@ -195,13 +202,13 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
                 >
                   Explorar Módulos
                 </Button>
-                
+
                 <Button
                   variant='outlined'
                   onClick={onSecondaryClick}
                   size='large'
                   startIcon={<PlayCircleIcon />}
-                  aria-label="Assistir guia rápido de uso"
+                  aria-label='Assistir guia rápido de uso'
                   sx={{
                     color: 'text.primary',
                     borderColor: 'rgba(0, 0, 0, 0.12)',
@@ -233,15 +240,17 @@ const HeroSection = ({ firstName, onPrimaryClick, onSecondaryClick }: Props) => 
           </Box>
 
           {/* Imagem */}
-          <Box sx={{ 
-            display: 'flex', // Mostrar em todas as telas
-            alignItems: 'center',
-            justifyContent: 'center',
-            p: { xs: 2, md: 4 }, // 16px/32px - padding menor para mobile
-            '@media (max-width: 767px)': {
-              p: 1.5 // 12px para mobile
-            }
-          }}>
+          <Box
+            sx={{
+              display: 'flex', // Mostrar em todas as telas
+              alignItems: 'center',
+              justifyContent: 'center',
+              p: { xs: 2, md: 4 }, // 16px/32px - padding menor para mobile
+              '@media (max-width: 767px)': {
+                p: 1.5 // 12px para mobile
+              }
+            }}
+          >
             <Box
               component='img'
               alt='Uma mulher e um homem trabalhando juntos em um escritório moderno, colaborando em um projeto em um laptop. A imagem é profissional e transmite uma sensação de produtividade e trabalho em equipe.'

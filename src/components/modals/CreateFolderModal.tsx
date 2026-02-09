@@ -36,10 +36,8 @@ export const CreateFolderModal = ({ open, onClose, onSave, loading = false }: Cr
       // Preparar dados para enviar
       const dataToSave: CreateFolderDto = {
         name: folderForm.name,
-        ...(folderForm.observations && folderForm.observations.trim()
-          ? { observations: folderForm.observations.trim() }
-          : {}),
-        ...(folderForm.year && folderForm.year.toString().trim() ? { year: Number(folderForm.year) } : {})
+        ...(folderForm.observations?.trim() ? { observations: folderForm.observations.trim() } : {}),
+        ...(folderForm.year?.toString().trim() ? { year: Number(folderForm.year) } : {})
       };
       await onSave(dataToSave);
       onClose();

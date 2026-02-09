@@ -1,60 +1,57 @@
 import {
-  Box,
-  Card,
-  Typography
-} from '@mui/material';
-import {
   Assignment as AssignmentIcon,
   CheckCircle as CheckCircleIcon,
   ErrorOutline as ErrorOutlineIcon,
+  Event as EventIcon,
   Schedule as ScheduleIcon,
-  Timer as TimerIcon,
-  Event as EventIcon
+  Timer as TimerIcon
 } from '@mui/icons-material';
-import type { FolderStatsDto } from '@/globals/types';
+import { alpha, Box, Card, Typography, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
+import type { FolderStatsDto } from '@/globals/types';
 
 interface StatsCardsProps {
   stats: FolderStatsDto;
 }
 
 export const StatsCards = ({ stats }: StatsCardsProps) => {
+  const theme = useTheme();
   const cards = [
     {
       label: 'TOTAL DE PROCESSOS',
       value: stats.totalProcessos.toString(),
-      icon: <AssignmentIcon sx={{ color: '#FFFFFF' }} />,
-      gradient: 'linear-gradient(180deg, #1877F2 0%, #1567d3 100%)'
+      icon: <AssignmentIcon sx={{ color: 'common.white' }} />,
+      gradient: `linear-gradient(180deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`
     },
     {
       label: 'PROCESSOS EM ANDAMENTO',
       value: stats.processosAndamento.toString(),
-      icon: <TimerIcon sx={{ color: '#FFFFFF' }} />,
-      gradient: 'linear-gradient(180deg, #06B6D4 0%, #0891B2 100%)'
+      icon: <TimerIcon sx={{ color: 'common.white' }} />,
+      gradient: `linear-gradient(180deg, ${theme.palette.info.main} 0%, ${theme.palette.info.dark} 100%)`
     },
     {
       label: 'PROCESSOS EM ATRASO',
       value: stats.processosAtraso.toString(),
-      icon: <ErrorOutlineIcon sx={{ color: '#FFFFFF' }} />,
-      gradient: 'linear-gradient(180deg, #EF4444 0%, #DC2626 100%)'
+      icon: <ErrorOutlineIcon sx={{ color: 'common.white' }} />,
+      gradient: `linear-gradient(180deg, ${theme.palette.error.main} 0%, ${theme.palette.error.dark} 100%)`
     },
     {
       label: 'PROCESSOS CONCLUÍDOS',
       value: stats.processosConcluidos.toString(),
-      icon: <CheckCircleIcon sx={{ color: '#FFFFFF' }} />,
-      gradient: 'linear-gradient(180deg, #22C55E 0%, #16A34A 100%)'
+      icon: <CheckCircleIcon sx={{ color: 'common.white' }} />,
+      gradient: `linear-gradient(180deg, ${theme.palette.success.main} 0%, ${theme.palette.success.dark} 100%)`
     },
     {
       label: 'ÚLTIMA MODIFICAÇÃO',
       value: dayjs(stats.ultimaModificacao).format('DD/MM/YYYY'),
-      icon: <ScheduleIcon sx={{ color: '#FFFFFF' }} />,
-      gradient: 'linear-gradient(180deg, #F59E0B 0%, #D97706 100%)'
+      icon: <ScheduleIcon sx={{ color: 'common.white' }} />,
+      gradient: `linear-gradient(180deg, ${theme.palette.warning.main} 0%, ${theme.palette.warning.dark} 100%)`
     },
     {
       label: 'DATA DE CRIAÇÃO',
       value: dayjs(stats.dataCriacao).format('DD/MM/YYYY'),
-      icon: <EventIcon sx={{ color: '#FFFFFF' }} />,
-      gradient: 'linear-gradient(180deg, #10B981 0%, #059669 100%)'
+      icon: <EventIcon sx={{ color: 'common.white' }} />,
+      gradient: `linear-gradient(180deg, ${theme.palette.secondary.main} 0%, ${theme.palette.secondary.dark} 100%)`
     }
   ];
 
@@ -72,15 +69,15 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
         mb: { xs: 3, sm: 4, md: 5 }
       }}
     >
-      {cards.map((card, index) => (
+      {cards.map((card) => (
         <Card
-          key={index}
+          key={card.label}
           sx={{
             borderRadius: { xs: '10px', sm: '12px' },
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
             p: { xs: 1.5, sm: 2, md: 2 },
             background: card.gradient,
-            color: '#FFFFFF',
+            color: 'common.white',
             transition: 'all 200ms ease-in-out',
             overflow: 'hidden',
             '&:hover': {
@@ -102,18 +99,20 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
                 width: { xs: 40, sm: 44, md: 48 },
                 height: { xs: 40, sm: 44, md: 48 },
                 borderRadius: '8px',
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
+                backgroundColor: alpha(theme.palette.common.white, 0.2),
                 backdropFilter: 'blur(4px)',
                 transition: 'transform 200ms ease-in-out',
                 flexShrink: 0
               }}
             >
-              <Box sx={{ 
-                fontSize: { xs: 20, sm: 22, md: 24 },
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
+              <Box
+                sx={{
+                  fontSize: { xs: 20, sm: 22, md: 24 },
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
                 {card.icon}
               </Box>
             </Box>
@@ -123,7 +122,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
                 sx={{
                   display: 'block',
                   fontWeight: 600,
-                  color: 'rgba(255, 255, 255, 0.9)',
+                  color: alpha(theme.palette.common.white, 0.9),
                   fontSize: { xs: '10px', sm: '11px' },
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
@@ -137,7 +136,7 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
                 variant='h6'
                 sx={{
                   fontWeight: 700,
-                  color: '#FFFFFF',
+                  color: 'common.white',
                   fontSize: { xs: '18px', sm: '20px', md: '24px' },
                   lineHeight: { xs: '22px', sm: '26px', md: '30px' },
                   height: { xs: '22px', sm: '26px', md: '30px' }
@@ -152,4 +151,3 @@ export const StatsCards = ({ stats }: StatsCardsProps) => {
     </Box>
   );
 };
-

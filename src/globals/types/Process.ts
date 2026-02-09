@@ -8,11 +8,13 @@ export type Process = {
   status?: 'Em Andamento' | 'Em Atraso' | 'Concluído' | 'Pendente';
   dueDate?: string;
   estimatedValue?: number;
-  folder?: string | {
-    _id: string;
-    name: string;
-    year?: string;
-  };
+  folder?:
+    | string
+    | {
+        _id: string;
+        name: string;
+        year?: string;
+      };
   org?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -66,4 +68,3 @@ export type FolderStatsDto = {
   ultimaModificacao: string;
   dataCriacao: string;
 };
-

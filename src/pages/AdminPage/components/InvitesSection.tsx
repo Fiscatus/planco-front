@@ -5,7 +5,7 @@ import {
   MailOutline as MailOutlineIcon,
   Refresh as RefreshIcon,
   Search as SearchIcon,
-  Warning as WarningIcon,
+  Warning as WarningIcon
 } from '@mui/icons-material';
 import {
   Alert,
@@ -37,13 +37,12 @@ import {
   Typography,
   useTheme
 } from '@mui/material';
-import type { CreateInviteDto, FilterInvitesDto, Invite, InviteStatus } from '@/globals/types';
-import { Loading, useNotification } from '@/components';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useDebounce, useDepartments, useInvites, useRoles, useScreen } from '@/hooks';
 import { useMutation, useQuery } from '@tanstack/react-query';
-
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Loading, useNotification } from '@/components';
+import type { CreateInviteDto, FilterInvitesDto, Invite, InviteStatus } from '@/globals/types';
+import { useDebounce, useDepartments, useInvites, useRoles, useScreen } from '@/hooks';
 
 interface InvitesSectionProps {
   currentTab: 'users' | 'gerencias' | 'invites' | 'roles';
@@ -61,7 +60,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
   useEffect(() => {
     // Ignorar se estamos limpando programaticamente
     if (isClearingRef.current) return;
-    
+
     const currentName = urlParams.get('name') || '';
     if (debouncedLocalSearch !== currentName) {
       const newParams = new URLSearchParams(urlParams);
@@ -122,17 +121,20 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
     }
   }, [currentTab, urlParams, setUrlParams]);
 
-  const [rolesDropdownOpen, setRolesDropdownOpen] = useState(false);
+  const [_rolesDropdownOpen, setRolesDropdownOpen] = useState(false);
   const [departmentsDropdownOpen, setDepartmentsDropdownOpen] = useState(false);
 
-  const invitesQueryKey = useMemo(() => [
-    'fetchInvites', 
-    `page:${urlParams.get('page') || 1}`,
-    `limit:${urlParams.get('limit') || 5}`,
-    `status:${urlParams.get('status') || ''}`,
-    `email:${urlParams.get('email') || ''}`,
-    `role:${urlParams.get('role') || ''}`
-  ], [urlParams]);
+  const invitesQueryKey = useMemo(
+    () => [
+      'fetchInvites',
+      `page:${urlParams.get('page') || 1}`,
+      `limit:${urlParams.get('limit') || 5}`,
+      `status:${urlParams.get('status') || ''}`,
+      `email:${urlParams.get('email') || ''}`,
+      `role:${urlParams.get('role') || ''}`
+    ],
+    [urlParams]
+  );
 
   const {
     data: invitesData,
@@ -250,12 +252,12 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
   const handleClearFilters = useCallback(() => {
     // Ativar flag para evitar conflito com debounce
     isClearingRef.current = true;
-    
+
     // Limpar o campo de busca local
     setLocalSearch('');
-    
+
     setUrlParams({}, { replace: true });
-    
+
     // Resetar flag após o debounce
     setTimeout(() => {
       isClearingRef.current = false;
@@ -336,7 +338,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
             color: 'white',
             fontWeight: 600,
             '&:hover': {
-              backgroundColor: '#059669'
+              backgroundColor: 'success.dark'
             }
           }
         };
@@ -390,17 +392,17 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                     setLocalSearch(e.target.value);
                   }}
                   InputProps={{
-                    startAdornment: <SearchIcon sx={{ mr: 1, color: '#9ca3af', fontSize: '1.25rem' }} />,
+                    startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.disabled', fontSize: '1.25rem' }} />,
                     sx: { height: 40 }
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 3,
-                      backgroundColor: '#ffffff',
-                      border: '2px solid #e5e7eb',
+                      backgroundColor: 'background.paper',
+                      border: '2px solid divider',
                       transition: 'all 0.2s ease-in-out',
                       '&:hover': {
-                        borderColor: '#d1d5db'
+                        borderColor: 'divider'
                       },
                       '&.Mui-focused': {
                         borderColor: theme.palette.primary.main,
@@ -408,7 +410,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                       }
                     },
                     '& .MuiInputBase-input::placeholder': {
-                      color: '#9ca3af',
+                      color: 'text.disabled',
                       opacity: 1,
                       fontWeight: 400
                     }
@@ -440,25 +442,25 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                     sx={{
                       height: 40,
                       borderRadius: 3,
-                      backgroundColor: '#ffffff',
+                      backgroundColor: 'background.paper',
                       '& .MuiOutlinedInput-notchedOutline': {
-                        border: '2px solid #e5e7eb',
+                        border: '2px solid divider',
                         transition: 'all 0.2s ease-in-out'
                       },
                       '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#d1d5db'
+                        borderColor: 'divider'
                       },
                       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                         borderColor: theme.palette.primary.main,
                         boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
                       },
                       '& .MuiSelect-select': {
-                        color: !urlParams.get('status') ? '#9ca3af' : '#374151'
+                        color: !urlParams.get('status') ? 'text.disabled' : 'text.primary'
                       }
                     }}
                     renderValue={(value) => {
                       if (value === 'todos' || value === undefined) {
-                        return <span style={{ color: '#9ca3af' }}>Status</span>;
+                        return <span style={{ color: 'text.disabled' }}>Status</span>;
                       }
                       return value === 'pendente'
                         ? 'Pendente'
@@ -471,80 +473,80 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                               : value;
                     }}
                   >
-                    <MenuItem 
+                    <MenuItem
                       value='todos'
                       sx={{
                         '&:hover': {
-                          backgroundColor: '#f8fafc'
+                          backgroundColor: 'grey.50'
                         },
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}
                     >
                       Todos
                     </MenuItem>
-                    <MenuItem 
+                    <MenuItem
                       value='pendente'
                       sx={{
                         '&:hover': {
-                          backgroundColor: '#f8fafc'
+                          backgroundColor: 'grey.50'
                         },
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}
                     >
                       Pendente
                     </MenuItem>
-                    <MenuItem 
+                    <MenuItem
                       value='aceito'
                       sx={{
                         '&:hover': {
-                          backgroundColor: '#f8fafc'
+                          backgroundColor: 'grey.50'
                         },
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}
                     >
                       Aceito
                     </MenuItem>
-                    <MenuItem 
+                    <MenuItem
                       value='recusado'
                       sx={{
                         '&:hover': {
-                          backgroundColor: '#f8fafc'
+                          backgroundColor: 'grey.50'
                         },
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}
                     >
                       Recusado
                     </MenuItem>
-                    <MenuItem 
+                    <MenuItem
                       value='expirado'
                       sx={{
                         '&:hover': {
-                          backgroundColor: '#f8fafc'
+                          backgroundColor: 'grey.50'
                         },
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}
@@ -579,40 +581,40 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                     sx={{
                       height: 40,
                       borderRadius: 3,
-                      backgroundColor: '#ffffff',
+                      backgroundColor: 'background.paper',
                       '& .MuiOutlinedInput-notchedOutline': {
-                        border: '2px solid #e5e7eb',
+                        border: '2px solid divider',
                         transition: 'all 0.2s ease-in-out'
                       },
                       '&:hover .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#d1d5db'
+                        borderColor: 'divider'
                       },
                       '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                         borderColor: theme.palette.primary.main,
                         boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
                       },
                       '& .MuiSelect-select': {
-                        color: !urlParams.get('role') ? '#9ca3af' : '#374151'
+                        color: !urlParams.get('role') ? 'text.disabled' : 'text.primary'
                       }
                     }}
                     renderValue={(value) => {
                       if (!value) {
-                        return <span style={{ color: '#9ca3af' }}>Role</span>;
+                        return <span style={{ color: 'text.disabled' }}>Role</span>;
                       }
                       const role = (rolesData || []).find((r) => r._id === value);
                       return role ? role.name : value;
                     }}
                   >
-                    <MenuItem 
+                    <MenuItem
                       value=''
                       sx={{
                         '&:hover': {
-                          backgroundColor: '#f8fafc'
+                          backgroundColor: 'grey.50'
                         },
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}
@@ -633,12 +635,12 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                           value={role._id}
                           sx={{
                             '&:hover': {
-                              backgroundColor: '#f8fafc'
+                              backgroundColor: 'grey.50'
                             },
                             '&.Mui-selected': {
-                              backgroundColor: '#f1f5f9',
+                              backgroundColor: 'grey.100',
                               '&:hover': {
-                                backgroundColor: '#f1f5f9'
+                                backgroundColor: 'grey.100'
                               }
                             }
                           }}
@@ -668,19 +670,19 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                       disabled={invitesLoading}
                       title='Limpar filtros'
                       sx={{
-                        backgroundColor: '#f3f4f6',
-                        color: '#6b7280',
+                        backgroundColor: 'grey.100',
+                        color: 'text.secondary',
                         borderRadius: 3,
                         p: 1.5,
                         transition: 'all 0.2s ease-in-out',
                         '&:hover': {
-                          backgroundColor: '#fee2e2',
-                          color: '#dc2626',
+                          backgroundColor: 'error.light',
+                          color: 'error.main',
                           transform: 'scale(1.05)'
                         },
                         '&:disabled': {
-                          backgroundColor: '#f9fafb',
-                          color: '#d1d5db'
+                          backgroundColor: 'grey.50',
+                          color: 'divider'
                         }
                       }}
                     >
@@ -709,19 +711,19 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                       disabled={invitesLoading}
                       title='Limpar filtros'
                       sx={{
-                        backgroundColor: '#f3f4f6',
-                        color: '#6b7280',
+                        backgroundColor: 'grey.100',
+                        color: 'text.secondary',
                         borderRadius: 3,
                         p: 1.5,
                         transition: 'all 0.2s ease-in-out',
                         '&:hover': {
-                          backgroundColor: '#fee2e2',
-                          color: '#dc2626',
+                          backgroundColor: 'error.light',
+                          color: 'error.main',
                           transform: 'scale(1.05)'
                         },
                         '&:disabled': {
-                          backgroundColor: '#f9fafb',
-                          color: '#d1d5db'
+                          backgroundColor: 'grey.50',
+                          color: 'divider'
                         }
                       }}
                     >
@@ -744,12 +746,12 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                       fontWeight: 600,
                       letterSpacing: '0.05em',
                       px: isMobile ? 4 : 3,
-                      backgroundColor: '#10b981',
-                      color: '#ffffff',
+                      backgroundColor: 'success.main',
+                      color: 'white',
                       boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)',
                       transition: 'all 0.2s ease-in-out',
                       '&:hover': {
-                        backgroundColor: '#059669',
+                        backgroundColor: 'success.dark',
                         boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
                         transform: 'translateY(-1px)'
                       },
@@ -789,8 +791,8 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                         boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)'
                       },
                       '&:disabled': {
-                        backgroundColor: '#e3f2fd',
-                        color: '#90caf9',
+                        backgroundColor: 'info.light',
+                        color: 'info.light',
                         boxShadow: 'none',
                         transform: 'none'
                       }
@@ -809,13 +811,13 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
               sx={{
                 mb: 3,
                 borderRadius: 3,
-                border: '1px solid #fecaca',
-                backgroundColor: '#fef2f2',
+                border: '1px solid error.light',
+                backgroundColor: 'error.light',
                 '& .MuiAlert-icon': {
-                  color: '#dc2626'
+                  color: 'error.main'
                 },
                 '& .MuiAlert-message': {
-                  color: '#991b1b',
+                  color: 'error.dark',
                   fontWeight: 500
                 }
               }}
@@ -832,7 +834,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
               sx={{
                 borderRadius: 2,
                 boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                border: '1px solid #e5e7eb',
+                border: '1px solid divider',
                 overflow: 'hidden',
                 display: 'block',
                 maxHeight: 'calc(100vh - 300px)',
@@ -856,16 +858,16 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                 <TableHead>
                   <TableRow
                     sx={{
-                      backgroundColor: '#f8fafc',
+                      backgroundColor: 'grey.50',
                       height: 64,
                       '& .MuiTableCell-head': {
-                        backgroundColor: '#f8fafc',
-                        color: '#374151',
+                        backgroundColor: 'grey.50',
+                        color: 'text.primary',
                         fontWeight: 600,
                         fontSize: '0.875rem',
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
-                        borderBottom: '2px solid #e5e7eb',
+                        borderBottom: '2px solid divider',
                         py: 2,
                         verticalAlign: 'middle'
                       }
@@ -889,7 +891,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                         align='center'
                         sx={{
                           py: 6,
-                          backgroundColor: '#fafafa'
+                          backgroundColor: 'grey.50'
                         }}
                       >
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
@@ -900,7 +902,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                           <Typography
                             variant='body2'
                             sx={{
-                              color: '#6b7280',
+                              color: 'text.secondary',
                               fontWeight: 500
                             }}
                           >
@@ -916,15 +918,15 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                         align='center'
                         sx={{
                           py: 6,
-                          backgroundColor: '#fafafa'
+                          backgroundColor: 'grey.50'
                         }}
                       >
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                          <MailOutlineIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
+                          <MailOutlineIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
                           <Typography
                             variant='h6'
                             sx={{
-                              color: '#6b7280',
+                              color: 'text.secondary',
                               fontWeight: 500
                             }}
                           >
@@ -933,7 +935,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                           <Typography
                             variant='body2'
                             sx={{
-                              color: '#9ca3af',
+                              color: 'text.disabled',
                               fontStyle: 'italic'
                             }}
                           >
@@ -956,7 +958,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                         key={invite._id}
                         sx={{
                           '& .MuiTableCell-root': {
-                            borderBottom: '1px solid #f1f5f9',
+                            borderBottom: '1px solid grey.100',
                             py: 2,
                             transition: 'all 0.2s ease-in-out',
                             verticalAlign: 'middle'
@@ -999,7 +1001,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                                       size='small'
                                       variant='filled'
                                       sx={{
-                                        backgroundColor: '#15803d',
+                                        backgroundColor: 'success.main',
                                         color: 'white',
                                         fontWeight: 600,
                                         borderRadius: 2,
@@ -1007,7 +1009,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                                           px: 1.5
                                         },
                                         '&:hover': {
-                                          backgroundColor: '#166534'
+                                          backgroundColor: 'success.dark'
                                         }
                                       }}
                                     />
@@ -1062,14 +1064,14 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                             onClick={() => handleOpenDeleteConfirm(invite)}
                             aria-label='Excluir convite'
                             sx={{
-                              color: '#dc2626',
+                              color: 'error.main',
                               backgroundColor: 'transparent',
                               borderRadius: 2,
                               p: 1,
                               transition: 'all 0.2s ease-in-out',
                               '&:hover': {
-                                backgroundColor: '#fef2f2',
-                                color: '#b91c1c',
+                                backgroundColor: 'error.light',
+                                color: 'error.dark',
                                 transform: 'scale(1.1)'
                               }
                             }}
@@ -1099,7 +1101,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        border: '1px solid #e5e7eb'
+                        border: '1px solid divider'
                       }}
                     >
                       <Skeleton
@@ -1116,17 +1118,17 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                   sx={{
                     p: 4,
                     borderRadius: 2,
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid divider',
                     textAlign: 'center',
-                    backgroundColor: '#fafafa'
+                    backgroundColor: 'grey.50'
                   }}
                 >
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                    <MailOutlineIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
+                    <MailOutlineIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
                     <Typography
                       variant='h6'
                       sx={{
-                        color: '#6b7280',
+                        color: 'text.secondary',
                         fontWeight: 500
                       }}
                     >
@@ -1135,7 +1137,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                     <Typography
                       variant='body2'
                       sx={{
-                        color: '#9ca3af',
+                        color: 'text.disabled',
                         fontStyle: 'italic'
                       }}
                     >
@@ -1160,7 +1162,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                     sx={{
                       p: 2,
                       borderRadius: 2,
-                      border: '1px solid #e5e7eb',
+                      border: '1px solid divider',
                       transition: 'all 0.2s ease-in-out',
                       '&:hover': {
                         boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
@@ -1179,7 +1181,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                           fontWeight={600}
                           noWrap
                           sx={{
-                            color: '#1f2937',
+                            color: 'text.primary',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis'
                           }}
@@ -1229,15 +1231,15 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                           onClick={() => handleOpenDeleteConfirm(invite)}
                           aria-label='Excluir convite'
                           sx={{
-                            color: '#dc2626',
+                            color: 'error.main',
                             backgroundColor: 'transparent',
                             borderRadius: 2,
                             minWidth: 44,
                             minHeight: 44,
                             transition: 'all 0.2s ease-in-out',
                             '&:hover': {
-                              backgroundColor: '#fef2f2',
-                              color: '#b91c1c',
+                              backgroundColor: 'error.light',
+                              color: 'error.dark',
                               transform: 'scale(1.1)'
                             }
                           }}
@@ -1261,19 +1263,23 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
               justifyContent: 'space-between',
               alignItems: 'center',
               gap: 2,
-              backgroundColor: '#f8fafc',
-              borderTop: '1px solid #e5e7eb'
+              backgroundColor: 'grey.50',
+              borderTop: '1px solid divider'
             }}
           >
             {/* Pagination Info */}
             <Typography
               variant='body2'
-              sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+              sx={{ color: 'text.secondary', fontSize: '0.875rem' }}
             >
               {invitesData ? (
                 <>
                   {(Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10) + 1}-
-                  {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10), invitesData.total)} de {invitesData.total}
+                  {Math.min(
+                    Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10),
+                    invitesData.total
+                  )}{' '}
+                  de {invitesData.total}
                 </>
               ) : (
                 '0 de 0'
@@ -1288,17 +1294,17 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                 sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
               >
                 {[5, 10, 25, 50].map((limit) => (
-                  <MenuItem 
-                    key={limit} 
+                  <MenuItem
+                    key={limit}
                     value={limit}
                     sx={{
                       '&:hover': {
-                        backgroundColor: '#f8fafc'
+                        backgroundColor: 'grey.50'
                       },
                       '&.Mui-selected': {
-                        backgroundColor: '#f1f5f9',
+                        backgroundColor: 'grey.100',
                         '&:hover': {
-                          backgroundColor: '#f1f5f9'
+                          backgroundColor: 'grey.100'
                         }
                       }
                     }}
@@ -1340,14 +1346,14 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
           <Box
             sx={{
               p: 3,
-              borderBottom: '1px solid #CED0D4'
+              borderBottom: '1px solid divider'
             }}
           >
             <Typography
               variant='h6'
               sx={{
                 fontWeight: 700,
-                color: '#050505',
+                color: 'text.primary',
                 fontSize: '1.25rem'
               }}
             >
@@ -1363,7 +1369,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                 variant='body2'
                 sx={{
                   fontWeight: 500,
-                  color: '#65676B',
+                  color: 'text.secondary',
                   mb: 1,
                   fontSize: '0.875rem'
                 }}
@@ -1379,22 +1385,22 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                 required
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#F0F2F5',
+                    backgroundColor: 'grey.100',
                     borderRadius: 2,
                     '& .MuiOutlinedInput-notchedOutline': {
-                      border: '1px solid #CED0D4',
+                      border: '1px solid divider',
                       transition: 'all 0.2s ease-in-out'
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#B0B3B8'
+                      borderColor: 'grey.400'
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1877F2',
+                      borderColor: 'primary.main',
                       boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                     }
                   },
                   '& .MuiInputBase-input::placeholder': {
-                    color: '#65676B',
+                    color: 'text.secondary',
                     opacity: 1
                   }
                 }}
@@ -1402,7 +1408,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
               <Typography
                 variant='caption'
                 sx={{
-                  color: '#65676B',
+                  color: 'text.secondary',
                   fontSize: '0.75rem',
                   mt: 0.5,
                   display: 'block'
@@ -1418,7 +1424,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                 variant='body2'
                 sx={{
                   fontWeight: 500,
-                  color: '#65676B',
+                  color: 'text.secondary',
                   mb: 1,
                   fontSize: '0.875rem'
                 }}
@@ -1438,26 +1444,26 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                   disabled={creatingInvite}
                   displayEmpty
                   sx={{
-                    backgroundColor: '#F0F2F5',
+                    backgroundColor: 'grey.100',
                     borderRadius: 2,
                     '& .MuiOutlinedInput-notchedOutline': {
-                      border: '1px solid #CED0D4',
+                      border: '1px solid divider',
                       transition: 'all 0.2s ease-in-out'
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#B0B3B8'
+                      borderColor: 'grey.400'
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1877F2',
+                      borderColor: 'primary.main',
                       boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                     },
                     '& .MuiSelect-select': {
-                      color: createForm.roleId ? '#050505' : '#65676B'
+                      color: createForm.roleId ? 'text.primary' : 'text.secondary'
                     }
                   }}
                   renderValue={(value) => {
                     if (!value) {
-                      return <span style={{ color: '#65676B' }}>Selecione um role</span>;
+                      return <span style={{ color: 'text.secondary' }}>Selecione um role</span>;
                     }
                     const role = (rolesData || []).find((r) => r._id === value);
                     return role ? role.name : value;
@@ -1490,7 +1496,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                 variant='body2'
                 sx={{
                   fontWeight: 500,
-                  color: '#65676B',
+                  color: 'text.secondary',
                   mb: 1,
                   fontSize: '0.875rem'
                 }}
@@ -1515,29 +1521,33 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                   disabled={creatingInvite}
                   displayEmpty
                   sx={{
-                    backgroundColor: '#F0F2F5',
+                    backgroundColor: 'grey.100',
                     borderRadius: 2,
                     '& .MuiOutlinedInput-notchedOutline': {
-                      border: '1px solid #CED0D4',
+                      border: '1px solid divider',
                       transition: 'all 0.2s ease-in-out'
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#B0B3B8'
+                      borderColor: 'grey.400'
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1877F2',
+                      borderColor: 'primary.main',
                       boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                     },
                     '& .MuiSelect-select': {
-                      color: (createForm.departmentIds?.length || 0) > 0 ? '#050505' : '#65676B'
+                      color: (createForm.departmentIds?.length || 0) > 0 ? 'text.primary' : 'text.secondary'
                     }
                   }}
                   renderValue={(selected) => {
                     if (!selected || selected.length === 0) {
-                      return <span style={{ color: '#65676B' }}>Selecione uma gerência</span>;
+                      return <span style={{ color: 'text.secondary' }}>Selecione uma gerência</span>;
                     }
                     return selected
-                      .map((id) => ((departmentsData?.departments || departmentsData) as any[]).find((dept) => dept._id === id)?.department_name)
+                      .map(
+                        (id) =>
+                          ((departmentsData?.departments || departmentsData) as any[]).find((dept) => dept._id === id)
+                            ?.department_name
+                      )
                       .join(', ');
                   }}
                 >
@@ -1554,12 +1564,12 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                         value={dept._id}
                         sx={{
                           '&:hover': {
-                            backgroundColor: '#f8fafc'
+                            backgroundColor: 'grey.50'
                           },
                           '&.Mui-selected': {
-                            backgroundColor: '#f1f5f9',
+                            backgroundColor: 'grey.100',
                             '&:hover': {
-                              backgroundColor: '#f1f5f9'
+                              backgroundColor: 'grey.100'
                             }
                           }
                         }}
@@ -1578,8 +1588,8 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
         <Box
           sx={{
             p: 3,
-            backgroundColor: '#f9fafb',
-            borderTop: '1px solid #CED0D4',
+            backgroundColor: 'grey.50',
+            borderTop: '1px solid divider',
             display: 'flex',
             justifyContent: 'flex-end',
             gap: 2
@@ -1592,13 +1602,13 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
               py: 1.25,
               fontSize: '0.875rem',
               fontWeight: 500,
-              color: '#white',
+              color: 'white',
               textTransform: 'uppercase',
               borderRadius: 2,
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
                 backgroundColor: 'rgba(24, 119, 242, 0.1)',
-                color: '#1877F2'
+                color: 'primary.main'
               }
             }}
           >
@@ -1613,13 +1623,13 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
               py: 1.25,
               fontSize: '0.875rem',
               fontWeight: 500,
-              backgroundColor: '#1877F2',
+              backgroundColor: 'primary.main',
               textTransform: 'uppercase',
               borderRadius: 2,
               boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                backgroundColor: '#166fe5',
+                backgroundColor: 'primary.dark',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               },
               '&:focus': {
@@ -1627,8 +1637,8 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                 boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
               },
               '&:disabled': {
-                backgroundColor: '#d1d5db',
-                color: '#9ca3af',
+                backgroundColor: 'grey.300',
+                color: 'text.disabled',
                 boxShadow: 'none'
               }
             }}
@@ -1665,7 +1675,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
           >
             <Box
               sx={{
-                backgroundColor: '#fef2f2',
+                backgroundColor: 'error.light',
                 borderRadius: '50%',
                 p: 1.5,
                 mb: 2,
@@ -1677,7 +1687,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
               <DeleteIcon
                 sx={{
                   fontSize: 32,
-                  color: '#DC2626'
+                  color: 'error.main'
                 }}
               />
             </Box>
@@ -1685,7 +1695,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
               variant='h5'
               sx={{
                 fontWeight: 700,
-                color: '#1F2937',
+                color: 'text.primary',
                 fontSize: '1.5rem'
               }}
             >
@@ -1698,20 +1708,20 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
             variant='body1'
             sx={{
               textAlign: 'center',
-              color: '#6B7280',
+              color: 'text.secondary',
               mb: 3,
               fontSize: '1rem'
             }}
           >
             Tem certeza que deseja excluir o convite para{' '}
-            <strong style={{ color: '#1F2937' }}>{inviteToDelete?.email}</strong>?
+            <strong style={{ color: 'text.primary' }}>{inviteToDelete?.email}</strong>?
           </Typography>
 
           {/* Detalhes do convite */}
           {inviteToDelete && (
             <Box
               sx={{
-                backgroundColor: '#f9fafb',
+                backgroundColor: 'grey.50',
                 borderRadius: 2,
                 p: 2,
                 mb: 3
@@ -1721,7 +1731,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                 variant='body2'
                 sx={{
                   fontWeight: 600,
-                  color: '#1F2937',
+                  color: 'text.primary',
                   mb: 1,
                   fontSize: '0.875rem'
                 }}
@@ -1765,14 +1775,14 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
               alignItems: 'flex-start',
               p: 2,
               borderRadius: 2,
-              backgroundColor: '#FEF3C7',
-              border: '1px solid #FCD34D',
+              backgroundColor: 'warning.light',
+              border: '1px solid warning.main',
               mb: 3
             }}
           >
             <WarningIcon
               sx={{
-                color: '#92400E',
+                color: 'warning.dark',
                 fontSize: 20,
                 mr: 1.5,
                 mt: 0.25
@@ -1781,7 +1791,7 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
             <Typography
               variant='body2'
               sx={{
-                color: '#92400E',
+                color: 'warning.dark',
                 fontSize: '0.875rem',
                 lineHeight: 1.5
               }}
@@ -1805,15 +1815,15 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                 py: 1.25,
                 fontSize: '0.875rem',
                 fontWeight: 600,
-                color: '#1F2937',
+                color: 'text.primary',
                 textTransform: 'uppercase',
                 borderRadius: 2,
-                border: '1px solid #E5E7EB',
+                border: '1px solid divider',
                 backgroundColor: 'transparent',
                 transition: 'all 0.2s ease-in-out',
                 '&:hover': {
-                  backgroundColor: '#f3f4f6',
-                  borderColor: '#D1D5DB'
+                  backgroundColor: 'grey.100',
+                  borderColor: 'divider'
                 }
               }}
             >
@@ -1827,17 +1837,17 @@ const InvitesSection = ({ currentTab }: InvitesSectionProps) => {
                 py: 1.25,
                 fontSize: '0.875rem',
                 fontWeight: 600,
-                backgroundColor: '#DC2626',
+                backgroundColor: 'error.main',
                 textTransform: 'uppercase',
                 borderRadius: 2,
                 color: 'white',
                 transition: 'all 0.2s ease-in-out',
                 '&:hover': {
-                  backgroundColor: '#B91C1C'
+                  backgroundColor: 'error.dark'
                 },
                 '&:disabled': {
-                  backgroundColor: '#e5e7eb',
-                  color: '#9ca3af'
+                  backgroundColor: 'grey.300',
+                  color: 'text.disabled'
                 }
               }}
             >

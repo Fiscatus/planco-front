@@ -1,3 +1,4 @@
+import { Delete as DeleteIcon, GroupAdd as GroupAddIcon } from '@mui/icons-material';
 import {
   Alert,
   Box,
@@ -15,19 +16,17 @@ import {
   TableRow,
   Typography
 } from '@mui/material';
-import { Delete as DeleteIcon, GroupAdd as GroupAddIcon } from '@mui/icons-material';
-import type { Department, User } from '@/globals/types';
-
-import { Loading } from '@/components';
-import { useAccessControl } from '@/hooks';
 import { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Loading } from '@/components';
+import type { Department, User } from '@/globals/types';
+import { useAccessControl } from '@/hooks';
 
 interface MembersSectionProps {
   gerencia: Department | null;
   members: User[];
   onAddMember?: () => void;
-  onRemoveMember?: ({ userIds, type }: { userIds: string[]; type: 'remove' }) => void
+  onRemoveMember?: ({ userIds, type }: { userIds: string[]; type: 'remove' }) => void;
   loading?: boolean;
   canEdit?: boolean;
   membersPagination?: {
@@ -248,14 +247,15 @@ export const MembersSection = ({
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 gap: 2,
-                backgroundColor: '#f8fafc',
-                borderTop: '1px solid #e5e7eb'
+                backgroundColor: 'grey.50',
+                borderTop: '1px solid',
+                borderColor: 'divider'
               }}
             >
               {/* Pagination Info */}
               <Typography
                 variant='body2'
-                sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                sx={{ color: 'text.secondary', fontSize: '0.875rem' }}
               >
                 {membersPagination.page * membersPagination.limit + 1}-
                 {Math.min((membersPagination.page + 1) * membersPagination.limit, members.length)} de {members.length}
@@ -269,14 +269,14 @@ export const MembersSection = ({
                   sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
                 >
                   {[5, 10, 25, 50].map((limit) => (
-                    <MenuItem 
-                      key={limit} 
+                    <MenuItem
+                      key={limit}
                       value={limit}
                       sx={{
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}

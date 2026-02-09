@@ -199,7 +199,7 @@ const AdminPage = () => {
     if (currentTab && pages.some((p) => p.value === currentTab)) {
       setActiveTabValue(currentTab);
     }
-  }, [ pages, getCurrentTabFromUrl]);
+  }, [pages, getCurrentTabFromUrl]);
 
   // Redirecionar /admin para /admin/users se não houver aba específica
   useEffect(() => {
@@ -218,7 +218,7 @@ const AdminPage = () => {
   // Handle tab change with validation
   const handleTabChange = useCallback(
     (_: React.SyntheticEvent, newValue: TabValue) => {
-      if (pages && pages.some((p) => p.value === newValue)) {
+      if (pages?.some((p) => p.value === newValue)) {
         setActiveTabValue(newValue);
         // Navegar para a nova URL e limpar parâmetros de busca
         navigate(`/admin/${newValue}`, { replace: true });
@@ -239,7 +239,7 @@ const AdminPage = () => {
             Carregando permissões...
           </Typography>
         </Box>
-      )
+      );
     }
 
     const Component = currentPage.component;
@@ -393,8 +393,7 @@ const AdminPage = () => {
         sx={{
           flex: 1,
           overflow: 'auto',
-          backgroundColor: 'grey.50',
-
+          backgroundColor: 'grey.50'
         }}
       >
         {renderTabContent()}

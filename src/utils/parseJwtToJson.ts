@@ -15,7 +15,7 @@ const parseJwtToJson = (token: string) => {
     return JSON.parse(jsonPayload);
   } catch (e) {
     console.error('Erro ao decodificar JWT:', e);
-    return null
+    return null;
   }
 };
 

@@ -1,9 +1,8 @@
-import { Box, Button, Typography } from '@mui/material';
 import { Email } from '@mui/icons-material';
+import { Box, Button, Typography } from '@mui/material';
 import { useState } from 'react';
-import { api } from '@/services';
 import { useNotification } from '@/components';
-import logo from '/assets/isologo.svg';
+import { api } from '@/services';
 
 type Props = {
   email: string;
@@ -30,13 +29,13 @@ const RegistrationSuccess = ({ email, setIsSignIn, setRegistrationSuccess }: Pro
   return (
     <Box>
       <Box sx={{ mb: 4, textAlign: 'center' }}>
-        <Email sx={{ fontSize: 80, color: '#1877F2', mb: 2 }} />
+        <Email sx={{ fontSize: 80, color: 'primary.main', mb: 2 }} />
         <Typography
           variant='h4'
           component='h1'
           fontWeight={700}
           sx={{
-            color: '#212529',
+            color: 'text.primary',
             mb: 1,
             fontSize: { xs: '1.75rem', sm: '2rem' }
           }}
@@ -45,7 +44,7 @@ const RegistrationSuccess = ({ email, setIsSignIn, setRegistrationSuccess }: Pro
         </Typography>
         <Typography
           sx={{
-            color: '#6C757D',
+            color: 'text.secondary',
             fontSize: '1rem',
             mb: 2
           }}
@@ -54,12 +53,13 @@ const RegistrationSuccess = ({ email, setIsSignIn, setRegistrationSuccess }: Pro
         </Typography>
         <Typography
           sx={{
-            color: '#495057',
+            color: 'text.primary',
             fontSize: '0.875rem',
-            backgroundColor: '#F8F9FA',
+            backgroundColor: 'grey.50',
             padding: 2,
             borderRadius: 2,
-            border: '1px solid #E9ECEF'
+            border: '1px solid',
+            borderColor: 'grey.100'
           }}
         >
           Enviamos um link de verificação para <strong>{email}</strong>
@@ -74,19 +74,20 @@ const RegistrationSuccess = ({ email, setIsSignIn, setRegistrationSuccess }: Pro
           height: '48px',
           borderRadius: '8px',
           backgroundColor: 'white',
-          color: '#1877F2',
+          color: 'primary.main',
           fontSize: '1rem',
           fontWeight: 600,
           textTransform: 'none',
           mb: 2,
-          border: '2px solid #1877F2',
+          border: '2px solid',
+          borderColor: 'primary.main',
           '&:hover': {
             backgroundColor: '#F8F9FA'
           },
           '&:disabled': {
-            backgroundColor: '#E9ECEF',
-            color: '#6C757D',
-            borderColor: '#CED4DA'
+            backgroundColor: 'grey.100',
+            color: 'text.secondary',
+            borderColor: 'grey.300'
           }
         }}
       >
@@ -96,7 +97,7 @@ const RegistrationSuccess = ({ email, setIsSignIn, setRegistrationSuccess }: Pro
       <Typography
         sx={{
           fontSize: '0.875rem',
-          color: '#6C757D',
+          color: 'text.secondary',
           textAlign: 'center'
         }}
       >
@@ -109,7 +110,7 @@ const RegistrationSuccess = ({ email, setIsSignIn, setRegistrationSuccess }: Pro
           }}
           sx={{
             fontSize: '0.875rem',
-            color: '#1877F2',
+            color: 'primary.main',
             textDecoration: 'none',
             fontWeight: 500,
             cursor: 'pointer',

@@ -1,14 +1,5 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogContent,
-  Typography
-} from '@mui/material';
-import {
-  Delete as DeleteIcon,
-  Warning as WarningIcon
-} from '@mui/icons-material';
+import { Delete as DeleteIcon, Warning as WarningIcon } from '@mui/icons-material';
+import { Box, Button, Dialog, DialogContent, Typography } from '@mui/material';
 
 import type { Department } from '@/globals/types';
 

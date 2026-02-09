@@ -1,10 +1,5 @@
-import type {
-  FilterUsersDto,
-  PaginatedUsersDto,
-  ToggleUserStatusResponse,
-  User
-} from '@/globals/types';
 import { useCallback, useState } from 'react';
+import type { FilterUsersDto, PaginatedUsersDto, ToggleUserStatusResponse, User } from '@/globals/types';
 
 import { api } from '@/services';
 
@@ -34,7 +29,9 @@ export const useUsers = () => {
       if (filters.email) params.append('email', filters.email);
       if (filters.isActive !== undefined) params.append('isActive', filters.isActive.toString());
       if (filters.departments?.length) {
-        filters.departments.forEach((dept) => params.append('departments', dept));
+        for (const dept of filters.departments) {
+          params.append('departments', dept);
+        }
       }
       if (filters.role) params.append('role', filters.role);
 

@@ -1,3 +1,4 @@
+import { Search as SearchIcon } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -17,12 +18,10 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import type { Department, User } from '@/globals/types';
 import { useCallback, useEffect, useState } from 'react';
-
-import { Search as SearchIcon } from '@mui/icons-material';
-import { useDebounce } from '@/hooks';
 import { useSearchParams } from 'react-router-dom';
+import type { Department, User } from '@/globals/types';
+import { useDebounce } from '@/hooks';
 
 type UserWithMembership = User & { isMember?: boolean };
 
@@ -47,7 +46,7 @@ export const AddMembersModal = ({
   gerencia,
   users,
   loading = false,
-  userPagination,
+  userPagination
 }: AddMembersModalProps) => {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [savingMembers, setSavingMembers] = useState(false);
@@ -60,7 +59,7 @@ export const AddMembersModal = ({
     if (open) {
       const urlSearch = urlParams.get('modalSearch') || '';
       setLocalSearch(urlSearch);
-      
+
       // Inicializar modalPage e modalLimit se não existirem
       const hasModalPage = urlParams.has('modalPage');
       const hasModalLimit = urlParams.has('modalLimit');
@@ -79,7 +78,7 @@ export const AddMembersModal = ({
   // Atualizar URL apenas quando o modal estiver aberto e houver mudança na busca
   useEffect(() => {
     if (!open) return;
-    
+
     const currentSearch = urlParams.get('modalSearch') || '';
     if (debouncedLocalSearch !== currentSearch) {
       const newParams = new URLSearchParams(urlParams);
@@ -128,7 +127,6 @@ export const AddMembersModal = ({
       setSavingMembers(false);
     }
   }, [gerencia, selectedUserIds, onSave, handleClose]);
-
 
   return (
     <Dialog
@@ -222,18 +220,22 @@ export const AddMembersModal = ({
         </Box>
 
         {/* Table Content */}
-        <Box sx={{ 
-          px: 4, 
-          mb: 4,
-          // Altura dinâmica: até 5 itens sem scroll, depois com scroll
-          height: users.length <= 5 ? 'auto' : '400px',
-          minHeight: users.length <= 5 ? 'auto' : '400px'
-        }}>
-          <TableContainer sx={{ 
-            overflow: users.length <= 5 ? 'visible' : 'auto', 
-            height: users.length <= 5 ? 'auto' : '100%',
-            maxHeight: users.length <= 5 ? 'none' : '400px'
-          }}>
+        <Box
+          sx={{
+            px: 4,
+            mb: 4,
+            // Altura dinâmica: até 5 itens sem scroll, depois com scroll
+            height: users.length <= 5 ? 'auto' : '400px',
+            minHeight: users.length <= 5 ? 'auto' : '400px'
+          }}
+        >
+          <TableContainer
+            sx={{
+              overflow: users.length <= 5 ? 'visible' : 'auto',
+              height: users.length <= 5 ? 'auto' : '100%',
+              maxHeight: users.length <= 5 ? 'none' : '400px'
+            }}
+          >
             <Table>
               <TableHead>
                 <TableRow sx={{ borderBottom: '1px solid #e5e7eb' }}>
@@ -447,11 +449,11 @@ export const AddMembersModal = ({
                 urlParams.set('modalPage', '1'); // reset page to 1 when limit changes
                 setUrlParams(urlParams, { replace: true });
               }}
-              sx={{ 
-                minWidth: 120, 
-                height: 32, 
+              sx={{
+                minWidth: 120,
+                height: 32,
                 fontSize: '0.875rem',
-                backgroundColor: '#ffffff',
+                backgroundColor: '#ffffff'
               }}
             >
               {[5, 10, 25].map((limit) => (

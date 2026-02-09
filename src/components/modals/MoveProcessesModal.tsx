@@ -49,21 +49,7 @@ export const MoveProcessesModal = ({
   const [selectedProcesses, setSelectedProcesses] = useState<string[]>([]);
   const [targetFolder, setTargetFolder] = useState('');
 
-  // Buscar processos da pasta quando modal abrir
-  useEffect(() => {
-    if (open && folder?._id) {
-      loadProcesses();
-    }
-  }, [open, folder?._id]);
-
-  // Buscar processos quando termo de busca mudar
-  useEffect(() => {
-    if (open && folder?._id) {
-      loadProcesses();
-    }
-  }, [debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadProcesses = async () => {
+  const loadProcesses = useCallback(async () => {
     if (!folder?._id) return;
     setLoadingProcesses(true);
     try {
@@ -82,7 +68,14 @@ export const MoveProcessesModal = ({
     } finally {
       setLoadingProcesses(false);
     }
-  };
+  }, [folder?._id, debouncedSearch, fetchProcessesByFolder]);
+
+  // Buscar processos da pasta quando modal abrir ou termo de busca mudar
+  useEffect(() => {
+    if (open && folder?._id) {
+      loadProcesses();
+    }
+  }, [open, folder?._id, loadProcesses]);
 
   const handleToggleProcess = (processId: string) => {
     setSelectedProcesses((prev) =>
@@ -141,7 +134,7 @@ export const MoveProcessesModal = ({
         <Box
           sx={{
             p: 3,
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: '1px solid divider',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
@@ -152,7 +145,7 @@ export const MoveProcessesModal = ({
               variant='h5'
               sx={{
                 fontWeight: 700,
-                color: '#0f172a',
+                color: 'text.primary',
                 fontSize: '1.5rem'
               }}
             >
@@ -161,7 +154,7 @@ export const MoveProcessesModal = ({
             <Typography
               variant='body2'
               sx={{
-                color: '#64748b',
+                color: 'text.secondary',
                 fontSize: '0.875rem',
                 mt: 0.5
               }}
@@ -192,20 +185,20 @@ export const MoveProcessesModal = ({
                       height: 20
                     }}
                   >
-                    <SearchIcon sx={{ color: '#94a3b8', fontSize: '1.25rem' }} />
+                    <SearchIcon sx={{ color: 'text.disabled', fontSize: '1.25rem' }} />
                   </Box>
                 )
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderRadius: 2.5,
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #e2e8f0',
+                  backgroundColor: 'background.paper',
+                  border: '1px solid divider',
                   '&:hover': {
-                    borderColor: '#cbd5e1'
+                    borderColor: 'grey.300'
                   },
                   '&.Mui-focused': {
-                    borderColor: '#1877F2',
+                    borderColor: 'primary.main',
                     boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.15)'
                   }
                 }
@@ -219,7 +212,7 @@ export const MoveProcessesModal = ({
               variant='body2'
               sx={{
                 fontWeight: 600,
-                color: '#475569',
+                color: 'text.secondary',
                 mb: 1.5,
                 fontSize: '0.75rem',
                 textTransform: 'uppercase',
@@ -236,10 +229,10 @@ export const MoveProcessesModal = ({
                 sx={{
                   height: 44,
                   borderRadius: 2.5,
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #e2e8f0',
+                  backgroundColor: 'background.paper',
+                  border: '1px solid divider',
                   '&.Mui-focused': {
-                    borderColor: '#1877F2',
+                    borderColor: 'primary.main',
                     boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.15)'
                   }
                 }}
@@ -249,7 +242,7 @@ export const MoveProcessesModal = ({
                   disabled
                   sx={{
                     '&:hover': {
-                      backgroundColor: '#f8fafc'
+                      backgroundColor: 'grey.50'
                     }
                   }}
                 >
@@ -261,7 +254,7 @@ export const MoveProcessesModal = ({
                 </MenuItem>
                 {availableFolders.map((f) => {
                   const isPlanco = f.name?.toLowerCase().includes('planco');
-                  const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
+                  const folderIconColor = isPlanco ? 'primary.main' : 'warning.main';
 
                   return (
                     <MenuItem
@@ -269,9 +262,9 @@ export const MoveProcessesModal = ({
                       value={f._id}
                       sx={{
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}
@@ -283,7 +276,7 @@ export const MoveProcessesModal = ({
                             variant='body2'
                             sx={{
                               fontWeight: 500,
-                              color: '#0f172a',
+                              color: 'text.primary',
                               fontSize: '0.875rem'
                             }}
                           >
@@ -300,7 +293,7 @@ export const MoveProcessesModal = ({
                   variant='caption'
                   sx={{
                     mt: 0.5,
-                    color: '#64748b',
+                    color: 'text.secondary',
                     fontSize: '0.75rem'
                   }}
                 >
@@ -316,7 +309,7 @@ export const MoveProcessesModal = ({
               variant='body2'
               sx={{
                 fontWeight: 600,
-                color: '#475569',
+                color: 'text.secondary',
                 mb: 1.5,
                 fontSize: '0.75rem',
                 textTransform: 'uppercase',
@@ -328,7 +321,7 @@ export const MoveProcessesModal = ({
             <TableContainer
               sx={{
                 borderRadius: 2,
-                border: '1px solid #e2e8f0',
+                border: '1px solid divider',
                 maxHeight: 400,
                 overflow: 'auto'
               }}
@@ -338,7 +331,7 @@ export const MoveProcessesModal = ({
                   <TableRow>
                     <TableCell
                       padding='checkbox'
-                      sx={{ backgroundColor: '#f8fafc' }}
+                      sx={{ backgroundColor: 'grey.50' }}
                     >
                       <Checkbox
                         indeterminate={selectedProcesses.length > 0 && selectedProcesses.length < processes.length}
@@ -346,9 +339,9 @@ export const MoveProcessesModal = ({
                         onChange={handleSelectAll}
                       />
                     </TableCell>
-                    <TableCell sx={{ backgroundColor: '#f8fafc', fontWeight: 600 }}>Processo Nº</TableCell>
-                    <TableCell sx={{ backgroundColor: '#f8fafc', fontWeight: 600 }}>Objeto</TableCell>
-                    <TableCell sx={{ backgroundColor: '#f8fafc', fontWeight: 600 }}>Situação</TableCell>
+                    <TableCell sx={{ backgroundColor: 'grey.50', fontWeight: 600 }}>Processo Nº</TableCell>
+                    <TableCell sx={{ backgroundColor: 'grey.50', fontWeight: 600 }}>Objeto</TableCell>
+                    <TableCell sx={{ backgroundColor: 'grey.50', fontWeight: 600 }}>Situação</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -398,7 +391,7 @@ export const MoveProcessesModal = ({
         <Box
           sx={{
             p: 3,
-            borderTop: '1px solid #e2e8f0',
+            borderTop: '1px solid divider',
             display: 'flex',
             justifyContent: 'flex-end',
             gap: 2
@@ -412,13 +405,13 @@ export const MoveProcessesModal = ({
               py: 1.25,
               fontSize: '0.875rem',
               fontWeight: 600,
-              color: '#64748b',
+              color: 'text.secondary',
               textTransform: 'uppercase',
               borderRadius: 2,
-              border: '1px solid #e2e8f0',
+              border: '1px solid divider',
               backgroundColor: 'transparent',
               '&:hover': {
-                backgroundColor: '#f8fafc'
+                backgroundColor: 'grey.50'
               }
             }}
           >
@@ -434,14 +427,14 @@ export const MoveProcessesModal = ({
               py: 1.25,
               fontSize: '0.875rem',
               fontWeight: 600,
-              backgroundColor: '#1877F2',
+              backgroundColor: 'primary.main',
               textTransform: 'uppercase',
               borderRadius: 2,
               '&:hover': {
-                backgroundColor: '#166fe5'
+                backgroundColor: 'primary.dark'
               },
               '&:disabled': {
-                backgroundColor: '#9ca3af'
+                backgroundColor: 'text.disabled'
               }
             }}
           >

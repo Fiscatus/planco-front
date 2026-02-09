@@ -1,5 +1,5 @@
-import type { CreateDepartmentDto, Department, PaginatedDepartments, UpdateDepartmentDto } from '@/globals/types';
 import { useCallback, useState } from 'react';
+import type { CreateDepartmentDto, Department, PaginatedDepartments, UpdateDepartmentDto } from '@/globals/types';
 
 import { api } from '@/services';
 import { useAuth } from './useAuth';

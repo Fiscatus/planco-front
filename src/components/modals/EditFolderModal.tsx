@@ -36,10 +36,8 @@ export const EditFolderModal = ({ open, onClose, onSave, folder, loading = false
       // Preparar dados para enviar
       const dataToSave: UpdateFolderDto = {
         name: folderForm.name,
-        ...(folderForm.observations && folderForm.observations.trim()
-          ? { observations: folderForm.observations.trim() }
-          : {}),
-        ...(folderForm.year && folderForm.year.toString().trim() ? { year: Number(folderForm.year) } : {})
+        ...(folderForm.observations?.trim() ? { observations: folderForm.observations.trim() } : {}),
+        ...(folderForm.year?.toString().trim() ? { year: Number(folderForm.year) } : {})
       };
       await onSave(dataToSave);
       onClose();

@@ -185,7 +185,7 @@ const countryCodes: Record<string, string> = {
 };
 
 const getCountryCode = (country: string): string | undefined => {
-  return countryCodes[country]
+  return countryCodes[country];
 };
 
 export { getCountryCode };

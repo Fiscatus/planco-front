@@ -8,6 +8,7 @@ import {
 import {
   Alert,
   Autocomplete,
+  alpha,
   Box,
   Button,
   Card,
@@ -63,7 +64,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
   useEffect(() => {
     // Ignorar se estamos limpando programaticamente
     if (isClearingRef.current) return;
-    
+
     const currentName = urlParams.get('name') || '';
     if (debouncedLocalSearch !== currentName) {
       const newParams = new URLSearchParams(urlParams);
@@ -142,7 +143,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
         email: urlParams.get('email'),
         isActive: urlParams.get('isActive') ? urlParams.get('isActive') === 'true' : undefined,
         role: urlParams.get('role'),
-        departments: urlParams.get('departments') ? urlParams.get('departments')!.split(',') : []
+        departments: urlParams.get('departments') ? urlParams.get('departments')?.split(',') : []
       };
       return await fetchUsers(filters);
     }
@@ -197,10 +198,10 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
   const handleClearFilters = useCallback(() => {
     // Ativar flag para evitar conflito com debounce
     isClearingRef.current = true;
-    
+
     // Limpar o campo de busca local
     setLocalSearch('');
-    
+
     urlParams.delete('name');
     urlParams.delete('email');
     urlParams.delete('isActive');
@@ -208,7 +209,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
     urlParams.delete('departments');
     urlParams.set('page', '1');
     setUrlParams(urlParams, { replace: true });
-    
+
     // Resetar flag após o debounce
     setTimeout(() => {
       isClearingRef.current = false;
@@ -340,17 +341,18 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                     setLocalSearch(e.target.value);
                   }}
                   InputProps={{
-                    startAdornment: <SearchIcon sx={{ mr: 1, color: '#9ca3af', fontSize: '1.25rem' }} />,
+                    startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.disabled', fontSize: '1.25rem' }} />,
                     sx: { height: 40 }
                   }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 3,
-                      backgroundColor: '#ffffff',
-                      border: '2px solid #e5e7eb',
+                      backgroundColor: 'background.paper',
+                      border: '2px solid',
+                      borderColor: 'divider',
                       transition: 'all 0.2s ease-in-out',
                       '&:hover': {
-                        borderColor: '#d1d5db'
+                        borderColor: 'grey.400'
                       },
                       '&.Mui-focused': {
                         borderColor: theme.palette.primary.main,
@@ -358,7 +360,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                       }
                     },
                     '& .MuiInputBase-input::placeholder': {
-                      color: '#9ca3af',
+                      color: 'text.disabled',
                       opacity: 1,
                       fontWeight: 400
                     }
@@ -388,80 +390,81 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                     sx={{
                       height: 40,
                       borderRadius: 3,
-                      backgroundColor: '#ffffff',
+                      backgroundColor: 'background.paper',
                       '& .MuiOutlinedInput-notchedOutline': {
-                        border: '2px solid #e5e7eb',
+                        border: '2px solid',
+                        borderColor: 'divider',
                         transition: 'all 0.2s ease-in-out'
                       },
                       '&:hover': {
                         '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#d1d5db'
+                          borderColor: 'grey.400'
                         },
-                        backgroundColor: '#ffffff'
+                        backgroundColor: 'background.paper'
                       },
                       '&.Mui-focused': {
                         '& .MuiOutlinedInput-notchedOutline': {
                           borderColor: theme.palette.primary.main,
                           boxShadow: `0 0 0 3px ${theme.palette.primary.main}20`
                         },
-                        backgroundColor: '#ffffff'
+                        backgroundColor: 'background.paper'
                       },
                       '& .MuiSelect-select': {
-                        color: !urlParams.get('isActive') ? '#9ca3af' : '#374151'
+                        color: !urlParams.get('isActive') ? 'text.disabled' : 'text.primary'
                       },
                       '& .MuiSelect-icon': {
-                        color: '#64748b'
+                        color: 'text.secondary'
                       }
                     }}
                     renderValue={(value) => {
                       if (value === 'todos' || value === undefined) {
-                        return <span style={{ color: '#9ca3af' }}>Status</span>;
+                        return <span style={{ color: 'text.disabled' }}>Status</span>;
                       }
                       return value === 'true' ? 'Ativos' : 'Inativos';
                     }}
                   >
-                    <MenuItem 
+                    <MenuItem
                       value='todos'
                       sx={{
                         '&:hover': {
-                          backgroundColor: '#f8fafc'
+                          backgroundColor: 'grey.50'
                         },
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}
                     >
                       Todos
                     </MenuItem>
-                    <MenuItem 
+                    <MenuItem
                       value='true'
                       sx={{
                         '&:hover': {
-                          backgroundColor: '#f8fafc'
+                          backgroundColor: 'grey.50'
                         },
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}
                     >
                       Ativos
                     </MenuItem>
-                    <MenuItem 
+                    <MenuItem
                       value='false'
                       sx={{
                         '&:hover': {
-                          backgroundColor: '#f8fafc'
+                          backgroundColor: 'grey.50'
                         },
                         '&.Mui-selected': {
-                          backgroundColor: '#f1f5f9',
+                          backgroundColor: 'grey.100',
                           '&:hover': {
-                            backgroundColor: '#f1f5f9'
+                            backgroundColor: 'grey.100'
                           }
                         }
                       }}
@@ -501,11 +504,12 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           borderRadius: 3,
-                          backgroundColor: '#ffffff',
-                          border: '2px solid #e5e7eb',
+                          backgroundColor: 'background.paper',
+                          border: '2px solid',
+                          borderColor: 'divider',
                           transition: 'all 0.2s ease-in-out',
                           '&:hover': {
-                            borderColor: '#d1d5db'
+                            borderColor: 'grey.400'
                           },
                           '&.Mui-focused': {
                             borderColor: theme.palette.primary.main,
@@ -513,7 +517,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                           }
                         },
                         '& .MuiInputBase-input::placeholder': {
-                          color: '#9ca3af',
+                          color: 'text.disabled',
                           opacity: 1,
                           fontWeight: 400
                         }
@@ -569,11 +573,12 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           borderRadius: 3,
-                          backgroundColor: '#ffffff',
-                          border: '2px solid #e5e7eb',
+                          backgroundColor: 'background.paper',
+                          border: '2px solid',
+                          borderColor: 'divider',
                           transition: 'all 0.2s ease-in-out',
                           '&:hover': {
-                            borderColor: '#d1d5db'
+                            borderColor: 'grey.400'
                           },
                           '&.Mui-focused': {
                             borderColor: theme.palette.primary.main,
@@ -581,7 +586,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                           }
                         },
                         '& .MuiInputBase-input::placeholder': {
-                          color: '#9ca3af',
+                          color: 'text.disabled',
                           opacity: 1,
                           fontWeight: 400
                         }
@@ -618,19 +623,19 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                       disabled={usersLoading}
                       title='Limpar filtros'
                       sx={{
-                        backgroundColor: '#f3f4f6',
-                        color: '#6b7280',
+                        backgroundColor: 'grey.100',
+                        color: 'text.secondary',
                         borderRadius: 3,
                         p: 1.5,
                         transition: 'all 0.2s ease-in-out',
                         '&:hover': {
-                          backgroundColor: '#fee2e2',
-                          color: '#dc2626',
+                          backgroundColor: 'error.light',
+                          color: 'error.main',
                           transform: 'scale(1.05)'
                         },
                         '&:disabled': {
-                          backgroundColor: '#f9fafb',
-                          color: '#d1d5db'
+                          backgroundColor: 'grey.50',
+                          color: 'grey.400'
                         }
                       }}
                     >
@@ -658,19 +663,19 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                       disabled={usersLoading}
                       title='Limpar filtros'
                       sx={{
-                        backgroundColor: '#f3f4f6',
-                        color: '#6b7280',
+                        backgroundColor: 'grey.100',
+                        color: 'text.secondary',
                         borderRadius: 3,
                         p: 1.5,
                         transition: 'all 0.2s ease-in-out',
                         '&:hover': {
-                          backgroundColor: '#fee2e2',
-                          color: '#dc2626',
+                          backgroundColor: 'error.light',
+                          color: 'error.main',
                           transform: 'scale(1.05)'
                         },
                         '&:disabled': {
-                          backgroundColor: '#f9fafb',
-                          color: '#d1d5db'
+                          backgroundColor: 'grey.50',
+                          color: 'grey.400'
                         }
                       }}
                     >
@@ -704,8 +709,8 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                         boxShadow: '0 2px 8px rgba(25, 118, 210, 0.2)'
                       },
                       '&:disabled': {
-                        backgroundColor: '#e3f2fd',
-                        color: '#90caf9',
+                        backgroundColor: 'action.hover',
+                        color: 'primary.light',
                         boxShadow: 'none',
                         transform: 'none'
                       }
@@ -724,13 +729,14 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
               sx={{
                 mb: 3,
                 borderRadius: 3,
-                border: '1px solid #fecaca',
-                backgroundColor: '#fef2f2',
+                border: '1px solid',
+                borderColor: 'error.light',
+                backgroundColor: 'error.light',
                 '& .MuiAlert-icon': {
-                  color: '#dc2626'
+                  color: 'error.main'
                 },
                 '& .MuiAlert-message': {
-                  color: '#991b1b',
+                  color: 'error.dark',
                   fontWeight: 500
                 }
               }}
@@ -747,7 +753,8 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
               sx={{
                 borderRadius: 2,
                 boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                border: '1px solid #e5e7eb',
+                border: '1px solid',
+                borderColor: 'divider',
                 overflow: 'hidden',
                 display: 'block',
                 maxHeight: 'calc(100vh - 300px)',
@@ -766,16 +773,17 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                 <TableHead>
                   <TableRow
                     sx={{
-                      backgroundColor: '#f8fafc',
+                      backgroundColor: 'grey.50',
                       height: 64,
                       '& .MuiTableCell-head': {
-                        backgroundColor: '#f8fafc',
-                        color: '#374151',
+                        backgroundColor: 'grey.50',
+                        color: 'text.primary',
                         fontWeight: 600,
                         fontSize: '0.875rem',
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
-                        borderBottom: '2px solid #e5e7eb',
+                        borderBottom: '2px solid',
+                        borderBottomColor: 'divider',
                         py: 2,
                         verticalAlign: 'middle'
                       }
@@ -797,7 +805,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                         align='center'
                         sx={{
                           py: 6,
-                          backgroundColor: '#fafafa'
+                          backgroundColor: 'grey.50'
                         }}
                       >
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
@@ -808,7 +816,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                           <Typography
                             variant='body2'
                             sx={{
-                              color: '#6b7280',
+                              color: 'text.secondary',
                               fontWeight: 500
                             }}
                           >
@@ -824,15 +832,15 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                         align='center'
                         sx={{
                           py: 6,
-                          backgroundColor: '#fafafa'
+                          backgroundColor: 'grey.50'
                         }}
                       >
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                          <GroupsOutlinedIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
+                          <GroupsOutlinedIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
                           <Typography
                             variant='h6'
                             sx={{
-                              color: '#6b7280',
+                              color: 'text.secondary',
                               fontWeight: 500
                             }}
                           >
@@ -841,7 +849,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                           <Typography
                             variant='body2'
                             sx={{
-                              color: '#9ca3af',
+                              color: 'text.disabled',
                               fontStyle: 'italic'
                             }}
                           >
@@ -864,13 +872,14 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                         key={user._id}
                         sx={{
                           '& .MuiTableCell-root': {
-                            borderBottom: '1px solid #f1f5f9',
+                            borderBottom: '1px solid',
+                            borderBottomColor: 'divider',
                             py: 2,
                             transition: 'all 0.2s ease-in-out',
                             verticalAlign: 'middle'
                           },
                           '&:hover': {
-                            backgroundColor: 'rgba(5, 50, 105, 0.02)',
+                            backgroundColor: 'action.hover',
                             '& .MuiTableCell-root': {
                               backgroundColor: 'transparent'
                             }
@@ -924,7 +933,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                                   size='small'
                                   variant='filled'
                                   sx={{
-                                    backgroundColor: '#15803d',
+                                    backgroundColor: 'success.dark',
                                     color: 'white',
                                     fontWeight: 600,
                                     borderRadius: 2,
@@ -932,7 +941,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                                       px: 1.5
                                     },
                                     '&:hover': {
-                                      backgroundColor: '#166534'
+                                      backgroundColor: 'success.dark'
                                     }
                                   }}
                                 />
@@ -962,7 +971,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                                   }
                                 },
                                 '& .MuiSwitch-track': {
-                                  backgroundColor: '#ccc'
+                                  backgroundColor: 'grey.400'
                                 }
                               }}
                             />
@@ -984,13 +993,13 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                             onClick={() => handleEditUser(user)}
                             aria-label='Editar usuário'
                             sx={{
-                              color: '#6b7280',
+                              color: 'text.secondary',
                               backgroundColor: 'transparent',
                               borderRadius: 2,
                               p: 1,
                               transition: 'all 0.2s ease-in-out',
                               '&:hover': {
-                                backgroundColor: '#f3f4f6',
+                                backgroundColor: 'grey.100',
                                 color: theme.palette.primary.main,
                                 transform: 'scale(1.1)'
                               }
@@ -1020,7 +1029,8 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                       sx={{
                         p: 2,
                         borderRadius: 2,
-                        border: '1px solid #e5e7eb'
+                        border: '1px solid',
+                        borderColor: 'divider'
                       }}
                     >
                       <Skeleton
@@ -1037,17 +1047,18 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                   sx={{
                     p: 4,
                     borderRadius: 2,
-                    border: '1px solid #e5e7eb',
+                    border: '1px solid',
+                    borderColor: 'divider',
                     textAlign: 'center',
-                    backgroundColor: '#fafafa'
+                    backgroundColor: 'grey.50'
                   }}
                 >
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2 }}>
-                    <GroupsOutlinedIcon sx={{ fontSize: 48, color: '#9ca3af' }} />
+                    <GroupsOutlinedIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
                     <Typography
                       variant='h6'
                       sx={{
-                        color: '#6b7280',
+                        color: 'text.secondary',
                         fontWeight: 500
                       }}
                     >
@@ -1056,7 +1067,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                     <Typography
                       variant='body2'
                       sx={{
-                        color: '#9ca3af',
+                        color: 'text.disabled',
                         fontStyle: 'italic'
                       }}
                     >
@@ -1081,7 +1092,8 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                     sx={{
                       p: 2,
                       borderRadius: 2,
-                      border: '1px solid #e5e7eb',
+                      border: '1px solid',
+                      borderColor: 'divider',
                       transition: 'all 0.2s ease-in-out',
                       '&:hover': {
                         boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
@@ -1095,7 +1107,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                         <Typography
                           variant='subtitle1'
                           fontWeight={600}
-                          sx={{ color: '#1f2937' }}
+                          sx={{ color: 'text.primary' }}
                         >
                           {user.firstName} {user.lastName}
                         </Typography>
@@ -1104,7 +1116,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                           onClick={() => handleEditUser(user)}
                           aria-label='Editar usuário'
                           sx={{
-                            color: '#6b7280',
+                            color: 'text.secondary',
                             backgroundColor: 'transparent',
                             borderRadius: 2,
                             p: 1,
@@ -1112,7 +1124,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                             minHeight: 44,
                             transition: 'all 0.2s ease-in-out',
                             '&:hover': {
-                              backgroundColor: '#f3f4f6',
+                              backgroundColor: 'grey.100',
                               color: theme.palette.primary.main,
                               transform: 'scale(1.1)'
                             }
@@ -1131,7 +1143,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                           variant='body2'
                           noWrap
                           sx={{
-                            color: '#6b7280',
+                            color: 'text.secondary',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis'
                           }}
@@ -1180,8 +1192,8 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                                   size='small'
                                   variant='outlined'
                                   sx={{
-                                    color: '#15803d',
-                                    borderColor: '#15803d',
+                                    color: 'success.dark',
+                                    borderColor: 'success.dark',
                                     fontWeight: 600,
                                     borderRadius: 2,
                                     maxWidth: 120,
@@ -1201,8 +1213,8 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                                 size='small'
                                 variant='outlined'
                                 sx={{
-                                  color: '#6b7280',
-                                  borderColor: '#d1d5db',
+                                  color: 'text.secondary',
+                                  borderColor: 'grey.400',
                                   fontWeight: 600,
                                   borderRadius: 2,
                                   '& .MuiChip-label': {
@@ -1230,7 +1242,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                                 }
                               },
                               '& .MuiSwitch-track': {
-                                backgroundColor: '#ccc'
+                                backgroundColor: 'grey.400'
                               }
                             }}
                           />
@@ -1270,14 +1282,15 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
               justifyContent: 'space-between',
               alignItems: 'center',
               gap: 2,
-              backgroundColor: '#f8fafc',
-              borderTop: '1px solid #e5e7eb'
+              backgroundColor: 'grey.50',
+              borderTop: '1px solid',
+              borderTopColor: 'divider'
             }}
           >
             {/* Pagination Info */}
             <Typography
               variant='body2'
-              sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+              sx={{ color: 'text.secondary', fontSize: '0.875rem' }}
             >
               {usersData ? (
                 <>
@@ -1295,12 +1308,12 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
               <Select
                 value={urlParams.get('limit') || 10}
                 onChange={(e) => handleLimitChange(Number(e.target.value))}
-                sx={{ 
-                  minWidth: 120, 
-                  height: 32, 
+                sx={{
+                  minWidth: 120,
+                  height: 32,
                   fontSize: '0.875rem',
                   '& .MuiSelect-icon': {
-                    color: '#64748b'
+                    color: 'text.secondary'
                   }
                 }}
               >
@@ -1310,12 +1323,12 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                     value={limit}
                     sx={{
                       '&:hover': {
-                        backgroundColor: '#f8fafc'
+                        backgroundColor: 'grey.50'
                       },
                       '&.Mui-selected': {
-                        backgroundColor: '#f1f5f9',
+                        backgroundColor: 'grey.100',
                         '&:hover': {
-                          backgroundColor: '#f1f5f9'
+                          backgroundColor: 'grey.100'
                         }
                       }
                     }}
@@ -1366,7 +1379,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
             >
               <Box
                 sx={{
-                  backgroundColor: 'rgba(24, 119, 242, 0.1)',
+                  backgroundColor: alpha(theme.palette.primary.main, 0.1),
                   p: 1.5,
                   borderRadius: '50%',
                   mb: 2,
@@ -1378,7 +1391,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                 <EditIcon
                   sx={{
                     fontSize: 32,
-                    color: '#1877F2'
+                    color: 'primary.main'
                   }}
                 />
               </Box>
@@ -1387,7 +1400,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                 variant='h5'
                 sx={{
                   fontWeight: 700,
-                  color: '#1f2937',
+                  color: 'text.primary',
                   mb: 0.5
                 }}
               >
@@ -1397,14 +1410,14 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
               <Typography
                 variant='body2'
                 sx={{
-                  color: '#6b7280',
+                  color: 'text.secondary',
                   fontSize: '0.875rem'
                 }}
               >
                 Atualize as informações de{' '}
                 <Box
                   component='span'
-                  sx={{ fontWeight: 600, color: '#1f2937' }}
+                  sx={{ fontWeight: 600, color: 'text.primary' }}
                 >
                   {selectedUser?.firstName} {selectedUser?.lastName}
                 </Box>
@@ -1415,10 +1428,11 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
             {/* Seção de Permissões */}
             <Box
               sx={{
-                backgroundColor: '#f9fafb',
+                backgroundColor: 'grey.50',
                 p: 3,
                 borderRadius: 2,
-                border: '1px solid #e5e7eb',
+                border: '1px solid',
+                borderColor: 'divider',
                 mb: 4
               }}
             >
@@ -1426,7 +1440,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                 variant='h6'
                 sx={{
                   fontWeight: 600,
-                  color: '#1f2937',
+                  color: 'text.primary',
                   mb: 2,
                   fontSize: '1.125rem'
                 }}
@@ -1440,7 +1454,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                     variant='body2'
                     sx={{
                       fontWeight: 500,
-                      color: '#6b7280',
+                      color: 'text.secondary',
                       mb: 0.5,
                       fontSize: '0.875rem'
                     }}
@@ -1467,24 +1481,25 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                         InputProps={{
                           ...params.InputProps,
                           sx: {
-                            backgroundColor: '#ffffff',
+                            backgroundColor: 'background.paper',
                             borderRadius: 2,
                             '& .MuiOutlinedInput-notchedOutline': {
-                              border: '1px solid #e5e7eb',
+                              border: '1px solid',
+                              borderColor: 'divider',
                               transition: 'all 0.2s ease-in-out'
                             },
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#d1d5db'
+                              borderColor: 'grey.400'
                             },
                             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#1877F2',
+                              borderColor: 'primary.main',
                               boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                             }
                           }
                         }}
                         sx={{
                           '& .MuiInputBase-input::placeholder': {
-                            color: '#9ca3af',
+                            color: 'text.disabled',
                             opacity: 1
                           }
                         }}
@@ -1509,7 +1524,7 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                     variant='body2'
                     sx={{
                       fontWeight: 500,
-                      color: '#6b7280',
+                      color: 'text.secondary',
                       mb: 0.5,
                       fontSize: '0.875rem'
                     }}
@@ -1541,24 +1556,25 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                         InputProps={{
                           ...params.InputProps,
                           sx: {
-                            backgroundColor: '#ffffff',
+                            backgroundColor: 'background.paper',
                             borderRadius: 2,
                             '& .MuiOutlinedInput-notchedOutline': {
-                              border: '1px solid #e5e7eb',
+                              border: '1px solid',
+                              borderColor: 'divider',
                               transition: 'all 0.2s ease-in-out'
                             },
                             '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#d1d5db'
+                              borderColor: 'grey.400'
                             },
                             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#1877F2',
+                              borderColor: 'primary.main',
                               boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                             }
                           }
                         }}
                         sx={{
                           '& .MuiInputBase-input::placeholder': {
-                            color: '#9ca3af',
+                            color: 'text.disabled',
                             opacity: 1
                           }
                         }}
@@ -1601,8 +1617,8 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
               borderRadius: 2,
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                backgroundColor: '#f3f4f6',
-                color: '#374151'
+                backgroundColor: 'grey.100',
+                color: 'text.primary'
               }
             }}
           >
@@ -1617,13 +1633,13 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
               py: 1.25,
               fontSize: '0.875rem',
               fontWeight: 600,
-              backgroundColor: '#1877F2',
+              backgroundColor: 'primary.main',
               textTransform: 'none',
               borderRadius: 2,
               boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                backgroundColor: '#166fe5',
+                backgroundColor: 'primary.dark',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               },
               '&:focus': {
@@ -1631,8 +1647,8 @@ const UserSection = ({ currentTab }: UserSectionProps) => {
                 boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
               },
               '&:disabled': {
-                backgroundColor: '#e5e7eb',
-                color: '#9ca3af',
+                backgroundColor: 'action.disabledBackground',
+                color: 'text.disabled',
                 boxShadow: 'none'
               }
             }}

@@ -1,6 +1,6 @@
 import { ArrowForward as ArrowForwardIcon } from '@mui/icons-material';
 import { Box, Button, Card, Chip, Typography } from '@mui/material';
-
+import { useTheme } from '@mui/material/styles';
 
 type Props = {
   onNavigateHistoria: () => void;
@@ -8,6 +8,7 @@ type Props = {
 };
 
 const AboutSection = ({ onNavigateHistoria, embedded = true }: Props) => {
+  const theme = useTheme();
   return (
     <Card
       sx={{
@@ -17,14 +18,14 @@ const AboutSection = ({ onNavigateHistoria, embedded = true }: Props) => {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        backgroundColor: '#fff'
+        backgroundColor: 'background.paper'
       }}
     >
       <Typography
         variant='h5'
         fontWeight={700}
         sx={{
-          color: '#050505',
+          color: 'text.primary',
           mb: 2,
           fontSize: '1.5rem'
         }}
@@ -34,15 +35,16 @@ const AboutSection = ({ onNavigateHistoria, embedded = true }: Props) => {
       <Typography
         variant='body1'
         sx={{
-          color: '#65676B',
+          color: 'text.secondary',
           mb: 3,
           lineHeight: 1.6,
           fontSize: '1rem'
         }}
       >
-        O Planco é uma solução para contratações públicas que conecta todas as etapas do processo, do planejamento à execução contratual. Modernize seu órgão com uma ferramenta que simplifica e torna cada etapa mais clara.
+        O Planco é uma solução para contratações públicas que conecta todas as etapas do processo, do planejamento à
+        execução contratual. Modernize seu órgão com uma ferramenta que simplifica e torna cada etapa mais clara.
       </Typography>
-      
+
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mb: 4 }}>
         {['Instituições', 'Auditoria Interna', 'Automação'].map((tag) => (
           <Chip
@@ -50,8 +52,8 @@ const AboutSection = ({ onNavigateHistoria, embedded = true }: Props) => {
             label={tag}
             size='small'
             sx={{
-              bgcolor: '#E3F2FD',
-              color: '#1877F2',
+              bgcolor: 'info.lighter',
+              color: 'primary.main',
               fontWeight: 500,
               fontSize: '0.875rem',
               px: 2,
@@ -68,14 +70,14 @@ const AboutSection = ({ onNavigateHistoria, embedded = true }: Props) => {
           variant='text'
           endIcon={<ArrowForwardIcon />}
           sx={{
-            color: '#1877F2',
+            color: 'primary.main',
             fontWeight: 700,
             textTransform: 'none',
             p: 0,
             fontSize: '1rem',
             '&:hover': {
               bgcolor: 'transparent',
-              color: '#166fe5'
+              color: 'primary.dark'
             }
           }}
         >

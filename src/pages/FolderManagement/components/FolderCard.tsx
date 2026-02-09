@@ -1,22 +1,16 @@
 import {
-  Box,
-  Card,
-  IconButton,
-  Tooltip,
-  Typography
-} from '@mui/material';
-import {
   CalendarMonth as CalendarMonthIcon,
   Folder as FolderIcon,
   Info as InfoIcon,
   PushPin as PushPinIcon,
   Schedule as ScheduleIcon,
-  Star as StarIcon,
-  StarBorder as StarBorderIcon
+  StarBorder as StarBorderIcon,
+  Star as StarIcon
 } from '@mui/icons-material';
-import type { Folder } from '@/globals/types';
-import { useCallback } from 'react';
+import { Box, Card, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import dayjs from 'dayjs';
+import { useCallback } from 'react';
+import type { Folder } from '@/globals/types';
 import { useFavoriteFolders } from '@/hooks';
 
 interface FolderCardProps {
@@ -26,6 +20,7 @@ interface FolderCardProps {
 }
 
 export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProps) => {
+  const theme = useTheme();
   const { isFavorite, toggleFavorite } = useFavoriteFolders();
   const isFolderFavorite = isFavorite(folder._id);
 
@@ -48,7 +43,7 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
   };
 
   const isPlanco = folder.name?.toLowerCase().includes('planco');
-  const folderIconColor = isPlanco ? '#1877F2' : '#fbbf24';
+  const folderIconColor = isPlanco ? theme.palette.primary.main : theme.palette.warning.main;
 
   return (
     <Card
@@ -90,7 +85,7 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
           {/* Ícone da pasta */}
           <Box
             sx={{
-              backgroundColor: isPlanco ? '#dbeafe' : '#fef3c7',
+              backgroundColor: isPlanco ? theme.palette.secondary.light : theme.palette.warning.light,
               borderRadius: { xs: 2, sm: 2.5 },
               p: { xs: 1.25, sm: 1.5 },
               display: 'flex',
@@ -115,7 +110,7 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
                 <IconButton
                   size='small'
                   sx={{
-                    color: '#1877F2',
+                    color: 'primary.main',
                     cursor: 'default',
                     padding: 0.75,
                     minWidth: 'auto',
@@ -135,7 +130,7 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
                 <IconButton
                   size='small'
                   sx={{
-                    color: isPlanco ? '#1877F2' : '#64748b',
+                    color: isPlanco ? 'primary.main' : 'text.secondary',
                     cursor: 'default',
                     padding: 0.75,
                     minWidth: 'auto',
@@ -160,10 +155,10 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
                     minWidth: 'auto',
                     width: { xs: 32, sm: 36 },
                     height: { xs: 32, sm: 36 },
-                    color: isFolderFavorite ? '#fbbf24' : '#94a3b8',
+                    color: isFolderFavorite ? 'warning.main' : 'text.disabled',
                     '&:hover': {
                       backgroundColor: 'transparent',
-                      color: '#fbbf24'
+                      color: 'warning.main'
                     },
                     transition: 'all 0.2s ease-in-out'
                   }}
@@ -172,7 +167,7 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
                     <StarIcon
                       sx={{
                         fontSize: { xs: 20, sm: 22 },
-                        color: '#fbbf24',
+                        color: 'warning.main',
                         transition: 'all 0.2s ease-in-out'
                       }}
                     />
@@ -180,7 +175,7 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
                     <StarBorderIcon
                       sx={{
                         fontSize: { xs: 20, sm: 22 },
-                        color: '#94a3b8',
+                        color: 'text.disabled',
                         transition: 'all 0.2s ease-in-out'
                       }}
                     />
@@ -198,7 +193,7 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
             fontWeight: 600,
             fontSize: { xs: '1.0625rem', sm: '1.125rem', md: '1.25rem' },
             mb: { xs: 1.5, sm: 2 },
-            color: '#0f172a',
+            color: 'text.primary',
             lineHeight: 1.4,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -214,22 +209,28 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: { xs: 1.25, sm: 1.5 } }}>
           {/* Data de criação ou início */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.25, sm: 1.5 } }}>
-            <CalendarMonthIcon sx={{ fontSize: { xs: 18, sm: 20 }, color: '#1877F2', flexShrink: 0 }} />
+            <CalendarMonthIcon sx={{ fontSize: { xs: 18, sm: 20 }, color: 'primary.main', flexShrink: 0 }} />
             <Typography
               variant='body2'
-              sx={{ fontSize: { xs: '0.875rem', sm: '0.9375rem' }, color: '#0f172a', fontWeight: 500 }}
+              sx={{ fontSize: { xs: '0.875rem', sm: '0.9375rem' }, color: 'text.primary', fontWeight: 500 }}
             >
-              {folder.isDefault ? 'Padrão do Sistema' : folder.year ? folder.year : folder.createdAt ? formatDate(folder.createdAt) : 'N/A'}
+              {folder.isDefault
+                ? 'Padrão do Sistema'
+                : folder.year
+                  ? folder.year
+                  : folder.createdAt
+                    ? formatDate(folder.createdAt)
+                    : 'N/A'}
             </Typography>
           </Box>
 
           {/* Data de modificação ou fim */}
           {!folder.isDefault && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.25, sm: 1.5 } }}>
-              <ScheduleIcon sx={{ fontSize: { xs: 18, sm: 20 }, color: '#1877F2', flexShrink: 0 }} />
+              <ScheduleIcon sx={{ fontSize: { xs: 18, sm: 20 }, color: 'primary.main', flexShrink: 0 }} />
               <Typography
                 variant='body2'
-                sx={{ fontSize: { xs: '0.875rem', sm: '0.9375rem' }, color: '#0f172a', fontWeight: 500 }}
+                sx={{ fontSize: { xs: '0.875rem', sm: '0.9375rem' }, color: 'text.primary', fontWeight: 500 }}
               >
                 {folder.isPermanent ? 'Permanente' : folder.updatedAt ? formatDate(folder.updatedAt) : 'N/A'}
               </Typography>
@@ -244,18 +245,18 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
               mt: { xs: 2, sm: 2.5, md: 3 },
               pt: { xs: 2, sm: 2.5, md: 3 },
               borderTop: '1px solid',
-              borderColor: '#e2e8f0',
+              borderColor: 'divider',
               display: 'flex',
               alignItems: 'flex-start',
               gap: { xs: 1.25, sm: 1.5 }
             }}
           >
-            <InfoIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: '#64748b', mt: 0.25, flexShrink: 0 }} />
+            <InfoIcon sx={{ fontSize: { xs: 16, sm: 18 }, color: 'text.secondary', mt: 0.25, flexShrink: 0 }} />
             <Typography
               variant='body2'
               sx={{
                 fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                color: '#64748b',
+                color: 'text.secondary',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 display: '-webkit-box',
@@ -272,4 +273,3 @@ export const FolderCard = ({ folder, onToggleFavorite, onClick }: FolderCardProp
     </Card>
   );
 };
-

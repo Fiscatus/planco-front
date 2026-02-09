@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from 'react';
 
-const FAVORITE_FLOW_MODELS_KEY = "favoriteFlowModels";
+const FAVORITE_FLOW_MODELS_KEY = 'favoriteFlowModels';
 
 export const useFavoriteFlowModels = () => {
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
@@ -14,7 +14,7 @@ export const useFavoriteFlowModels = () => {
         setFavoriteIds(new Set(ids));
       }
     } catch (error) {
-      console.error("Erro ao carregar favoritos do localStorage:", error);
+      console.error('Erro ao carregar favoritos do localStorage:', error);
     }
   }, []);
 
@@ -23,7 +23,7 @@ export const useFavoriteFlowModels = () => {
     (flowModelId: string) => {
       return favoriteIds.has(flowModelId);
     },
-    [favoriteIds],
+    [favoriteIds]
   );
 
   // Alternar favorito de um modelo
@@ -42,7 +42,7 @@ export const useFavoriteFlowModels = () => {
         const idsArray = Array.from(newSet);
         localStorage.setItem(FAVORITE_FLOW_MODELS_KEY, JSON.stringify(idsArray));
       } catch (error) {
-        console.error("Erro ao salvar favoritos no localStorage:", error);
+        console.error('Erro ao salvar favoritos no localStorage:', error);
       }
 
       return newSet;
@@ -57,6 +57,6 @@ export const useFavoriteFlowModels = () => {
   return {
     isFavorite,
     toggleFavorite,
-    getFavoriteIds,
+    getFavoriteIds
   };
 };

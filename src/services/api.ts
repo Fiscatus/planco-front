@@ -25,11 +25,10 @@ api.interceptors.request.use(
         const parsed = JSON.parse(activeDepartment);
         if (parsed._id) {
           const url = config.url || '';
-          
-          const shouldAddHeader = 
-            url.includes('/departments/check-access') ||
-            url.includes('/departments/') && url.includes('/info');
-          
+
+          const shouldAddHeader =
+            url.includes('/departments/check-access') || (url.includes('/departments/') && url.includes('/info'));
+
           if (shouldAddHeader) {
             config.headers['X-Active-Department'] = parsed._id;
           }
@@ -46,7 +45,7 @@ api.interceptors.request.use(
         console.warn('Erro ao parsear gerência ativa:', error);
       }
     }
-    
+
     return config;
   },
   (error) => {

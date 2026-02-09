@@ -1,20 +1,5 @@
-import {
-  Box,
-  Button,
-  Card,
-  FormControl,
-  Grid,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-  useTheme
-} from '@mui/material';
-import {
-  FilterAlt as FilterAltIcon,
-  Search as SearchIcon,
-  Clear as ClearIcon
-} from '@mui/icons-material';
+import { Clear as ClearIcon, FilterAlt as FilterAltIcon, Search as SearchIcon } from '@mui/icons-material';
+import { Box, Button, Card, FormControl, Grid, MenuItem, Select, TextField, Typography, useTheme } from '@mui/material';
 import { useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -37,30 +22,29 @@ const STAGES = [
   'Homologação'
 ];
 
-export const FiltersSection = ({
-  searchValue,
-  onSearchChange,
-  onClearSearch
-}: FiltersSectionProps) => {
+export const FiltersSection = ({ searchValue, onSearchChange, onClearSearch }: FiltersSectionProps) => {
   const theme = useTheme();
   const [urlParams, setUrlParams] = useSearchParams();
 
-  const handleFilterChange = useCallback((field: string, value: string) => {
-    const newParams = new URLSearchParams(urlParams);
-    if (value === 'all' || value === '') {
-      newParams.delete(field);
-    } else {
-      newParams.set(field, value);
-    }
-    setUrlParams(newParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const handleFilterChange = useCallback(
+    (field: string, value: string) => {
+      const newParams = new URLSearchParams(urlParams);
+      if (value === 'all' || value === '') {
+        newParams.delete(field);
+      } else {
+        newParams.set(field, value);
+      }
+      setUrlParams(newParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
   const handleClearFilters = useCallback(() => {
     // Limpar o campo de busca
     if (onClearSearch) {
       onClearSearch();
     }
-    
+
     const newParams = new URLSearchParams();
     setUrlParams(newParams, { replace: true });
   }, [setUrlParams, onClearSearch]);
@@ -77,11 +61,11 @@ export const FiltersSection = ({
       sx={{
         borderRadius: 2,
         border: '1px solid',
-        borderColor: '#e2e8f0',
+        borderColor: 'divider',
         boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
         overflow: 'hidden',
         mb: 4,
-        backgroundColor: '#ffffff'
+        backgroundColor: 'background.paper'
       }}
     >
       <Box
@@ -94,18 +78,18 @@ export const FiltersSection = ({
           flexWrap: { xs: 'wrap', sm: 'nowrap' },
           gap: { xs: 1.5, sm: 2 },
           borderBottom: '1px solid',
-          borderColor: '#f1f5f9',
-          backgroundColor: '#fafbfc'
+          borderColor: 'grey.100',
+          backgroundColor: 'grey.50'
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
-          <FilterAltIcon sx={{ color: '#1877F2', fontSize: { xs: 18, sm: 20 } }} />
+          <FilterAltIcon sx={{ color: 'primary.main', fontSize: { xs: 18, sm: 20 } }} />
           <Typography
             variant='subtitle1'
             sx={{
               fontWeight: 600,
               fontSize: { xs: '0.875rem', sm: '0.9375rem' },
-              color: '#0f172a',
+              color: 'text.primary',
               letterSpacing: '-0.01em'
             }}
           >
@@ -124,16 +108,16 @@ export const FiltersSection = ({
               py: { xs: 0.75, sm: 0.875 },
               fontSize: { xs: '0.75rem', sm: '0.8125rem' },
               fontWeight: 600,
-              color: '#64748b',
-              borderColor: '#cbd5e1',
+              color: 'text.secondary',
+              borderColor: 'divider',
               textTransform: 'none',
               borderRadius: 2,
-              backgroundColor: '#ffffff',
+              backgroundColor: 'background.paper',
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                backgroundColor: '#f8fafc',
-                borderColor: '#94a3b8',
-                color: '#475569',
+                backgroundColor: 'grey.50',
+                borderColor: 'text.disabled',
+                color: 'text.secondary',
                 boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
               }
             }}
@@ -143,7 +127,10 @@ export const FiltersSection = ({
         )}
       </Box>
       <Box sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
-        <Grid container spacing={{ xs: 2, sm: 2.5, md: 2.5 }}>
+        <Grid
+          container
+          spacing={{ xs: 2, sm: 2.5, md: 2.5 }}
+        >
           {/* Campo de busca */}
           <Grid size={{ xs: 12, md: 6 }}>
             <TextField
@@ -152,20 +139,18 @@ export const FiltersSection = ({
               value={searchValue}
               onChange={(e) => onSearchChange(e.target.value)}
               InputProps={{
-                startAdornment: (
-                  <SearchIcon sx={{ color: '#94a3b8', fontSize: 20, mr: 1.5 }} />
-                )
+                startAdornment: <SearchIcon sx={{ color: 'text.disabled', fontSize: 20, mr: 1.5 }} />
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   height: 42,
                   borderRadius: 2,
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'background.paper',
                   fontSize: '0.875rem',
                   transition: 'all 0.2s ease-in-out',
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#cbd5e1'
+                      borderColor: 'divider'
                     }
                   },
                   '&.Mui-focused': {
@@ -176,10 +161,10 @@ export const FiltersSection = ({
                   }
                 },
                 '& .MuiOutlinedInput-notchedOutline': {
-                  borderColor: '#e2e8f0'
+                  borderColor: 'divider'
                 },
                 '& .MuiInputBase-input::placeholder': {
-                  color: '#94a3b8',
+                  color: 'text.disabled',
                   opacity: 1,
                   fontSize: '0.875rem'
                 }
@@ -197,10 +182,10 @@ export const FiltersSection = ({
                   height: 42,
                   borderRadius: 2,
                   fontSize: '0.875rem',
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'background.paper',
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#cbd5e1'
+                      borderColor: 'divider'
                     }
                   },
                   '&.Mui-focused': {
@@ -210,27 +195,27 @@ export const FiltersSection = ({
                     }
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#e2e8f0'
+                    borderColor: 'divider'
                   },
                   '& .MuiSelect-select': {
                     display: 'flex',
                     alignItems: 'center',
                     py: 1.25,
                     px: 1.5
-                  },
+                  }
                 }}
               >
-                <MenuItem 
-                  value='all' 
-                  sx={{ 
+                <MenuItem
+                  value='all'
+                  sx={{
                     fontSize: '0.875rem',
                     '&:hover': {
-                      backgroundColor: '#f8fafc'
+                      backgroundColor: 'grey.50'
                     },
                     '&.Mui-selected': {
-                      backgroundColor: '#f1f5f9',
+                      backgroundColor: 'grey.100',
                       '&:hover': {
-                        backgroundColor: '#f1f5f9'
+                        backgroundColor: 'grey.100'
                       }
                     }
                   }}
@@ -238,18 +223,18 @@ export const FiltersSection = ({
                   Todas as prioridades
                 </MenuItem>
                 {PRIORITIES.map((priority) => (
-                  <MenuItem 
-                    key={priority} 
-                    value={priority} 
-                    sx={{ 
+                  <MenuItem
+                    key={priority}
+                    value={priority}
+                    sx={{
                       fontSize: '0.875rem',
                       '&:hover': {
-                        backgroundColor: '#f8fafc'
+                        backgroundColor: 'grey.50'
                       },
                       '&.Mui-selected': {
-                        backgroundColor: '#f1f5f9',
+                        backgroundColor: 'grey.100',
                         '&:hover': {
-                          backgroundColor: '#f1f5f9'
+                          backgroundColor: 'grey.100'
                         }
                       }
                     }}
@@ -271,10 +256,10 @@ export const FiltersSection = ({
                   height: 42,
                   borderRadius: 2,
                   fontSize: '0.875rem',
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'background.paper',
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#cbd5e1'
+                      borderColor: 'divider'
                     }
                   },
                   '&.Mui-focused': {
@@ -284,27 +269,27 @@ export const FiltersSection = ({
                     }
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#e2e8f0'
+                    borderColor: 'divider'
                   },
                   '& .MuiSelect-select': {
                     display: 'flex',
                     alignItems: 'center',
                     py: 1.25,
                     px: 1.5
-                  },
+                  }
                 }}
               >
-                <MenuItem 
-                  value='all' 
-                  sx={{ 
+                <MenuItem
+                  value='all'
+                  sx={{
                     fontSize: '0.875rem',
                     '&:hover': {
-                      backgroundColor: '#f8fafc'
+                      backgroundColor: 'grey.50'
                     },
                     '&.Mui-selected': {
-                      backgroundColor: '#f1f5f9',
+                      backgroundColor: 'grey.100',
                       '&:hover': {
-                        backgroundColor: '#f1f5f9'
+                        backgroundColor: 'grey.100'
                       }
                     }
                   }}
@@ -312,18 +297,18 @@ export const FiltersSection = ({
                   Todas as modalidades
                 </MenuItem>
                 {MODALITIES.map((modality) => (
-                  <MenuItem 
-                    key={modality} 
-                    value={modality} 
-                    sx={{ 
+                  <MenuItem
+                    key={modality}
+                    value={modality}
+                    sx={{
                       fontSize: '0.875rem',
                       '&:hover': {
-                        backgroundColor: '#f8fafc'
+                        backgroundColor: 'grey.50'
                       },
                       '&.Mui-selected': {
-                        backgroundColor: '#f1f5f9',
+                        backgroundColor: 'grey.100',
                         '&:hover': {
-                          backgroundColor: '#f1f5f9'
+                          backgroundColor: 'grey.100'
                         }
                       }
                     }}
@@ -345,10 +330,10 @@ export const FiltersSection = ({
                   height: 42,
                   borderRadius: 2,
                   fontSize: '0.875rem',
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'background.paper',
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#cbd5e1'
+                      borderColor: 'divider'
                     }
                   },
                   '&.Mui-focused': {
@@ -358,27 +343,27 @@ export const FiltersSection = ({
                     }
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#e2e8f0'
+                    borderColor: 'divider'
                   },
                   '& .MuiSelect-select': {
                     display: 'flex',
                     alignItems: 'center',
                     py: 1.25,
                     px: 1.5
-                  },
+                  }
                 }}
               >
-                <MenuItem 
-                  value='all' 
-                  sx={{ 
+                <MenuItem
+                  value='all'
+                  sx={{
                     fontSize: '0.875rem',
                     '&:hover': {
-                      backgroundColor: '#f8fafc'
+                      backgroundColor: 'grey.50'
                     },
                     '&.Mui-selected': {
-                      backgroundColor: '#f1f5f9',
+                      backgroundColor: 'grey.100',
                       '&:hover': {
-                        backgroundColor: '#f1f5f9'
+                        backgroundColor: 'grey.100'
                       }
                     }
                   }}
@@ -386,18 +371,18 @@ export const FiltersSection = ({
                   Todas as etapas
                 </MenuItem>
                 {STAGES.map((stage) => (
-                  <MenuItem 
-                    key={stage} 
-                    value={stage} 
-                    sx={{ 
+                  <MenuItem
+                    key={stage}
+                    value={stage}
+                    sx={{
                       fontSize: '0.875rem',
                       '&:hover': {
-                        backgroundColor: '#f8fafc'
+                        backgroundColor: 'grey.50'
                       },
                       '&.Mui-selected': {
-                        backgroundColor: '#f1f5f9',
+                        backgroundColor: 'grey.100',
                         '&:hover': {
-                          backgroundColor: '#f1f5f9'
+                          backgroundColor: 'grey.100'
                         }
                       }
                     }}
@@ -419,10 +404,10 @@ export const FiltersSection = ({
                   height: 42,
                   borderRadius: 2,
                   fontSize: '0.875rem',
-                  backgroundColor: '#ffffff',
+                  backgroundColor: 'background.paper',
                   '&:hover': {
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#cbd5e1'
+                      borderColor: 'divider'
                     }
                   },
                   '&.Mui-focused': {
@@ -432,27 +417,27 @@ export const FiltersSection = ({
                     }
                   },
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#e2e8f0'
+                    borderColor: 'divider'
                   },
                   '& .MuiSelect-select': {
                     display: 'flex',
                     alignItems: 'center',
                     py: 1.25,
                     px: 1.5
-                  },
+                  }
                 }}
               >
-                <MenuItem 
-                  value='all' 
-                  sx={{ 
+                <MenuItem
+                  value='all'
+                  sx={{
                     fontSize: '0.875rem',
                     '&:hover': {
-                      backgroundColor: '#f8fafc'
+                      backgroundColor: 'grey.50'
                     },
                     '&.Mui-selected': {
-                      backgroundColor: '#f1f5f9',
+                      backgroundColor: 'grey.100',
                       '&:hover': {
-                        backgroundColor: '#f1f5f9'
+                        backgroundColor: 'grey.100'
                       }
                     }
                   }}
@@ -460,18 +445,18 @@ export const FiltersSection = ({
                   Todas as situações
                 </MenuItem>
                 {STATUSES.map((status) => (
-                  <MenuItem 
-                    key={status} 
-                    value={status} 
-                    sx={{ 
+                  <MenuItem
+                    key={status}
+                    value={status}
+                    sx={{
                       fontSize: '0.875rem',
                       '&:hover': {
-                        backgroundColor: '#f8fafc'
+                        backgroundColor: 'grey.50'
                       },
                       '&.Mui-selected': {
-                        backgroundColor: '#f1f5f9',
+                        backgroundColor: 'grey.100',
                         '&:hover': {
-                          backgroundColor: '#f1f5f9'
+                          backgroundColor: 'grey.100'
                         }
                       }
                     }}

@@ -1,6 +1,5 @@
-import type { AuthResponse, LoginDto, RegisterDto, User } from '@/globals/types';
-
 import { createContext } from 'react';
+import type { AuthResponse, LoginDto, RegisterDto, User } from '@/globals/types';
 
 type AuthContextType = {
   user: User | undefined;

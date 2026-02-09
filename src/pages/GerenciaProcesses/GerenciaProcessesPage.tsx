@@ -1,32 +1,32 @@
 import {
+  Add as AddIcon,
+  Clear as ClearIcon,
+  FilterAlt as FilterAltIcon,
+  Search as SearchIcon
+} from '@mui/icons-material';
+import {
   Box,
   Button,
   Card,
-  TextField,
-  Typography,
-  Grid,
   FormControl,
+  Grid,
   MenuItem,
+  Pagination,
   Select,
-  Pagination
+  TextField,
+  Typography
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Search as SearchIcon,
-  FilterAlt as FilterAltIcon,
-  Clear as ClearIcon
-} from '@mui/icons-material';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useState, useMemo } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import dayjs from 'dayjs';
+import { useCallback, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Loading, useNotification } from '@/components';
-import { useProcesses, useSearchWithDebounce, useFolders } from '@/hooks';
 import { useActiveDepartment } from '@/contexts';
-import type { FilterProcessesDto, Process, CreateProcessDto } from '@/globals/types';
-import { ProcessTable } from './components/ProcessTable';
-import { ProcessSidebar } from './components/ProcessSidebar';
+import type { CreateProcessDto, FilterProcessesDto, Process } from '@/globals/types';
+import { useFolders, useProcesses, useSearchWithDebounce } from '@/hooks';
 import { CreateProcessModal } from './components/CreateProcessModal';
-import dayjs from 'dayjs';
+import { ProcessSidebar } from './components/ProcessSidebar';
+import { ProcessTable } from './components/ProcessTable';
 
 const GerenciaProcessesPage = () => {
   const { activeDepartment } = useActiveDepartment();
@@ -104,10 +104,7 @@ const GerenciaProcessesPage = () => {
         return await fetchProcessesByDepartment(activeDepartment._id, processFilters);
       } catch (error: any) {
         console.error('Erro ao buscar processos:', error);
-        showNotification(
-          error?.response?.data?.message || error?.message || 'Erro ao buscar processos',
-          'error'
-        );
+        showNotification(error?.response?.data?.message || error?.message || 'Erro ao buscar processos', 'error');
         return { processes: [], total: 0, page: 1, limit: 10, totalPages: 1 };
       }
     }
@@ -116,7 +113,7 @@ const GerenciaProcessesPage = () => {
   // Filtrar processos por data selecionada e pendência (filtros do frontend)
   const filteredProcesses = useMemo(() => {
     if (!processesData?.processes) return [];
-    
+
     let filtered = processesData.processes;
 
     // Filtrar por pendência
@@ -162,18 +159,24 @@ const GerenciaProcessesPage = () => {
     }
   });
 
-  const handleCreateProcess = useCallback((data: CreateProcessDto) => {
-    // Adicionar o departamento ativo como creatorDepartment
-    const processData: CreateProcessDto = {
-      ...data,
-      creatorDepartment: activeDepartment?._id
-    };
-    createProcessMutation(processData);
-  }, [createProcessMutation, activeDepartment]);
+  const handleCreateProcess = useCallback(
+    (data: CreateProcessDto) => {
+      // Adicionar o departamento ativo como creatorDepartment
+      const processData: CreateProcessDto = {
+        ...data,
+        creatorDepartment: activeDepartment?._id
+      };
+      createProcessMutation(processData);
+    },
+    [createProcessMutation, activeDepartment]
+  );
 
-  const handleProcessClick = useCallback((process: Process) => {
-    showNotification('Funcionalidade de visualizar processo em desenvolvimento', 'info');
-  }, [showNotification]);
+  const handleProcessClick = useCallback(
+    (_process: Process) => {
+      showNotification('Funcionalidade de visualizar processo em desenvolvimento', 'info');
+    },
+    [showNotification]
+  );
 
   const handleDateClick = useCallback((date: Date) => {
     setSelectedDate(date);
@@ -194,24 +197,33 @@ const GerenciaProcessesPage = () => {
   }, [setUrlParams, handleProcessSearchChange]);
 
   // Handlers de paginação
-  const handleProcessesPageChange = useCallback((_event: unknown, newPage: number) => {
-    const newParams = new URLSearchParams(urlParams);
-    newParams.set('page', String(newPage));
-    setUrlParams(newParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const handleProcessesPageChange = useCallback(
+    (_event: unknown, newPage: number) => {
+      const newParams = new URLSearchParams(urlParams);
+      newParams.set('page', String(newPage));
+      setUrlParams(newParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
-  const handleProcessesLimitChange = useCallback((event: any) => {
-    const newLimit = Number(event.target.value);
-    const newParams = new URLSearchParams(urlParams);
-    newParams.set('limit', String(newLimit));
-    newParams.set('page', '1');
-    setUrlParams(newParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const handleProcessesLimitChange = useCallback(
+    (event: any) => {
+      const newLimit = Number(event.target.value);
+      const newParams = new URLSearchParams(urlParams);
+      newParams.set('limit', String(newLimit));
+      newParams.set('page', '1');
+      setUrlParams(newParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
   if (!activeDepartment) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant='h6' color='error'>
+        <Typography
+          variant='h6'
+          color='error'
+        >
           Nenhuma gerência selecionada
         </Typography>
       </Box>
@@ -247,7 +259,7 @@ const GerenciaProcessesPage = () => {
             sx={{
               fontWeight: 700,
               fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.25rem' },
-              color: '#0f172a',
+              color: 'text.primary',
               mb: { xs: 0.75, md: 1 },
               lineHeight: { xs: 1.3, md: 1.2 }
             }}
@@ -257,7 +269,7 @@ const GerenciaProcessesPage = () => {
           <Typography
             variant='body1'
             sx={{
-              color: '#64748b',
+              color: 'text.secondary',
               fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' },
               maxWidth: { xs: '100%', md: '600px' },
               lineHeight: { xs: 1.5, md: 1.6 },
@@ -268,10 +280,10 @@ const GerenciaProcessesPage = () => {
           </Typography>
         </Box>
 
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            gap: { xs: 1.5, sm: 2 }, 
+        <Box
+          sx={{
+            display: 'flex',
+            gap: { xs: 1.5, sm: 2 },
             flexWrap: { xs: 'wrap', sm: 'nowrap' },
             alignItems: 'center',
             width: { xs: '100%', sm: 'auto' }
@@ -282,8 +294,8 @@ const GerenciaProcessesPage = () => {
             startIcon={<AddIcon />}
             onClick={() => setCreateModalOpen(true)}
             sx={{
-              backgroundColor: '#1877F2',
-              color: '#FFFFFF',
+              backgroundColor: 'primary.main',
+              color: 'background.paper',
               textTransform: 'none',
               fontWeight: 600,
               px: { xs: 2, sm: 3 },
@@ -292,7 +304,7 @@ const GerenciaProcessesPage = () => {
               fontSize: { xs: '0.875rem', sm: '0.9375rem' },
               boxShadow: '0 2px 4px rgba(24, 119, 242, 0.2)',
               '&:hover': {
-                backgroundColor: '#166fe5',
+                backgroundColor: 'primary.dark',
                 boxShadow: '0 4px 8px rgba(24, 119, 242, 0.3)'
               },
               flexShrink: 0,
@@ -320,10 +332,10 @@ const GerenciaProcessesPage = () => {
             sx={{
               borderRadius: 2,
               border: '1px solid',
-              borderColor: '#e2e8f0',
+              borderColor: 'divider',
               boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               overflow: 'hidden',
-              backgroundColor: '#ffffff'
+              backgroundColor: 'background.paper'
             }}
           >
             <Box
@@ -334,20 +346,20 @@ const GerenciaProcessesPage = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 borderBottom: '1px solid',
-                borderColor: '#f1f5f9',
-                backgroundColor: '#fafbfc',
+                borderColor: 'divider',
+                backgroundColor: 'grey.50',
                 flexWrap: { xs: 'wrap', sm: 'nowrap' },
                 gap: { xs: 1.5, sm: 0 }
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
-                <FilterAltIcon sx={{ color: '#1877F2', fontSize: { xs: 18, sm: 20 } }} />
+                <FilterAltIcon sx={{ color: 'primary.main', fontSize: { xs: 18, sm: 20 } }} />
                 <Typography
                   variant='subtitle1'
                   sx={{
                     fontWeight: 600,
                     fontSize: { xs: '0.875rem', sm: '0.9375rem' },
-                    color: '#0f172a',
+                    color: 'text.primary',
                     letterSpacing: '-0.01em'
                   }}
                 >
@@ -366,18 +378,18 @@ const GerenciaProcessesPage = () => {
                     py: { xs: 0.75, sm: 0.875 },
                     fontSize: { xs: '0.75rem', sm: '0.8125rem' },
                     fontWeight: 600,
-                    color: '#64748b',
-                    borderColor: '#cbd5e1',
+                    color: 'text.secondary',
+                    borderColor: 'divider',
                     textTransform: 'none',
                     borderRadius: 2,
-                    backgroundColor: '#ffffff',
+                    backgroundColor: 'background.paper',
                     transition: 'all 0.2s ease-in-out',
                     width: { xs: '100%', sm: 'auto' },
                     mt: { xs: 1, sm: 0 },
                     '&:hover': {
-                      backgroundColor: '#f8fafc',
-                      borderColor: '#94a3b8',
-                      color: '#475569',
+                      backgroundColor: 'grey.50',
+                      borderColor: 'text.disabled',
+                      color: 'text.secondary',
                       boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
                     }
                   }}
@@ -387,7 +399,10 @@ const GerenciaProcessesPage = () => {
               )}
             </Box>
             <Box sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
-              <Grid container spacing={{ xs: 2, sm: 2.5, md: 2.5 }}>
+              <Grid
+                container
+                spacing={{ xs: 2, sm: 2.5, md: 2.5 }}
+              >
                 {/* Campo de busca */}
                 <Grid size={{ xs: 12, sm: 12, md: 6 }}>
                   <TextField
@@ -397,33 +412,35 @@ const GerenciaProcessesPage = () => {
                     onChange={(e) => handleProcessSearchChange(e.target.value)}
                     InputProps={{
                       startAdornment: (
-                        <SearchIcon sx={{ color: '#94a3b8', fontSize: { xs: 18, sm: 20 }, mr: { xs: 1, sm: 1.5 } }} />
+                        <SearchIcon
+                          sx={{ color: 'text.disabled', fontSize: { xs: 18, sm: 20 }, mr: { xs: 1, sm: 1.5 } }}
+                        />
                       )
                     }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         height: { xs: 40, sm: 42 },
                         borderRadius: 2,
-                        backgroundColor: '#ffffff',
+                        backgroundColor: 'background.paper',
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' },
                         transition: 'all 0.2s ease-in-out',
                         '&:hover': {
                           '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
+                            borderColor: 'divider'
                           }
                         },
                         '&.Mui-focused': {
                           '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
+                            borderColor: 'primary.main',
                             borderWidth: '1.5px'
                           }
                         }
                       },
                       '& .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#e2e8f0'
+                        borderColor: 'divider'
                       },
                       '& .MuiInputBase-input::placeholder': {
-                        color: '#94a3b8',
+                        color: 'text.disabled',
                         opacity: 1,
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' }
                       }
@@ -450,20 +467,20 @@ const GerenciaProcessesPage = () => {
                         height: { xs: 40, sm: 42 },
                         borderRadius: 2,
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                        backgroundColor: '#ffffff',
+                        backgroundColor: 'background.paper',
                         '&:hover': {
                           '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
+                            borderColor: 'divider'
                           }
                         },
                         '&.Mui-focused': {
                           '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
+                            borderColor: 'primary.main',
                             borderWidth: '1.5px'
                           }
                         },
                         '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#e2e8f0'
+                          borderColor: 'divider'
                         },
                         '& .MuiSelect-select': {
                           display: 'flex',
@@ -472,7 +489,7 @@ const GerenciaProcessesPage = () => {
                           px: { xs: 1.25, sm: 1.5 }
                         },
                         '& .MuiSelect-icon': {
-                          color: '#64748b',
+                          color: 'text.secondary',
                           fontSize: { xs: 20, sm: 24 }
                         }
                       }}
@@ -504,20 +521,20 @@ const GerenciaProcessesPage = () => {
                         height: { xs: 40, sm: 42 },
                         borderRadius: 2,
                         fontSize: { xs: '0.8125rem', sm: '0.875rem' },
-                        backgroundColor: '#ffffff',
+                        backgroundColor: 'background.paper',
                         '&:hover': {
                           '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#cbd5e1'
+                            borderColor: 'divider'
                           }
                         },
                         '&.Mui-focused': {
                           '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#1877F2',
+                            borderColor: 'primary.main',
                             borderWidth: '1.5px'
                           }
                         },
                         '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#e2e8f0'
+                          borderColor: 'divider'
                         },
                         '& .MuiSelect-select': {
                           display: 'flex',
@@ -526,7 +543,7 @@ const GerenciaProcessesPage = () => {
                           px: { xs: 1.25, sm: 1.5 }
                         },
                         '& .MuiSelect-icon': {
-                          color: '#64748b',
+                          color: 'text.secondary',
                           fontSize: { xs: 20, sm: 24 }
                         }
                       }}
@@ -556,111 +573,123 @@ const GerenciaProcessesPage = () => {
 
         {/* Conteúdo Principal */}
         <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', lg: 'row' } }}>
-        {/* Área Principal */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-
-          {/* Tabela de Processos */}
-          {processesLoading ? (
-            <Loading isLoading={true} />
-          ) : processesError ? (
-            <Card
-              sx={{
-                p: 4,
-                textAlign: 'center',
-                borderRadius: 2,
-                border: '1px solid #E4E6EB',
-                backgroundColor: '#FFFFFF'
-              }}
-            >
-              <Typography variant='h6' color='error' sx={{ mb: 1 }}>
-                Erro ao carregar processos
-              </Typography>
-              <Typography variant='body2' color='text.secondary'>
-                {processesError instanceof Error 
-                  ? processesError.message 
-                  : 'Ocorreu um erro ao buscar os processos. Tente novamente.'}
-              </Typography>
-            </Card>
-          ) : (
-            <>
-              <ProcessTable
-                processes={processes}
-                onProcessClick={handleProcessClick}
-              />
-              
-              {/* Paginação */}
-              {totalProcesses > 0 && (
-                <Box
-                  sx={{
-                    p: 3,
-                    display: 'flex',
-                    flexDirection: { xs: 'column', md: 'row' },
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: 2,
-                    backgroundColor: '#f8fafc',
-                    borderTop: '1px solid #e5e7eb',
-                    borderRadius: '0 0 12px 12px',
-                    mt: 2
-                  }}
+          {/* Área Principal */}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            {/* Tabela de Processos */}
+            {processesLoading ? (
+              <Loading isLoading={true} />
+            ) : processesError ? (
+              <Card
+                sx={{
+                  p: 4,
+                  textAlign: 'center',
+                  borderRadius: 2,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: 'background.paper'
+                }}
+              >
+                <Typography
+                  variant='h6'
+                  color='error'
+                  sx={{ mb: 1 }}
                 >
-                  {/* Pagination Info */}
-                  <Typography
-                    variant='body2'
-                    sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                  Erro ao carregar processos
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                >
+                  {processesError instanceof Error
+                    ? processesError.message
+                    : 'Ocorreu um erro ao buscar os processos. Tente novamente.'}
+                </Typography>
+              </Card>
+            ) : (
+              <>
+                <ProcessTable
+                  processes={processes}
+                  onProcessClick={handleProcessClick}
+                />
+
+                {/* Paginação */}
+                {totalProcesses > 0 && (
+                  <Box
+                    sx={{
+                      p: 3,
+                      display: 'flex',
+                      flexDirection: { xs: 'column', md: 'row' },
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 2,
+                      backgroundColor: 'grey.50',
+                      borderTop: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: '0 0 12px 12px',
+                      mt: 2
+                    }}
                   >
-                    {((Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10)) + 1}-
-                    {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10), totalProcesses)} de {totalProcesses}
-                  </Typography>
-
-                  {/* Pagination Controls */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Select
-                      value={processesLimit}
-                      onChange={handleProcessesLimitChange}
-                      sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+                    {/* Pagination Info */}
+                    <Typography
+                      variant='body2'
+                      sx={{ color: 'text.secondary', fontSize: '0.875rem' }}
                     >
-                      {[5, 10, 25, 50].map((limit) => (
-                        <MenuItem 
-                          key={limit} 
-                          value={limit}
-                          sx={{
-                            '&.Mui-selected': {
-                              backgroundColor: '#f1f5f9',
-                              '&:hover': {
-                                backgroundColor: '#f1f5f9'
+                      {(Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10) + 1}-
+                      {Math.min(
+                        Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10),
+                        totalProcesses
+                      )}{' '}
+                      de {totalProcesses}
+                    </Typography>
+
+                    {/* Pagination Controls */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Select
+                        value={processesLimit}
+                        onChange={handleProcessesLimitChange}
+                        sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+                      >
+                        {[5, 10, 25, 50].map((limit) => (
+                          <MenuItem
+                            key={limit}
+                            value={limit}
+                            sx={{
+                              '&.Mui-selected': {
+                                backgroundColor: 'action.selected',
+                                '&:hover': {
+                                  backgroundColor: 'action.selected'
+                                }
                               }
-                            }
-                          }}
-                        >
-                          {limit} por página
-                        </MenuItem>
-                      ))}
-                    </Select>
+                            }}
+                          >
+                            {limit} por página
+                          </MenuItem>
+                        ))}
+                      </Select>
 
-                    <Pagination
-                      count={processesTotalPages}
-                      page={Number(urlParams.get('page') || 1)}
-                      onChange={handleProcessesPageChange}
-                      variant='outlined'
-                      shape='rounded'
-                    />
+                      <Pagination
+                        count={processesTotalPages}
+                        page={Number(urlParams.get('page') || 1)}
+                        onChange={handleProcessesPageChange}
+                        variant='outlined'
+                        shape='rounded'
+                      />
+                    </Box>
                   </Box>
-                </Box>
-              )}
-            </>
-          )}
-        </Box>
+                )}
+              </>
+            )}
+          </Box>
 
-        {/* Sidebar */}
-        <Box sx={{ width: { xs: '100%', lg: 320 }, flexShrink: 0 }}>
-          <ProcessSidebar
-            onDateClick={handleDateClick}
-            selectedDate={selectedDate}
-            processes={processes}
-          />
+          {/* Sidebar */}
+          <Box sx={{ width: { xs: '100%', lg: 320 }, flexShrink: 0 }}>
+            <ProcessSidebar
+              onDateClick={handleDateClick}
+              selectedDate={selectedDate}
+              processes={processes}
+            />
+          </Box>
         </Box>
-      </Box>
       </Box>
 
       {/* Modal de Criar Processo */}
@@ -676,4 +705,3 @@ const GerenciaProcessesPage = () => {
 };
 
 export default GerenciaProcessesPage;
-

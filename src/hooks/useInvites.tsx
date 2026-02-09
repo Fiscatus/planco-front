@@ -1,3 +1,6 @@
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useNotification } from '@/components';
 import type {
   AcceptInviteResponse,
   CreateInviteDto,
@@ -8,12 +11,8 @@ import type {
   InviteResponseDto,
   PaginatedInvitesDto
 } from '@/globals/types';
-import { useCallback, useState } from 'react';
-
 import { api } from '@/services';
 import { useAuth } from './useAuth';
-import { useNavigate } from 'react-router-dom';
-import { useNotification } from '@/components';
 
 export const useInvites = () => {
   const { user, refreshToken } = useAuth();
@@ -100,7 +99,7 @@ export const useInvites = () => {
         setError(null);
 
         const response = await api.post<InviteResponseDto>('/invites', createInviteDto);
-        
+
         const currentFilters = { page: '1', limit: '10' };
         const refreshResponse = await api.get<PaginatedInvitesDto>('/invites', {
           params: currentFilters
@@ -169,7 +168,7 @@ export const useInvites = () => {
         setLoading(false);
       }
     },
-    [refreshToken, navigate, showNotification]
+    [refreshToken, navigate]
   );
 
   const declineInvite = useCallback(async (inviteId: string) => {

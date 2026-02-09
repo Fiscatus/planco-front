@@ -10,8 +10,9 @@ type Props = {
 const sharedAccordionStyles = {
   borderRadius: '24px !important', // Pílula - forçar mesmo valor para todos
   boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
-  bgcolor: '#FFFFFF',
-  border: '1px solid #F1F5F9',
+  bgcolor: 'background.paper',
+  border: '1px solid',
+  borderColor: 'divider',
   margin: 0,
   overflow: 'hidden', // Garantir que o conteúdo não quebre as bordas
   '&:before': {
@@ -43,7 +44,7 @@ const sharedAccordionStyles = {
   },
   '&:hover': {
     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-    borderColor: '#E2E8F0',
+    borderColor: 'divider',
     borderRadius: '24px !important'
   },
   '& .MuiAccordionSummary-root': {
@@ -72,15 +73,15 @@ const sharedSummaryStyles = {
   },
   '& .MuiAccordionSummary-expandIconWrapper': {
     transition: 'transform 0.25s ease',
-    color: '#64748B',
+    color: 'text.secondary',
     fontSize: '1.5rem'
   },
   '&.Mui-expanded .MuiAccordionSummary-expandIconWrapper': {
     transform: 'rotate(180deg)',
-    color: '#1877F2'
+    color: 'primary.main'
   },
   '&:hover': {
-    bgcolor: '#F8FAFC'
+    bgcolor: 'grey.50'
   },
   '@media (max-width: 767px)': {
     px: 2.5, // 20px para mobile
@@ -112,7 +113,7 @@ const sharedDetailsStyles = {
 
 const sharedTitleStyles = {
   fontWeight: 600,
-  color: '#1E293B',
+  color: 'text.primary',
   fontSize: '1.125rem',
   lineHeight: 1.5,
   letterSpacing: '-0.01em',
@@ -122,7 +123,7 @@ const sharedTitleStyles = {
 };
 
 const sharedAnswerStyles = {
-  color: '#64748B',
+  color: 'text.secondary',
   lineHeight: 1.6,
   fontSize: '1rem',
   fontWeight: 400,
@@ -136,11 +137,11 @@ const FaqSection = ({ sectionRef, embedded = true }: Props) => {
     () => [
       {
         q: 'Como personalizar o fluxo?',
-        a: 'Você pode personalizar os fluxos de trabalho na seção \'Configurações do Fluxo\', onde é possível criar, editar e remover etapas conforme a necessidade da sua instituição.'
+        a: "Você pode personalizar os fluxos de trabalho na seção 'Configurações do Fluxo', onde é possível criar, editar e remover etapas conforme a necessidade da sua instituição."
       },
       {
         q: 'Como gerar relatórios?',
-        a: 'Acesse o módulo \'Relatórios\' para visualizar dashboards interativos e gerar relatórios personalizados. Filtre por período, tipo de contrato e outras variáveis para obter os dados que precisa.'
+        a: "Acesse o módulo 'Relatórios' para visualizar dashboards interativos e gerar relatórios personalizados. Filtre por período, tipo de contrato e outras variáveis para obter os dados que precisa."
       },
       {
         q: 'Como configurar alertas e lembretes?',
@@ -168,7 +169,7 @@ const FaqSection = ({ sectionRef, embedded = true }: Props) => {
           variant='h4'
           fontWeight={700}
           sx={{
-            color: '#1E293B',
+            color: 'text.primary',
             mb: 2,
             fontSize: { xs: '1.75rem', md: '2rem' },
             letterSpacing: '-0.025em',
@@ -182,7 +183,7 @@ const FaqSection = ({ sectionRef, embedded = true }: Props) => {
         </Typography>
         <Typography
           sx={{
-            color: '#64748B',
+            color: 'text.secondary',
             maxWidth: '28rem',
             mx: 'auto',
             lineHeight: 1.6,
@@ -199,36 +200,32 @@ const FaqSection = ({ sectionRef, embedded = true }: Props) => {
         </Typography>
       </Box>
 
-          <Box
-            sx={{
-              maxWidth: '52rem', // ~832px - mais compacto
-              mx: 'auto', // Centralizar acordions
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 2 // Gap consistente entre todos os itens
-            }}
+      <Box
+        sx={{
+          maxWidth: '52rem', // ~832px - mais compacto
+          mx: 'auto', // Centralizar acordions
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2 // Gap consistente entre todos os itens
+        }}
+      >
+        {faqs.map((faq, idx) => (
+          <Accordion
+            key={idx.toString()}
+            sx={sharedAccordionStyles}
           >
-          {faqs.map((faq, idx) => (
-            <Accordion
-              key={idx.toString()}
-              sx={sharedAccordionStyles}
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={sharedSummaryStyles}
             >
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                sx={sharedSummaryStyles}
-              >
-                <Typography sx={sharedTitleStyles}>
-                  {faq.q}
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={sharedDetailsStyles}>
-                <Typography sx={sharedAnswerStyles}>
-                  {faq.a}
-                </Typography>
-              </AccordionDetails>
-            </Accordion>
-          ))}
-          </Box>
+              <Typography sx={sharedTitleStyles}>{faq.q}</Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={sharedDetailsStyles}>
+              <Typography sx={sharedAnswerStyles}>{faq.a}</Typography>
+            </AccordionDetails>
+          </Accordion>
+        ))}
+      </Box>
     </Box>
   );
 };

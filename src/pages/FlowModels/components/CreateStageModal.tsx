@@ -1,19 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Close as CloseIcon } from '@mui/icons-material';
 import {
+  Box,
+  Button,
+  Chip,
   Dialog,
   DialogContent,
-  Button,
-  TextField,
-  Box,
-  Switch,
-  FormControlLabel,
-  Typography,
   Divider,
-  Chip,
+  FormControlLabel,
   IconButton,
-} from "@mui/material";
-import { Close as CloseIcon } from "@mui/icons-material";
-import type { FlowModelStage } from "@/hooks/useFlowModels";
+  Switch,
+  TextField,
+  Typography
+} from '@mui/material';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { FlowModelStage } from '@/hooks/useFlowModels';
 
 type CreateStageModalProps = {
   open: boolean;
@@ -23,42 +23,43 @@ type CreateStageModalProps = {
 };
 
 function slugifyStageId(input: string) {
-  const base = input.trim().toLowerCase().normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_+|_+$/g, "").slice(0, 60);
-  return base ? `stage_${base}` : "stage_nova_etapa";
+  const base = input
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 60);
+  return base ? `stage_${base}` : 'stage_nova_etapa';
 }
 
 function nextOrder(stages: FlowModelStage[]) {
-  const orders = stages.map((s) => typeof s.order === "number" && Number.isFinite(s.order) ? s.order : 0)
+  const orders = stages
+    .map((s) => (typeof s.order === 'number' && Number.isFinite(s.order) ? s.order : 0))
     .filter(Number.isFinite);
   return orders.length ? Math.max(...orders) + 1 : 1;
 }
 
 function ensureUniqueStageId(candidate: string, stages: FlowModelStage[]) {
-  const used = new Set(stages.map((s) => String(s.stageId || "").trim()).filter(Boolean));
+  const used = new Set(stages.map((s) => String(s.stageId || '').trim()).filter(Boolean));
   if (!used.has(candidate)) return candidate;
   let i = 2;
   while (used.has(`${candidate}_${i}`)) i++;
   return `${candidate}_${i}`;
 }
 
-export const CreateStageModal = ({
-  open,
-  existingStages,
-  onClose,
-  onCreate,
-}: CreateStageModalProps) => {
-  const [name, setName] = useState("");
-  const [stageId, setStageId] = useState("");
-  const [description, setDescription] = useState("");
+export const CreateStageModal = ({ open, existingStages, onClose, onCreate }: CreateStageModalProps) => {
+  const [name, setName] = useState('');
+  const [stageId, setStageId] = useState('');
+  const [description, setDescription] = useState('');
 
   const [requiresApproval, setRequiresApproval] = useState(false);
   const [canRepeat, setCanRepeat] = useState(false);
-  const [repeatCondition, setRepeatCondition] = useState("");
-  const [visibilityCondition, setVisibilityCondition] = useState("");
+  const [repeatCondition, setRepeatCondition] = useState('');
+  const [visibilityCondition, setVisibilityCondition] = useState('');
 
-  const [orderText, setOrderText] = useState<string>("");
+  const [orderText, setOrderText] = useState<string>('');
 
   const stageIdTouchedRef = useRef(false);
 
@@ -71,46 +72,47 @@ export const CreateStageModal = ({
 
   useEffect(() => {
     if (open) {
-      setName("");
-      setDescription("");
+      setName('');
+      setDescription('');
       setRequiresApproval(false);
       setCanRepeat(false);
-      setRepeatCondition("");
-      setVisibilityCondition("");
+      setRepeatCondition('');
+      setVisibilityCondition('');
       setOrderText(String(nextOrder(existingStages)));
       stageIdTouchedRef.current = false;
-      setStageId("");
+      setStageId('');
     }
   }, [open, existingStages]);
 
   useEffect(() => {
     if (open && !stageIdTouchedRef.current) {
-      const auto = ensureUniqueStageId(slugifyStageId(name || ""), existingStages);
-      if (!stageId || stageId.startsWith("stage_")) setStageId(auto);
+      const auto = ensureUniqueStageId(slugifyStageId(name || ''), existingStages);
+      if (!stageId || stageId.startsWith('stage_')) setStageId(auto);
     }
   }, [name, open, existingStages, stageId]);
 
-  const orderIsUnique = useMemo(() => 
-    parsedOrder !== null && !existingStages.some((s) => s.order === parsedOrder)
-  , [existingStages, parsedOrder]);
+  const orderIsUnique = useMemo(
+    () => parsedOrder !== null && !existingStages.some((s) => s.order === parsedOrder),
+    [existingStages, parsedOrder]
+  );
 
   const stageIdIsUnique = useMemo(() => {
     const c = stageId.trim();
-    return c && !existingStages.some((s) => String(s.stageId || "").trim() === c);
+    return c && !existingStages.some((s) => String(s.stageId || '').trim() === c);
   }, [existingStages, stageId]);
 
   const validations = useMemo(() => {
     const errors: string[] = [];
 
-    if (!name.trim()) errors.push("Informe o nome da etapa.");
-    if (!stageId.trim()) errors.push("Informe o stageId.");
-    if (stageId.trim() && !stageIdIsUnique) errors.push("Já existe uma etapa com esse stageId.");
-    if (parsedOrder === null) errors.push("Informe uma ordem válida (número).");
-    if (parsedOrder !== null && parsedOrder < 0) errors.push("A ordem não pode ser negativa.");
-    if (parsedOrder !== null && !orderIsUnique) errors.push("Já existe uma etapa com essa ordem.");
+    if (!name.trim()) errors.push('Informe o nome da etapa.');
+    if (!stageId.trim()) errors.push('Informe o stageId.');
+    if (stageId.trim() && !stageIdIsUnique) errors.push('Já existe uma etapa com esse stageId.');
+    if (parsedOrder === null) errors.push('Informe uma ordem válida (número).');
+    if (parsedOrder !== null && parsedOrder < 0) errors.push('A ordem não pode ser negativa.');
+    if (parsedOrder !== null && !orderIsUnique) errors.push('Já existe uma etapa com essa ordem.');
 
     if (canRepeat && repeatCondition.trim().length > 0 && repeatCondition.trim().length < 3) {
-      errors.push("A condição de repetição está muito curta.");
+      errors.push('A condição de repetição está muito curta.');
     }
 
     return errors;
@@ -136,7 +138,7 @@ export const CreateStageModal = ({
 
       visibilityCondition: visibilityCondition.trim() ? visibilityCondition.trim() : undefined,
 
-      components: [],
+      components: []
     };
 
     onCreate(newStage);
@@ -150,7 +152,7 @@ export const CreateStageModal = ({
     canRepeat,
     repeatCondition,
     visibilityCondition,
-    onCreate,
+    onCreate
   ]);
 
   return (
@@ -158,64 +160,67 @@ export const CreateStageModal = ({
       open={open}
       onClose={onClose}
       fullWidth
-      maxWidth="md"
+      maxWidth='md'
       PaperProps={{
         sx: {
           borderRadius: { xs: 2, sm: 3 },
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
-          overflow: "hidden",
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          overflow: 'hidden',
           margin: { xs: 1, sm: 2 },
-          maxWidth: { xs: "calc(100% - 16px)", sm: "600px", md: "900px" },
-          width: "100%",
-          maxHeight: { xs: "calc(100vh - 32px)", sm: "calc(100vh - 64px)" },
-          display: "flex",
-          flexDirection: "column",
-        },
+          maxWidth: { xs: 'calc(100% - 16px)', sm: '600px', md: '900px' },
+          width: '100%',
+          maxHeight: { xs: 'calc(100vh - 32px)', sm: 'calc(100vh - 64px)' },
+          display: 'flex',
+          flexDirection: 'column'
+        }
       }}
     >
       <DialogContent
         sx={{
           p: 0,
-          display: "flex",
-          flexDirection: "column",
+          display: 'flex',
+          flexDirection: 'column',
           flex: 1,
           minHeight: 0,
-          overflow: "hidden",
-          bgcolor: "#ffffff",
+          overflow: 'hidden',
+          bgcolor: 'background.paper'
         }}
       >
         <Box
           sx={{
             px: { xs: 2, sm: 3, md: 4 },
             py: { xs: 2, sm: 2.5, md: 3 },
-            borderBottom: "1px solid #e2e8f0",
+            borderBottom: '1px solid divider',
             flexShrink: 0,
-            backgroundColor: "#ffffff",
+            backgroundColor: 'background.paper'
           }}
         >
           <Box
             sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
               mb: { xs: 1, sm: 1.5 },
-              gap: 1,
+              gap: 1
             }}
           >
             <Box sx={{ minWidth: 0 }}>
               <Typography
-                variant="h5"
+                variant='h5'
                 sx={{
                   fontWeight: 900,
-                  color: "#212121",
-                  fontSize: { xs: "1.25rem", sm: "1.375rem", md: "1.5rem" },
-                  lineHeight: { xs: 1.3, sm: 1.2 },
+                  color: 'text.primary',
+                  fontSize: { xs: '1.25rem', sm: '1.375rem', md: '1.5rem' },
+                  lineHeight: { xs: 1.3, sm: 1.2 }
                 }}
               >
                 Criar Etapa
               </Typography>
 
-              <Typography variant="body2" sx={{ color: "#616161", mt: 0.25 }}>
+              <Typography
+                variant='body2'
+                sx={{ color: 'text.secondary', mt: 0.25 }}
+              >
                 Campos alinhados ao backend (FlowStage)
               </Typography>
             </Box>
@@ -225,26 +230,26 @@ export const CreateStageModal = ({
               sx={{
                 width: { xs: 36, sm: 40 },
                 height: { xs: 36, sm: 40 },
-                color: "#64748b",
-                backgroundColor: "transparent",
+                color: 'text.secondary',
+                backgroundColor: 'transparent',
                 flexShrink: 0,
-                "&:hover": {
-                  backgroundColor: "#f1f5f9",
-                },
+                '&:hover': {
+                  backgroundColor: 'grey.100'
+                }
               }}
             >
               <CloseIcon sx={{ fontSize: { xs: 18, sm: 20 } }} />
             </IconButton>
           </Box>
 
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
             <Chip
-              label="Etapa nova"
-              size="small"
+              label='Etapa nova'
+              size='small'
               sx={{
-                bgcolor: "#E7F3FF",
-                color: "#1877F2",
-                fontWeight: 900,
+                bgcolor: 'secondary.light',
+                color: 'primary.main',
+                fontWeight: 900
               }}
             />
           </Box>
@@ -254,36 +259,34 @@ export const CreateStageModal = ({
           sx={{
             px: { xs: 2, sm: 3, md: 4 },
             py: { xs: 2, sm: 2.5, md: 3 },
-            display: "flex",
-            flexDirection: "column",
+            display: 'flex',
+            flexDirection: 'column',
             flex: 1,
             minHeight: 0,
-            overflow: "auto",
-            bgcolor: "#FAFBFC",
+            overflow: 'auto',
+            bgcolor: 'grey.50'
           }}
         >
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <Box
               sx={{
-                bgcolor: "background.paper",
-                border: "1px solid #E4E6EB",
+                bgcolor: 'background.paper',
+                border: '1px solid grey.300',
                 borderRadius: 2,
-                p: 2.5,
+                p: 2.5
               }}
             >
-              <Typography sx={{ fontWeight: 900, color: "#212121", mb: 1.5 }}>
-                Dados da etapa
-              </Typography>
+              <Typography sx={{ fontWeight: 900, color: 'text.primary', mb: 1.5 }}>Dados da etapa</Typography>
 
               <Box
                 sx={{
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", sm: "1fr 220px" },
-                  gap: 2,
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: '1fr 220px' },
+                  gap: 2
                 }}
               >
                 <TextField
-                  label="Nome da etapa"
+                  label='Nome da etapa'
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   fullWidth
@@ -292,23 +295,23 @@ export const CreateStageModal = ({
                 />
 
                 <TextField
-                  label="Ordem no fluxo"
-                  type="number"
+                  label='Ordem no fluxo'
+                  type='number'
                   value={orderText}
                   onChange={(e) => setOrderText(e.target.value)}
                   inputProps={{ min: 0 }}
                   error={orderText.trim().length > 0 && !orderIsUnique}
                   helperText={
                     orderText.trim().length > 0 && !orderIsUnique
-                      ? "Já existe uma etapa com essa ordem."
-                      : "Sugestão: manter sequência (1, 2, 3...)."
+                      ? 'Já existe uma etapa com essa ordem.'
+                      : 'Sugestão: manter sequência (1, 2, 3...).'
                   }
                 />
               </Box>
 
               <Box sx={{ mt: 2 }}>
                 <TextField
-                  label="stageId (único)"
+                  label='stageId (único)'
                   value={stageId}
                   onChange={(e) => {
                     stageIdTouchedRef.current = true;
@@ -319,17 +322,17 @@ export const CreateStageModal = ({
                   error={!!stageId && !stageIdIsUnique}
                   helperText={
                     !stageId
-                      ? "Gerado automaticamente a partir do nome (você pode ajustar)."
+                      ? 'Gerado automaticamente a partir do nome (você pode ajustar).'
                       : !stageIdIsUnique
-                        ? "Já existe uma etapa com esse stageId."
-                        : "Dica: use padrão stage_xxx (ex: stage_dfd_assinatura)."
+                        ? 'Já existe uma etapa com esse stageId.'
+                        : 'Dica: use padrão stage_xxx (ex: stage_dfd_assinatura).'
                   }
                 />
               </Box>
 
               <Box sx={{ mt: 2 }}>
                 <TextField
-                  label="Descrição (opcional)"
+                  label='Descrição (opcional)'
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   fullWidth
@@ -343,17 +346,15 @@ export const CreateStageModal = ({
 
             <Box
               sx={{
-                bgcolor: "background.paper",
-                border: "1px solid #E4E6EB",
+                bgcolor: 'background.paper',
+                border: '1px solid grey.300',
                 borderRadius: 2,
-                p: 2.5,
+                p: 2.5
               }}
             >
-              <Typography sx={{ fontWeight: 900, color: "#212121", mb: 1.5 }}>
-                Regras da etapa
-              </Typography>
+              <Typography sx={{ fontWeight: 900, color: 'text.primary', mb: 1.5 }}>Regras da etapa</Typography>
 
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 2 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
                 <FormControlLabel
                   control={
                     <Switch
@@ -361,14 +362,17 @@ export const CreateStageModal = ({
                       onChange={(e) => setRequiresApproval(e.target.checked)}
                     />
                   }
-                  label="Requer aprovação"
+                  label='Requer aprovação'
                 />
 
                 <FormControlLabel
                   control={
-                    <Switch checked={canRepeat} onChange={(e) => setCanRepeat(e.target.checked)} />
+                    <Switch
+                      checked={canRepeat}
+                      onChange={(e) => setCanRepeat(e.target.checked)}
+                    />
                   }
-                  label="Pode repetir"
+                  label='Pode repetir'
                 />
               </Box>
 
@@ -376,7 +380,7 @@ export const CreateStageModal = ({
 
               {canRepeat ? (
                 <TextField
-                  label="repeatCondition (opcional)"
+                  label='repeatCondition (opcional)'
                   value={repeatCondition}
                   onChange={(e) => setRepeatCondition(e.target.value)}
                   fullWidth
@@ -386,7 +390,7 @@ export const CreateStageModal = ({
               ) : null}
 
               <TextField
-                label="visibilityCondition (opcional)"
+                label='visibilityCondition (opcional)'
                 value={visibilityCondition}
                 onChange={(e) => setVisibilityCondition(e.target.value)}
                 fullWidth
@@ -394,29 +398,32 @@ export const CreateStageModal = ({
               />
 
               <Typography
-                variant="caption"
-                sx={{ color: "text.secondary", display: "block", mt: 1.5 }}
+                variant='caption'
+                sx={{ color: 'text.secondary', display: 'block', mt: 1.5 }}
               >
-                Obs: componentes começam vazios (components: []). Depois você edita a etapa para adicionar
-                componentes (SIGNATURE, FORM, COMMENTS etc.) conforme o backend.
+                Obs: componentes começam vazios (components: []). Depois você edita a etapa para adicionar componentes
+                (SIGNATURE, FORM, COMMENTS etc.) conforme o backend.
               </Typography>
             </Box>
 
             {validations.length > 0 ? (
               <Box
                 sx={{
-                  bgcolor: "#FFF5F5",
-                  border: "1px solid #FECACA",
+                  bgcolor: 'error.50',
+                  border: '1px solid error.light',
                   borderRadius: 2,
-                  p: 2,
+                  p: 2
                 }}
               >
-                <Typography sx={{ fontWeight: 900, color: "#991B1B", mb: 1 }}>
-                  Corrija antes de criar:
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                <Typography sx={{ fontWeight: 900, color: 'error.dark', mb: 1 }}>Corrija antes de criar:</Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {validations.map((err) => (
-                    <Chip key={err} label={err} color="error" variant="outlined" />
+                    <Chip
+                      key={err}
+                      label={err}
+                      color='error'
+                      variant='outlined'
+                    />
                   ))}
                 </Box>
               </Box>
@@ -427,33 +434,33 @@ export const CreateStageModal = ({
         <Box
           sx={{
             p: { xs: 2, sm: 3 },
-            backgroundColor: "#f8fafc",
-            borderTop: "1px solid #e2e8f0",
-            display: "flex",
-            flexDirection: { xs: "column-reverse", sm: "row" },
-            justifyContent: "flex-end",
-            alignItems: "stretch",
+            backgroundColor: 'grey.50',
+            borderTop: '1px solid divider',
+            display: 'flex',
+            flexDirection: { xs: 'column-reverse', sm: 'row' },
+            justifyContent: 'flex-end',
+            alignItems: 'stretch',
             gap: { xs: 1.5, sm: 1 },
-            flexShrink: 0,
+            flexShrink: 0
           }}
         >
           <Button
             onClick={onClose}
-            variant="outlined"
+            variant='outlined'
             sx={{
-              textTransform: "none",
+              textTransform: 'none',
               borderRadius: 2,
-              borderColor: "#E4E6EB",
-              color: "#212121",
+              borderColor: 'grey.300',
+              color: 'text.primary',
               px: { xs: 2.5, sm: 3 },
               py: { xs: 1.125, sm: 1.25 },
-              fontSize: { xs: "0.8125rem", sm: "0.875rem" },
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 800,
-              width: { xs: "100%", sm: "auto" },
-              "&:hover": {
-                borderColor: "#CBD5E1",
-                backgroundColor: "#F8F9FA",
-              },
+              width: { xs: '100%', sm: 'auto' },
+              '&:hover': {
+                borderColor: 'grey.300',
+                backgroundColor: 'grey.50'
+              }
             }}
           >
             Cancelar
@@ -462,21 +469,21 @@ export const CreateStageModal = ({
           <Button
             onClick={handleCreate}
             disabled={!isValid}
-            variant="contained"
+            variant='contained'
             sx={{
-              bgcolor: "#1877F2",
-              "&:hover": { bgcolor: "#166FE5" },
-              textTransform: "none",
+              bgcolor: 'primary.main',
+              '&:hover': { bgcolor: 'primary.dark' },
+              textTransform: 'none',
               fontWeight: 900,
               borderRadius: 2,
-              boxShadow: "none",
+              boxShadow: 'none',
               px: { xs: 2.5, sm: 4 },
               py: { xs: 1.125, sm: 1.25 },
-              width: { xs: "100%", sm: "auto" },
-              "&:disabled": {
-                backgroundColor: "#E4E6EB",
-                color: "#8A8D91",
-              },
+              width: { xs: '100%', sm: 'auto' },
+              '&:disabled': {
+                backgroundColor: 'grey.300',
+                color: 'text.disabled'
+              }
             }}
           >
             Criar etapa

@@ -1,6 +1,6 @@
+import { Box } from '@mui/material';
 import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box } from '@mui/material';
 import { useAuth } from '@/hooks';
 import { FaqSection } from './components/FaqSection';
 import { HeroSection } from './components/HeroSection';
@@ -42,22 +42,28 @@ const OrganizationHome = () => {
       />
 
       {/* 2️⃣ Módulos do Sistema */}
-      <Box ref={modulosSectionRef} sx={{ 
-        mb: { xs: 8, md: 12 },
-        '@media (max-width: 767px)': {
-          mb: 6 // 48px para mobile
-        }
-      }}>
+      <Box
+        ref={modulosSectionRef}
+        sx={{
+          mb: { xs: 8, md: 12 },
+          '@media (max-width: 767px)': {
+            mb: 6 // 48px para mobile
+          }
+        }}
+      >
         <ModulesSection onOpenModulo={handleModuloClick} />
       </Box>
 
       {/* 3️⃣ Tutoriais & Recursos (ou Aprenda a usar / Comece por aqui) */}
-      <Box ref={tutoriaisSectionRef} sx={{ 
-        mb: { xs: 8, md: 12 },
-        '@media (max-width: 767px)': {
-          mb: 6 // 48px para mobile
-        }
-      }}>
+      <Box
+        ref={tutoriaisSectionRef}
+        sx={{
+          mb: { xs: 8, md: 12 },
+          '@media (max-width: 767px)': {
+            mb: 6 // 48px para mobile
+          }
+        }}
+      >
         <TutorialsSection />
       </Box>
 
@@ -77,19 +83,24 @@ const OrganizationHome = () => {
           alignItems: 'start'
         }}
       >
-        <Box ref={faqSectionRef} sx={{ minHeight: 'fit-content' }}>
+        <Box
+          ref={faqSectionRef}
+          sx={{ minHeight: 'fit-content' }}
+        >
           <FaqSection />
         </Box>
-        <Box sx={{ 
-          display: 'flex', 
-          alignItems: 'flex-start',
-          position: 'sticky',
-          top: 24,
-          '@media (max-width: 767px)': {
-            position: 'static', // Remove sticky no mobile
-            top: 'auto'
-          }
-        }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            position: 'sticky',
+            top: 24,
+            '@media (max-width: 767px)': {
+              position: 'static', // Remove sticky no mobile
+              top: 'auto'
+            }
+          }}
+        >
           <SupportSection
             onNavigateHistoria={() => navigate('/historia')}
             onOpenChat={() => {

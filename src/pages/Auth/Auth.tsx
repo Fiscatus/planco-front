@@ -1,16 +1,14 @@
 import { Box, Typography, useTheme } from '@mui/material';
-
+import { useState } from 'react';
 import CreateAccount from './components/CreateAccount';
 import RegistrationSuccess from './components/RegistrationSuccess';
-import GavelIcon from '@mui/icons-material/Gavel';
 import SignIn from './components/SignIn';
-import { useState } from 'react';
 
 const Auth = () => {
   const [isSignIn, setIsSignIn] = useState(true);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
-  const theme = useTheme();
+  const _theme = useTheme();
 
   return (
     <Box
@@ -49,16 +47,16 @@ const Auth = () => {
         >
           <Box sx={{ width: '100%', maxWidth: '400px' }}>
             {registrationSuccess ? (
-              <RegistrationSuccess 
-                email={registeredEmail} 
+              <RegistrationSuccess
+                email={registeredEmail}
                 setIsSignIn={setIsSignIn}
                 setRegistrationSuccess={setRegistrationSuccess}
               />
             ) : isSignIn ? (
               <SignIn setIsSignIn={setIsSignIn} />
             ) : (
-              <CreateAccount 
-                setIsSignIn={setIsSignIn} 
+              <CreateAccount
+                setIsSignIn={setIsSignIn}
                 setRegistrationSuccess={setRegistrationSuccess}
                 setRegisteredEmail={setRegisteredEmail}
               />
@@ -102,14 +100,14 @@ const Auth = () => {
                 mb: 3
               }}
             >
-              <img 
-                src='/assets/isologo.svg' 
-                alt="Planco Logo" 
-                style={{ 
-                  width: '120px', 
+              <img
+                src='/assets/isologo.svg'
+                alt='Planco Logo'
+                style={{
+                  width: '120px',
                   height: '120px',
                   objectFit: 'contain'
-                }} 
+                }}
               />
             </Box>
 

@@ -1,20 +1,18 @@
-import { ChunkLoadErrorBoundary, NotificationProvider } from '@/components';
-import { CssBaseline, ThemeProvider } from '@mui/material';
+import { CssBaseline } from '@mui/material';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-import { ActiveDepartmentProvider } from '@/contexts';
-import { AppRouter } from '@/router';
-import { AuthProvider } from '@/providers';
-import { BrowserRouter } from 'react-router-dom';
 import { CookiesProvider } from 'react-cookie';
-import { theme } from '@/globals/theme';
+import { BrowserRouter } from 'react-router-dom';
+import { ChunkLoadErrorBoundary, NotificationProvider } from '@/components';
+import { ActiveDepartmentProvider, ThemeContextProvider } from '@/contexts';
+import { AuthProvider } from '@/providers';
+import { AppRouter } from '@/router';
 
 const App = () => {
   const queryClient = new QueryClient();
 
   return (
     <CookiesProvider>
-      <ThemeProvider theme={theme}>
+      <ThemeContextProvider>
         <CssBaseline />
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
@@ -29,7 +27,7 @@ const App = () => {
             </ActiveDepartmentProvider>
           </AuthProvider>
         </QueryClientProvider>
-      </ThemeProvider>
+      </ThemeContextProvider>
     </CookiesProvider>
   );
 };

@@ -31,13 +31,12 @@ import {
   TextField,
   Typography
 } from '@mui/material';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { useNotification } from '@/components';
 import type { CreateRoleDto, PermissionDto, Role, UpdateRoleDto } from '@/globals/types';
 import { useAuth, useDebounce, usePermissions, useRoles, useScreen } from '@/hooks';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
-
-import { useNotification } from '@/components';
-import { useSearchParams } from 'react-router-dom';
 
 interface RolesSectionProps {
   currentTab: 'users' | 'gerencias' | 'invites' | 'roles';
@@ -48,7 +47,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
   const { showNotification } = useNotification();
   const { isMobile } = useScreen();
   const [urlParams, setUrlParams] = useSearchParams();
-  
+
   const { fetchRoles, createRole, updateRole, checkDeleteImpact, deleteRole } = useRoles();
   const { fetchPermissions } = usePermissions();
 
@@ -108,13 +107,13 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
     },
     onError: (error: any) => {
       let errorMessage = 'Erro ao criar role';
-      
+
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-      
+
       showNotification(errorMessage, 'error');
     },
     onSuccess: () => {
@@ -130,13 +129,13 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
     },
     onError: (error: any) => {
       let errorMessage = 'Erro ao atualizar role';
-      
+
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-      
+
       showNotification(errorMessage, 'error');
     },
     onSuccess: () => {
@@ -153,13 +152,13 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
     },
     onError: (error: any) => {
       let errorMessage = 'Erro ao deletar role';
-      
+
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-      
+
       showNotification(errorMessage, 'error');
     },
     onSuccess: () => {
@@ -187,7 +186,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
     if (search !== urlSearch) {
       setSearch(urlSearch);
     }
-  }, [urlParams]);
+  }, [urlParams, search]);
 
   // Atualizar URL quando o debouncedSearch mudar
   useEffect(() => {
@@ -203,7 +202,6 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
       setUrlParams(newParams, { replace: true });
     }
   }, [debouncedSearch, urlParams, setUrlParams]);
-
 
   const clearForms = useCallback(() => {
     setRoleName('');
@@ -284,27 +282,32 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
     refetchRoles();
   }, [refetchRoles]);
 
-  const handlePageChange = useCallback((_event: unknown, newPage: number) => {
-    urlParams.set('page', String(newPage));
-    setUrlParams(urlParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const handlePageChange = useCallback(
+    (_event: unknown, newPage: number) => {
+      urlParams.set('page', String(newPage));
+      setUrlParams(urlParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
-  const handleLimitChange = useCallback((newLimit: number) => {
-    urlParams.set('limit', String(newLimit));
-    urlParams.set('page', '1');
-    setUrlParams(urlParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const handleLimitChange = useCallback(
+    (newLimit: number) => {
+      urlParams.set('limit', String(newLimit));
+      urlParams.set('page', '1');
+      setUrlParams(urlParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
-  const filteredRoles = (rolesData || []).filter((role) => role.name.toLowerCase().includes(debouncedSearch.toLowerCase()));
+  const filteredRoles = (rolesData || []).filter((role) =>
+    role.name.toLowerCase().includes(debouncedSearch.toLowerCase())
+  );
 
   const currentPage = Number(urlParams.get('page') || 1);
   const currentLimit = Number(urlParams.get('limit') || 5);
   const totalPages = Math.ceil(filteredRoles.length / currentLimit);
 
-  const paginatedRoles = filteredRoles.slice(
-    (currentPage - 1) * currentLimit,
-    currentPage * currentLimit
-  );
+  const paginatedRoles = filteredRoles.slice((currentPage - 1) * currentLimit, currentPage * currentLimit);
 
   const togglePermission = useCallback((permission: string) => {
     setPermissions((prev) =>
@@ -341,7 +344,14 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
             }}
           >
             <Box sx={{ p: { xs: 1, sm: 1.25, lg: 1.5 } }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 1, sm: 1.25, lg: 1.5 } }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  mb: { xs: 1, sm: 1.25, lg: 1.5 }
+                }}
+              >
                 <Typography
                   variant='h6'
                   sx={{ fontWeight: 500, px: 1 }}
@@ -357,7 +367,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                       p: 1,
                       borderRadius: '50%',
                       color: 'white',
-                      '&:hover': { bgcolor: 'grey.100', color: '#1f2937'}
+                      '&:hover': { bgcolor: 'grey.100', color: 'text.primary' }
                     }}
                   >
                     <RefreshIcon />
@@ -382,14 +392,14 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 </Box>
               </Box>
 
-          {rolesError && (
-            <Alert
-              severity='error'
-              sx={{ mb: 2 }}
-            >
-              {rolesError?.message || 'Erro ao carregar roles'}
-            </Alert>
-          )}
+              {rolesError && (
+                <Alert
+                  severity='error'
+                  sx={{ mb: 2 }}
+                >
+                  {rolesError?.message || 'Erro ao carregar roles'}
+                </Alert>
+              )}
 
               {permissionsError && (
                 <Alert
@@ -555,14 +565,14 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                       justifyContent: 'space-between',
                       alignItems: 'center',
                       gap: { xs: 1, sm: 1.25, lg: 1.5 },
-                      backgroundColor: '#f8fafc',
-                      borderTop: '1px solid #e5e7eb'
+                      backgroundColor: 'grey.50',
+                      borderTop: '1px solid divider'
                     }}
                   >
                     {/* Pagination Info */}
                     <Typography
                       variant='body2'
-                      sx={{ color: '#6b7280', fontSize: '0.75rem' }}
+                      sx={{ color: 'text.secondary', fontSize: '0.75rem' }}
                     >
                       {filteredRoles.length > 0 ? (
                         <>
@@ -580,25 +590,25 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                         value={currentLimit}
                         onChange={(e) => handleLimitChange(Number(e.target.value))}
                         size='small'
-                        sx={{ 
-                          minWidth: 100, 
-                          height: 28, 
+                        sx={{
+                          minWidth: 100,
+                          height: 28,
                           fontSize: '0.75rem',
-                          backgroundColor: '#ffffff',
+                          backgroundColor: 'background.paper'
                         }}
                       >
                         {[5, 10, 25, 50].map((limit) => (
-                          <MenuItem 
-                            key={limit} 
+                          <MenuItem
+                            key={limit}
                             value={limit}
                             sx={{
                               '&:hover': {
-                                backgroundColor: '#f8fafc'
+                                backgroundColor: 'grey.50'
                               },
                               '&.Mui-selected': {
-                                backgroundColor: '#f1f5f9',
+                                backgroundColor: 'grey.100',
                                 '&:hover': {
-                                  backgroundColor: '#f1f5f9'
+                                  backgroundColor: 'grey.100'
                                 }
                               }
                             }}
@@ -649,7 +659,14 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
               }}
             >
               <Box sx={{ p: { xs: 2, sm: 2.5, lg: 3 } }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: { xs: 2, sm: 2.5, lg: 3 } }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-start',
+                    mb: { xs: 2, sm: 2.5, lg: 3 }
+                  }}
+                >
                   <Box>
                     <Typography
                       variant='h4'
@@ -795,7 +812,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
               variant='h6'
               sx={{
                 fontWeight: 700,
-                color: '#050505',
+                color: 'text.primary',
                 fontSize: '1.25rem'
               }}
             >
@@ -804,9 +821,9 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
             <IconButton
               onClick={handleCloseModals}
               sx={{
-                color: '#65676B',
+                color: 'text.secondary',
                 '&:hover': {
-                  backgroundColor: '#f3f4f6'
+                  backgroundColor: 'grey.100'
                 }
               }}
             >
@@ -822,7 +839,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 variant='body2'
                 sx={{
                   fontWeight: 500,
-                  color: '#65676B',
+                  color: 'text.secondary',
                   mb: 1,
                   fontSize: '0.875rem'
                 }}
@@ -837,22 +854,22 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 required
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: '#F0F2F5',
+                    backgroundColor: 'grey.100',
                     borderRadius: 2,
                     '& .MuiOutlinedInput-notchedOutline': {
-                      border: '1px solid #DADDE1',
+                      border: '1px solid divider',
                       transition: 'all 0.2s ease-in-out'
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#B0B3B8'
+                      borderColor: 'grey.400'
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1877F2',
+                      borderColor: 'primary.main',
                       boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                     }
                   },
                   '& .MuiInputBase-input::placeholder': {
-                    color: '#65676B',
+                    color: 'text.secondary',
                     opacity: 1
                   }
                 }}
@@ -865,7 +882,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 variant='body2'
                 sx={{
                   fontWeight: 600,
-                  color: '#050505',
+                  color: 'text.primary',
                   mb: 2,
                   fontSize: '1rem'
                 }}
@@ -874,11 +891,11 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
               </Typography>
               <Box
                 sx={{
-                  border: '1px solid #DADDE1',
+                  border: '1px solid divider',
                   borderRadius: 2,
                   maxHeight: '40vh',
                   overflowY: 'auto',
-                  backgroundColor: '#FFFFFF'
+                  backgroundColor: 'background.paper'
                 }}
               >
                 <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -894,11 +911,11 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CircularProgress
                           size={20}
-                          sx={{ color: '#1877F2' }}
+                          sx={{ color: 'primary.main' }}
                         />
                         <Typography
                           variant='body2'
-                          sx={{ color: '#65676B' }}
+                          sx={{ color: 'text.secondary' }}
                         >
                           Carregando permissões...
                         </Typography>
@@ -911,14 +928,14 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                         sx={{
                           p: 2,
                           borderRadius: 2,
-                          backgroundColor: '#f9fafb'
+                          backgroundColor: 'grey.50'
                         }}
                       >
                         <Typography
                           variant='body2'
                           sx={{
                             fontWeight: 600,
-                            color: '#050505',
+                            color: 'text.primary',
                             mb: 2,
                             fontSize: '0.875rem'
                           }}
@@ -934,9 +951,9 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                                   checked={permissions.includes(permission.key)}
                                   onChange={() => togglePermission(permission.key)}
                                   sx={{
-                                    color: '#1877F2',
+                                    color: 'primary.main',
                                     '&.Mui-checked': {
-                                      color: '#1877F2'
+                                      color: 'primary.main'
                                     },
                                     '& .MuiSvgIcon-root': {
                                       fontSize: 20
@@ -948,7 +965,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                                 <Typography
                                   variant='body2'
                                   sx={{
-                                    color: '#65676B',
+                                    color: 'text.secondary',
                                     fontSize: '0.875rem'
                                   }}
                                 >
@@ -977,7 +994,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
         <Box
           sx={{
             p: 3,
-            borderTop: '1px solid #DADDE1',
+            borderTop: '1px solid divider',
             display: 'flex',
             justifyContent: 'flex-end',
             gap: 2
@@ -990,14 +1007,14 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
               py: 1,
               fontSize: '0.875rem',
               fontWeight: 600,
-              color: '#65676B',
+              color: 'text.secondary',
               textTransform: 'none',
-              backgroundColor: '#e5e7eb',
+              backgroundColor: 'divider',
               borderRadius: 2,
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                backgroundColor: '#d1d5db',
-                color: '#374151'
+                backgroundColor: 'grey.300',
+                color: 'text.primary'
               }
             }}
           >
@@ -1012,13 +1029,13 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
               py: 1,
               fontSize: '0.875rem',
               fontWeight: 600,
-              backgroundColor: '#1877F2',
+              backgroundColor: 'primary.main',
               textTransform: 'none',
               borderRadius: 2,
               boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                backgroundColor: '#166fe5',
+                backgroundColor: 'primary.dark',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               },
               '&:focus': {
@@ -1026,8 +1043,8 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
               },
               '&:disabled': {
-                backgroundColor: '#d1d5db',
-                color: '#9ca3af',
+                backgroundColor: 'grey.300',
+                color: 'text.disabled',
                 boxShadow: 'none'
               }
             }}
@@ -1065,7 +1082,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
               variant='h6'
               sx={{
                 fontWeight: 700,
-                color: '#050505',
+                color: 'text.primary',
                 fontSize: '1.25rem'
               }}
             >
@@ -1074,9 +1091,9 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
             <IconButton
               onClick={handleCloseModals}
               sx={{
-                color: '#65676B',
+                color: 'text.secondary',
                 '&:hover': {
-                  backgroundColor: '#f3f4f6'
+                  backgroundColor: 'grey.100'
                 }
               }}
             >
@@ -1092,7 +1109,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 variant='body2'
                 sx={{
                   fontWeight: 500,
-                  color: '#65676B',
+                  color: 'text.secondary',
                   mb: 1,
                   fontSize: '0.875rem'
                 }}
@@ -1108,26 +1125,26 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 disabled={selectedRole?.name === 'Administrador'}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    backgroundColor: selectedRole?.name === 'Administrador' ? '#f3f4f6' : '#F0F2F5',
+                    backgroundColor: selectedRole?.name === 'Administrador' ? 'grey.100' : 'grey.100',
                     borderRadius: 2,
                     '& .MuiOutlinedInput-notchedOutline': {
-                      border: '1px solid #DADDE1',
+                      border: '1px solid divider',
                       transition: 'all 0.2s ease-in-out'
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#B0B3B8'
+                      borderColor: 'grey.400'
                     },
                     '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#1877F2',
+                      borderColor: 'primary.main',
                       boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
                     },
                     '&.Mui-disabled': {
-                      backgroundColor: '#f3f4f6',
-                      color: '#9ca3af'
+                      backgroundColor: 'grey.100',
+                      color: 'text.disabled'
                     }
                   },
                   '& .MuiInputBase-input::placeholder': {
-                    color: '#65676B',
+                    color: 'text.secondary',
                     opacity: 1
                   }
                 }}
@@ -1138,13 +1155,13 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                   sx={{
                     mt: 1,
                     borderRadius: 2,
-                    backgroundColor: '#eff6ff',
-                    border: '1px solid #bfdbfe',
+                    backgroundColor: 'info.light',
+                    border: '1px solid info.light',
                     '& .MuiAlert-icon': {
-                      color: '#1877F2'
+                      color: 'primary.main'
                     },
                     '& .MuiAlert-message': {
-                      color: '#1e40af',
+                      color: 'info.dark',
                       fontWeight: 500
                     }
                   }}
@@ -1160,7 +1177,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 variant='body2'
                 sx={{
                   fontWeight: 600,
-                  color: '#050505',
+                  color: 'text.primary',
                   mb: 2,
                   fontSize: '1rem'
                 }}
@@ -1169,11 +1186,11 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
               </Typography>
               <Box
                 sx={{
-                  border: '1px solid #DADDE1',
+                  border: '1px solid divider',
                   borderRadius: 2,
                   maxHeight: '40vh',
                   overflowY: 'auto',
-                  backgroundColor: '#FFFFFF'
+                  backgroundColor: 'background.paper'
                 }}
               >
                 <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -1189,11 +1206,11 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <CircularProgress
                           size={20}
-                          sx={{ color: '#1877F2' }}
+                          sx={{ color: 'primary.main' }}
                         />
                         <Typography
                           variant='body2'
-                          sx={{ color: '#65676B' }}
+                          sx={{ color: 'text.secondary' }}
                         >
                           Carregando permissões...
                         </Typography>
@@ -1206,14 +1223,14 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                         sx={{
                           p: 2,
                           borderRadius: 2,
-                          backgroundColor: '#f9fafb'
+                          backgroundColor: 'grey.50'
                         }}
                       >
                         <Typography
                           variant='body2'
                           sx={{
                             fontWeight: 600,
-                            color: '#050505',
+                            color: 'text.primary',
                             mb: 2,
                             fontSize: '0.875rem'
                           }}
@@ -1229,9 +1246,9 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                                   checked={permissions.includes(permission.key)}
                                   onChange={() => togglePermission(permission.key)}
                                   sx={{
-                                    color: '#1877F2',
+                                    color: 'primary.main',
                                     '&.Mui-checked': {
-                                      color: '#1877F2'
+                                      color: 'primary.main'
                                     },
                                     '& .MuiSvgIcon-root': {
                                       fontSize: 20
@@ -1243,7 +1260,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                                 <Typography
                                   variant='body2'
                                   sx={{
-                                    color: '#65676B',
+                                    color: 'text.secondary',
                                     fontSize: '0.875rem'
                                   }}
                                 >
@@ -1272,7 +1289,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
         <Box
           sx={{
             p: 3,
-            borderTop: '1px solid #DADDE1',
+            borderTop: '1px solid divider',
             display: 'flex',
             justifyContent: 'flex-end',
             gap: 2
@@ -1285,14 +1302,14 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
               py: 1,
               fontSize: '0.875rem',
               fontWeight: 600,
-              color: '#65676B',
+              color: 'text.secondary',
               textTransform: 'none',
-              backgroundColor: '#e5e7eb',
+              backgroundColor: 'divider',
               borderRadius: 2,
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                backgroundColor: '#d1d5db',
-                color: '#374151'
+                backgroundColor: 'grey.300',
+                color: 'text.primary'
               }
             }}
           >
@@ -1307,13 +1324,13 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
               py: 1,
               fontSize: '0.875rem',
               fontWeight: 600,
-              backgroundColor: '#1877F2',
+              backgroundColor: 'primary.main',
               textTransform: 'none',
               borderRadius: 2,
               boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
               transition: 'all 0.2s ease-in-out',
               '&:hover': {
-                backgroundColor: '#166fe5',
+                backgroundColor: 'primary.dark',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
               },
               '&:focus': {
@@ -1321,8 +1338,8 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 boxShadow: '0 0 0 3px rgba(24, 119, 242, 0.1)'
               },
               '&:disabled': {
-                backgroundColor: '#d1d5db',
-                color: '#9ca3af',
+                backgroundColor: 'grey.300',
+                color: 'text.disabled',
                 boxShadow: 'none'
               }
             }}
@@ -1358,7 +1375,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
           >
             <Box
               sx={{
-                backgroundColor: '#fef2f2',
+                backgroundColor: 'error.light',
                 borderRadius: '50%',
                 p: 1.5,
                 mb: 2,
@@ -1370,7 +1387,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
               <DeleteIcon
                 sx={{
                   fontSize: 32,
-                  color: '#DC2626'
+                  color: 'error.main'
                 }}
               />
             </Box>
@@ -1378,7 +1395,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
               variant='h5'
               sx={{
                 fontWeight: 700,
-                color: '#1F2937',
+                color: 'text.primary',
                 fontSize: '1.5rem'
               }}
             >
@@ -1393,19 +1410,19 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 variant='body1'
                 sx={{
                   textAlign: 'center',
-                  color: '#6B7280',
+                  color: 'text.secondary',
                   mb: 3,
                   fontSize: '1rem'
                 }}
               >
                 Tem certeza que deseja excluir a role{' '}
-                <strong style={{ color: '#1F2937' }}>{deleteImpact.roleName}</strong>?
+                <strong style={{ color: 'text.primary' }}>{deleteImpact.roleName}</strong>?
               </Typography>
 
               {/* Detalhes da role */}
               <Box
                 sx={{
-                  backgroundColor: '#f9fafb',
+                  backgroundColor: 'grey.50',
                   borderRadius: 2,
                   p: 2,
                   mb: 3
@@ -1414,8 +1431,8 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 <Typography
                   variant='body2'
                   sx={{
-                    fontWeight: 600,
-                    color: '#1F2937',
+                    fontWeight: 500,
+                    color: 'text.secondary',
                     mb: 1,
                     fontSize: '0.875rem'
                   }}
@@ -1445,14 +1462,14 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                   alignItems: 'flex-start',
                   p: 2,
                   borderRadius: 2,
-                  backgroundColor: deleteImpact.canDelete ? '#FEF3C7' : '#FEF2F2',
-                  border: `1px solid ${deleteImpact.canDelete ? '#FCD34D' : '#FECACA'}`,
+                  backgroundColor: deleteImpact.canDelete ? 'warning.light' : 'error.light',
+                  border: `1px solid ${deleteImpact.canDelete ? 'warning.main' : 'error.light'}`,
                   mb: 3
                 }}
               >
                 <WarningIcon
                   sx={{
-                    color: deleteImpact.canDelete ? '#92400E' : '#DC2626',
+                    color: deleteImpact.canDelete ? 'warning.dark' : 'error.main',
                     fontSize: 20,
                     mr: 1.5,
                     mt: 0.25
@@ -1461,7 +1478,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 <Typography
                   variant='body2'
                   sx={{
-                    color: deleteImpact.canDelete ? '#92400E' : '#DC2626',
+                    color: deleteImpact.canDelete ? 'warning.dark' : 'error.main',
                     fontSize: '0.875rem',
                     lineHeight: 1.5
                   }}
@@ -1478,14 +1495,14 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                     alignItems: 'flex-start',
                     p: 2,
                     borderRadius: 2,
-                    backgroundColor: '#EFF6FF',
-                    border: '1px solid #BFDBFE',
+                    backgroundColor: 'info.light',
+                    border: '1px solid info.light',
                     mb: 3
                   }}
                 >
                   <WarningIcon
                     sx={{
-                      color: '#1877F2',
+                      color: 'primary.main',
                       fontSize: 20,
                       mr: 1.5,
                       mt: 0.25
@@ -1494,7 +1511,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                   <Typography
                     variant='body2'
                     sx={{
-                      color: '#1E40AF',
+                      color: 'info.dark',
                       fontSize: '0.875rem',
                       lineHeight: 1.5
                     }}
@@ -1521,15 +1538,15 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 py: 1.25,
                 fontSize: '0.875rem',
                 fontWeight: 600,
-                color: '#1F2937',
+                color: 'text.primary',
                 textTransform: 'uppercase',
                 borderRadius: 2,
-                border: '1px solid #E5E7EB',
+                border: '1px solid divider',
                 backgroundColor: 'transparent',
                 transition: 'all 0.2s ease-in-out',
                 '&:hover': {
-                  backgroundColor: '#f3f4f6',
-                  borderColor: '#D1D5DB'
+                  backgroundColor: 'grey.100',
+                  borderColor: 'divider'
                 }
               }}
             >
@@ -1543,17 +1560,17 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 py: 1.25,
                 fontSize: '0.875rem',
                 fontWeight: 600,
-                backgroundColor: '#DC2626',
+                backgroundColor: 'error.main',
                 textTransform: 'uppercase',
                 borderRadius: 2,
                 color: 'white',
                 transition: 'all 0.2s ease-in-out',
                 '&:hover': {
-                  backgroundColor: '#B91C1C'
+                  backgroundColor: 'error.dark'
                 },
                 '&:disabled': {
-                  backgroundColor: '#e5e7eb',
-                  color: '#9ca3af'
+                  backgroundColor: 'divider',
+                  color: 'text.disabled'
                 }
               }}
             >

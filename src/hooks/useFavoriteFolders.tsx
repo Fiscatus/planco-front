@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 const FAVORITE_FOLDERS_KEY = 'favoriteFolders';
 
@@ -27,29 +27,26 @@ export const useFavoriteFolders = () => {
   );
 
   // Alternar favorito de uma pasta
-  const toggleFavorite = useCallback(
-    (folderId: string) => {
-      setFavoriteIds((prev) => {
-        const newSet = new Set(prev);
-        if (newSet.has(folderId)) {
-          newSet.delete(folderId);
-        } else {
-          newSet.add(folderId);
-        }
+  const toggleFavorite = useCallback((folderId: string) => {
+    setFavoriteIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(folderId)) {
+        newSet.delete(folderId);
+      } else {
+        newSet.add(folderId);
+      }
 
-        // Salvar no localStorage
-        try {
-          const idsArray = Array.from(newSet);
-          localStorage.setItem(FAVORITE_FOLDERS_KEY, JSON.stringify(idsArray));
-        } catch (error) {
-          console.error('Erro ao salvar favoritos no localStorage:', error);
-        }
+      // Salvar no localStorage
+      try {
+        const idsArray = Array.from(newSet);
+        localStorage.setItem(FAVORITE_FOLDERS_KEY, JSON.stringify(idsArray));
+      } catch (error) {
+        console.error('Erro ao salvar favoritos no localStorage:', error);
+      }
 
-        return newSet;
-      });
-    },
-    []
-  );
+      return newSet;
+    });
+  }, []);
 
   // Obter todos os IDs favoritos
   const getFavoriteIds = useCallback(() => {
@@ -62,4 +59,3 @@ export const useFavoriteFolders = () => {
     getFavoriteIds
   };
 };
-

@@ -1,14 +1,5 @@
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogContent,
-  Typography
-} from '@mui/material';
-import {
-  Delete as DeleteIcon,
-  Warning as WarningIcon
-} from '@mui/icons-material';
+import { Delete as DeleteIcon, Warning as WarningIcon } from '@mui/icons-material';
+import { Box, Button, Dialog, DialogContent, Typography } from '@mui/material';
 
 import type { Folder } from '@/globals/types';
 
@@ -20,13 +11,7 @@ interface DeleteFolderModalProps {
   loading?: boolean;
 }
 
-export const DeleteFolderModal = ({
-  open,
-  onClose,
-  onConfirm,
-  folder,
-  loading = false
-}: DeleteFolderModalProps) => {
+export const DeleteFolderModal = ({ open, onClose, onConfirm, folder, loading = false }: DeleteFolderModalProps) => {
   const handleConfirm = async () => {
     try {
       await onConfirm();
@@ -65,7 +50,7 @@ export const DeleteFolderModal = ({
         >
           <Box
             sx={{
-              backgroundColor: '#fef2f2',
+              backgroundColor: 'error.light',
               borderRadius: '50%',
               p: 1.5,
               mb: 2,
@@ -77,7 +62,7 @@ export const DeleteFolderModal = ({
             <DeleteIcon
               sx={{
                 fontSize: 32,
-                color: '#DC2626'
+                color: 'error.main'
               }}
             />
           </Box>
@@ -85,7 +70,7 @@ export const DeleteFolderModal = ({
             variant='h5'
             sx={{
               fontWeight: 700,
-              color: '#1F2937',
+              color: 'text.primary',
               fontSize: '1.5rem'
             }}
           >
@@ -98,19 +83,18 @@ export const DeleteFolderModal = ({
           variant='body1'
           sx={{
             textAlign: 'center',
-            color: '#6B7280',
+            color: 'text.secondary',
             mb: 3,
             fontSize: '1rem'
           }}
         >
-          Tem certeza que deseja excluir a pasta{' '}
-          <strong style={{ color: '#1F2937' }}>{folder.name}</strong>?
+          Tem certeza que deseja excluir a pasta <strong style={{ color: 'text.primary' }}>{folder.name}</strong>?
         </Typography>
 
         {/* Detalhes da pasta */}
         <Box
           sx={{
-            backgroundColor: '#f9fafb',
+            backgroundColor: 'grey.50',
             borderRadius: 2,
             p: 2,
             mb: 3
@@ -120,7 +104,7 @@ export const DeleteFolderModal = ({
             variant='body2'
             sx={{
               fontWeight: 600,
-              color: '#1F2937',
+              color: 'text.primary',
               mb: 1,
               fontSize: '0.875rem'
             }}
@@ -160,14 +144,14 @@ export const DeleteFolderModal = ({
             alignItems: 'flex-start',
             p: 2,
             borderRadius: 2,
-            backgroundColor: '#FEF3C7',
-            border: '1px solid #FCD34D',
+            backgroundColor: 'warning.light',
+            border: '1px solid warning.main',
             mb: 3
           }}
         >
           <WarningIcon
             sx={{
-              color: '#92400E',
+              color: 'warning.dark',
               fontSize: 20,
               mr: 1.5,
               mt: 0.25
@@ -176,7 +160,7 @@ export const DeleteFolderModal = ({
           <Typography
             variant='body2'
             sx={{
-              color: '#92400E',
+              color: 'warning.dark',
               fontSize: '0.875rem',
               lineHeight: 1.5
             }}
@@ -189,8 +173,8 @@ export const DeleteFolderModal = ({
         <Box
           sx={{
             p: { xs: 2, sm: 3 },
-            backgroundColor: '#f8fafc',
-            borderTop: '1px solid #e2e8f0',
+            backgroundColor: 'grey.50',
+            borderTop: '1px solid divider',
             display: 'flex',
             flexDirection: { xs: 'column-reverse', sm: 'row' },
             justifyContent: 'flex-end',
@@ -204,16 +188,16 @@ export const DeleteFolderModal = ({
             sx={{
               textTransform: 'none',
               borderRadius: 2,
-              borderColor: '#E4E6EB',
-              color: '#212121',
+              borderColor: 'divider',
+              color: 'text.primary',
               px: { xs: 2.5, sm: 3 },
               py: { xs: 1.125, sm: 1.25 },
               fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600,
               width: { xs: '100%', sm: 'auto' },
               '&:hover': {
-                borderColor: '#CBD5E1',
-                backgroundColor: '#F8F9FA'
+                borderColor: 'grey.300',
+                backgroundColor: 'grey.50'
               }
             }}
           >
@@ -226,19 +210,19 @@ export const DeleteFolderModal = ({
             sx={{
               textTransform: 'none',
               borderRadius: 2,
-              backgroundColor: '#DC2626',
-              color: '#FFFFFF',
+              backgroundColor: 'error.main',
+              color: 'common.white',
               px: { xs: 2.5, sm: 4 },
               py: { xs: 1.125, sm: 1.25 },
               fontSize: { xs: '0.8125rem', sm: '0.875rem' },
               fontWeight: 600,
               width: { xs: '100%', sm: 'auto' },
               '&:hover': {
-                backgroundColor: '#B91C1C'
+                backgroundColor: 'error.dark'
               },
               '&:disabled': {
-                backgroundColor: '#E4E6EB',
-                color: '#8A8D91'
+                backgroundColor: 'divider',
+                color: 'text.disabled'
               }
             }}
           >
@@ -249,4 +233,3 @@ export const DeleteFolderModal = ({
     </Dialog>
   );
 };
-

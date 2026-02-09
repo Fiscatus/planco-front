@@ -133,8 +133,9 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
           justifyContent: 'center',
           height: 64,
           px: 3,
-          borderBottom: '1px solid #e5e7eb',
-          backgroundColor: '#f9fafb',
+          borderBottom: 1,
+          borderColor: 'divider',
+          backgroundColor: 'background.default',
           position: 'relative'
         }}
       >
@@ -153,7 +154,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
             sx={{
               fontSize: '1.125rem',
               fontWeight: 600,
-              color: '#111827'
+              color: 'text.primary'
             }}
           >
             Planco
@@ -167,7 +168,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
             p: 1,
             borderRadius: 1,
             '&:hover': {
-              backgroundColor: '#e5e7eb'
+              backgroundColor: 'action.hover'
             }
           }}
           aria-label='Fechar sidebar'
@@ -183,12 +184,14 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
             sx={{
               borderRadius: 1,
               mb: 0.5,
-              borderLeft: isActiveDashboard(dashboard.path) ? '4px solid #2563eb' : '4px solid transparent',
-              backgroundColor: isActiveDashboard(dashboard.path) ? '#eff6ff' : 'transparent',
-              color: isActiveDashboard(dashboard.path) ? '#2563eb' : '#374151',
+              borderLeft: isActiveDashboard(dashboard.path) ? 4 : 4,
+              borderColor: isActiveDashboard(dashboard.path) ? 'primary.main' : 'transparent',
+              borderStyle: 'solid',
+              backgroundColor: isActiveDashboard(dashboard.path) ? 'secondary.light' : 'transparent',
+              color: isActiveDashboard(dashboard.path) ? 'primary.main' : 'text.primary',
               '&:hover': {
-                backgroundColor: isActiveDashboard(dashboard.path) ? '#eff6ff' : '#f9fafb',
-                borderLeft: isActiveDashboard(dashboard.path) ? '4px solid #2563eb' : '4px solid #d1d5db'
+                backgroundColor: isActiveDashboard(dashboard.path) ? 'secondary.light' : 'action.hover',
+                borderColor: isActiveDashboard(dashboard.path) ? 'primary.main' : 'divider'
               },
               py: 1,
               px: 2
@@ -197,7 +200,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
             <ListItemIcon
               sx={{
                 minWidth: 32,
-                color: isActiveDashboard(dashboard.path) ? '#2563eb' : '#6b7280'
+                color: isActiveDashboard(dashboard.path) ? 'primary.main' : 'text.secondary'
               }}
             >
               {dashboard.icon}
@@ -219,7 +222,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                 <Typography
                   variant='caption'
                   sx={{
-                    color: '#6b7280',
+                    color: 'text.secondary',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -240,7 +243,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
             sx={{
               fontSize: '0.75rem',
               fontWeight: 600,
-              color: '#6b7280',
+              color: 'text.secondary',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
               mb: 1,
@@ -263,22 +266,28 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                 disabled={module.disabled}
                 sx={{
                   borderRadius: 1,
-                  borderLeft: isActiveModule(module.path) ? '4px solid #2563eb' : '4px solid transparent',
-                  backgroundColor: isActiveModule(module.path) ? '#eff6ff' : 'transparent',
-                  color: isActiveModule(module.path) ? '#2563eb' : module.disabled ? '#9ca3af' : '#374151',
+                  borderLeft: isActiveModule(module.path) ? 4 : 4,
+                  borderColor: isActiveModule(module.path) ? 'primary.main' : 'transparent',
+                  borderStyle: 'solid',
+                  backgroundColor: isActiveModule(module.path) ? 'secondary.light' : 'transparent',
+                  color: isActiveModule(module.path)
+                    ? 'primary.main'
+                    : module.disabled
+                      ? 'text.disabled'
+                      : 'text.primary',
                   opacity: module.disabled ? 0.5 : 1,
                   cursor: module.disabled ? 'not-allowed' : 'pointer',
                   '&:hover': {
                     backgroundColor: module.disabled
                       ? 'transparent'
                       : isActiveModule(module.path)
-                        ? '#eff6ff'
-                        : '#f9fafb',
-                    borderLeft: module.disabled
-                      ? '4px solid transparent'
+                        ? 'secondary.light'
+                        : 'action.hover',
+                    borderColor: module.disabled
+                      ? 'transparent'
                       : isActiveModule(module.path)
-                        ? '4px solid #2563eb'
-                        : '4px solid #d1d5db'
+                        ? 'primary.main'
+                        : 'divider'
                   },
                   py: 1,
                   px: 2
@@ -287,7 +296,11 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                 <ListItemIcon
                   sx={{
                     minWidth: 32,
-                    color: isActiveModule(module.path) ? '#2563eb' : module.disabled ? '#9ca3af' : '#6b7280'
+                    color: isActiveModule(module.path)
+                      ? 'primary.main'
+                      : module.disabled
+                        ? 'text.disabled'
+                        : 'text.secondary'
                   }}
                 >
                   {module.icon}
@@ -300,7 +313,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                         fontWeight: 500,
                         lineHeight: 1.2,
                         fontSize: '0.875rem',
-                        color: module.disabled ? '#9ca3af' : 'inherit'
+                        color: module.disabled ? 'text.disabled' : 'inherit'
                       }}
                     >
                       {module.label}
@@ -310,7 +323,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                     <Typography
                       variant='caption'
                       sx={{
-                        color: '#6b7280',
+                        color: 'text.secondary',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
@@ -328,13 +341,13 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         </List>
       </Box>
 
-      <Box sx={{ borderTop: '1px solid #e5e7eb', p: 2 }}>
+      <Box sx={{ borderTop: 1, borderColor: 'divider', p: 2 }}>
         <Typography
           variant='caption'
           sx={{
             fontSize: '0.75rem',
             fontWeight: 600,
-            color: '#6b7280',
+            color: 'text.secondary',
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
             mb: 0.5,
@@ -356,12 +369,13 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
             }
             sx={{
               borderRadius: 1,
-              border: isActiveModule('/minhas-gerencias') ? '1px solid #bfdbfe' : '1px solid transparent',
-              backgroundColor: isActiveModule('/minhas-gerencias') ? '#eff6ff' : 'transparent',
-              color: isActiveModule('/minhas-gerencias') ? '#2563eb' : '#4b5563',
+              border: 1,
+              borderColor: isActiveModule('/minhas-gerencias') ? 'primary.light' : 'transparent',
+              backgroundColor: isActiveModule('/minhas-gerencias') ? 'secondary.light' : 'transparent',
+              color: isActiveModule('/minhas-gerencias') ? 'primary.main' : 'text.primary',
               '&:hover': {
-                backgroundColor: isActiveModule('/minhas-gerencias') ? '#eff6ff' : '#f9fafb',
-                border: isActiveModule('/minhas-gerencias') ? '1px solid #bfdbfe' : '1px solid #e5e7eb'
+                backgroundColor: isActiveModule('/minhas-gerencias') ? 'secondary.light' : 'action.hover',
+                borderColor: isActiveModule('/minhas-gerencias') ? 'primary.light' : 'divider'
               },
               py: 1,
               px: 2
@@ -370,7 +384,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
             <ListItemIcon
               sx={{
                 minWidth: 32,
-                color: isActiveModule('/minhas-gerencias') ? '#2563eb' : '#6b7280'
+                color: isActiveModule('/minhas-gerencias') ? 'primary.main' : 'text.secondary'
               }}
             >
               <Business sx={{ fontSize: 16 }} />
@@ -392,7 +406,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                 <Typography
                   variant='caption'
                   sx={{
-                    color: '#6b7280',
+                    color: 'text.secondary',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -419,12 +433,13 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
             }
             sx={{
               borderRadius: 1,
-              border: isActiveModule('/admin') ? '1px solid #bfdbfe' : '1px solid transparent',
-              backgroundColor: isActiveModule('/admin') ? '#eff6ff' : 'transparent',
-              color: isActiveModule('/admin') ? '#2563eb' : '#4b5563',
+              border: 1,
+              borderColor: isActiveModule('/admin') ? 'primary.light' : 'transparent',
+              backgroundColor: isActiveModule('/admin') ? 'secondary.light' : 'transparent',
+              color: isActiveModule('/admin') ? 'primary.main' : 'text.primary',
               '&:hover': {
-                backgroundColor: isActiveModule('/admin') ? '#eff6ff' : '#f9fafb',
-                border: isActiveModule('/admin') ? '1px solid #bfdbfe' : '1px solid #e5e7eb'
+                backgroundColor: isActiveModule('/admin') ? 'secondary.light' : 'action.hover',
+                borderColor: isActiveModule('/admin') ? 'primary.light' : 'divider'
               },
               py: 1,
               px: 2
@@ -433,7 +448,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
             <ListItemIcon
               sx={{
                 minWidth: 32,
-                color: isActiveModule('/admin') ? '#2563eb' : '#6b7280'
+                color: isActiveModule('/admin') ? 'primary.main' : 'text.secondary'
               }}
             >
               <Shield sx={{ fontSize: 16 }} />
@@ -455,7 +470,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                 <Typography
                   variant='caption'
                   sx={{
-                    color: '#6b7280',
+                    color: 'text.secondary',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -471,12 +486,12 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         )}
       </Box>
 
-      <Box sx={{ borderTop: '1px solid #e5e7eb', p: 2 }}>
+      <Box sx={{ borderTop: 1, borderColor: 'divider', p: 2 }}>
         <Box sx={{ textAlign: 'center' }}>
           <Typography
             variant='caption'
             sx={{
-              color: '#6b7280',
+              color: 'text.secondary',
               fontSize: '0.75rem',
               display: 'block'
             }}
@@ -486,7 +501,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
           <Typography
             variant='caption'
             sx={{
-              color: '#6b7280',
+              color: 'text.secondary',
               fontSize: '0.75rem',
               display: 'block',
               mt: 0.5
@@ -528,7 +543,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
           '& .MuiDrawer-paper': {
             width: 320,
             boxSizing: 'border-box',
-            backgroundColor: 'white',
+            backgroundColor: 'background.paper',
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
             zIndex: 50,
             border: 'none'
