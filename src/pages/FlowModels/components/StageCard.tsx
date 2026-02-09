@@ -184,7 +184,7 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
                   const Component = COMPONENT_MAP[comp.type];
                   return Component ? (
                     <Box key={comp.key}>
-                      {index > 1 && (
+                      {index > 0 && (
                         <Box sx={{ height: 2, bgcolor: "#CBD5E1", my: 2.5, borderRadius: 0.5 }} />
                       )}
                       <Component config={comp.config} label={comp.label} description={comp.description} />

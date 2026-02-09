@@ -13,7 +13,9 @@ export type ComponentType =
   | "FILES_MANAGEMENT"
   | "STAGE_PANEL"
   | "TIMELINE"
-  | "FILE_VIEWER";
+  | "FILE_VIEWER"
+  | "CHECKLIST"
+  | "STAGE_SUMMARY";
 
 export type FlowModelComponent = {
   order: number;
