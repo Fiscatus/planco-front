@@ -42,6 +42,7 @@ export type FlowModelStage = {
   canRepeat?: boolean;
   repeatCondition?: string;
   visibilityCondition?: string;
+  businessDaysDuration?: number;
 };
 
 export type FlowModel = {

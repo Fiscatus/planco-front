@@ -381,6 +381,18 @@ export const EditStageModal = ({
                     inputProps={{ maxLength: 100 }}
                     helperText={`${(localStage.description || "").length}/100 caracteres`}
                   />
+
+                  <TextField
+                    label="Duração em dias úteis (opcional)"
+                    type="number"
+                    value={localStage.businessDaysDuration ?? ""}
+                    onChange={(e) => handleChangeStageField("businessDaysDuration", e.target.value ? Number(e.target.value) : undefined)}
+                    fullWidth
+                    disabled={isReadOnly}
+                    inputProps={{ min: 0 }}
+                    placeholder="Ex: 5 dias úteis"
+                    helperText="Quantidade de dias úteis estimados para conclusão desta etapa"
+                  />
                 </Box>
               </Box>
 

@@ -57,6 +57,7 @@ export const CreateStageModal = ({
   const [canRepeat, setCanRepeat] = useState(false);
   const [repeatCondition, setRepeatCondition] = useState("");
   const [visibilityCondition, setVisibilityCondition] = useState("");
+  const [businessDaysDuration, setBusinessDaysDuration] = useState<string>("");
 
   const [orderText, setOrderText] = useState<string>("");
 
@@ -77,6 +78,7 @@ export const CreateStageModal = ({
       setCanRepeat(false);
       setRepeatCondition("");
       setVisibilityCondition("");
+      setBusinessDaysDuration("");
       setOrderText(String(nextOrder(existingStages)));
       stageIdTouchedRef.current = false;
       setStageId("");
@@ -135,6 +137,8 @@ export const CreateStageModal = ({
       repeatCondition: canRepeat && repeatCondition.trim() ? repeatCondition.trim() : undefined,
 
       visibilityCondition: visibilityCondition.trim() ? visibilityCondition.trim() : undefined,
+
+      businessDaysDuration: businessDaysDuration.trim() && Number(businessDaysDuration) >= 0 ? Number(businessDaysDuration) : undefined,
 
       components: [],
     };
@@ -337,6 +341,19 @@ export const CreateStageModal = ({
                   rows={3}
                   inputProps={{ maxLength: 100 }}
                   helperText={`${description.length}/100 caracteres`}
+                />
+              </Box>
+
+              <Box sx={{ mt: 2 }}>
+                <TextField
+                  label="Duração em dias úteis (opcional)"
+                  type="number"
+                  value={businessDaysDuration}
+                  onChange={(e) => setBusinessDaysDuration(e.target.value)}
+                  fullWidth
+                  inputProps={{ min: 0 }}
+                  placeholder="Ex: 10 dias úteis"
+                  helperText="Quantidade de dias úteis estimados para conclusão desta etapa"
                 />
               </Box>
             </Box>
