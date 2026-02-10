@@ -22,6 +22,7 @@ const COMPONENT_TYPES: { value: ComponentType; label: string }[] = [
   { value: "FILE_VIEWER", label: "Visualizador de Arquivos" },
   { value: "CHECKLIST", label: "Checklist" },
   { value: "STAGE_SUMMARY", label: "Resumo da Etapa" },
+  { value: "EVENT_TIMELINE", label: "Cronograma de Eventos" },
 ];
 
 export const AddComponentModal = ({ open, onClose, onAdd, existingComponents, editingComponent }: AddComponentModalProps) => {

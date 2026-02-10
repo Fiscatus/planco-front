@@ -38,12 +38,14 @@ import { AddComponentModal } from "./AddComponentModal";
 import { SignatureComponent } from "./SignatureComponent";
 import { FilesManagementComponent } from "./FilesManagementComponent";
 import { ApprovalComponent } from "./ApprovalComponent";
+import { TimelineComponent } from "./TimelineComponent";
 
 // Mapeamento de componentes implementados
 const COMPONENT_MAP: Record<string, React.ComponentType<any>> = {
   SIGNATURE: SignatureComponent,
   FILES_MANAGEMENT: FilesManagementComponent,
   APPROVAL: ApprovalComponent,
+  TIMELINE: TimelineComponent,
 };
 
 // Componentes que têm implementação de preview

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Box, Button, Chip, Dialog, DialogContent, IconButton, Tooltip, Typography } from "@mui/material";
+import { Box, Button, Chip, Collapse, Dialog, DialogContent, IconButton, Tooltip, Typography } from "@mui/material";
 import {
   CheckCircle as CheckCircleIcon,
   Delete as DeleteIcon,
@@ -12,17 +12,23 @@ import {
   Fullscreen as FullscreenIcon,
   FullscreenExit as FullscreenExitIcon,
   CalendarToday as CalendarIcon,
+  ExpandMore as ExpandMoreIcon,
+  UnfoldMore as UnfoldMoreIcon,
+  UnfoldLess as UnfoldLessIcon,
+  Info as InfoIcon,
 } from "@mui/icons-material";
 import type { FlowModelStage } from "@/hooks/useFlowModels";
 import { SignatureComponent } from "./SignatureComponent";
 import { FilesManagementComponent } from "./FilesManagementComponent";
 import { ApprovalComponent } from "./ApprovalComponent";
+import { TimelineComponent } from "./TimelineComponent";
 
 // Mapeamento de componentes implementados
 const COMPONENT_MAP: Record<string, React.ComponentType<any>> = {
   SIGNATURE: SignatureComponent,
   FILES_MANAGEMENT: FilesManagementComponent,
   APPROVAL: ApprovalComponent,
+  TIMELINE: TimelineComponent
 };
 
 type StageCardProps = {
@@ -38,6 +44,7 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
   const [isDragOver, setIsDragOver] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFullscreen, setPreviewFullscreen] = useState(false);
+  const [expandedComponents, setExpandedComponents] = useState<Record<string, boolean>>({});
   const componentsCount = useMemo(() => stage.components?.length || 0, [stage.components]);
   const safeStageId = String(stage.stageId || "").trim();
   const safeOrder = typeof stage.order === "number" && Number.isFinite(stage.order) ? stage.order : 0;
@@ -175,6 +182,30 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
               <Typography variant="body2" sx={{ color: "#64748b", mt: 0.25 }}>Visualização com dados simulados • {componentsCount} {componentsCount === 1 ? "componente" : "componentes"}</Typography>
             </Box>
             <Box sx={{ display: "flex", gap: 1 }}>
+              <Button
+                size="small"
+                startIcon={<UnfoldMoreIcon />}
+                onClick={() => {
+                  const allExpanded: Record<string, boolean> = {};
+                  stage.components?.forEach(comp => { allExpanded[comp.key] = true; });
+                  setExpandedComponents(allExpanded);
+                }}
+                sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.8125rem" }}
+              >
+                Abrir Todos
+              </Button>
+              <Button
+                size="small"
+                startIcon={<UnfoldLessIcon />}
+                onClick={() => {
+                  const allCollapsed: Record<string, boolean> = {};
+                  stage.components?.forEach(comp => { allCollapsed[comp.key] = false; });
+                  setExpandedComponents(allCollapsed);
+                }}
+                sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.8125rem" }}
+              >
+                Recolher Todos
+              </Button>
               <IconButton onClick={() => setPreviewFullscreen(!previewFullscreen)} sx={{ color: "#1877F2" }}>
                 {previewFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
               </IconButton>
@@ -183,15 +214,42 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
           </Box>
           <Box sx={{ p: 3, bgcolor: "#FAFBFC", height: previewFullscreen ? "calc(100vh - 80px)" : "auto", overflow: "auto" }}>
             {stage.components && stage.components.length > 0 ? (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
-                {stage.components.sort((a, b) => a.order - b.order).map((comp, index) => {
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+                {stage.components.sort((a, b) => a.order - b.order).map((comp) => {
                   const Component = COMPONENT_MAP[comp.type];
+                  const isExpanded = expandedComponents[comp.key] ?? true;
                   return Component ? (
-                    <Box key={comp.key}>
-                      {index > 0 && (
-                        <Box sx={{ height: 2, bgcolor: "#CBD5E1", my: 2.5, borderRadius: 0.5 }} />
+                    <Box key={comp.key} sx={{ position: "relative" }}>
+                      <IconButton
+                        onClick={() => setExpandedComponents(prev => ({ ...prev, [comp.key]: !isExpanded }))}
+                        size="small"
+                        sx={{
+                          position: "absolute",
+                          top: 8,
+                          right: 8,
+                          zIndex: 1,
+                          bgcolor: "white",
+                          border: "1px solid #E4E6EB",
+                          transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                          transition: "transform 0.3s",
+                          "&:hover": { bgcolor: "#F8FAFC" }
+                        }}
+                      >
+                        <ExpandMoreIcon fontSize="small" />
+                      </IconButton>
+                      <Collapse in={isExpanded}>
+                        <Component config={comp.config} label={comp.label} description={comp.description} />
+                      </Collapse>
+                      {!isExpanded && (
+                        <Box sx={{ bgcolor: "white", p: 2, borderRadius: 2, border: "1px solid #E4E6EB", pr: 6, display: "flex", alignItems: "center", gap: 1 }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: "0.9375rem", color: "#0f172a" }}>{comp.label}</Typography>
+                          {comp.description && (
+                            <Tooltip title={comp.description} arrow>
+                              <InfoIcon sx={{ fontSize: 20, color: "primary.main", cursor: "help" }} />
+                            </Tooltip>
+                          )}
+                        </Box>
                       )}
-                      <Component config={comp.config} label={comp.label} description={comp.description} />
                     </Box>
                   ) : null;
                 })}
