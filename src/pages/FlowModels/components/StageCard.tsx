@@ -25,6 +25,8 @@ import { FilesManagementComponent } from "./FilesManagementComponent";
 import { ApprovalComponent } from "./ApprovalComponent";
 import { TimelineComponent } from "./TimelineComponent";
 import { CommentsComponent } from "./CommentsComponent";
+import { ChecklistComponent } from "./ChecklistComponent";
+import { FormComponent } from "./FormComponent";
 
 // Mapeamento de componentes implementados
 const COMPONENT_MAP: Record<string, React.ComponentType<any>> = {
@@ -32,7 +34,9 @@ const COMPONENT_MAP: Record<string, React.ComponentType<any>> = {
   FILES_MANAGEMENT: FilesManagementComponent,
   APPROVAL: ApprovalComponent,
   TIMELINE: TimelineComponent,
-  COMMENTS: CommentsComponent
+  COMMENTS: CommentsComponent,
+  CHECKLIST: ChecklistComponent,
+  FORM: FormComponent,
 };
 
 type StageCardProps = {
