@@ -400,7 +400,7 @@ export const AddComponentModal = ({ open, onClose, onAdd, existingComponents, ed
             </IconButton>
           </Box>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <TextField label="Rótulo *" value={fieldFormData.label} onChange={(e) => setFieldFormData(prev => ({ ...prev, label: e.target.value }))} fullWidth required placeholder="ex: Nome do Projeto" helperText="Texto que aparece no formulário" inputProps={{ maxLength: 20 }} />
+            <TextField label="Campo" value={fieldFormData.label} onChange={(e) => setFieldFormData(prev => ({ ...prev, label: e.target.value }))} fullWidth required placeholder="ex: Nome do Projeto" helperText="Texto que aparece no formulário" inputProps={{ maxLength: 35 }} />
             <FormControl fullWidth>
               <InputLabel>Tipo</InputLabel>
               <Select value={fieldFormData.type} label="Tipo" onChange={(e) => setFieldFormData(prev => ({ ...prev, type: e.target.value as FieldType }))}>
@@ -437,7 +437,7 @@ export const AddComponentModal = ({ open, onClose, onAdd, existingComponents, ed
                     <Box key={idx} sx={{ display: "flex", gap: 1, alignItems: "center" }}>
                       <TextField
                         size="small"
-                        placeholder="Rótulo"
+                        placeholder="Campo"
                         value={opt.label}
                         onChange={(e) => {
                           const newOpts = [...fieldFormData.options];

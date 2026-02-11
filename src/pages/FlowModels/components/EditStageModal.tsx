@@ -16,6 +16,7 @@ import {
   ListItem,
   ListItemText,
   Tooltip,
+  Alert,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -27,6 +28,8 @@ import {
   DragIndicator as DragIndicatorIcon,
   Info as InfoIcon,
   Edit as EditIcon,
+  Warning as WarningIcon,
+  ContentCopy as ContentCopyIcon,
 } from "@mui/icons-material";
 import { useQuery } from "@tanstack/react-query";
 import type {
@@ -34,6 +37,7 @@ import type {
   FlowModelStage,
 } from "@/hooks/useFlowModels";
 import { useRolesAndDepartments } from "@/hooks/useRolesAndDepartments";
+import { useUsers } from "@/hooks/useUsers";
 import { AddComponentModal } from "./AddComponentModal";
 import { SignatureComponent } from "./SignatureComponent";
 import { FilesManagementComponent } from "./FilesManagementComponent";
@@ -62,6 +66,7 @@ type EditStageModalProps = {
   onClose: () => void;
   stage: FlowModelStage | null;
   onSaveStage: (updatedStage: FlowModelStage) => void;
+  onDuplicateStage?: (stage: FlowModelStage) => void;
   editable?: boolean;
 };
 
@@ -74,52 +79,76 @@ export const EditStageModal = ({
   onClose,
   stage,
   onSaveStage,
+  onDuplicateStage,
   editable = true,
 }: EditStageModalProps) => {
   const [localStage, setLocalStage] = useState<FlowModelStage | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-  const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
-  const [shouldFetchDepartments, setShouldFetchDepartments] = useState(false);
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+  const [usersPage, setUsersPage] = useState(1);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [addComponentOpen, setAddComponentOpen] = useState(false);
   const [editingComponent, setEditingComponent] = useState<FlowModelComponent | null>(null);
   const [previewComponentKey, setPreviewComponentKey] = useState<string | null>(null);
   const [previewFullscreen, setPreviewFullscreen] = useState(false);
   const [editModalFullscreen, setEditModalFullscreen] = useState(false);
 
-  const { fetchRolesByOrg, fetchDepartments } = useRolesAndDepartments();
+  const { fetchRolesByOrg } = useRolesAndDepartments();
+  const { fetchUsers } = useUsers();
 
-  const { data: roles = [] } = useQuery({
+  const { data: roles = [], refetch: refetchRoles } = useQuery({
     queryKey: ["roles"],
     queryFn: fetchRolesByOrg,
-    enabled: open,
+    enabled: false,
   });
 
-  const { data: departments = [] } = useQuery({
-    queryKey: ["departments"],
-    queryFn: fetchDepartments,
-    enabled: open && shouldFetchDepartments,
-    staleTime: 0,
-    refetchOnMount: true,
+  const { data: usersData, isFetching: isFetchingUsers, refetch: refetchUsers } = useQuery({
+    queryKey: ["users-org", usersPage],
+    queryFn: () => fetchUsers({ limit: 100, page: usersPage }),
+    enabled: false,
   });
+
+  useEffect(() => {
+    if (usersData?.users) {
+      setAllUsers(prev => {
+        if (usersPage === 1) {
+          return usersData.users;
+        }
+        const existingIds = new Set(prev.map(u => u._id));
+        const newUsers = usersData.users.filter(u => !existingIds.has(u._id));
+        return [...prev, ...newUsers];
+      });
+    }
+  }, [usersData, usersPage]);
+
+  const handleUsersScroll = (event: React.SyntheticEvent) => {
+    const listboxNode = event.currentTarget;
+    if (listboxNode.scrollTop + listboxNode.clientHeight >= listboxNode.scrollHeight - 10) {
+      if (usersData?.hasNext && !isFetchingUsers) {
+        setUsersPage(prev => prev + 1);
+      }
+    }
+  };
 
   const isReadOnly = !editable;
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      setUsersPage(1);
+      return;
+    }
 
     if (!stage) {
       setLocalStage(null);
       setSelectedRoles([]);
-      setSelectedDepartments([]);
+      setSelectedUsers([]);
       return;
     }
 
     const clone = deepClone(stage);
     clone.components = Array.isArray(clone.components) ? clone.components : [];
     clone.approverRoles = Array.isArray(clone.approverRoles) ? clone.approverRoles : [];
-    clone.approverDepartments = Array.isArray(clone.approverDepartments)
-      ? clone.approverDepartments
-      : [];
+    clone.approverUsers = Array.isArray(clone.approverUsers) ? clone.approverUsers : [];
 
     clone.components = (clone.components || []).map((c) => ({
       ...c,
@@ -134,24 +163,11 @@ export const EditStageModal = ({
 
     setLocalStage(clone);
     setSelectedRoles(clone.approverRoles || []);
-    setSelectedDepartments(clone.approverDepartments || []);
+    setSelectedUsers(clone.approverUsers || []);
   }, [open, stage]);
 
   const handleChangeStageField = <K extends keyof FlowModelStage>(key: K, value: FlowModelStage[K]) => {
     if (!localStage) return;
-
-    if (key === "requiresApproval" && !value) {
-      setSelectedRoles([]);
-      setSelectedDepartments([]);
-      setLocalStage({ ...localStage, requiresApproval: false, approverRoles: [], approverDepartments: [] });
-      return;
-    }
-
-    if (key === "canRepeat" && !value) {
-      setLocalStage({ ...localStage, canRepeat: false, repeatCondition: "" });
-      return;
-    }
-
     setLocalStage({ ...localStage, [key]: value });
   };
 
@@ -159,11 +175,22 @@ export const EditStageModal = ({
     if (!localStage?.name?.trim()) return;
     onSaveStage({
       ...localStage,
-      approverRoles: localStage.requiresApproval ? selectedRoles : [],
-      approverDepartments: localStage.requiresApproval ? selectedDepartments : [],
-      canRepeat: !!localStage.canRepeat,
-      requiresApproval: !!localStage.requiresApproval,
+      approverRoles: selectedRoles,
+      approverUsers: selectedUsers,
     });
+    onClose();
+  };
+
+  const handleDuplicate = () => {
+    if (!localStage || !onDuplicateStage) return;
+    const duplicated: FlowModelStage = {
+      ...deepClone(localStage),
+      stageId: `stage_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: `${localStage.name} (Cópia)`,
+      approverRoles: selectedRoles,
+      approverUsers: selectedUsers,
+    };
+    onDuplicateStage(duplicated);
     onClose();
   };
 
@@ -181,6 +208,16 @@ export const EditStageModal = ({
 
   const handleDeleteComponent = (key: string) => {
     if (!localStage) return;
+    const componentToDelete = localStage.components?.find(c => c.key === key);
+    
+    if (componentToDelete?.type === "FILES_MANAGEMENT") {
+      const hasApproval = localStage.components?.some(c => c.type === "APPROVAL");
+      if (hasApproval) {
+        alert("Não é possível remover o componente de Gerenciar Arquivos quando há um componente de Aprovação na etapa.");
+        return;
+      }
+    }
+    
     setLocalStage({ ...localStage, components: (localStage.components || []).filter((c) => c.key !== key) });
   };
 
@@ -395,11 +432,34 @@ export const EditStageModal = ({
                     type="number"
                     value={localStage.businessDaysDuration ?? ""}
                     onChange={(e) => handleChangeStageField("businessDaysDuration", e.target.value ? Number(e.target.value) : undefined)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                        e.preventDefault();
+                      }
+                    }}
                     fullWidth
                     disabled={isReadOnly}
                     inputProps={{ min: 0 }}
                     placeholder="Ex: 5 dias úteis"
                     helperText="Quantidade de dias úteis estimados para conclusão desta etapa"
+                  />
+
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={!!localStage.isOptional}
+                        onChange={(e) => handleChangeStageField("isOptional", e.target.checked)}
+                        disabled={isReadOnly}
+                      />
+                    }
+                    label={
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Typography>Etapas Opcionais</Typography>
+                        <Tooltip title="Etapas opcionais aparecem em roxo e podem ser adicionadas dinamicamente durante o processo pelo criador" arrow>
+                          <InfoIcon sx={{ fontSize: 16, color: "#64748b" }} />
+                        </Tooltip>
+                      </Box>
+                    }
                   />
                 </Box>
               </Box>
@@ -413,100 +473,67 @@ export const EditStageModal = ({
                 }}
               >
                 <Typography sx={{ fontWeight: 800, color: "#212121", mb: 1.5 }}>
-                  Configurações
+                  Responsáveis do Card
                 </Typography>
 
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={!!localStage.requiresApproval}
-                        onChange={(e) =>
-                          handleChangeStageField("requiresApproval", e.target.checked)
-                        }
-                        disabled={isReadOnly}
-                      />
-                    }
-                    label="Requer aprovação"
-                  />
-
-                  {localStage.requiresApproval && (
-                    <>
-                      <Autocomplete
-                        multiple
-                        options={roles}
-                        getOptionLabel={(option) => option.name || option._id}
-                        value={roles.filter((r) => selectedRoles.includes(r._id))}
-                        onChange={(_, newValue) => {
-                          setSelectedRoles(newValue.map((v) => v._id));
-                        }}
-                        disabled={isReadOnly}
-                        renderInput={(params) => (
-                          <TextField {...params} label="Cargos aprovadores" />
-                        )}
-                      />
-
-                      <Autocomplete
-                        multiple
-                        options={departments}
-                        getOptionLabel={(option) => {
-                          const name = option.department_name || option.name || option._id;
-                          return String(name);
-                        }}
-                        value={departments.filter((d) => selectedDepartments.includes(d._id))}
-                        onChange={(_, newValue) => {
-                          setSelectedDepartments(newValue.map((v) => v._id));
-                        }}
-                        onOpen={() => setShouldFetchDepartments(true)}
-                        disabled={isReadOnly}
-                        noOptionsText="Nenhum departamento encontrado"
-                        renderInput={(params) => (
-                          <TextField
-                            {...params}
-                            label="Departamentos aprovadores"
-                            helperText={`${departments.length} departamentos disponíveis`}
-                          />
-                        )}
-                      />
-                    </>
-                  )}
-
-                  <Divider />
-
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={!!localStage.canRepeat}
-                        onChange={(e) => handleChangeStageField("canRepeat", e.target.checked)}
-                        disabled={isReadOnly}
-                      />
-                    }
-                    label="Pode repetir"
-                  />
-
-                  {localStage.canRepeat && (
-                    <TextField
-                      label="Condição de repetição"
-                      value={localStage.repeatCondition || ""}
-                      onChange={(e) =>
-                        handleChangeStageField("repeatCondition", e.target.value)
+                  <Autocomplete
+                    multiple
+                    options={roles}
+                    getOptionLabel={(option) => option.name || option._id}
+                    value={roles.filter((r) => selectedRoles.includes(r._id))}
+                    onChange={(_, newValue) => {
+                      setSelectedRoles(newValue.map((v) => v._id));
+                    }}
+                    onOpen={() => {
+                      if (!roles || roles.length === 0) {
+                        refetchRoles();
                       }
-                      fullWidth
-                      disabled={isReadOnly}
-                      placeholder='Ex: "enquanto status != APROVADO"'
-                    />
-                  )}
-
-                  <TextField
-                    label="Condição de visibilidade"
-                    value={localStage.visibilityCondition || ""}
-                    onChange={(e) =>
-                      handleChangeStageField("visibilityCondition", e.target.value)
-                    }
-                    fullWidth
+                    }}
                     disabled={isReadOnly}
-                    placeholder='Ex: "se tipo_processo == MEDICAMENTO"'
+                    renderInput={(params) => (
+                      <TextField {...params} label="Cargos aprovadores" placeholder="Selecione os cargos" />
+                    )}
                   />
+
+                  <Box>
+                    <Autocomplete
+                      multiple
+                      options={allUsers}
+                      getOptionLabel={(option) => {
+                        if (!option.firstName || !option.lastName) return option.email || 'Usuário sem nome';
+                        const depts = option.departments?.map((d: any) => d.department_name).filter(Boolean).join(", ") || "Sem gerência";
+                        return `${option.firstName} ${option.lastName} (${depts})`;
+                      }}
+                      value={allUsers.filter((u) => selectedUsers.includes(u._id || ""))}
+                      onChange={(_, newValue) => {
+                        setSelectedUsers(newValue.map((v) => v._id || ""));
+                      }}
+                      onOpen={() => {
+                        if (allUsers.length === 0 && usersData?.users) {
+                          setAllUsers(usersData.users);
+                        } else if (allUsers.length === 0) {
+                          setUsersPage(1);
+                          refetchUsers();
+                        }
+                      }}
+                      disabled={isReadOnly}
+                      loading={isFetchingUsers}
+                      noOptionsText="Nenhum usuário encontrado"
+                      ListboxProps={{
+                        onScroll: handleUsersScroll,
+                        style: { maxHeight: '400px' },
+                      }}
+                      renderInput={(params) => (
+                        <TextField {...params} label="Pessoas aprovadoras" placeholder="Selecione pessoas específicas" />
+                      )}
+                    />
+                    {selectedUsers.length > 0 && (
+                      <Alert severity="warning" icon={<WarningIcon />} sx={{ mt: 1.5 }}>
+                        Pode colocar uma pessoa, mas isso limita o reaproveitamento, porque só ela poderá avançar a etapa.
+                      </Alert>
+                    )}
+                  </Box>
                 </Box>
               </Box>
 

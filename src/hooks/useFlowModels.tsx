@@ -33,13 +33,10 @@ export type FlowModelStage = {
   name: string;
   description?: string;
   components: FlowModelComponent[];
-  requiresApproval: boolean;
   approverRoles?: string[];
-  approverDepartments?: string[];
-  canRepeat?: boolean;
-  repeatCondition?: string;
-  visibilityCondition?: string;
+  approverUsers?: string[];
   businessDaysDuration?: number;
+  isOptional?: boolean;
 };
 
 export type FlowModel = {

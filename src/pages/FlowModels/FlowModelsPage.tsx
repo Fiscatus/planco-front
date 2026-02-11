@@ -10,6 +10,7 @@ import {
   Menu,
   MenuItem,
   CircularProgress,
+  Tooltip,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -20,6 +21,7 @@ import {
   ContentCopy as ContentCopyIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
+  Info as InfoIcon,
 } from "@mui/icons-material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState, useMemo, useEffect } from "react";
@@ -402,7 +404,8 @@ const FlowModelsPage = () => {
         return prev;
       }
 
-      if (base.some((s, i) => i !== idx && s.order === updatedStage.order)) {
+      // Apenas valida order se não for opcional
+      if (!updatedStage.isOptional && base.some((s, i) => i !== idx && s.order === updatedStage.order && !s.isOptional)) {
         showNotification("Já existe uma etapa com essa ordem (order).", "error");
         return prev;
       }
@@ -457,11 +460,16 @@ const FlowModelsPage = () => {
         showNotification("Já existe uma etapa com esse stageId.", "error");
         return prev;
       }
-      if (base.some((s) => s.order === newStage.order)) {
-        showNotification("Já existe uma etapa com essa ordem (order).", "error");
-        return prev;
+      
+      // Recalcula order se não for opcional
+      let finalStage = newStage;
+      if (!newStage.isOptional) {
+        const normalStages = base.filter(s => !s.isOptional);
+        const maxOrder = normalStages.length > 0 ? Math.max(...normalStages.map(s => s.order)) : 0;
+        finalStage = { ...newStage, order: maxOrder + 1 };
       }
-      return [...base, newStage];
+      
+      return [...base, finalStage];
     });
     setCreateStageOpen(false);
     showNotification("Etapa criada no rascunho. Clique em Salvar para enviar ao backend.", "success");
@@ -945,6 +953,28 @@ const FlowModelsPage = () => {
                           px: 1,
                         }}
                       />
+                      {stagesToRender.some(stage => stage.isOptional) && (
+                        <Tooltip 
+                          title="Etapas opcionais ficam disponíveis para serem adicionados dinamicamente durante a execução do processo pelo criador" 
+                          arrow
+                          placement="top"
+                        >
+                          <Chip
+                            icon={<InfoIcon sx={{ fontSize: 16, color: "#9333EA" }} />}
+                            label="Etapas Opcionais Disponíveis"
+                            sx={{
+                              bgcolor: "#FAF5FF",
+                              color: "#9333EA",
+                              fontWeight: 700,
+                              fontSize: "0.875rem",
+                              height: 40,
+                              px: 1,
+                              border: "1px solid #E9D5FF",
+                              cursor: "help",
+                            }}
+                          />
+                        </Tooltip>
+                      )}
                     </Box>
                   )}
                 </Box>
@@ -953,31 +983,76 @@ const FlowModelsPage = () => {
 
             <Box sx={{ flex: 1, overflow: "auto", p: 4, bgcolor: "#f4f6f8" }}>
               {stagesToRender && stagesToRender.length > 0 ? (
-                <Box
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: {
-                      xs: "1fr",
-                      sm: "repeat(auto-fill, minmax(280px, 1fr))",
-                      md: "repeat(auto-fill, minmax(320px, 1fr))",
-                      lg: "repeat(auto-fill, minmax(340px, 1fr))",
-                    },
-                    gap: 3,
-                  }}
-                >
-                  {stagesToRender
-                    .slice()
-                    .sort((a, b) => a.order - b.order)
-                    .map((stage) => (
-                      <StageCard
-                        key={stage.stageId || String(stage.order)}
-                        stage={stage}
-                        isEditMode={isEditMode}
-                        onEditStage={handleEditStage}
-                        onDeleteStage={handleDeleteStage}
-                        onDragEnd={handleMoveStage}
-                      />
-                    ))}
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {/* Cards Normais */}
+                  <Box>
+                    <Typography sx={{ fontWeight: 700, fontSize: "1.125rem", color: "#212121", mb: 2 }}>
+                      Etapas do Fluxo
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns: {
+                          xs: "1fr",
+                          sm: "repeat(auto-fill, minmax(280px, 1fr))",
+                          md: "repeat(auto-fill, minmax(320px, 1fr))",
+                          lg: "repeat(auto-fill, minmax(340px, 1fr))",
+                        },
+                        gap: 3,
+                      }}
+                    >
+                      {stagesToRender
+                        .filter(stage => !stage.isOptional)
+                        .slice()
+                        .sort((a, b) => a.order - b.order)
+                        .map((stage) => (
+                          <StageCard
+                            key={stage.stageId || String(stage.order)}
+                            stage={stage}
+                            isEditMode={isEditMode}
+                            onEditStage={handleEditStage}
+                            onDeleteStage={handleDeleteStage}
+                            onDuplicateStage={handleCreateStage}
+                            onDragEnd={handleMoveStage}
+                          />
+                        ))}
+                    </Box>
+                  </Box>
+
+                  {/* Etapas Opcionais */}
+                  {stagesToRender.some(stage => stage.isOptional) && (
+                    <Box>
+                      <Typography sx={{ fontWeight: 700, fontSize: "1.125rem", color: "#9333EA", mb: 2 }}>
+                        Etapas Opcionais
+                      </Typography>
+                      <Box
+                        sx={{
+                          display: "grid",
+                          gridTemplateColumns: {
+                            xs: "1fr",
+                            sm: "repeat(auto-fill, minmax(280px, 1fr))",
+                            md: "repeat(auto-fill, minmax(320px, 1fr))",
+                            lg: "repeat(auto-fill, minmax(340px, 1fr))",
+                          },
+                          gap: 3,
+                        }}
+                      >
+                        {stagesToRender
+                          .filter(stage => stage.isOptional)
+                          .map((stage) => (
+                            <StageCard
+                              key={stage.stageId || String(stage.order)}
+                              stage={stage}
+                              isEditMode={isEditMode}
+                              onEditStage={handleEditStage}
+                              onDeleteStage={handleDeleteStage}
+                              onDuplicateStage={handleCreateStage}
+                              onDragEnd={handleMoveStage}
+                            />
+                          ))}
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
               ) : (
                 <Box

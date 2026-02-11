@@ -18,6 +18,7 @@ import {
   ArrowForward as ArrowForwardIcon,
   Lock as LockIcon,
   Warning as WarningIcon,
+  ContentCopy as ContentCopyIcon,
 } from "@mui/icons-material";
 import type { FlowModelStage } from "@/hooks/useFlowModels";
 import { SignatureComponent } from "./SignatureComponent";
@@ -44,10 +45,11 @@ type StageCardProps = {
   isEditMode?: boolean;
   onEditStage?: (stage: FlowModelStage) => void;
   onDeleteStage?: (stageId: string) => void;
+  onDuplicateStage?: (stage: FlowModelStage) => void;
   onDragEnd?: (activeId: string, overId: string) => void;
 };
 
-export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStage, onDragEnd }: StageCardProps) => {
+export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStage, onDuplicateStage, onDragEnd }: StageCardProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -72,6 +74,19 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
     e?.stopPropagation();
     if (!safeStageId || !window.confirm(`Tem certeza que deseja excluir a etapa "${stage.name}"?\n\nIsso só será aplicado quando você clicar em "Salvar".`)) return;
     onDeleteStage?.(safeStageId);
+  };
+
+  const handleDuplicate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onDuplicateStage) {
+      const duplicated: FlowModelStage = {
+        ...stage,
+        stageId: `stage_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name: `${stage.name} (Cópia)`,
+        order: stage.isOptional ? 0 : undefined,
+      };
+      onDuplicateStage(duplicated);
+    }
   };
 
   const canEdit = isEditMode && !!onEditStage;
@@ -119,8 +134,8 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
         flexDirection: "column",
         gap: 2,
         border: 2,
-        borderColor: isDragOver ? "#1877F2" : "#E4E6EB",
-        bgcolor: isDragOver ? "#F0F9FF" : "background.paper",
+        borderColor: isDragOver ? "#1877F2" : (stage.isOptional ? "#9333EA" : "#E4E6EB"),
+        bgcolor: isDragOver ? "#F0F9FF" : (stage.isOptional ? "#FAF5FF" : "background.paper"),
         borderRadius: 2,
         boxShadow: isDragging ? "0 8px 24px rgba(0, 0, 0, 0.15)" : "0 1px 3px rgba(0, 0, 0, 0.05)",
         transition: "all 0.2s ease-in-out",
@@ -131,7 +146,7 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
         "&:hover": {
           boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
           transform: isDragging ? "scale(1.02)" : "translateY(-2px)",
-          borderColor: isDragOver ? "#1877F2" : "#1877F2",
+          borderColor: isDragOver ? "#1877F2" : (stage.isOptional ? "#9333EA" : "#1877F2"),
         },
         "&:active": {
           cursor: isEditMode ? "grabbing" : "default",
@@ -143,9 +158,12 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
           {isEditMode && (
             <DragIndicatorIcon sx={{ color: "#94a3b8", fontSize: 24, cursor: "grab", "&:active": { cursor: "grabbing" } }} />
           )}
-          <Box sx={{ width: 36, height: 36, borderRadius: "50%", bgcolor: "#1877F2", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "0.9375rem", boxShadow: "0 2px 4px rgba(24, 119, 242, 0.3)", flexShrink: 0 }}>
-            {safeOrder}
+          <Box sx={{ width: 36, height: 36, borderRadius: "50%", bgcolor: stage.isOptional ? "#9333EA" : "#1877F2", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: "0.9375rem", boxShadow: stage.isOptional ? "0 2px 4px rgba(147, 51, 234, 0.3)" : "0 2px 4px rgba(24, 119, 242, 0.3)", flexShrink: 0 }}>
+            {stage.isOptional ? "?" : safeOrder}
           </Box>
+          {stage.isOptional && (
+            <Chip label="OPCIONAL" size="small" sx={{ bgcolor: "#9333EA", color: "white", fontWeight: 800, fontSize: "0.7rem", height: 22 }} />
+          )}
         </Box>
       </Box>
 
@@ -171,6 +189,13 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
         <Box onClick={(e) => e.stopPropagation()} sx={{ display: "flex", gap: 1 }}>
           <Button variant="outlined" startIcon={<VisibilityIcon />} onClick={(e) => { e.stopPropagation(); setPreviewOpen(true); }} fullWidth sx={{ textTransform: "none", fontWeight: 700, borderColor: "#E4E6EB", color: "#212121", borderRadius: 2, fontSize: "0.875rem", "&:hover": { borderColor: "#1877F2", bgcolor: "#F0F9FF", color: "#1877F2" } }}>Preview</Button>
           <Button variant="outlined" startIcon={<EditIcon />} onClick={handleEdit} fullWidth sx={{ textTransform: "none", fontWeight: 700, borderColor: "#E4E6EB", color: "#212121", borderRadius: 2, fontSize: "0.875rem", "&:hover": { borderColor: "#1877F2", bgcolor: "#F0F9FF", color: "#1877F2" } }}>Editar</Button>
+          <Tooltip title="Duplicar etapa">
+            <span>
+              <IconButton onClick={handleDuplicate} disabled={!onDuplicateStage} sx={{ border: "1px solid #E4E6EB", borderRadius: 2, bgcolor: "#fff", "&:hover": { borderColor: "#1877F2", bgcolor: "#F0F9FF" } }}>
+                <ContentCopyIcon fontSize="small" sx={{ color: "#1877F2" }} />
+              </IconButton>
+            </span>
+          </Tooltip>
           <Tooltip title="Excluir etapa">
             <span>
               <IconButton onClick={handleDelete} disabled={!canDelete} sx={{ border: "1px solid #E4E6EB", borderRadius: 2, bgcolor: "#fff", "&:hover": { borderColor: "#F02849", bgcolor: "#FFF1F3" } }}>
