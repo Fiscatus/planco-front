@@ -30,7 +30,7 @@ const COMPONENT_TYPES: { value: ComponentType; label: string }[] = [
   { value: "FILES_MANAGEMENT", label: "Gerenciar Arquivos" },
   { value: "COMMENTS", label: "Comentários" },
   { value: "APPROVAL", label: "Aprovação" },
-  { value: "TIMELINE", label: "Conograma" },
+  { value: "TIMELINE", label: "Cronograma" },
   { value: "CHECKLIST", label: "Checklist" },
 ];
 
