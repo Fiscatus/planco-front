@@ -11,6 +11,7 @@ const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 const NotAccessPage = lazy(() => import('@/pages/NotAccessPage/NotAccessPage'));
 const PrivacyPolicy = lazy(() => import('@/pages/PrivacyPolicy/PrivacyPolicy'));
 const Auth = lazy(() => import('@/pages/Auth/Auth'));
+const VerifyEmail = lazy(() => import('@/pages/Auth/components/VerifyEmail'));
 const OrganizationHome = lazy(() => import('@/pages/OrganizationHome/OrganizationHome'));
 const Invites = lazy(() => import('@/pages/Invites/Invites'));
 const NotAccess = lazy(() => import('@/pages/NotAccessPage/NotAccessPage'));
@@ -21,7 +22,7 @@ const FolderProcessesPage = lazy(() => import('@/pages/FolderProcesses/FolderPro
 const GerenciaProcessesPage = lazy(() => import('@/pages/GerenciaProcesses/GerenciaProcessesPage'));
 const FlowModelsPage = lazy(() => import('@/pages/FlowModels/FlowModelsPage'));
 
-const withoutHeaderRoutes = ['/auth', '/privacy-policy'];
+const withoutHeaderRoutes = ['/auth', '/verify-email', '/privacy-policy'];
 
 const AppRouter = () => {
   const { pathname } = useLocation();
@@ -62,6 +63,10 @@ const AppRouter = () => {
           <Route
             path='/auth'
             element={<Auth />}
+          />
+          <Route
+            path='/verify-email'
+            element={<VerifyEmail />}
           />
 
           {!hasOrganization && (

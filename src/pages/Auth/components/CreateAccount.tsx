@@ -17,6 +17,8 @@ import logo from '/assets/isologo.svg';
 
 type Props = {
   setIsSignIn: (value: boolean) => void;
+  setRegistrationSuccess: (value: boolean) => void;
+  setRegisteredEmail: (email: string) => void;
 };
 
 const formatCPF = (value: string) => {
@@ -85,7 +87,7 @@ const authSchema = z
     path: ['confirmPassword']
   });
 
-const CreateAccount = ({ setIsSignIn }: Props) => {
+const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail }: Props) => {
   const { signUp } = useAuth();
   const { showNotification } = useNotification();
 
@@ -114,9 +116,10 @@ const CreateAccount = ({ setIsSignIn }: Props) => {
         showNotification('Erro ao criar conta. Tente novamente.', 'error');
       }
     },
-    onSuccess: () => {
-      showNotification('Conta criada com sucesso! Faça login para continuar.', 'success');
-      setIsSignIn(true);
+    onSuccess: (data, variables) => {
+      setRegisteredEmail(variables.email);
+      setRegistrationSuccess(true);
+      showNotification('Conta criada! Verifique seu email para ativar.', 'success');
     }
   });
 
