@@ -58,6 +58,7 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
   const [advanceModalOpen, setAdvanceModalOpen] = useState(false);
   const [advanceReason, setAdvanceReason] = useState("");
   const [stageCompleted, setStageCompleted] = useState<boolean | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const componentsCount = useMemo(() => stage.components?.length || 0, [stage.components]);
   const safeStageId = String(stage.stageId || "").trim();
   const safeOrder = typeof stage.order === "number" && Number.isFinite(stage.order) ? stage.order : 0;
@@ -72,8 +73,15 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
 
   const handleDelete = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (!safeStageId || !window.confirm(`Tem certeza que deseja excluir a etapa "${stage.name}"?\n\nIsso só será aplicado quando você clicar em "Salvar".`)) return;
-    onDeleteStage?.(safeStageId);
+    if (!safeStageId) return;
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (safeStageId) {
+      onDeleteStage?.(safeStageId);
+      setDeleteDialogOpen(false);
+    }
   };
 
   const handleDuplicate = (e: React.MouseEvent) => {
@@ -95,7 +103,7 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
   const handleDragStart = (e: React.DragEvent) => {
     if (!isEditMode) return;
     const target = e.target as HTMLElement;
-    if (target.closest('button')) {
+    if (target.closest('button') || target.tagName === 'BUTTON' || target.closest('[role="button"]')) {
       e.preventDefault();
       return;
     }
@@ -407,6 +415,58 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
             Confirmar
           </Button>
         </DialogActions>
+      </Dialog>
+
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 2 } }}>
+        <DialogContent sx={{ p: 3 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+            <Box sx={{ bgcolor: "#FEE2E2", borderRadius: "50%", p: 1.5, mb: 2 }}>
+              <DeleteIcon sx={{ fontSize: 32, color: "#DC2626" }} />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+              Excluir etapa?
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#64748b", mb: 0.5 }}>
+              Tem certeza que deseja excluir a etapa
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#0f172a", fontWeight: 600, mb: 2 }}>
+              "{stage.name}"?
+            </Typography>
+            <Typography variant="caption" sx={{ color: "#94a3b8", mb: 3 }}>
+              Isso só será aplicado quando você clicar em "Salvar".
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1.5, width: "100%" }}>
+              <Button
+                onClick={() => setDeleteDialogOpen(false)}
+                variant="outlined"
+                fullWidth
+                sx={{
+                  textTransform: "none",
+                  borderRadius: 1.5,
+                  fontWeight: 600,
+                  borderColor: "#E4E6EB",
+                  color: "#212121",
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={confirmDelete}
+                variant="contained"
+                fullWidth
+                sx={{
+                  textTransform: "none",
+                  borderRadius: 1.5,
+                  fontWeight: 600,
+                  bgcolor: "#DC2626",
+                  "&:hover": { bgcolor: "#B91C1C" },
+                }}
+              >
+                Excluir
+              </Button>
+            </Box>
+          </Box>
+        </DialogContent>
       </Dialog>
     </Box>
   );

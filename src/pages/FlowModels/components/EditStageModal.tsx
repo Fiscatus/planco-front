@@ -38,6 +38,7 @@ import type {
 } from "@/hooks/useFlowModels";
 import { useRolesAndDepartments } from "@/hooks/useRolesAndDepartments";
 import { useUsers } from "@/hooks/useUsers";
+import { useNotification } from "@/components/NotificationProvider";
 import { AddComponentModal } from "./AddComponentModal";
 import { SignatureComponent } from "./SignatureComponent";
 import { FilesManagementComponent } from "./FilesManagementComponent";
@@ -92,6 +93,8 @@ export const EditStageModal = ({
   const [previewComponentKey, setPreviewComponentKey] = useState<string | null>(null);
   const [previewFullscreen, setPreviewFullscreen] = useState(false);
   const [editModalFullscreen, setEditModalFullscreen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [componentToDelete, setComponentToDelete] = useState<string | null>(null);
 
   const { fetchRolesByOrg } = useRolesAndDepartments();
   const { fetchUsers } = useUsers();
@@ -209,9 +212,9 @@ export const EditStageModal = ({
 
   const handleDeleteComponent = (key: string) => {
     if (!localStage) return;
-    const componentToDelete = localStage.components?.find(c => c.key === key);
+    const component = localStage.components?.find(c => c.key === key);
     
-    if (componentToDelete?.type === "FILES_MANAGEMENT") {
+    if (component?.type === "FILES_MANAGEMENT") {
       const hasApproval = localStage.components?.some(c => c.type === "APPROVAL");
       if (hasApproval) {
         showNotification("Não é possível remover o componente de Gerenciar Arquivos quando há um componente de Aprovação na etapa.", "warning");
@@ -219,7 +222,15 @@ export const EditStageModal = ({
       }
     }
     
-    setLocalStage({ ...localStage, components: (localStage.components || []).filter((c) => c.key !== key) });
+    setComponentToDelete(key);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (!localStage || !componentToDelete) return;
+    setLocalStage({ ...localStage, components: (localStage.components || []).filter((c) => c.key !== componentToDelete) });
+    setDeleteConfirmOpen(false);
+    setComponentToDelete(null);
   };
 
   const handlePreviewComponent = (key: string) => {
@@ -738,6 +749,58 @@ export const EditStageModal = ({
         existingComponents={localStage?.components || []}
         editingComponent={editingComponent}
       />
+
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={() => setDeleteConfirmOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 2 } }}
+      >
+        <DialogContent sx={{ p: 3 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+            <Box sx={{ bgcolor: "#FEE2E2", borderRadius: "50%", p: 1.5, mb: 2 }}>
+              <DeleteIcon sx={{ fontSize: 32, color: "#DC2626" }} />
+            </Box>
+            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+              Excluir componente?
+            </Typography>
+            <Typography variant="body2" sx={{ color: "#64748b", mb: 3 }}>
+              Esta ação não pode ser desfeita.
+            </Typography>
+            <Box sx={{ display: "flex", gap: 1.5, width: "100%" }}>
+              <Button
+                onClick={() => setDeleteConfirmOpen(false)}
+                variant="outlined"
+                fullWidth
+                sx={{
+                  textTransform: "none",
+                  borderRadius: 1.5,
+                  fontWeight: 600,
+                  borderColor: "#E4E6EB",
+                  color: "#212121",
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={confirmDelete}
+                variant="contained"
+                fullWidth
+                sx={{
+                  textTransform: "none",
+                  borderRadius: 1.5,
+                  fontWeight: 600,
+                  bgcolor: "#DC2626",
+                  "&:hover": { bgcolor: "#B91C1C" },
+                }}
+              >
+                Excluir
+              </Button>
+            </Box>
+          </Box>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={!!previewComponentKey}

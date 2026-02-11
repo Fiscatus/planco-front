@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React from "react";
 import { Box, Card, Typography, IconButton, Chip, Tooltip } from "@mui/material";
 import {
   MoreVert as MoreVertIcon,
@@ -11,8 +11,6 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/pt-br";
 
-import { useFavoriteFlowModels } from "@/hooks/useFavoriteFlowModels";
-
 dayjs.extend(relativeTime);
 dayjs.locale("pt-br");
 
@@ -22,42 +20,45 @@ type FlowModelCardProps = {
   onClick: () => void;
   onMenuClick: (event: React.MouseEvent<HTMLElement>) => void;
   hideMenu?: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: (modelId: string) => void;
 };
 
-export const FlowModelCard = ({ model, isSelected, onClick, onMenuClick, hideMenu = false }: FlowModelCardProps) => {
-  const { isFavorite, toggleFavorite } = useFavoriteFlowModels();
+export const FlowModelCard = ({ model, isSelected, onClick, onMenuClick, hideMenu = false, isFavorite = false, onToggleFavorite }: FlowModelCardProps) => {
   const isSystem = model.isDefaultPlanco === true;
-  const isModelFavorite = !isSystem && isFavorite(model._id);
   const stageCount = model.stages?.length || 0;
   const timeAgo = (model.updatedAt || model.createdAt) ? dayjs(model.updatedAt || model.createdAt).fromNow() : "";
 
-  const handleFavoriteClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    if (!isSystem) toggleFavorite(model._id);
-  }, [toggleFavorite, model._id, isSystem]);
-
   return (
     <Card
-      onClick={onClick}
       sx={{
-        p: 2,
-        cursor: "pointer",
-        border: isSelected ? 2 : 1,
-        borderColor: isSelected ? "#1877F2" : "#E4E6EB",
-        bgcolor: isSelected ? "#E7F3FF" : "background.paper",
         borderRadius: 2,
-        transition: "all 0.2s ease-in-out",
         boxShadow: isSelected
           ? "0 2px 8px rgba(24, 119, 242, 0.15)"
           : "0 1px 3px rgba(0, 0, 0, 0.05)",
-        "&:hover": {
-          bgcolor: isSelected ? "#E7F3FF" : "#F0F2F5",
-          borderColor: "#1877F2",
-          boxShadow: "0 2px 8px rgba(24, 119, 242, 0.15)",
-          transform: "translateY(-1px)",
-        },
       }}
     >
+      <Box
+        onClick={onClick}
+        sx={{
+          p: 2,
+          cursor: "pointer",
+          border: isSelected ? 2 : 1,
+          borderColor: isSelected ? "#1877F2" : "#E4E6EB",
+          bgcolor: isSelected ? "#E7F3FF" : "background.paper",
+          borderRadius: 2,
+          transition: "all 0.2s ease-in-out",
+          boxShadow: isSelected
+            ? "0 2px 8px rgba(24, 119, 242, 0.15)"
+            : "0 1px 3px rgba(0, 0, 0, 0.05)",
+          "&:hover": {
+            bgcolor: isSelected ? "#E7F3FF" : "#F0F2F5",
+            borderColor: "#1877F2",
+            boxShadow: "0 2px 8px rgba(24, 119, 242, 0.15)",
+            transform: "translateY(-1px)",
+          },
+        }}
+      >
       <Box
         sx={{
           display: "flex",
@@ -79,9 +80,9 @@ export const FlowModelCard = ({ model, isSelected, onClick, onMenuClick, hideMen
           {model.name}
         </Typography>
 
-        {/* ✅ Indicadores (igual pasta): sistema = fixado; pessoal = favoritos */}
+        {/* Indicadores */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 0.75 }}>
-          {isSystem ? (
+          {isSystem && (
             <Tooltip title="Modelo Padrão do Sistema">
               <IconButton
                 size="small"
@@ -98,48 +99,28 @@ export const FlowModelCard = ({ model, isSelected, onClick, onMenuClick, hideMen
                 <PushPinIcon sx={{ fontSize: { xs: 20, sm: 22 } }} />
               </IconButton>
             </Tooltip>
-          ) : (
-            <Tooltip
-              title={isModelFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-            >
+          )}
+
+          {/* Favorito */}
+          {!isSystem && onToggleFavorite && (
+            <Tooltip title={isFavorite ? "Remover dos favoritos" : "Adicionar aos favoritos"}>
               <IconButton
-                onClick={handleFavoriteClick}
                 size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite(model._id);
+                }}
                 sx={{
-                  padding: 0.75,
-                  minWidth: "auto",
-                  width: { xs: 32, sm: 36 },
-                  height: { xs: 32, sm: 36 },
-                  color: isModelFavorite ? "#fbbf24" : "#94a3b8",
-                  "&:hover": {
-                    backgroundColor: "transparent",
-                    color: "#fbbf24",
-                  },
-                  transition: "all 0.2s ease-in-out",
+                  color: isFavorite ? "#FFB800" : "text.secondary",
+                  "&:hover": { color: "#FFB800" },
                 }}
               >
-                {isModelFavorite ? (
-                  <StarIcon
-                    sx={{
-                      fontSize: { xs: 20, sm: 22 },
-                      color: "#fbbf24",
-                      transition: "all 0.2s ease-in-out",
-                    }}
-                  />
-                ) : (
-                  <StarBorderIcon
-                    sx={{
-                      fontSize: { xs: 20, sm: 22 },
-                      color: "#94a3b8",
-                      transition: "all 0.2s ease-in-out",
-                    }}
-                  />
-                )}
+                {isFavorite ? <StarIcon fontSize="small" /> : <StarBorderIcon fontSize="small" />}
               </IconButton>
             </Tooltip>
           )}
 
-          {/* Menu (não aparece em modelo do sistema) */}
+          {/* Menu */}
           {!hideMenu && (
             <IconButton
               size="small"
@@ -203,6 +184,7 @@ export const FlowModelCard = ({ model, isSelected, onClick, onMenuClick, hideMen
           {model.description}
         </Typography>
       )}
+      </Box>
     </Card>
   );
 };

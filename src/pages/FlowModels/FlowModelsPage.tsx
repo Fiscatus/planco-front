@@ -28,6 +28,7 @@ import { useCallback, useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useNotification } from "@/components";
 import { useFlowModels, useSearchWithDebounce, useAuth } from "@/hooks";
+import { useFavoriteFlowModels } from "@/hooks/useFavoriteFlowModels";
 import type {
   UpdateFlowModelDto,
   FlowModel,
@@ -40,7 +41,6 @@ import { StageCard } from "./components/StageCard";
 import { EditStageModal } from "./components/EditStageModal";
 import { CreateStageModal } from "./components/CreateStageModal";
 import { ConfirmDialog } from "./components/ConfirmDialog";
-import { useFavoriteFlowModels } from "@/hooks/useFavoriteFlowModels";
 
 type TabValue = "all" | "system" | "mine";
 
@@ -53,8 +53,9 @@ const FlowModelsPage = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [urlParams, setUrlParams] = useSearchParams();
+  const { isFavorite, toggleFavorite, sortModels } = useFavoriteFlowModels();
 
-  const { isFavorite } = useFavoriteFlowModels();
+
 
   const {
     fetchFlowModels,
@@ -90,6 +91,7 @@ const FlowModelsPage = () => {
   const [draftStages, setDraftStages] = useState<FlowModelStage[] | null>(null);
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const [deleteModelDialogOpen, setDeleteModelDialogOpen] = useState(false);
 
   const {
     search: modelSearch,
@@ -146,18 +148,19 @@ const FlowModelsPage = () => {
   }, [flowModels, debouncedModelSearch, selectedTab, user?._id]);
 
   const sortedFilteredModels = useMemo(() => {
-    return filteredModels.slice().sort((a, b) => {
-      const aSystem = a.isDefaultPlanco ? 1 : 0;
-      const bSystem = b.isDefaultPlanco ? 1 : 0;
-      if (bSystem !== aSystem) return bSystem - aSystem;
-
-      const aFav = !aSystem && isFavorite(a._id) ? 1 : 0;
-      const bFav = !bSystem && isFavorite(b._id) ? 1 : 0;
-      if (bFav !== aFav) return bFav - aFav;
+    const sorted = sortModels(filteredModels);
+    return sorted.slice().sort((a, b) => {
+      if (a.isDefaultPlanco && !b.isDefaultPlanco) return -1;
+      if (!a.isDefaultPlanco && b.isDefaultPlanco) return 1;
+      
+      const aFav = isFavorite(a._id);
+      const bFav = isFavorite(b._id);
+      if (aFav && !bFav) return -1;
+      if (!aFav && bFav) return 1;
 
       return (a.name || "").localeCompare(b.name || "", "pt-BR", { sensitivity: "base" });
     });
-  }, [filteredModels, isFavorite]);
+  }, [filteredModels, sortModels, isFavorite]);
 
   const stagesToRender = useMemo(() => 
     !selectedModel ? [] : isEditMode ? (draftStages || []) : (selectedModel.stages || [])
@@ -293,13 +296,19 @@ const FlowModelsPage = () => {
     const model = flowModels.find((m) => m._id === menuModelId);
     if (model?.isDefaultPlanco) {
       showNotification("Não é possível excluir o modelo do sistema.", "info");
+      handleMenuClose();
       return;
     }
-    if (window.confirm("Tem certeza que deseja excluir este modelo?")) {
+    setDeleteModelDialogOpen(true);
+  }, [menuModelId, flowModels, handleMenuClose, showNotification]);
+
+  const confirmDeleteModel = useCallback(() => {
+    if (menuModelId) {
       deleteModelMutation(menuModelId);
+      setDeleteModelDialogOpen(false);
+      handleMenuClose();
     }
-    handleMenuClose();
-  }, [menuModelId, flowModels, deleteModelMutation, handleMenuClose, showNotification]);
+  }, [menuModelId, deleteModelMutation, handleMenuClose]);
 
   const handleDuplicate = useCallback(() => {
     if (menuModelId) duplicateModelMutation(menuModelId);
@@ -708,6 +717,8 @@ const FlowModelsPage = () => {
                   onClick={() => handleModelClick(model._id)}
                   onMenuClick={(e) => handleMenuOpen(e, model._id)}
                   hideMenu={false}
+                  isFavorite={isFavorite(model._id)}
+                  onToggleFavorite={toggleFavorite}
                 />
               ))}
             </Box>
@@ -1193,6 +1204,14 @@ const FlowModelsPage = () => {
         }}
         title="Alterações não salvas"
         message="Você está no modo de edição. As alterações não salvas serão perdidas. Deseja continuar?"
+      />
+      <ConfirmDialog
+        open={deleteModelDialogOpen}
+        onClose={() => setDeleteModelDialogOpen(false)}
+        onConfirm={confirmDeleteModel}
+        title="Excluir modelo?"
+        message="Esta ação não pode ser desfeita. Todos os dados do modelo serão perdidos."
+        variant="danger"
       />
     </Box>
   );

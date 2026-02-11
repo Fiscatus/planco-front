@@ -56,10 +56,31 @@ export const useFavoriteFolders = () => {
     return Array.from(favoriteIds);
   }, [favoriteIds]);
 
+  // Ordenar pastas: padrão do sistema primeiro, depois favoritos, depois não-favoritos
+  const sortFolders = useCallback(
+    <T extends { id: string; isDefault?: boolean }>(folders: T[]): T[] => {
+      return [...folders].sort((a, b) => {
+        // Padrão do sistema sempre primeiro
+        if (a.isDefault) return -1;
+        if (b.isDefault) return 1;
+        
+        // Depois favoritos antes de não-favoritos
+        const aFav = favoriteIds.has(a.id);
+        const bFav = favoriteIds.has(b.id);
+        if (aFav && !bFav) return -1;
+        if (!aFav && bFav) return 1;
+        
+        return 0;
+      });
+    },
+    [favoriteIds]
+  );
+
   return {
     isFavorite,
     toggleFavorite,
-    getFavoriteIds
+    getFavoriteIds,
+    sortFolders
   };
 };
 
