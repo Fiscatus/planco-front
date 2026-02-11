@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
-import { Box, Button, Chip, Collapse, Dialog, DialogContent, IconButton, Tooltip, Typography } from "@mui/material";
+import { Box, Button, Chip, Collapse, Dialog, DialogContent, IconButton, Tooltip, Typography, TextField, DialogActions, Alert } from "@mui/material";
 import {
-  CheckCircle as CheckCircleIcon,
   Delete as DeleteIcon,
   DragIndicator as DragIndicatorIcon,
   Edit as EditIcon,
@@ -16,19 +15,24 @@ import {
   UnfoldMore as UnfoldMoreIcon,
   UnfoldLess as UnfoldLessIcon,
   Info as InfoIcon,
+  ArrowForward as ArrowForwardIcon,
+  Lock as LockIcon,
+  Warning as WarningIcon,
 } from "@mui/icons-material";
 import type { FlowModelStage } from "@/hooks/useFlowModels";
 import { SignatureComponent } from "./SignatureComponent";
 import { FilesManagementComponent } from "./FilesManagementComponent";
 import { ApprovalComponent } from "./ApprovalComponent";
 import { TimelineComponent } from "./TimelineComponent";
+import { CommentsComponent } from "./CommentsComponent";
 
 // Mapeamento de componentes implementados
 const COMPONENT_MAP: Record<string, React.ComponentType<any>> = {
   SIGNATURE: SignatureComponent,
   FILES_MANAGEMENT: FilesManagementComponent,
   APPROVAL: ApprovalComponent,
-  TIMELINE: TimelineComponent
+  TIMELINE: TimelineComponent,
+  COMMENTS: CommentsComponent
 };
 
 type StageCardProps = {
@@ -45,6 +49,9 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFullscreen, setPreviewFullscreen] = useState(false);
   const [expandedComponents, setExpandedComponents] = useState<Record<string, boolean>>({});
+  const [advanceModalOpen, setAdvanceModalOpen] = useState(false);
+  const [advanceReason, setAdvanceReason] = useState("");
+  const [stageCompleted, setStageCompleted] = useState<boolean | null>(null);
   const componentsCount = useMemo(() => stage.components?.length || 0, [stage.components]);
   const safeStageId = String(stage.stageId || "").trim();
   const safeOrder = typeof stage.order === "number" && Number.isFinite(stage.order) ? stage.order : 0;
@@ -174,47 +181,46 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
         </Box>
       )}
 
-      <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} fullWidth fullScreen={previewFullscreen} maxWidth={previewFullscreen ? false : "lg"} PaperProps={{ sx: { borderRadius: previewFullscreen ? 0 : 3, overflow: "hidden" } }}>
-        <DialogContent sx={{ p: 0 }}>
-          <Box sx={{ px: 3, py: 2.5, borderBottom: "1px solid #E4E6EB", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <Box>
-              <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "1.25rem" }}>Preview da Etapa: {stage.name}</Typography>
-              <Typography variant="body2" sx={{ color: "#64748b", mt: 0.25 }}>Visualização com dados simulados • {componentsCount} {componentsCount === 1 ? "componente" : "componentes"}</Typography>
-            </Box>
-            <Box sx={{ display: "flex", gap: 1 }}>
-              <Button
-                size="small"
-                startIcon={<UnfoldMoreIcon />}
-                onClick={() => {
-                  const allExpanded: Record<string, boolean> = {};
-                  stage.components?.forEach(comp => { allExpanded[comp.key] = true; });
-                  setExpandedComponents(allExpanded);
-                }}
-                sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.8125rem" }}
-              >
-                Abrir Todos
-              </Button>
-              <Button
-                size="small"
-                startIcon={<UnfoldLessIcon />}
-                onClick={() => {
-                  const allCollapsed: Record<string, boolean> = {};
-                  stage.components?.forEach(comp => { allCollapsed[comp.key] = false; });
-                  setExpandedComponents(allCollapsed);
-                }}
-                sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.8125rem" }}
-              >
-                Recolher Todos
-              </Button>
-              <IconButton onClick={() => setPreviewFullscreen(!previewFullscreen)} sx={{ color: "#1877F2" }}>
-                {previewFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
-              </IconButton>
-              <IconButton onClick={(e) => { e.stopPropagation(); setPreviewOpen(false); }}><CloseIcon /></IconButton>
-            </Box>
+      <Dialog open={previewOpen} onClose={() => setPreviewOpen(false)} fullWidth fullScreen={previewFullscreen} maxWidth={previewFullscreen ? false : "lg"} PaperProps={{ sx: { borderRadius: previewFullscreen ? 0 : 3, overflow: "hidden", display: "flex", flexDirection: "column", maxHeight: previewFullscreen ? "100vh" : "90vh" } }}>
+        <Box sx={{ px: 3, py: 2.5, borderBottom: "1px solid #E4E6EB", display: "flex", justifyContent: "space-between", alignItems: "center", flexShrink: 0 }}>
+          <Box>
+            <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "1.25rem" }}>Preview da Etapa: {stage.name}</Typography>
+            <Typography variant="body2" sx={{ color: "#64748b", mt: 0.25 }}>Visualização com dados simulados • {componentsCount} {componentsCount === 1 ? "componente" : "componentes"}</Typography>
           </Box>
-          <Box sx={{ p: 3, bgcolor: "#FAFBFC", height: previewFullscreen ? "calc(100vh - 80px)" : "auto", overflow: "auto" }}>
-            {stage.components && stage.components.length > 0 ? (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+          <Box sx={{ display: "flex", gap: 1 }}>
+            <Button
+              size="small"
+              startIcon={<UnfoldMoreIcon />}
+              onClick={() => {
+                const allExpanded: Record<string, boolean> = {};
+                stage.components?.forEach(comp => { allExpanded[comp.key] = true; });
+                setExpandedComponents(allExpanded);
+              }}
+              sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.8125rem" }}
+            >
+              Abrir Todos
+            </Button>
+            <Button
+              size="small"
+              startIcon={<UnfoldLessIcon />}
+              onClick={() => {
+                const allCollapsed: Record<string, boolean> = {};
+                stage.components?.forEach(comp => { allCollapsed[comp.key] = false; });
+                setExpandedComponents(allCollapsed);
+              }}
+              sx={{ textTransform: "none", fontWeight: 600, fontSize: "0.8125rem" }}
+            >
+              Recolher Todos
+            </Button>
+            <IconButton onClick={() => setPreviewFullscreen(!previewFullscreen)} sx={{ color: "#1877F2" }}>
+              {previewFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+            </IconButton>
+            <IconButton onClick={(e) => { e.stopPropagation(); setPreviewOpen(false); }}><CloseIcon /></IconButton>
+          </Box>
+        </Box>
+        <Box sx={{ p: 3, bgcolor: "#FAFBFC", overflow: "auto", flex: 1 }}>
+          {stage.components && stage.components.length > 0 ? (
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
                 {stage.components.sort((a, b) => a.order - b.order).map((comp) => {
                   const Component = COMPONENT_MAP[comp.type];
                   const isExpanded = expandedComponents[comp.key] ?? true;
@@ -252,15 +258,126 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
                       )}
                     </Box>
                   ) : null;
-                })}
-              </Box>
+                })}              </Box>
             ) : (
               <Box sx={{ textAlign: "center", py: 4 }}>
                 <Typography variant="body2" sx={{ color: "#64748b" }}>Nenhum componente adicionado nesta etapa</Typography>
               </Box>
             )}
+        </Box>
+        <Box sx={{ px: 3, py: 2, borderTop: "1px solid #E4E6EB", bgcolor: "#FAFBFC", display: "flex", justifyContent: "flex-end", flexShrink: 0 }}>
+          <Button
+              variant="contained"
+              startIcon={<ArrowForwardIcon />}
+              onClick={() => setAdvanceModalOpen(true)}
+              sx={{
+                bgcolor: "#1877F2",
+                textTransform: "none",
+                fontWeight: 700,
+                borderRadius: 2,
+                "&:hover": { bgcolor: "#166FE5" },
+              }}
+            >
+              Avançar Etapa
+          </Button>
+        </Box>
+      </Dialog>
+
+      <Dialog open={advanceModalOpen} onClose={() => setAdvanceModalOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogContent sx={{ p: 0 }}>
+          <Box sx={{ px: 3, py: 2.5, borderBottom: "1px solid #E4E6EB" }}>
+            <Typography sx={{ fontWeight: 700, fontSize: "1.25rem", color: "#0f172a" }}>Avançar Etapa</Typography>
+            <Typography variant="body2" sx={{ color: "#64748b", mt: 0.5 }}>Confirme se a etapa foi completamente finalizada</Typography>
+          </Box>
+          <Box sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2.5 }}>
+            <Alert severity="warning" icon={<WarningIcon />} sx={{ borderRadius: 2, fontWeight: 600 }}>
+              Revise todos os pontos antes de continuar! Essa ação não pode ser desfeita!
+            </Alert>
+            <Typography sx={{ fontWeight: 600, color: "#0f172a", fontSize: "1rem", textAlign: "center" }}>
+              A etapa foi completamente finalizada?
+            </Typography>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Button
+                variant={stageCompleted === true ? "contained" : "outlined"}
+                onClick={() => setStageCompleted(true)}
+                fullWidth
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 700,
+                  borderRadius: 2,
+                  py: 1.5,
+                  bgcolor: stageCompleted === true ? "#1877F2" : "transparent",
+                  borderColor: stageCompleted === true ? "#1877F2" : "#E4E6EB",
+                  color: stageCompleted === true ? "#fff" : "#0f172a",
+                  "&:hover": {
+                    bgcolor: stageCompleted === true ? "#166FE5" : "#F0F9FF",
+                    borderColor: "#1877F2",
+                  },
+                }}
+              >
+                Sim
+              </Button>
+              <Button
+                variant={stageCompleted === false ? "contained" : "outlined"}
+                onClick={() => setStageCompleted(false)}
+                fullWidth
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 700,
+                  borderRadius: 2,
+                  py: 1.5,
+                  bgcolor: stageCompleted === false ? "#F02849" : "transparent",
+                  borderColor: stageCompleted === false ? "#F02849" : "#E4E6EB",
+                  color: stageCompleted === false ? "#fff" : "#0f172a",
+                  "&:hover": {
+                    bgcolor: stageCompleted === false ? "#DC2626" : "#FFF1F3",
+                    borderColor: "#F02849",
+                  },
+                }}
+              >
+                Não
+              </Button>
+            </Box>
+            {stageCompleted === false && (
+              <TextField
+                label="Explique aqui o motivo de não ter finalizado a etapa"
+                fullWidth
+                multiline
+                rows={4}
+                value={advanceReason}
+                onChange={(e) => setAdvanceReason(e.target.value)}
+                disabled
+                placeholder="Descreva o motivo... (bloqueado no preview)"
+                InputProps={{
+                  endAdornment: <LockIcon sx={{ color: "#94a3b8", fontSize: 20 }} />,
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 2,
+                    bgcolor: "#F8F9FA",
+                  },
+                }}
+              />
+            )}
           </Box>
         </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2, borderTop: "1px solid #E4E6EB" }}>
+          <Button
+            onClick={() => { setAdvanceModalOpen(false); setAdvanceReason(""); setStageCompleted(null); }}
+            variant="outlined"
+            sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700, borderColor: "#E4E6EB" }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            disabled={stageCompleted === null}
+            onClick={() => { setAdvanceModalOpen(false); setAdvanceReason(""); setStageCompleted(null); }}
+            sx={{ bgcolor: "#1877F2", textTransform: "none", fontWeight: 700, borderRadius: 2, "&:hover": { bgcolor: "#166FE5" }, "&:disabled": { bgcolor: "#CBD5E1" } }}
+          >
+            Confirmar
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );
