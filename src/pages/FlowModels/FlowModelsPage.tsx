@@ -833,86 +833,6 @@ const FlowModelsPage = () => {
                         />
                       </Box>
                     </Box>
-
-                    <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-                      {isDefaultPlanco ? (
-                        <Button
-                          variant="contained"
-                          startIcon={<ContentCopyIcon />}
-                          onClick={() => duplicateModelMutation(selectedModel._id)}
-                          disabled={duplicatingModel}
-                          sx={{
-                            bgcolor: "#1877F2",
-                            "&:hover": { bgcolor: "#166FE5" },
-                            textTransform: "none",
-                            fontWeight: 600,
-                            borderRadius: 2,
-                            boxShadow: "none",
-                            px: 3,
-                          }}
-                        >
-                          {duplicatingModel ? (
-                            <CircularProgress size={20} sx={{ color: "#fff" }} />
-                          ) : (
-                            "Duplicar"
-                          )}
-                        </Button>
-                      ) : isEditMode ? (
-                        <>
-                          <Button
-                            variant="text"
-                            onClick={handleRevert}
-                            disabled={updatingModel}
-                            sx={{
-                              textTransform: "none",
-                              fontWeight: 600,
-                              color: "#616161",
-                              "&:hover": { bgcolor: "#F0F2F5" },
-                            }}
-                          >
-                            Reverter
-                          </Button>
-
-                          <Button
-                            variant="contained"
-                            onClick={handleSave}
-                            disabled={updatingModel}
-                            sx={{
-                              bgcolor: "#1877F2",
-                              "&:hover": { bgcolor: "#166FE5" },
-                              textTransform: "none",
-                              fontWeight: 600,
-                              borderRadius: 2,
-                              boxShadow: "none",
-                              px: 3,
-                            }}
-                          >
-                            {updatingModel ? (
-                              <CircularProgress size={20} sx={{ color: "#fff" }} />
-                            ) : (
-                              "Salvar"
-                            )}
-                          </Button>
-                        </>
-                      ) : (
-                        <Button
-                          variant="contained"
-                          startIcon={<EditIcon />}
-                          onClick={handleEditFlow}
-                          sx={{
-                            bgcolor: "#1877F2",
-                            "&:hover": { bgcolor: "#166FE5" },
-                            textTransform: "none",
-                            fontWeight: 600,
-                            borderRadius: 2,
-                            boxShadow: "none",
-                            px: 3,
-                          }}
-                        >
-                          Editar Fluxo
-                        </Button>
-                      )}
-                    </Box>
                   </Box>
 
                   {!isDefaultPlanco && isEditMode && (
@@ -976,6 +896,104 @@ const FlowModelsPage = () => {
                           />
                         </Tooltip>
                       )}
+                      <Box sx={{ ml: "auto", display: "flex", gap: 1.5 }}>
+                        <Button
+                          variant="text"
+                          onClick={handleRevert}
+                          disabled={updatingModel}
+                          sx={{
+                            textTransform: "none",
+                            fontWeight: 600,
+                            color: "#616161",
+                            "&:hover": { bgcolor: "#F0F2F5" },
+                          }}
+                        >
+                          Reverter
+                        </Button>
+                        <Button
+                          variant="contained"
+                          onClick={handleSave}
+                          disabled={updatingModel}
+                          sx={{
+                            bgcolor: "#1877F2",
+                            "&:hover": { bgcolor: "#166FE5" },
+                            textTransform: "none",
+                            fontWeight: 600,
+                            borderRadius: 2,
+                            boxShadow: "none",
+                            px: 3,
+                          }}
+                        >
+                          {updatingModel ? (
+                            <CircularProgress size={20} sx={{ color: "#fff" }} />
+                          ) : (
+                            "Salvar"
+                          )}
+                        </Button>
+                      </Box>
+                    </Box>
+                  )}
+
+                  {!isDefaultPlanco && !isEditMode && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        pt: 3,
+                        borderTop: 1,
+                        borderColor: "#E4E6EB",
+                      }}
+                    >
+                      <Button
+                        variant="contained"
+                        startIcon={<EditIcon />}
+                        onClick={handleEditFlow}
+                        sx={{
+                          bgcolor: "#1877F2",
+                          "&:hover": { bgcolor: "#166FE5" },
+                          textTransform: "none",
+                          fontWeight: 600,
+                          borderRadius: 2,
+                          boxShadow: "none",
+                          px: 3,
+                        }}
+                      >
+                        Editar Fluxo
+                      </Button>
+                    </Box>
+                  )}
+
+                  {isDefaultPlanco && (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        pt: 3,
+                        borderTop: 1,
+                        borderColor: "#E4E6EB",
+                      }}
+                    >
+                      <Button
+                        variant="contained"
+                        startIcon={<ContentCopyIcon />}
+                        onClick={() => duplicateModelMutation(selectedModel._id)}
+                        disabled={duplicatingModel}
+                        sx={{
+                          bgcolor: "#1877F2",
+                          "&:hover": { bgcolor: "#166FE5" },
+                          textTransform: "none",
+                          fontWeight: 600,
+                          borderRadius: 2,
+                          boxShadow: "none",
+                          px: 3,
+                        }}
+                      >
+                        {duplicatingModel ? (
+                          <CircularProgress size={20} sx={{ color: "#fff" }} />
+                        ) : (
+                          "Duplicar"
+                        )}
+                      </Button>
                     </Box>
                   )}
                 </Box>
