@@ -47,7 +47,7 @@ export const CreateFlowModelModal = ({ open, onClose, onSave, loading = false }:
         approverUsers: [],
         components: [{
           order: 1,
-          type: "STAGE_PANEL",
+          type: "TIMELINE",
           key: "stage_panel",
           label: "Painel da Etapa",
           description: "Visão geral da etapa",

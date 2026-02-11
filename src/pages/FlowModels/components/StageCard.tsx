@@ -4,7 +4,6 @@ import {
   Delete as DeleteIcon,
   DragIndicator as DragIndicatorIcon,
   Edit as EditIcon,
-  GppGood as GppGoodIcon,
   Layers as LayersIcon,
   Visibility as VisibilityIcon,
   Close as CloseIcon,
@@ -185,8 +184,6 @@ export const StageCard = ({ stage, isEditMode = false, onEditStage, onDeleteStag
       <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
           <Chip icon={<LayersIcon sx={{ fontSize: 16, color: "#1877F2" }} />} label={`${componentsCount} ${componentsCount === 1 ? "componente" : "componentes"}`} size="small" sx={{ bgcolor: "#E7F3FF", color: "#1877F2", fontWeight: 800, fontSize: "0.75rem", height: 24, "& .MuiChip-icon": { ml: 0.5 } }} />
-          {stage.requiresApproval && <Chip icon={<GppGoodIcon />} label="Requer aprovação" size="small" sx={{ bgcolor: "#FEF3C7", color: "#92400E", fontWeight: 800, fontSize: "0.75rem", height: 24, "& .MuiChip-icon": { ml: 0.5, fontSize: 16, color: "#92400E" } }} />}
-          {stage.canRepeat && <Chip label="Pode repetir" size="small" sx={{ bgcolor: "#F0F2F5", color: "#616161", fontWeight: 800, fontSize: "0.75rem", height: 24 }} />}
           {stage.businessDaysDuration !== undefined && stage.businessDaysDuration > 0 && (
             <Chip icon={<CalendarIcon sx={{ fontSize: 16, color: "#7C3AED" }} />} label={`${stage.businessDaysDuration} ${stage.businessDaysDuration === 1 ? "dia útil" : "dias úteis"}`} size="small" sx={{ bgcolor: "#F5F3FF", color: "#7C3AED", fontWeight: 800, fontSize: "0.75rem", height: 24, "& .MuiChip-icon": { ml: 0.5 } }} />
           )}
