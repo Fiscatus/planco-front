@@ -95,6 +95,7 @@ export const EditStageModal = ({
 
   const { fetchRolesByOrg } = useRolesAndDepartments();
   const { fetchUsers } = useUsers();
+  const { showNotification } = useNotification();
 
   const { data: roles = [], refetch: refetchRoles } = useQuery({
     queryKey: ["roles"],
@@ -213,7 +214,7 @@ export const EditStageModal = ({
     if (componentToDelete?.type === "FILES_MANAGEMENT") {
       const hasApproval = localStage.components?.some(c => c.type === "APPROVAL");
       if (hasApproval) {
-        alert("Não é possível remover o componente de Gerenciar Arquivos quando há um componente de Aprovação na etapa.");
+        showNotification("Não é possível remover o componente de Gerenciar Arquivos quando há um componente de Aprovação na etapa.", "warning");
         return;
       }
     }
