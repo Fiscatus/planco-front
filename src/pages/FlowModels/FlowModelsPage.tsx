@@ -213,6 +213,7 @@ const FlowModelsPage = () => {
         newParams.set("tab", selectedTab);
         setUrlParams(newParams, { replace: true });
       }
+      window.location.reload();
     },
     onError: (error: Error) => showNotification(error?.message || "Erro ao excluir modelo", "error"),
   });

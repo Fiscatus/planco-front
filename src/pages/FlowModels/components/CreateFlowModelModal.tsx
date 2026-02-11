@@ -37,11 +37,14 @@ export const CreateFlowModelModal = ({ open, onClose, onSave, loading = false }:
       name: name.trim(),
       description: description.trim() || undefined,
       stages: [{
-        stageId: `stage_${Date.now()}`,
+        stageId: `stage_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         order: 1,
         name: "Etapa 1",
         description: "Etapa inicial do fluxo",
-        requiresApproval: false,
+        businessDaysDuration: 0,
+        isOptional: false,
+        approverRoles: [],
+        approverUsers: [],
         components: [{
           order: 1,
           type: "STAGE_PANEL",
