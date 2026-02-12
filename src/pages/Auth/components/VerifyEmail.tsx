@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '@/services';
 import { useNotification } from '@/components';
-import logo from '/assets/isologo.svg';
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
@@ -14,6 +13,19 @@ const VerifyEmail = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [email, setEmail] = useState('');
   const [resending, setResending] = useState(false);
+
+  const verifyEmail = async (token: string) => {
+    try {
+      await api.post('/auth/verify-email', { token });
+      setStatus('success');
+      showNotification('Email verificado com sucesso!', 'success');
+      setTimeout(() => navigate('/auth'), 15000);
+    } catch (error: any) {
+      setStatus('error');
+      setErrorMessage(error.message || 'Token inválido ou expirado.');
+      showNotification('Erro ao verificar email.', 'error');
+    }
+  };
 
   const handleResendVerification = async () => {
     if (!email) {
@@ -40,21 +52,8 @@ const VerifyEmail = () => {
       return;
     }
 
-    const verifyEmail = async () => {
-      try {
-        await api.post('/auth/verify-email', { token });
-        setStatus('success');
-        showNotification('Email verificado com sucesso!', 'success');
-        setTimeout(() => navigate('/auth'), 15000);
-      } catch (error: any) {
-        setStatus('error');
-        setErrorMessage(error.message || 'Token inválido ou expirado.');
-        showNotification('Erro ao verificar email.', 'error');
-      }
-    };
-
-    verifyEmail();
-  }, [searchParams, navigate, showNotification]);
+    verifyEmail(token);
+  }, []);
 
   return (
     <Box
