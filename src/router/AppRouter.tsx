@@ -1,6 +1,6 @@
 import { Box, CircularProgress } from '@mui/material';
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import { AppLayout } from '@/components';
 import { useAccessControl } from '@/hooks/useAccessControl';
@@ -69,10 +69,10 @@ const AppRouter = () => {
             element={<VerifyEmail />}
           />
 
-          {!hasOrganization && (
+          {!user && (
             <Route
-              path='*'
-              element={<NotFoundPage />}
+              path='/'
+              element={<Navigate to='/auth' replace />}
             />
           )}
 
