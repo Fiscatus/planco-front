@@ -1,4 +1,15 @@
-import { Headphones, Logout, Menu as MenuIcon, Notifications, Search, Settings } from '@mui/icons-material';
+import {
+  AccountTreeOutlined,
+  FolderOutlined,
+  GroupOutlined,
+  Headphones,
+  HomeOutlined,
+  Logout,
+  Menu as MenuIcon,
+  Notifications,
+  Search,
+  Settings
+} from '@mui/icons-material';
 import {
   AppBar,
   Box,
@@ -12,21 +23,37 @@ import {
   Toolbar,
   Typography
 } from '@mui/material';
-import { type MouseEvent, useEffect, useState } from 'react';
+import { ArrowDropDownIcon } from '@mui/x-date-pickers';
+import { type MouseEvent, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks';
-
 import logo from '/assets/isologo.svg';
 
 interface TopbarProps {
   onMenuClick: () => void;
+  displayNavBarDropdown?: boolean;
 }
+
+const pageSet = [
+  { route: '/planejamento-da-contratacao', name: 'Planejamento da Contratação', icon: <HomeOutlined sx={{
+    color: 'rgba(0, 0, 0, 0.54)'
+  }}/> },
+  { route: '/processos-gerencia', name: 'Processos', icon: <GroupOutlined  sx={{
+     color: 'rgba(0, 0, 0, 0.54)'
+  }}/> },
+  { route: '/modelos-fluxo', name: 'Modelos de Fluxo', icon: <AccountTreeOutlined sx={{
+    color: 'rgba(0, 0, 0, 0.54)'
+  }}/> },
+  { route: '/gerenciamento-pastas', name: 'Gerenciamento de Pastas', icon: <FolderOutlined sx={{
+    color: 'rgba(0, 0, 0, 0.54)'
+  }}/> }
+];
 
 // TODO: Implementar busca e notificações
 // TODO: Implementar busca do usuario e informações para colocação no menu
 // TODO: Implementar logout
 
-const Topbar = ({ onMenuClick }: TopbarProps) => {
+const Topbar = ({ onMenuClick, displayNavBarDropdown = false }: TopbarProps) => {
   const { user } = useAuth();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [accountMenuAnchor, setAccountMenuAnchor] = useState<null | HTMLElement>(null);
@@ -35,9 +62,13 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
-  useEffect(() => {
-    let scrollTimer: NodeJS.Timeout;
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
 
+  const handleOpen = useCallback((event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget), []);
+
+  const handleClose = useCallback(() => setAnchorEl(null), []);
+  useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       setScrollY(currentScrollY);
@@ -47,7 +78,6 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      clearTimeout(scrollTimer);
     };
   }, []);
 
@@ -154,6 +184,78 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
           >
             Planco
           </Typography>
+        {displayNavBarDropdown && (
+            <Box
+            sx={{
+              minWidth: 'fit-content',
+              border: '1px solid lightgray',
+              px: 1.5,
+              borderRadius: '21px',
+              boxSizing: 'border-box',
+              display: 'flex',
+              alignItems: 'center',
+              height: 30,
+              cursor: 'pointer'
+            }}
+            onClick={handleOpen}
+          >
+            {pageSet.find((p) => p.route === window.location.pathname)?.icon}
+            <Typography sx={{
+              ml: 1
+            }}>{pageSet.find((p) => p.route === window.location.pathname)?.name || 'Navegar'}</Typography>
+            <ArrowDropDownIcon sx={{ color: 'rgba(0, 0, 0, 0.54)' }} />
+          </Box>
+        )}
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            slotProps={{
+              paper: {
+                sx: {
+                  overflow: 'visible',
+                  mt: 1.5,
+                  border: '0.3px solid rgba(118, 118, 118, 1)',
+                  minWidth: 356,
+                  borderRadius: '12px',
+                  p: 1.5
+                }
+              }
+            }}
+            transformOrigin={{ horizontal: 'center', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
+          >
+            {pageSet.map((page) => (
+              <MenuItem
+                key={page.route}
+                onClick={() => {
+                  navigate(page.route);
+                  handleClose();
+                }}
+                sx={{
+                  borderRadius: '8px',
+                  backgroundColor: page.route === window.location.pathname ? 'rgba(24, 119, 242, 0.1)' : 'transparent',
+                  color: page.route === window.location.pathname ? '#1877F2' : 'rgba(0, 0, 0, 0.87)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(24, 119, 242, 0.1)',
+                    color: '#1877F2',
+                    '& .MuiSvgIcon-root': {
+                      color: '#1877F2'
+                    }
+                  },
+                  '& .MuiSvgIcon-root': {
+                    color: 'rgba(0, 0, 0, 0.54)'
+                  }
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 32 }}>{page.icon}</ListItemIcon>
+                <ListItemText
+                  primary={page.name}
+                  sx={{ '& .MuiTypography-root': { fontSize: '0.875rem', fontWeight: 500 } }}
+                />
+              </MenuItem>
+            ))}
+          </Menu>
         </Box>
 
         <Box
@@ -228,7 +330,6 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             />
           </Box>
         </Box>
-
         <Box
           sx={{
             display: 'flex',
