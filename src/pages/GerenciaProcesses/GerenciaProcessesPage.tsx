@@ -18,7 +18,7 @@ import {
 } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Outlet } from 'react-router-dom';
 import { Loading, useNotification } from '@/components';
 import { useProcesses, useSearchWithDebounce, useFolders } from '@/hooks';
 import { useActiveDepartment } from '@/contexts';
@@ -662,6 +662,9 @@ const GerenciaProcessesPage = () => {
         </Box>
       </Box>
       </Box>
+
+      {/* Outlet para subrotas */}
+      <Outlet />
 
       {/* Modal de Criar Processo */}
       <CreateProcessModal
