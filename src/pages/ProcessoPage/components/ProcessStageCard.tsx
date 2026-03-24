@@ -15,9 +15,10 @@ export type ProcessStageProps = {
   department: string;
   status: StageStatus;
   additionalInfo?: string;
+  onClick?: () => void;
 };
 
-export const ProcessStageCard = ({ order, title, department, status, additionalInfo }: ProcessStageProps) => {
+export const ProcessStageCard = ({ order, title, department, status, additionalInfo, onClick }: ProcessStageProps) => {
   const getStatusStyles = () => {
     switch (status) {
       case 'completed':
@@ -137,6 +138,7 @@ export const ProcessStageCard = ({ order, title, department, status, additionalI
         variant={styles.btnVariant}
         color={styles.btnColor as 'inherit' | 'primary'}
         fullWidth
+        onClick={onClick}
         disabled={status === 'pending'}
         startIcon={styles.btnIcon}
         sx={{

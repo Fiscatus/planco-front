@@ -1,18 +1,27 @@
 export type Process = {
   _id: string;
+  processInstanceId?: string;
+  flowInstance?: string | { _id: string };
   processNumber: string;
   object: string;
+  workflowModel?: string | { _id: string };
+  workflowModelId?: string;
+  flowModelId?: string;
   currentStage?: string;
+  currentStageId?: string;
+  snapshotVersion?: string | number;
   modality?: string;
   priority?: 'Baixa' | 'Média' | 'Alta';
   status?: 'Em Andamento' | 'Em Atraso' | 'Concluído' | 'Pendente';
   dueDate?: string;
   estimatedValue?: number;
-  folder?: string | {
-    _id: string;
-    name: string;
-    year?: string;
-  };
+  folder?:
+    | string
+    | {
+        _id: string;
+        name: string;
+        year?: string;
+      };
   org?: string;
   createdAt?: string;
   updatedAt?: string;
@@ -66,4 +75,3 @@ export type FolderStatsDto = {
   ultimaModificacao: string;
   dataCriacao: string;
 };
-

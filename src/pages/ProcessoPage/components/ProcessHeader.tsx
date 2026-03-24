@@ -1,5 +1,7 @@
 import { ArrowBackIosNew as ArrowBackIcon, Edit as EditIcon, Settings as SettingsIcon } from '@mui/icons-material';
 import { Box, Button, Chip, IconButton, Typography } from '@mui/material';
+import { useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 type ProcessHeaderProps = {
   title: string;
@@ -9,6 +11,12 @@ type ProcessHeaderProps = {
 };
 
 export const ProcessHeader = ({ title, subtitle, status, isOwner = false }: ProcessHeaderProps) => {
+  const navigate = useNavigate();
+
+  const navigateBack = useCallback(() => {
+    navigate(-1);
+  }, [navigate]);
+
   return (
     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 4 }}>
       <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
@@ -20,6 +28,7 @@ export const ProcessHeader = ({ title, subtitle, status, isOwner = false }: Proc
             bgcolor: '#fff',
             '&:hover': { bgcolor: '#F8FAFC' }
           }}
+          onClick={navigateBack}
         >
           <ArrowBackIcon sx={{ fontSize: 18, color: '#64748b' }} />
         </IconButton>
