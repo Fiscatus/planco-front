@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 import type { FlowInstance } from './useFlowInstance';
 
 const BASE_URL = import.meta.env.VITE_API_URL as string;
@@ -35,65 +36,42 @@ export const useFlowInstanceSSE = (instanceId: string | undefined, processId: st
 
     const controller = new AbortController();
     abortRef.current = controller;
-    let reconnectTimeout: ReturnType<typeof setTimeout>;
 
-    const connect = async () => {
-      try {
-        const response = await fetch(
-          `${BASE_URL}/flows/instances/${instanceId}/events`,
-          { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal }
-        );
+    fetchEventSource(`${BASE_URL}/flows/instances/${instanceId}/events`, {
+      headers: { Authorization: `Bearer ${token}` },
+      signal: controller.signal,
+      openWhenHidden: false, // pausa quando aba não está visível
 
-        if (!response.ok || !response.body) return;
+      onmessage(event) {
+        if (!event.data || event.data === 'ping') return;
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
+        try {
+          const data = JSON.parse(event.data);
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() ?? '';
-
-          for (const line of lines) {
-            if (!line.startsWith('data:')) continue;
-            const raw = line.slice(5).trim();
-            if (!raw) continue;
-
-            try {
-              const data = JSON.parse(raw);
-
-              // Objeto completo da instância — atualiza cache direto sem refetch
-              if (data._id) {
-                queryClient.setQueryData(['flowInstance', processId], data as FlowInstance);
-                continue;
-              }
-
-              // Evento pontual — invalida queries específicas
-              const keys = EVENT_REFETCH_MAP[data.type as string];
-              if (keys) {
-                keys.forEach(key => queryClient.invalidateQueries({ queryKey: [key] }));
-              }
-            } catch {
-              // linha inválida, ignora
-            }
+          // Objeto completo da instância — atualiza cache direto
+          if (data._id) {
+            queryClient.setQueryData(['flowInstance', processId], data as FlowInstance);
+            return;
           }
-        }
-      } catch (err: any) {
-        if (err?.name === 'AbortError') return;
-        // Reconecta após 5s em caso de erro de rede
-        reconnectTimeout = setTimeout(connect, 5000);
-      }
-    };
 
-    connect();
+          // Evento pontual — invalida queries específicas
+          const keys = EVENT_REFETCH_MAP[data.type as string];
+          if (keys) {
+            keys.forEach(key => queryClient.invalidateQueries({ queryKey: [key] }));
+          }
+        } catch {
+          // JSON inválido, ignora
+        }
+      },
+
+      onerror(err) {
+        // Lança o erro para o fetchEventSource reconectar automaticamente
+        throw err;
+      },
+    });
 
     return () => {
       controller.abort();
-      clearTimeout(reconnectTimeout);
     };
   }, [instanceId, processId, queryClient]);
 };
