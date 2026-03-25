@@ -8,4 +8,3 @@ export { ProcessStageCard } from './ProcessStageCard';
 export { ProcessStagesSection } from './ProcessStagesSection';
 export { QuickActionsBtn } from './QuickActionsBtn';
 export { RelatedDocuments } from './RelatedDocuments';
-export { ProcessApprovalComponent } from './ProcessApprovalComponent';

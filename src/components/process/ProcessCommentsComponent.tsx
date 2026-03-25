@@ -30,33 +30,21 @@ type ProcessCommentsComponentProps = {
 
 const renderCommentText = (text: string, mentions: { userId: string; displayName: string }[]) => {
   if (!mentions?.length) return <span>{text}</span>;
-
   const parts: React.ReactNode[] = [];
   let remaining = text;
-
   mentions.forEach((mention) => {
     const tag = `@${mention.userId}`;
     const idx = remaining.indexOf(tag);
     if (idx === -1) return;
     if (idx > 0) parts.push(<span key={`pre-${mention.userId}`}>{remaining.slice(0, idx)}</span>);
-    parts.push(
-      <Box key={mention.userId} component="span" sx={{ color: "#1877F2", fontWeight: 700, cursor: "default" }}>
-        @{mention.displayName}
-      </Box>
-    );
+    parts.push(<Box key={mention.userId} component="span" sx={{ color: "#1877F2", fontWeight: 700, cursor: "default" }}>@{mention.displayName}</Box>);
     remaining = remaining.slice(idx + tag.length);
   });
-
   if (remaining) parts.push(<span key="tail">{remaining}</span>);
   return <>{parts}</>;
 };
 
-const CommentsContent = ({
-  context,
-  enabled,
-  limitHeight = true,
-  readOnly = false,
-}: {
+const CommentsContent = ({ context, enabled, limitHeight = true, readOnly = false }: {
   context: ProcessCommentsComponentProps["context"];
   enabled: boolean;
   limitHeight?: boolean;
@@ -67,7 +55,6 @@ const CommentsContent = ({
   const { users, fetchUsers } = useUsers();
   const { user: currentUser } = useAuth();
 
-  const [newComment, setNewComment] = useState(""); // kept for compatibility
   const [displayComment, setDisplayComment] = useState("");
   const [mentionMap, setMentionMap] = useState<Record<string, string>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -119,17 +106,14 @@ const CommentsContent = ({
 
   const buildTextWithIds = (display: string) => {
     let result = display;
-    Object.entries(mentionMap).forEach(([name, id]) => {
-      result = result.replaceAll(`@${name}`, `@${id}`);
-    });
+    Object.entries(mentionMap).forEach(([name, id]) => { result = result.replaceAll(`@${name}`, `@${id}`); });
     return result;
   };
 
   const handleSubmit = () => {
     if (!displayComment.trim() && !selectedFile) return;
-    const textToSend = buildTextWithIds(displayComment);
-    createMutation.mutate({ context, data: { text: textToSend }, file: selectedFile || undefined }, {
-      onSuccess: () => { setDisplayComment(""); setNewComment(""); setSelectedFile(null); setMentionQuery(null); setMentionMap({}); }
+    createMutation.mutate({ context, data: { text: buildTextWithIds(displayComment) }, file: selectedFile || undefined }, {
+      onSuccess: () => { setDisplayComment(""); setSelectedFile(null); setMentionQuery(null); setMentionMap({}); }
     });
   };
 
@@ -166,13 +150,10 @@ const CommentsContent = ({
           {rawComments.length} {rawComments.length === 1 ? "comentário" : "comentários"}
         </Typography>
         <Tooltip title={sortDesc ? "Mostrar mais antigos primeiro" : "Mostrar mais recentes primeiro"}>
-          <Button
-            size="small"
-            variant="outlined"
+          <Button size="small" variant="outlined"
             startIcon={sortDesc ? <ArrowDownwardIcon sx={{ fontSize: 14 }} /> : <ArrowUpwardIcon sx={{ fontSize: 14 }} />}
             onClick={() => setSortDesc((v) => !v)}
-            sx={{ textTransform: "none", fontWeight: 700, borderRadius: 2, borderColor: "#E4E6EB", color: "#64748b", fontSize: "0.75rem", py: 0.25 }}
-          >
+            sx={{ textTransform: "none", fontWeight: 700, borderRadius: 2, borderColor: "#E4E6EB", color: "#64748b", fontSize: "0.75rem", py: 0.25 }}>
             {sortDesc ? "Mais recentes" : "Mais antigos"}
           </Button>
         </Tooltip>
@@ -189,40 +170,38 @@ const CommentsContent = ({
             {comments.map((comment: any) => {
               const isOwn = currentUser?._id === comment.authorId?._id;
               return (
-              <Box key={comment._id} sx={{ display: "flex", gap: 1.5, flexDirection: isOwn ? "row-reverse" : "row" }}>
-                <Avatar src={comment.authorId?.profilePicture} sx={{ width: 32, height: 32, bgcolor: isOwn ? "#16A34A" : "#1877F2", fontSize: "0.875rem", fontWeight: 700, flexShrink: 0 }}>
-                  {getAuthorInitials(comment.authorId)}
-                </Avatar>
-                <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: isOwn ? "flex-end" : "flex-start" }}>
-                  <Box sx={{ display: "inline-block", bgcolor: isOwn ? "#E7F3FF" : "#F0F2F5", borderRadius: isOwn ? "12px 0 12px 12px" : "0 12px 12px 12px", px: 1.5, py: 1, maxWidth: "80%" }}>
-                    <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.8rem", mb: 0.25 }}>
-                      {getAuthorName(comment.authorId)}
-                    </Typography>
-                    <Typography sx={{ color: "#0f172a", fontSize: "0.875rem", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                      {renderCommentText(comment.text, comment.mentions)}
-                    </Typography>
-                    {comment.attachmentUrl && (
-                      <Box sx={{ mt: 1 }}>
-                        {comment.attachmentMimeType?.startsWith("image/") ? (
-                          <Box component="img" src={comment.attachmentUrl} alt={comment.attachmentFileName}
-                            sx={{ maxWidth: "100%", maxHeight: 240, borderRadius: 1, cursor: "zoom-in", display: "block" }}
-                            onClick={() => setLightboxUrl(comment.attachmentUrl)} />
-                        ) : (
-                          <Box sx={{ p: 1, bgcolor: "#E7F3FF", borderRadius: 1, display: "flex", alignItems: "center", gap: 1, cursor: "pointer" }}
-                            onClick={() => window.open(comment.attachmentUrl, "_blank")}>
-                            <AttachFileIcon sx={{ fontSize: 16, color: "#1877F2" }} />
-                            <Typography sx={{ fontSize: "0.8rem", color: "#1877F2", fontWeight: 600, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                              {comment.attachmentFileName}
-                            </Typography>
-                            <DownloadIcon sx={{ fontSize: 16, color: "#1877F2" }} />
-                          </Box>
-                        )}
-                      </Box>
-                    )}
+                <Box key={comment._id} sx={{ display: "flex", gap: 1.5, flexDirection: isOwn ? "row-reverse" : "row" }}>
+                  <Avatar src={comment.authorId?.profilePicture} sx={{ width: 32, height: 32, bgcolor: isOwn ? "#16A34A" : "#1877F2", fontSize: "0.875rem", fontWeight: 700, flexShrink: 0 }}>
+                    {getAuthorInitials(comment.authorId)}
+                  </Avatar>
+                  <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: isOwn ? "flex-end" : "flex-start" }}>
+                    <Box sx={{ display: "inline-block", bgcolor: isOwn ? "#E7F3FF" : "#F0F2F5", borderRadius: isOwn ? "12px 0 12px 12px" : "0 12px 12px 12px", px: 1.5, py: 1, maxWidth: "80%" }}>
+                      <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.8rem", mb: 0.25 }}>{getAuthorName(comment.authorId)}</Typography>
+                      <Typography sx={{ color: "#0f172a", fontSize: "0.875rem", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                        {renderCommentText(comment.text, comment.mentions)}
+                      </Typography>
+                      {comment.attachmentUrl && (
+                        <Box sx={{ mt: 1 }}>
+                          {comment.attachmentMimeType?.startsWith("image/") ? (
+                            <Box component="img" src={comment.attachmentUrl} alt={comment.attachmentFileName}
+                              sx={{ maxWidth: "100%", maxHeight: 240, borderRadius: 1, cursor: "zoom-in", display: "block" }}
+                              onClick={() => setLightboxUrl(comment.attachmentUrl)} />
+                          ) : (
+                            <Box sx={{ p: 1, bgcolor: "#E7F3FF", borderRadius: 1, display: "flex", alignItems: "center", gap: 1, cursor: "pointer" }}
+                              onClick={() => window.open(comment.attachmentUrl, "_blank")}>
+                              <AttachFileIcon sx={{ fontSize: 16, color: "#1877F2" }} />
+                              <Typography sx={{ fontSize: "0.8rem", color: "#1877F2", fontWeight: 600, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {comment.attachmentFileName}
+                              </Typography>
+                              <DownloadIcon sx={{ fontSize: 16, color: "#1877F2" }} />
+                            </Box>
+                          )}
+                        </Box>
+                      )}
+                    </Box>
+                    <Typography variant="caption" sx={{ color: "#94a3b8", ml: 0.5 }}>{comment.createdAtBR}</Typography>
                   </Box>
-                  <Typography variant="caption" sx={{ color: "#94a3b8", ml: 0.5 }}>{comment.createdAtBR}</Typography>
                 </Box>
-              </Box>
               );
             })}
           </Box>
@@ -232,66 +211,55 @@ const CommentsContent = ({
       {lightboxUrl && (
         <Dialog open onClose={() => setLightboxUrl(null)} maxWidth={false}
           PaperProps={{ sx: { bgcolor: "transparent", boxShadow: "none", m: 1 } }}
-          onClick={() => setLightboxUrl(null)}
-        >
-          <Box component="img" src={lightboxUrl}
-            sx={{ maxWidth: "90vw", maxHeight: "90vh", borderRadius: 2, display: "block", cursor: "zoom-out" }} />
+          onClick={() => setLightboxUrl(null)}>
+          <Box component="img" src={lightboxUrl} sx={{ maxWidth: "90vw", maxHeight: "90vh", borderRadius: 2, display: "block", cursor: "zoom-out" }} />
         </Dialog>
       )}
 
       {!readOnly && (
-      <Box ref={containerRef} sx={{ p: 2, borderTop: "1px solid #E4E6EB", bgcolor: "#FAFBFC", position: "relative", flexShrink: 0 }}>
-        {mentionQuery !== null && filteredUsers.length > 0 && mentionAnchorPos && (
-          <Paper elevation={4} sx={{ position: "absolute", bottom: "100%", left: mentionAnchorPos.left, zIndex: 10, minWidth: 200, maxWidth: 280, borderRadius: 2, overflow: "hidden", mb: 0.5 }}>
-            {filteredUsers.map((user) => (
-              <Box key={user._id} onMouseDown={(e) => { e.preventDefault(); handleSelectMention(user); }}
-                sx={{ px: 2, py: 1, display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer", "&:hover": { bgcolor: "#F0F2F5" } }}>
-                <Avatar src={(user as any).profilePicture} sx={{ width: 28, height: 28, bgcolor: "#1877F2", fontSize: "0.75rem" }}>
-                  {`${user.firstName?.charAt(0) || ""}${user.lastName?.charAt(0) || ""}`.toUpperCase()}
-                </Avatar>
-                <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: "#0f172a" }}>
-                  {user.firstName} {user.lastName}
-                </Typography>
-              </Box>
-            ))}
-          </Paper>
-        )}
-
-        {selectedFile && (
-          <Box sx={{ mb: 1, p: 1, bgcolor: "#E7F3FF", borderRadius: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
-            <AttachFileIcon sx={{ fontSize: 16, color: "#1877F2" }} />
-            <Typography sx={{ fontSize: "0.75rem", color: "#1877F2", fontWeight: 600, flex: 1 }}>{selectedFile.name}</Typography>
-            <IconButton size="small" onClick={() => setSelectedFile(null)} sx={{ p: 0.25 }}>
-              <Typography sx={{ fontSize: "0.7rem", color: "#64748b" }}>✕</Typography>
+        <Box ref={containerRef} sx={{ p: 2, borderTop: "1px solid #E4E6EB", bgcolor: "#FAFBFC", position: "relative", flexShrink: 0 }}>
+          {mentionQuery !== null && filteredUsers.length > 0 && mentionAnchorPos && (
+            <Paper elevation={4} sx={{ position: "absolute", bottom: "100%", left: mentionAnchorPos.left, zIndex: 10, minWidth: 200, maxWidth: 280, borderRadius: 2, overflow: "hidden", mb: 0.5 }}>
+              {filteredUsers.map((user) => (
+                <Box key={user._id} onMouseDown={(e) => { e.preventDefault(); handleSelectMention(user); }}
+                  sx={{ px: 2, py: 1, display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer", "&:hover": { bgcolor: "#F0F2F5" } }}>
+                  <Avatar src={(user as any).profilePicture} sx={{ width: 28, height: 28, bgcolor: "#1877F2", fontSize: "0.75rem" }}>
+                    {`${user.firstName?.charAt(0) || ""}${user.lastName?.charAt(0) || ""}`.toUpperCase()}
+                  </Avatar>
+                  <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: "#0f172a" }}>{user.firstName} {user.lastName}</Typography>
+                </Box>
+              ))}
+            </Paper>
+          )}
+          {selectedFile && (
+            <Box sx={{ mb: 1, p: 1, bgcolor: "#E7F3FF", borderRadius: 1, display: "flex", alignItems: "center", gap: 0.5 }}>
+              <AttachFileIcon sx={{ fontSize: 16, color: "#1877F2" }} />
+              <Typography sx={{ fontSize: "0.75rem", color: "#1877F2", fontWeight: 600, flex: 1 }}>{selectedFile.name}</Typography>
+              <IconButton size="small" onClick={() => setSelectedFile(null)} sx={{ p: 0.25 }}>
+                <Typography sx={{ fontSize: "0.7rem", color: "#64748b" }}>✕</Typography>
+              </IconButton>
+            </Box>
+          )}
+          <Box sx={{ display: "flex", gap: 1, alignItems: "flex-end" }}>
+            <TextField fullWidth multiline minRows={3} maxRows={6}
+              placeholder="Escreva um comentário... (@ para mencionar)"
+              value={displayComment} onChange={handleTextChange} onKeyDown={handleKeyDown} inputRef={textareaRef}
+              sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#fff", borderRadius: 3, fontSize: "0.95rem" } }} />
+            <input ref={fileInputRef} type="file" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) setSelectedFile(f); }} />
+            <Tooltip title="Anexar arquivo">
+              <IconButton onClick={() => fileInputRef.current?.click()} sx={{ color: "#64748b", border: "1px solid #E4E6EB", borderRadius: 2 }}>
+                <AttachFileIcon fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <IconButton onClick={handleSubmit} disabled={createMutation.isPending || (!displayComment.trim() && !selectedFile)}
+              sx={{ bgcolor: "#1877F2", color: "#fff", borderRadius: 2, "&:hover": { bgcolor: "#166FE5" }, "&.Mui-disabled": { bgcolor: "#E4E6EB" } }}>
+              {createMutation.isPending ? <CircularProgress size={18} sx={{ color: "#fff" }} /> : <SendIcon fontSize="small" />}
             </IconButton>
           </Box>
-        )}
-
-        <Box sx={{ display: "flex", gap: 1, alignItems: "flex-end" }}>
-          <TextField
-            fullWidth multiline minRows={3} maxRows={6}
-            placeholder="Escreva um comentário... (@ para mencionar)"
-            value={displayComment}
-            onChange={handleTextChange}
-            onKeyDown={handleKeyDown}
-            inputRef={textareaRef}
-            sx={{ "& .MuiOutlinedInput-root": { bgcolor: "#fff", borderRadius: 3, fontSize: "0.95rem" } }}
-          />
-          <input ref={fileInputRef} type="file" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) setSelectedFile(f); }} />
-          <Tooltip title="Anexar arquivo">
-            <IconButton onClick={() => fileInputRef.current?.click()} sx={{ color: "#64748b", border: "1px solid #E4E6EB", borderRadius: 2 }}>
-              <AttachFileIcon fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <IconButton onClick={handleSubmit} disabled={createMutation.isPending || (!displayComment.trim() && !selectedFile)}
-            sx={{ bgcolor: "#1877F2", color: "#fff", borderRadius: 2, "&:hover": { bgcolor: "#166FE5" }, "&.Mui-disabled": { bgcolor: "#E4E6EB" } }}>
-            {createMutation.isPending ? <CircularProgress size={18} sx={{ color: "#fff" }} /> : <SendIcon fontSize="small" />}
-          </IconButton>
+          <Typography variant="caption" sx={{ color: "#94a3b8", mt: 0.5, display: "block" }}>
+            Enter para enviar • Shift+Enter para nova linha • @ para mencionar
+          </Typography>
         </Box>
-        <Typography variant="caption" sx={{ color: "#94a3b8", mt: 0.5, display: "block" }}>
-          Enter para enviar • Shift+Enter para nova linha • @ para mencionar
-        </Typography>
-      </Box>
       )}
     </Box>
   );
@@ -305,22 +273,14 @@ export const ProcessCommentsComponent = ({ label, description, context, enabled 
     <Box sx={{ px: 2.25, py: 2, bgcolor: "#F8FAFC", borderBottom: "2px solid #E4E6EB", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: onClose ? "1.1rem" : "0.95rem" }}>{label || "Comentários"}</Typography>
-        {description && (
-          <Tooltip title={description} arrow>
-            <InfoIcon sx={{ fontSize: 18, color: "#1877F2", cursor: "help" }} />
-          </Tooltip>
-        )}
+        {description && <Tooltip title={description} arrow><InfoIcon sx={{ fontSize: 18, color: "#1877F2", cursor: "help" }} /></Tooltip>}
       </Box>
       <Box sx={{ display: "flex", gap: 0.5 }}>
         {onClose ? (
           <Button onClick={onClose} variant="outlined" sx={{ textTransform: "none", fontWeight: 700, borderRadius: 2 }}>Fechar</Button>
         ) : (
           <>
-            <Tooltip title="Tela cheia">
-              <IconButton size="small" onClick={() => setFullscreen(true)} sx={{ color: "#64748b" }}>
-                <FullscreenIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            <Tooltip title="Tela cheia"><IconButton size="small" onClick={() => setFullscreen(true)} sx={{ color: "#64748b" }}><FullscreenIcon fontSize="small" /></IconButton></Tooltip>
             <Tooltip title={collapsed ? "Expandir" : "Recolher"}>
               <IconButton size="small" onClick={() => setCollapsed((v) => !v)} sx={{ color: "#64748b" }}>
                 {collapsed ? <ExpandMoreIcon fontSize="small" /> : <ExpandLessIcon fontSize="small" />}
@@ -336,11 +296,8 @@ export const ProcessCommentsComponent = ({ label, description, context, enabled 
     <>
       <Box sx={{ border: "1px solid #E4E6EB", borderRadius: 2, bgcolor: "#fff", overflow: "hidden" }}>
         {headerContent()}
-        <Collapse in={!collapsed}>
-          <CommentsContent context={context} enabled={enabled} readOnly={readOnly} />
-        </Collapse>
+        <Collapse in={!collapsed}><CommentsContent context={context} enabled={enabled} readOnly={readOnly} /></Collapse>
       </Box>
-
       <Dialog open={fullscreen} onClose={() => setFullscreen(false)} fullScreen>
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
           {headerContent(() => setFullscreen(false))}

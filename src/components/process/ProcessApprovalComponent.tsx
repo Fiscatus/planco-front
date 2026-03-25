@@ -80,8 +80,6 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved }: {
   const file = pendingData?.fileId;
   const hasPending = !!file;
 
-  // Monta histórico a partir da API /approvals/history
-  // Estrutura: [{ status, fileId: { fileName }, fileName, auditLogs: [{ action, performedAt, reason, performedBy }] }]
   type HistoryLog = { action: string; performedAt: string; reason?: string; fileName?: string; performedBy?: any };
   const relevantLogs: HistoryLog[] = (historyData as any[]).flatMap((approval: any) =>
     (approval.auditLogs || []).map((l: any) => ({
@@ -102,7 +100,6 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved }: {
         </Typography>
       </Box>
 
-      {/* Documento pendente */}
       <Box sx={{ p: 2.25 }}>
         <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.9rem", mb: 1.5 }}>Documento em análise</Typography>
         {!hasPending ? (
@@ -126,7 +123,6 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved }: {
         )}
       </Box>
 
-      {/* Histórico */}
       {relevantLogs.length > 0 && (
         <Box sx={{ px: 2.25, pb: 2.25, borderTop: "1px solid #E4E6EB" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2, mb: 1.5 }}>
@@ -139,14 +135,12 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved }: {
               const isLast = idx === relevantLogs.length - 1;
               return (
                 <Box key={idx} sx={{ display: "flex", gap: 0 }}>
-                  {/* Linha do tempo */}
                   <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mr: 1.5, flexShrink: 0 }}>
                     <Box sx={{ width: 28, height: 28, borderRadius: "50%", bgcolor: cfg.bg, border: `2px solid ${cfg.color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       {cfg.icon}
                     </Box>
                     {!isLast && <Box sx={{ width: 2, flex: 1, bgcolor: "#E4E6EB", my: 0.5, minHeight: 16 }} />}
                   </Box>
-                  {/* Conteúdo */}
                   <Box sx={{ flex: 1, pb: isLast ? 0 : 2, pt: 0.25 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.25 }}>
                       <Typography sx={{ fontWeight: 700, color: cfg.color, fontSize: "0.82rem" }}>{cfg.label}</Typography>
@@ -172,7 +166,6 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved }: {
         </Box>
       )}
 
-      {/* Botões de ação */}
       {hasPending && !readOnly && (
         <Box sx={{ px: 2.25, pb: 2.25, display: "flex", gap: 1, justifyContent: "flex-end" }}>
           <Button onClick={() => { setConfirmType("changes_requested"); setConfirmOpen(true); }} variant="outlined" startIcon={<CancelIcon />}

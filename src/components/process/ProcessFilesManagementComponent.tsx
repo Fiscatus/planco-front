@@ -89,11 +89,7 @@ type ProcessFilesManagementComponentProps = {
   readOnly?: boolean;
 };
 
-const FilesContent = ({
-  context,
-  enabled,
-  readOnly = false,
-}: {
+const FilesContent = ({ context, enabled, readOnly = false }: {
   context: ProcessFilesManagementComponentProps["context"];
   enabled: boolean;
   readOnly?: boolean;
@@ -111,7 +107,6 @@ const FilesContent = ({
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
   const files = filesData?.items || [];
-
   const filteredFiles = files.filter((file: any) => {
     const matchSearch = !search || file.fileName?.toLowerCase().includes(search.toLowerCase()) || file.category?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = filterStatus === "all" || file.status === filterStatus;
@@ -133,9 +128,7 @@ const FilesContent = ({
   };
 
   const handleCancelUpload = () => { setShowUploadModal(false); setSelectedFile(null); setCategory(""); };
-
   const handleSendToApproval = (fileId: string) => sendToApprovalMutation.mutate({ fileId, context });
-
   const handleDownload = async (fileId: string, inline: boolean) => {
     const result = await downloadMutation.mutateAsync({ fileId, inline });
     if (result?.signedUrl) window.open(result.signedUrl, "_blank");
@@ -146,15 +139,11 @@ const FilesContent = ({
   return (
     <>
       <Box sx={{ px: 2, py: 1.5, borderBottom: "1px solid #E4E6EB", display: "flex", gap: 1, alignItems: "center" }}>
-        <TextField
-          size="small" placeholder="Buscar arquivos..." value={search} onChange={(e) => setSearch(e.target.value)}
+        <TextField size="small" placeholder="Buscar arquivos..." value={search} onChange={(e) => setSearch(e.target.value)}
           InputProps={{ startAdornment: <SearchIcon sx={{ fontSize: 18, color: "#8A8D91", mr: 0.5 }} /> }}
-          sx={{ flex: 1, "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "#F0F2F5" } }}
-        />
-        <TextField
-          select size="small" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
-          sx={{ width: 140, "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "#F0F2F5" } }}
-        >
+          sx={{ flex: 1, "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "#F0F2F5" } }} />
+        <TextField select size="small" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
+          sx={{ width: 140, "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "#F0F2F5" } }}>
           <MenuItem value="all">Todos</MenuItem>
           <MenuItem value="draft">Rascunho</MenuItem>
           <MenuItem value="in_review">Em análise</MenuItem>
@@ -166,7 +155,6 @@ const FilesContent = ({
           Enviar arquivo
         </Button>
       </Box>
-
       <Box sx={{ px: 2, py: 1, borderBottom: "1px solid #E4E6EB" }}>
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", alignItems: "center" }}>
           <Typography variant="body2" sx={{ color: "#64748b", fontSize: "0.8rem" }}>{filteredFiles.length} {filteredFiles.length === 1 ? "documento" : "documentos"}</Typography>
@@ -174,20 +162,16 @@ const FilesContent = ({
           <Chip label="Formatos: PDF, DOC, DOCX, XLS, XLSX" size="small" sx={{ bgcolor: "#F0F2F5", color: "#64748b", fontWeight: 700, fontSize: "0.7rem" }} />
         </Box>
       </Box>
-
       <Box sx={{ maxHeight: 400, overflow: "auto" }}>
         {filteredFiles.length === 0 ? (
           <Box sx={{ textAlign: "center", py: 8, color: "#94a3b8" }}>
             <DescriptionIcon sx={{ fontSize: 48, mb: 1 }} />
             <Typography variant="body2">{files.length === 0 ? "Nenhum arquivo enviado" : "Nenhum arquivo encontrado"}</Typography>
           </Box>
-        ) : (
-          filteredFiles.map((file: any) => (
-            <FileRow key={file._id} file={file} onSendToApproval={handleSendToApproval} onDownload={handleDownload} />
-          ))
-        )}
+        ) : filteredFiles.map((file: any) => (
+          <FileRow key={file._id} file={file} onSendToApproval={handleSendToApproval} onDownload={handleDownload} />
+        ))}
       </Box>
-
       <Dialog open={showUploadModal} onClose={handleCancelUpload} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
         <DialogContent sx={{ p: 0 }}>
           <Box sx={{ px: 3, py: 2.5, borderBottom: "1px solid #E4E6EB" }}>
@@ -235,22 +219,14 @@ export const ProcessFilesManagementComponent = ({ label, description, context, e
     <Box sx={{ px: 2.25, py: 2, bgcolor: "#F8FAFC", borderBottom: "2px solid #E4E6EB", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: onClose ? "1.1rem" : "0.95rem" }}>{label || "Gerenciar arquivos"}</Typography>
-        {description && (
-          <Tooltip title={description} arrow>
-            <InfoIcon sx={{ fontSize: 18, color: "#1877F2", cursor: "help" }} />
-          </Tooltip>
-        )}
+        {description && <Tooltip title={description} arrow><InfoIcon sx={{ fontSize: 18, color: "#1877F2", cursor: "help" }} /></Tooltip>}
       </Box>
       <Box sx={{ display: "flex", gap: 0.5 }}>
         {onClose ? (
           <Button onClick={onClose} variant="outlined" sx={{ textTransform: "none", fontWeight: 700, borderRadius: 2 }}>Fechar</Button>
         ) : (
           <>
-            <Tooltip title="Tela cheia">
-              <IconButton size="small" onClick={() => setFullscreen(true)} sx={{ color: "#64748b" }}>
-                <FullscreenIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            <Tooltip title="Tela cheia"><IconButton size="small" onClick={() => setFullscreen(true)} sx={{ color: "#64748b" }}><FullscreenIcon fontSize="small" /></IconButton></Tooltip>
             <Tooltip title={collapsed ? "Expandir" : "Recolher"}>
               <IconButton size="small" onClick={() => setCollapsed((v) => !v)} sx={{ color: "#64748b" }}>
                 {collapsed ? <ExpandMoreIcon fontSize="small" /> : <ExpandLessIcon fontSize="small" />}
@@ -266,17 +242,12 @@ export const ProcessFilesManagementComponent = ({ label, description, context, e
     <>
       <Box sx={{ border: "1px solid #E4E6EB", borderRadius: 2, bgcolor: "#fff", overflow: "hidden" }}>
         {headerContent()}
-        <Collapse in={!collapsed}>
-          <FilesContent context={context} enabled={enabled} readOnly={readOnly} />
-        </Collapse>
+        <Collapse in={!collapsed}><FilesContent context={context} enabled={enabled} readOnly={readOnly} /></Collapse>
       </Box>
-
       <Dialog open={fullscreen} onClose={() => setFullscreen(false)} fullScreen>
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
           {headerContent(() => setFullscreen(false))}
-          <Box sx={{ flex: 1, overflow: "auto", bgcolor: "#fff" }}>
-            <FilesContent context={context} enabled={enabled} readOnly={readOnly} />
-          </Box>
+          <Box sx={{ flex: 1, overflow: "auto", bgcolor: "#fff" }}><FilesContent context={context} enabled={enabled} readOnly={readOnly} /></Box>
         </Box>
       </Dialog>
     </>

@@ -1,22 +1,6 @@
 import { useState } from "react";
 import { Box, Button, Chip, CircularProgress, Collapse, Dialog, DialogActions, DialogContent, DialogTitle, Divider, IconButton, InputAdornment, LinearProgress, TextField, Tooltip, Typography, Avatar, Autocomplete } from "@mui/material";
-import {
-  BorderColor as SignatureIcon,
-  CheckCircle as CheckCircleIcon,
-  Schedule as ScheduleIcon,
-  Person as PersonIcon,
-  OpenInNew as OpenInNewIcon,
-  Download as DownloadIcon,
-  Description as DescriptionIcon,
-  Lock as LockIcon,
-  Info as InfoIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
-  Fullscreen as FullscreenIcon,
-  Visibility as VisibilityIcon,
-  VisibilityOff as VisibilityOffIcon,
-  GroupAdd as GroupAddIcon,
-} from "@mui/icons-material";
+import { BorderColor as SignatureIcon, CheckCircle as CheckCircleIcon, Schedule as ScheduleIcon, Person as PersonIcon, OpenInNew as OpenInNewIcon, Download as DownloadIcon, Description as DescriptionIcon, Lock as LockIcon, Info as InfoIcon, ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon, Fullscreen as FullscreenIcon, Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon, GroupAdd as GroupAddIcon } from "@mui/icons-material";
 import { useSignature, useSetSignatories, useSignDocument } from "@/hooks";
 import { useUsers } from "@/hooks/useUsers";
 import { useAuth } from "@/hooks";
@@ -32,9 +16,7 @@ type ProcessSignatureComponentProps = {
   canManage?: boolean;
 };
 
-export const ProcessSignatureComponent = ({
-  label, description, context, enabled = true, readOnly = false, canManage = false,
-}: ProcessSignatureComponentProps) => {
+export const ProcessSignatureComponent = ({ label, description, context, enabled = true, readOnly = false, canManage = false }: ProcessSignatureComponentProps) => {
   const { data: sigData, isLoading } = useSignature(context, enabled);
   const setSignatoriesMutation = useSetSignatories();
   const signMutation = useSignDocument();
@@ -61,17 +43,9 @@ export const ProcessSignatureComponent = ({
   const canSign = !!currentUserSignatory && !currentUserSignatory.signed && !readOnly;
 
   const handleSaveSignatories = () => {
-    setSignatoriesMutation.mutate({
-      context,
-      signatoryIds: selectedSignatories.map((u) => u._id),
-    }, {
-      onSuccess: () => {
-        showNotification("Signatários definidos com sucesso!", "success");
-        setEditSignatories(false);
-      },
-      onError: (err: any) => {
-        showNotification(err?.response?.data?.message || "Erro ao definir signatários", "error");
-      }
+    setSignatoriesMutation.mutate({ context, signatoryIds: selectedSignatories.map((u) => u._id) }, {
+      onSuccess: () => { showNotification("Signatários definidos com sucesso!", "success"); setEditSignatories(false); },
+      onError: (err: any) => { showNotification(err?.response?.data?.message || "Erro ao definir signatários", "error"); }
     });
   };
 
@@ -80,22 +54,11 @@ export const ProcessSignatureComponent = ({
     setSigningLoading(true);
     try {
       const email = currentUser?.email;
-      if (!email) {
-        showNotification("Não foi possível identificar o usuário logado.", "error");
-        return;
-      }
+      if (!email) { showNotification("Não foi possível identificar o usuário logado.", "error"); return; }
       await api.post("/auth/login", { email, password });
-
-      // Assinar
       signMutation.mutate(context, {
-        onSuccess: () => {
-          showNotification("Documento assinado com sucesso!", "success");
-          setSignOpen(false);
-          setPassword("");
-        },
-        onError: (err: any) => {
-          showNotification(err?.response?.data?.message || "Erro ao assinar documento", "error");
-        }
+        onSuccess: () => { showNotification("Documento assinado com sucesso!", "success"); setSignOpen(false); setPassword(""); },
+        onError: (err: any) => { showNotification(err?.response?.data?.message || "Erro ao assinar documento", "error"); }
       });
     } catch {
       showNotification("Senha incorreta. Verifique e tente novamente.", "error");
@@ -130,11 +93,8 @@ export const ProcessSignatureComponent = ({
 
   const content = (
     <Box sx={{ p: 2.25, display: "flex", flexDirection: "column", gap: 2 }}>
-      {isLoading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}><CircularProgress /></Box>
-      ) : (
+      {isLoading ? <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}><CircularProgress /></Box> : (
         <>
-          {/* Documento */}
           <Box sx={{ p: 2, bgcolor: "#F8FAFC", borderRadius: 2, border: "1px solid #E4E6EB" }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
               <DescriptionIcon sx={{ color: "#1877F2", fontSize: 20 }} />
@@ -146,28 +106,17 @@ export const ProcessSignatureComponent = ({
                   <DescriptionIcon sx={{ color: "#1877F2", fontSize: 22 }} />
                 </Box>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.875rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {file.fileName}
-                  </Typography>
+                  <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.875rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.fileName}</Typography>
                   <Typography variant="caption" sx={{ color: "#64748b" }}>Documento aprovado para assinatura</Typography>
                 </Box>
                 <Box sx={{ display: "flex", gap: 0.5, flexShrink: 0 }}>
                   <Tooltip title="Abrir em nova aba">
-                    <IconButton size="small"
-                      component="a"
-                      href={file.signedUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      sx={{ border: "1px solid #E4E6EB", borderRadius: 2, "&:hover": { borderColor: "#1877F2", bgcolor: "#F0F9FF" } }}>
+                    <IconButton size="small" component="a" href={file.signedUrl} target="_blank" rel="noopener noreferrer" sx={{ border: "1px solid #E4E6EB", borderRadius: 2, "&:hover": { borderColor: "#1877F2", bgcolor: "#F0F9FF" } }}>
                       <OpenInNewIcon fontSize="small" sx={{ color: "#1877F2" }} />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Baixar documento">
-                    <IconButton size="small"
-                      component="a"
-                      href={file.signedUrl}
-                      download={file.fileName}
-                      sx={{ border: "1px solid #E4E6EB", borderRadius: 2, "&:hover": { borderColor: "#1877F2", bgcolor: "#F0F9FF" } }}>
+                    <IconButton size="small" component="a" href={file.signedUrl} download={file.fileName} sx={{ border: "1px solid #E4E6EB", borderRadius: 2, "&:hover": { borderColor: "#1877F2", bgcolor: "#F0F9FF" } }}>
                       <DownloadIcon fontSize="small" sx={{ color: "#1877F2" }} />
                     </IconButton>
                   </Tooltip>
@@ -182,43 +131,26 @@ export const ProcessSignatureComponent = ({
             )}
           </Box>
 
-          {/* Progresso signatários */}
           <Box>
             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
               <Box>
-                <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.9rem" }}>
-                  Signatários
-                </Typography>
-                <Typography variant="caption" sx={{ color: "#64748b" }}>
-                  {signedCount} de {totalSignatories} assinaram
-                </Typography>
+                <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.9rem" }}>Signatários</Typography>
+                <Typography variant="caption" sx={{ color: "#64748b" }}>{signedCount} de {totalSignatories} assinaram</Typography>
               </Box>
               {canManage && !readOnly && (
-                <Button
-                  variant="contained"
-                  startIcon={<GroupAddIcon />}
-                  onClick={() => {
-                    setSelectedSignatories(
-                      signatories.map((s: any) => ({ _id: s.userId?._id || s.userId, firstName: s.displayName?.split(" ")[0] || "", lastName: s.displayName?.split(" ").slice(1).join(" ") || "" }))
-                    );
-                    setEditSignatories(true);
-                  }}
-                  sx={{ bgcolor: "#1877F2", textTransform: "none", fontWeight: 700, borderRadius: 2, fontSize: "0.8rem", "&:hover": { bgcolor: "#166FE5" } }}
-                >
+                <Button variant="contained" startIcon={<GroupAddIcon />}
+                  onClick={() => { setSelectedSignatories(signatories.map((s: any) => ({ _id: s.userId?._id || s.userId, firstName: s.displayName?.split(" ")[0] || "", lastName: s.displayName?.split(" ").slice(1).join(" ") || "" }))); setEditSignatories(true); }}
+                  sx={{ bgcolor: "#1877F2", textTransform: "none", fontWeight: 700, borderRadius: 2, fontSize: "0.8rem", "&:hover": { bgcolor: "#166FE5" } }}>
                   {signatories.length === 0 ? "Adicionar signatários" : "Editar signatários"}
                 </Button>
               )}
             </Box>
             {totalSignatories > 0 && (
-              <LinearProgress
-                variant="determinate"
-                value={totalSignatories > 0 ? Math.round((signedCount / totalSignatories) * 100) : 0}
-                sx={{ height: 6, borderRadius: 1, bgcolor: "#E4E6EB", "& .MuiLinearProgress-bar": { bgcolor: allSigned ? "#16A34A" : "#1877F2", borderRadius: 1 } }}
-              />
+              <LinearProgress variant="determinate" value={Math.round((signedCount / totalSignatories) * 100)}
+                sx={{ height: 6, borderRadius: 1, bgcolor: "#E4E6EB", "& .MuiLinearProgress-bar": { bgcolor: allSigned ? "#16A34A" : "#1877F2", borderRadius: 1 } }} />
             )}
           </Box>
 
-          {/* Lista de signatários */}
           {signatories.length === 0 ? (
             <Box sx={{ textAlign: "center", py: 4, color: "#94a3b8" }}>
               <PersonIcon sx={{ fontSize: 40, mb: 1 }} />
@@ -230,9 +162,7 @@ export const ProcessSignatureComponent = ({
                 <Box key={s.userId?._id || s.userId || idx}>
                   <Box sx={{ py: 1.5, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                      <Avatar sx={{ width: 32, height: 32, bgcolor: s.signed ? "#16A34A" : "#94a3b8", fontSize: "0.8rem", fontWeight: 700 }}>
-                        {s.displayName?.charAt(0) || "?"}
-                      </Avatar>
+                      <Avatar sx={{ width: 32, height: 32, bgcolor: s.signed ? "#16A34A" : "#94a3b8", fontSize: "0.8rem", fontWeight: 700 }}>{s.displayName?.charAt(0) || "?"}</Avatar>
                       <Box>
                         <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.875rem" }}>{s.displayName}</Typography>
                         {s.signed && s.signedAt && (
@@ -242,17 +172,8 @@ export const ProcessSignatureComponent = ({
                         )}
                       </Box>
                     </Box>
-                    <Chip
-                      icon={s.signed ? <CheckCircleIcon sx={{ fontSize: 14 }} /> : <ScheduleIcon sx={{ fontSize: 14 }} />}
-                      label={s.signed ? "Assinado" : "Pendente"}
-                      size="small"
-                      sx={{
-                        bgcolor: s.signed ? "#DCFCE7" : "#FEF3C7",
-                        color: s.signed ? "#16A34A" : "#92400E",
-                        fontWeight: 700, fontSize: "0.72rem",
-                        "& .MuiChip-icon": { color: s.signed ? "#16A34A" : "#92400E" }
-                      }}
-                    />
+                    <Chip icon={s.signed ? <CheckCircleIcon sx={{ fontSize: 14 }} /> : <ScheduleIcon sx={{ fontSize: 14 }} />} label={s.signed ? "Assinado" : "Pendente"} size="small"
+                      sx={{ bgcolor: s.signed ? "#DCFCE7" : "#FEF3C7", color: s.signed ? "#16A34A" : "#92400E", fontWeight: 700, fontSize: "0.72rem", "& .MuiChip-icon": { color: s.signed ? "#16A34A" : "#92400E" } }} />
                   </Box>
                   {idx < signatories.length - 1 && <Divider sx={{ borderColor: "#F1F5F9" }} />}
                 </Box>
@@ -260,7 +181,6 @@ export const ProcessSignatureComponent = ({
             </Box>
           )}
 
-          {/* Botão assinar */}
           {canSign && (
             <Button variant="contained" startIcon={<SignatureIcon />} onClick={() => setSignOpen(true)} fullWidth
               sx={{ bgcolor: "#1877F2", textTransform: "none", fontWeight: 700, borderRadius: 2, mt: 1 }}>
@@ -278,7 +198,6 @@ export const ProcessSignatureComponent = ({
         {header()}
         <Collapse in={!collapsed}>{content}</Collapse>
       </Box>
-
       <Dialog open={fullscreen} onClose={() => setFullscreen(false)} fullScreen>
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
           {header(() => setFullscreen(false))}
@@ -286,7 +205,6 @@ export const ProcessSignatureComponent = ({
         </Box>
       </Dialog>
 
-      {/* Modal editar signatários */}
       <Dialog open={editSignatories} onClose={() => setEditSignatories(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
         <DialogTitle sx={{ fontWeight: 700, color: "#0f172a", pb: 1 }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -297,39 +215,25 @@ export const ProcessSignatureComponent = ({
           </Box>
         </DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>
-            Selecione os usuários que devem assinar este documento.
-          </Typography>
-          <Autocomplete
-            multiple
-            options={users}
-            getOptionLabel={(u) => `${u.firstName} ${u.lastName}`}
-            value={selectedSignatories}
-            onChange={(_, v) => setSelectedSignatories(v)}
-            onOpen={() => { if (users.length === 0) fetchUsers({ limit: 100 }); }}
+          <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>Selecione os usuários que devem assinar este documento.</Typography>
+          <Autocomplete multiple options={users} getOptionLabel={(u) => `${u.firstName} ${u.lastName}`} value={selectedSignatories}
+            onChange={(_, v) => setSelectedSignatories(v)} onOpen={() => { if (users.length === 0) fetchUsers({ limit: 100 }); }}
             renderOption={(props, option) => (
               <Box component="li" {...props} sx={{ display: "flex", alignItems: "center", gap: 1.5, py: 1 }}>
-                <Avatar sx={{ width: 28, height: 28, bgcolor: "#1877F2", fontSize: "0.75rem", fontWeight: 700 }}>
-                  {`${option.firstName?.charAt(0) || ""}${option.lastName?.charAt(0) || ""}`.toUpperCase()}
-                </Avatar>
+                <Avatar sx={{ width: 28, height: 28, bgcolor: "#1877F2", fontSize: "0.75rem", fontWeight: 700 }}>{`${option.firstName?.charAt(0) || ""}${option.lastName?.charAt(0) || ""}`.toUpperCase()}</Avatar>
                 <Typography sx={{ fontSize: "0.875rem", fontWeight: 600 }}>{option.firstName} {option.lastName}</Typography>
               </Box>
             )}
             renderInput={(params) => <TextField {...params} label="Buscar usuários" placeholder="Digite para buscar..." />}
-            isOptionEqualToValue={(a, b) => a._id === b._id}
-            noOptionsText="Nenhum usuário encontrado"
-          />
+            isOptionEqualToValue={(a, b) => a._id === b._id} noOptionsText="Nenhum usuário encontrado" />
           {selectedSignatories.length > 0 && (
             <Box sx={{ mt: 2, p: 1.5, bgcolor: "#F8FAFC", borderRadius: 2, border: "1px solid #E4E6EB" }}>
-              <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 700, display: "block", mb: 1 }}>
-                {selectedSignatories.length} signatário(s) selecionado(s)
-              </Typography>
+              <Typography variant="caption" sx={{ color: "#64748b", fontWeight: 700, display: "block", mb: 1 }}>{selectedSignatories.length} signatário(s) selecionado(s)</Typography>
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
                 {selectedSignatories.map((u) => (
                   <Chip key={u._id} label={`${u.firstName} ${u.lastName}`} size="small"
                     avatar={<Avatar sx={{ bgcolor: "#1877F2", fontSize: "0.65rem" }}>{`${u.firstName?.charAt(0) || ""}${u.lastName?.charAt(0) || ""}`.toUpperCase()}</Avatar>}
-                    sx={{ bgcolor: "#E7F3FF", color: "#1877F2", fontWeight: 700, fontSize: "0.75rem" }}
-                  />
+                    sx={{ bgcolor: "#E7F3FF", color: "#1877F2", fontWeight: 700, fontSize: "0.75rem" }} />
                 ))}
               </Box>
             </Box>
@@ -345,7 +249,6 @@ export const ProcessSignatureComponent = ({
         </DialogActions>
       </Dialog>
 
-      {/* Modal assinar com senha */}
       <Dialog open={signOpen} onClose={() => { setSignOpen(false); setPassword(""); }} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
         <DialogTitle sx={{ fontWeight: 700, color: "#0f172a" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
@@ -356,28 +259,13 @@ export const ProcessSignatureComponent = ({
           </Box>
         </DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>
-            Digite sua senha para confirmar a assinatura digital do documento.
-          </Typography>
-          <TextField
-            fullWidth label="Senha" type={showPassword ? "text" : "password"}
-            value={password} onChange={(e) => setPassword(e.target.value)}
+          <Typography variant="body2" sx={{ color: "#64748b", mb: 2 }}>Digite sua senha para confirmar a assinatura digital do documento.</Typography>
+          <TextField fullWidth label="Senha" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") handleSign(); }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword((v) => !v)} edge="end">
-                    {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                  </IconButton>
-                </InputAdornment>
-              )
-            }}
-          />
+            InputProps={{ endAdornment: <InputAdornment position="end"><IconButton onClick={() => setShowPassword((v) => !v)} edge="end">{showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}</IconButton></InputAdornment> }} />
           <Box sx={{ mt: 2, p: 1.5, bgcolor: "#EFF6FF", borderRadius: 2, border: "1px solid #BFDBFE", display: "flex", gap: 1 }}>
             <LockIcon sx={{ fontSize: 16, color: "#2563EB", mt: "2px", flexShrink: 0 }} />
-            <Typography variant="body2" sx={{ color: "#1D4ED8", fontWeight: 600, fontSize: "0.8rem" }}>
-              Sua senha valida a autenticidade da assinatura eletrônica.
-            </Typography>
+            <Typography variant="body2" sx={{ color: "#1D4ED8", fontWeight: 600, fontSize: "0.8rem" }}>Sua senha valida a autenticidade da assinatura eletrônica.</Typography>
           </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>

@@ -10,14 +10,15 @@ import {
   HourglassEmpty as HourglassIcon,
 } from '@mui/icons-material';
 import type { ProcessFlowStageCard } from '@/globals/types';
-import { ProcessFormComponent } from './ProcessFormComponent';
-import { ProcessFilesManagementComponent } from './ProcessFilesManagementComponent';
-import { ProcessChecklistComponent } from './ProcessChecklistComponent';
-import { ProcessCommentsComponent } from './ProcessCommentsComponent';
-import { ProcessTimelineComponent } from './ProcessTimelineComponent';
-import { ProcessApprovalComponent } from './ProcessApprovalComponent';
-import { SignatureComponent } from '@/pages/FlowModels/components/SignatureComponent';
-import { ProcessSignatureComponent } from './ProcessSignatureComponent';
+import {
+  ProcessFormComponent,
+  ProcessFilesManagementComponent,
+  ProcessChecklistComponent,
+  ProcessCommentsComponent,
+  ProcessTimelineComponent,
+  ProcessApprovalComponent,
+  ProcessSignatureComponent,
+} from '@/components/process';
 
 type ProcessStageModalProps = {
   isOpen: boolean;

@@ -1,18 +1,6 @@
 import { useState, useMemo } from "react";
 import { Box, Button, Chip, Collapse, Dialog, DialogActions, DialogContent, IconButton, TextField, MenuItem, Typography, ToggleButtonGroup, ToggleButton, Tooltip, CircularProgress, Autocomplete } from "@mui/material";
-import {
-  Add as AddIcon,
-  ChevronLeft as ChevronLeftIcon,
-  ChevronRight as ChevronRightIcon,
-  Today as TodayIcon,
-  Event as EventIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Info as InfoIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
-  Fullscreen as FullscreenIcon,
-} from "@mui/icons-material";
+import { Add as AddIcon, ChevronLeft as ChevronLeftIcon, ChevronRight as ChevronRightIcon, Today as TodayIcon, Event as EventIcon, Edit as EditIcon, Delete as DeleteIcon, Info as InfoIcon, ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon, Fullscreen as FullscreenIcon } from "@mui/icons-material";
 import { useTimeline, useCreateTimelineEvent, useUpdateTimelineEvent, useDeleteTimelineEvent } from "@/hooks";
 import { useUsers } from "@/hooks/useUsers";
 
@@ -29,10 +17,8 @@ const formatWeekDay = (date: Date) => date.toLocaleDateString("pt-BR", { weekday
 const isSameDay = (d1: Date, d2: Date) => d1.getDate() === d2.getDate() && d1.getMonth() === d2.getMonth() && d1.getFullYear() === d2.getFullYear();
 
 const getMonthDays = (date: Date) => {
-  const year = date.getFullYear();
-  const month = date.getMonth();
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
+  const year = date.getFullYear(), month = date.getMonth();
+  const firstDay = new Date(year, month, 1), lastDay = new Date(year, month + 1, 0);
   const days: Date[] = [];
   for (let i = firstDay.getDay(); i > 0; i--) days.push(new Date(year, month, 1 - i));
   for (let i = 1; i <= lastDay.getDate(); i++) days.push(new Date(year, month, i));
@@ -41,8 +27,7 @@ const getMonthDays = (date: Date) => {
 };
 
 const getWeekDays = (date: Date) => {
-  const days: Date[] = [];
-  const start = new Date(date);
+  const days: Date[] = [], start = new Date(date);
   start.setDate(date.getDate() - date.getDay());
   for (let i = 0; i < 7; i++) { const d = new Date(start); d.setDate(start.getDate() + i); days.push(d); }
   return days;
@@ -56,11 +41,7 @@ type ProcessTimelineComponentProps = {
   readOnly?: boolean;
 };
 
-const TimelineContent = ({
-  context,
-  enabled,
-  readOnly = false,
-}: {
+const TimelineContent = ({ context, enabled, readOnly = false }: {
   context: ProcessTimelineComponentProps["context"];
   enabled: boolean;
   readOnly?: boolean;
@@ -71,7 +52,6 @@ const TimelineContent = ({
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const [formData, setFormData] = useState({ title: "", eventDate: "", description: "", responsavelId: "", priority: "Média" });
-
   const { users, fetchUsers } = useUsers();
 
   const timelineFilters = useMemo(() => {
@@ -96,10 +76,7 @@ const TimelineContent = ({
   const createMutation = useCreateTimelineEvent();
   const updateMutation = useUpdateTimelineEvent();
   const deleteMutation = useDeleteTimelineEvent();
-
   const events = timelineData?.items || [];
-
-  const filteredEvents = events;
 
   const displayDate = useMemo(() => {
     if (viewMode === "month") return currentDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
@@ -127,13 +104,7 @@ const TimelineContent = ({
 
   const handleEditEvent = (event: any) => {
     setSelectedEvent(event);
-    setFormData({
-      title: event.title,
-      eventDate: new Date(event.eventDate).toISOString().slice(0, 16),
-      description: event.description || "",
-      responsavelId: event.responsavel?._id || "",
-      priority: event.priority || "Média",
-    });
+    setFormData({ title: event.title, eventDate: new Date(event.eventDate).toISOString().slice(0, 16), description: event.description || "", responsavelId: event.responsavel?._id || "", priority: event.priority || "Média" });
     setShowEditModal(true);
   };
 
@@ -157,17 +128,12 @@ const TimelineContent = ({
   if (isLoading) return <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}><CircularProgress /></Box>;
 
   const renderDayView = () => {
-    const dayEvents = filteredEvents.slice().sort((a: any, b: any) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
+    const dayEvents = events.slice().sort((a: any, b: any) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
     return (
       <Box sx={{ p: 2.25 }}>
-        <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.9rem", mb: 1.5 }}>
-          {dayEvents.length} {dayEvents.length === 1 ? "evento" : "eventos"}
-        </Typography>
+        <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.9rem", mb: 1.5 }}>{dayEvents.length} {dayEvents.length === 1 ? "evento" : "eventos"}</Typography>
         {dayEvents.length === 0 ? (
-          <Box sx={{ textAlign: "center", py: 4, color: "#94a3b8" }}>
-            <EventIcon sx={{ fontSize: 48, mb: 1 }} />
-            <Typography variant="body2">Nenhum evento para este dia</Typography>
-          </Box>
+          <Box sx={{ textAlign: "center", py: 4, color: "#94a3b8" }}><EventIcon sx={{ fontSize: 48, mb: 1 }} /><Typography variant="body2">Nenhum evento para este dia</Typography></Box>
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
             {dayEvents.map((event: any) => {
@@ -185,12 +151,8 @@ const TimelineContent = ({
                     </Box>
                     <Box sx={{ display: "flex", gap: 0.5 }}>
                       <Chip label={priority.label} size="small" sx={{ bgcolor: priority.bg, color: priority.color, fontWeight: 700, fontSize: "0.75rem", height: 22 }} />
-                      {!readOnly && <Tooltip title="Editar evento">
-                        <IconButton size="small" onClick={() => handleEditEvent(event)} sx={{ color: "#1877F2" }}><EditIcon fontSize="small" /></IconButton>
-                      </Tooltip>}
-                      {!readOnly && <Tooltip title="Deletar evento">
-                        <IconButton size="small" onClick={() => handleDeleteEvent(event._id)} sx={{ color: "#F02849" }}><DeleteIcon fontSize="small" /></IconButton>
-                      </Tooltip>}
+                      {!readOnly && <Tooltip title="Editar evento"><IconButton size="small" onClick={() => handleEditEvent(event)} sx={{ color: "#1877F2" }}><EditIcon fontSize="small" /></IconButton></Tooltip>}
+                      {!readOnly && <Tooltip title="Deletar evento"><IconButton size="small" onClick={() => handleDeleteEvent(event._id)} sx={{ color: "#F02849" }}><DeleteIcon fontSize="small" /></IconButton></Tooltip>}
                     </Box>
                   </Box>
                 </Box>
@@ -208,7 +170,7 @@ const TimelineContent = ({
       <Box sx={{ p: 2.25 }}>
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1 }}>
           {weekDays.map((day, idx) => {
-            const dayEvents = filteredEvents.filter((e: any) => isSameDay(new Date(e.eventDate), day));
+            const dayEvents = events.filter((e: any) => isSameDay(new Date(e.eventDate), day));
             const isToday = isSameDay(day, new Date());
             return (
               <Box key={idx} sx={{ border: "1px solid #E4E6EB", borderRadius: 2, overflow: "hidden", bgcolor: isToday ? "#F0F9FF" : "#fff", cursor: "pointer", "&:hover": { borderColor: "#1877F2" } }} onClick={() => handleDayClick(day)}>
@@ -236,19 +198,16 @@ const TimelineContent = ({
 
   const renderMonthView = () => {
     const monthDays = getMonthDays(currentDate);
-    const weekDayLabels = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
     return (
       <Box sx={{ p: 2.25 }}>
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1, mb: 1 }}>
-          {weekDayLabels.map((d) => (
-            <Box key={d} sx={{ textAlign: "center", py: 0.5 }}>
-              <Typography sx={{ fontWeight: 900, color: "#64748b", fontSize: "0.75rem" }}>{d}</Typography>
-            </Box>
+          {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((d) => (
+            <Box key={d} sx={{ textAlign: "center", py: 0.5 }}><Typography sx={{ fontWeight: 900, color: "#64748b", fontSize: "0.75rem" }}>{d}</Typography></Box>
           ))}
         </Box>
         <Box sx={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1 }}>
           {monthDays.map((day, idx) => {
-            const dayEvents = filteredEvents.filter((e: any) => isSameDay(new Date(e.eventDate), day));
+            const dayEvents = events.filter((e: any) => isSameDay(new Date(e.eventDate), day));
             const isToday = isSameDay(day, new Date());
             const isCurrentMonth = day.getMonth() === currentDate.getMonth();
             return (
@@ -273,14 +232,11 @@ const TimelineContent = ({
       <TextField label="Título" fullWidth value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} />
       <TextField label="Data e Horário" type="datetime-local" fullWidth value={formData.eventDate} onChange={(e) => setFormData({ ...formData, eventDate: e.target.value })} InputLabelProps={{ shrink: true }} />
       <TextField label="Descrição" fullWidth multiline rows={3} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
-      <Autocomplete
-        options={users}
-        getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
+      <Autocomplete options={users} getOptionLabel={(option) => `${option.firstName} ${option.lastName}`}
         value={users.find((u) => u._id === formData.responsavelId) || null}
         onChange={(_, v) => setFormData({ ...formData, responsavelId: v?._id || "" })}
         onOpen={() => { if (users.length === 0) fetchUsers({ limit: 100 }); }}
-        renderInput={(params) => <TextField {...params} label="Responsável" />}
-      />
+        renderInput={(params) => <TextField {...params} label="Responsável" />} />
       <TextField label="Prioridade" select fullWidth value={formData.priority} onChange={(e) => setFormData({ ...formData, priority: e.target.value })}>
         <MenuItem value="Baixa">Baixa</MenuItem>
         <MenuItem value="Média">Média</MenuItem>
@@ -294,15 +250,9 @@ const TimelineContent = ({
       <Box sx={{ px: 2.25, py: 1.5, bgcolor: "#F8FAFC", borderBottom: "1px solid #E4E6EB" }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 2, flexWrap: "wrap" }}>
           <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-            <IconButton onClick={handlePrevious} size="small" sx={{ bgcolor: "#fff", border: "1px solid #E4E6EB", "&:hover": { bgcolor: "#F0F9FF", borderColor: "#1877F2" } }}>
-              <ChevronLeftIcon fontSize="small" />
-            </IconButton>
-            <Button onClick={() => setCurrentDate(new Date())} variant="outlined" size="small" startIcon={<TodayIcon />} sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700, borderColor: "#E4E6EB", color: "#0f172a", "&:hover": { borderColor: "#1877F2", bgcolor: "#F0F9FF" } }}>
-              Hoje
-            </Button>
-            <IconButton onClick={handleNext} size="small" sx={{ bgcolor: "#fff", border: "1px solid #E4E6EB", "&:hover": { bgcolor: "#F0F9FF", borderColor: "#1877F2" } }}>
-              <ChevronRightIcon fontSize="small" />
-            </IconButton>
+            <IconButton onClick={handlePrevious} size="small" sx={{ bgcolor: "#fff", border: "1px solid #E4E6EB", "&:hover": { bgcolor: "#F0F9FF", borderColor: "#1877F2" } }}><ChevronLeftIcon fontSize="small" /></IconButton>
+            <Button onClick={() => setCurrentDate(new Date())} variant="outlined" size="small" startIcon={<TodayIcon />} sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700, borderColor: "#E4E6EB", color: "#0f172a", "&:hover": { borderColor: "#1877F2", bgcolor: "#F0F9FF" } }}>Hoje</Button>
+            <IconButton onClick={handleNext} size="small" sx={{ bgcolor: "#fff", border: "1px solid #E4E6EB", "&:hover": { bgcolor: "#F0F9FF", borderColor: "#1877F2" } }}><ChevronRightIcon fontSize="small" /></IconButton>
             <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.9rem", ml: 1 }}>{displayDate}</Typography>
           </Box>
           <ToggleButtonGroup value={viewMode} exclusive onChange={(_, val) => val && setViewMode(val)} size="small">
@@ -318,46 +268,27 @@ const TimelineContent = ({
       {viewMode === "month" && renderMonthView()}
 
       <Box sx={{ px: 2.25, pb: 2.25, pt: 1, borderTop: "1px solid #E4E6EB", bgcolor: "#FAFBFC", display: "flex", justifyContent: "flex-end" }}>
-        {!readOnly && (
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowCreateModal(true)} sx={{ bgcolor: "#1877F2", textTransform: "none", fontWeight: 700, borderRadius: 2 }}>
-          Criar evento
-        </Button>
-        )}
+        {!readOnly && <Button variant="contained" startIcon={<AddIcon />} onClick={() => setShowCreateModal(true)} sx={{ bgcolor: "#1877F2", textTransform: "none", fontWeight: 700, borderRadius: 2 }}>Criar evento</Button>}
       </Box>
 
-      <Dialog open={showCreateModal} onClose={() => setShowCreateModal(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
-        <DialogContent sx={{ p: 0 }}>
-          <Box sx={{ px: 3, py: 2.5, borderBottom: "1px solid #E4E6EB" }}>
-            <Typography sx={{ fontWeight: 700, fontSize: "1.25rem", color: "#0f172a" }}>Criar Evento</Typography>
-          </Box>
-          <Box sx={{ p: 3 }}>{eventForm}</Box>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2, borderTop: "1px solid #E4E6EB" }}>
-          <Button onClick={() => setShowCreateModal(false)} variant="outlined" sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700 }}>Cancelar</Button>
-          <Button variant="contained" onClick={handleCreateEvent} disabled={createMutation.isPending || !formData.title || !formData.eventDate}
-            startIcon={createMutation.isPending ? <CircularProgress size={16} /> : null}
-            sx={{ bgcolor: "#1877F2", textTransform: "none", fontWeight: 700, borderRadius: 2 }}>
-            {createMutation.isPending ? "Criando..." : "Criar"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={showEditModal} onClose={() => { setShowEditModal(false); setSelectedEvent(null); }} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
-        <DialogContent sx={{ p: 0 }}>
-          <Box sx={{ px: 3, py: 2.5, borderBottom: "1px solid #E4E6EB" }}>
-            <Typography sx={{ fontWeight: 700, fontSize: "1.25rem", color: "#0f172a" }}>Editar Evento</Typography>
-          </Box>
-          <Box sx={{ p: 3 }}>{eventForm}</Box>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2, borderTop: "1px solid #E4E6EB" }}>
-          <Button onClick={() => { setShowEditModal(false); setSelectedEvent(null); }} variant="outlined" sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700 }}>Cancelar</Button>
-          <Button variant="contained" onClick={handleUpdateEvent} disabled={updateMutation.isPending || !formData.title || !formData.eventDate}
-            startIcon={updateMutation.isPending ? <CircularProgress size={16} /> : null}
-            sx={{ bgcolor: "#1877F2", textTransform: "none", fontWeight: 700, borderRadius: 2 }}>
-            {updateMutation.isPending ? "Salvando..." : "Salvar"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {[{ open: showCreateModal, onClose: () => setShowCreateModal(false), title: "Criar Evento", onConfirm: handleCreateEvent, loading: createMutation.isPending, disabled: !formData.title || !formData.eventDate, confirmLabel: "Criar" },
+        { open: showEditModal, onClose: () => { setShowEditModal(false); setSelectedEvent(null); }, title: "Editar Evento", onConfirm: handleUpdateEvent, loading: updateMutation.isPending, disabled: !formData.title || !formData.eventDate, confirmLabel: "Salvar" }
+      ].map(({ open, onClose, title, onConfirm, loading, disabled, confirmLabel }) => (
+        <Dialog key={title} open={open} onClose={onClose} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+          <DialogContent sx={{ p: 0 }}>
+            <Box sx={{ px: 3, py: 2.5, borderBottom: "1px solid #E4E6EB" }}><Typography sx={{ fontWeight: 700, fontSize: "1.25rem", color: "#0f172a" }}>{title}</Typography></Box>
+            <Box sx={{ p: 3 }}>{eventForm}</Box>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, py: 2, borderTop: "1px solid #E4E6EB" }}>
+            <Button onClick={onClose} variant="outlined" sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700 }}>Cancelar</Button>
+            <Button variant="contained" onClick={onConfirm} disabled={loading || disabled}
+              startIcon={loading ? <CircularProgress size={16} /> : null}
+              sx={{ bgcolor: "#1877F2", textTransform: "none", fontWeight: 700, borderRadius: 2 }}>
+              {loading ? "Salvando..." : confirmLabel}
+            </Button>
+          </DialogActions>
+        </Dialog>
+      ))}
     </>
   );
 };
@@ -370,22 +301,14 @@ export const ProcessTimelineComponent = ({ label, description, context, enabled 
     <Box sx={{ px: 2.25, py: 2, bgcolor: "#F8FAFC", borderBottom: "2px solid #E4E6EB", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: onClose ? "1.1rem" : "0.95rem" }}>{label || "Cronograma de Eventos"}</Typography>
-        {description && (
-          <Tooltip title={description} arrow>
-            <InfoIcon sx={{ fontSize: 18, color: "#1877F2", cursor: "help" }} />
-          </Tooltip>
-        )}
+        {description && <Tooltip title={description} arrow><InfoIcon sx={{ fontSize: 18, color: "#1877F2", cursor: "help" }} /></Tooltip>}
       </Box>
       <Box sx={{ display: "flex", gap: 0.5 }}>
         {onClose ? (
           <Button onClick={onClose} variant="outlined" sx={{ textTransform: "none", fontWeight: 700, borderRadius: 2 }}>Fechar</Button>
         ) : (
           <>
-            <Tooltip title="Tela cheia">
-              <IconButton size="small" onClick={() => setFullscreen(true)} sx={{ color: "#64748b" }}>
-                <FullscreenIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
+            <Tooltip title="Tela cheia"><IconButton size="small" onClick={() => setFullscreen(true)} sx={{ color: "#64748b" }}><FullscreenIcon fontSize="small" /></IconButton></Tooltip>
             <Tooltip title={collapsed ? "Expandir" : "Recolher"}>
               <IconButton size="small" onClick={() => setCollapsed((v) => !v)} sx={{ color: "#64748b" }}>
                 {collapsed ? <ExpandMoreIcon fontSize="small" /> : <ExpandLessIcon fontSize="small" />}
@@ -401,17 +324,12 @@ export const ProcessTimelineComponent = ({ label, description, context, enabled 
     <>
       <Box sx={{ border: "1px solid #E4E6EB", borderRadius: 2, bgcolor: "#fff", overflow: "hidden" }}>
         {headerContent()}
-        <Collapse in={!collapsed}>
-          <TimelineContent context={context} enabled={enabled} readOnly={readOnly} />
-        </Collapse>
+        <Collapse in={!collapsed}><TimelineContent context={context} enabled={enabled} readOnly={readOnly} /></Collapse>
       </Box>
-
       <Dialog open={fullscreen} onClose={() => setFullscreen(false)} fullScreen>
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
           {headerContent(() => setFullscreen(false))}
-          <Box sx={{ flex: 1, overflow: "auto", bgcolor: "#fff" }}>
-            <TimelineContent context={context} enabled={enabled} readOnly={readOnly} />
-          </Box>
+          <Box sx={{ flex: 1, overflow: "auto", bgcolor: "#fff" }}><TimelineContent context={context} enabled={enabled} readOnly={readOnly} /></Box>
         </Box>
       </Dialog>
     </>

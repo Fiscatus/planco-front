@@ -34,23 +34,26 @@ import {
 } from '@mui/material';
 import { useMemo, useState } from 'react';
 import type { FlowModelStage } from '@/hooks/useFlowModels';
-import { ApprovalComponent } from './ApprovalComponent';
-import { ChecklistComponent } from './ChecklistComponent';
-import { CommentsComponent } from './CommentsComponent';
-import { FilesManagementComponent } from './FilesManagementComponent';
-import { FormComponent } from './FormComponent';
-import { SignatureComponent } from './SignatureComponent';
-import { TimelineComponent } from './TimelineComponent';
+import {
+  ProcessApprovalComponent,
+  ProcessChecklistComponent,
+  ProcessCommentsComponent,
+  ProcessFilesManagementComponent,
+  ProcessFormComponent,
+  ProcessSignatureComponent,
+  ProcessTimelineComponent,
+} from '@/components/process';
 
-// Mapeamento de componentes implementados
+const PREVIEW_CONTEXT = { processId: 'preview', stageId: 'preview', componentKey: 'preview' };
+
 const COMPONENT_MAP: Record<string, React.ComponentType<any>> = {
-  SIGNATURE: SignatureComponent,
-  FILES_MANAGEMENT: FilesManagementComponent,
-  APPROVAL: ApprovalComponent,
-  TIMELINE: TimelineComponent,
-  COMMENTS: CommentsComponent,
-  CHECKLIST: ChecklistComponent,
-  FORM: FormComponent
+  APPROVAL:         (p: any) => <ProcessApprovalComponent         {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly />,
+  CHECKLIST:        (p: any) => <ProcessChecklistComponent        {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly />,
+  COMMENTS:         (p: any) => <ProcessCommentsComponent         {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly />,
+  FILES_MANAGEMENT: (p: any) => <ProcessFilesManagementComponent  {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly />,
+  SIGNATURE:        (p: any) => <ProcessSignatureComponent        {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly />,
+  TIMELINE:         (p: any) => <ProcessTimelineComponent         {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly />,
+  FORM:             (p: any) => <ProcessFormComponent             {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly previewFields={p.config?.fields} />,
 };
 
 type StageCardProps = {

@@ -73,7 +73,6 @@ const ChecklistContent = ({
   };
 
   const handleToggle = (id: string) => toggleMutation.mutate({ id, context });
-
   const handleOpenEdit = (item: any) => { setEditingItem(item); setShowEditModal(true); };
 
   const handleSaveEdit = () => {
@@ -99,18 +98,11 @@ const ChecklistContent = ({
   return (
     <>
       <Box sx={{ px: 2, py: 1.5, borderBottom: "1px solid #E4E6EB", display: "flex", gap: 1, alignItems: "center" }}>
-        <TextField
-          size="small"
-          placeholder="Buscar tarefas..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+        <TextField size="small" placeholder="Buscar tarefas..." value={search} onChange={(e) => setSearch(e.target.value)}
           InputProps={{ startAdornment: <SearchIcon sx={{ fontSize: 18, color: "#8A8D91", mr: 0.5 }} /> }}
-          sx={{ flex: 1, "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "#F0F2F5" } }}
-        />
-        <TextField
-          select size="small" value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}
-          sx={{ width: 120, "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "#F0F2F5" } }}
-        >
+          sx={{ flex: 1, "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "#F0F2F5" } }} />
+        <TextField select size="small" value={filterPriority} onChange={(e) => setFilterPriority(e.target.value)}
+          sx={{ width: 120, "& .MuiOutlinedInput-root": { borderRadius: 2, bgcolor: "#F0F2F5" } }}>
           <MenuItem value="all">Todas</MenuItem>
           <MenuItem value="Baixa">Baixa</MenuItem>
           <MenuItem value="Média">Média</MenuItem>
@@ -124,9 +116,7 @@ const ChecklistContent = ({
 
       <Box sx={{ px: 2, py: 1.5, borderBottom: "1px solid #E4E6EB" }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5 }}>
-          <Typography variant="body2" sx={{ color: "#64748b", fontSize: "0.8rem" }}>
-            {completedCount} de {totalCount} concluídas
-          </Typography>
+          <Typography variant="body2" sx={{ color: "#64748b", fontSize: "0.8rem" }}>{completedCount} de {totalCount} concluídas</Typography>
           <Typography variant="body2" sx={{ fontWeight: 700, color: "#1877F2", fontSize: "0.8rem" }}>{completionPercentage}%</Typography>
         </Box>
         <LinearProgress variant="determinate" value={completionPercentage}
@@ -169,9 +159,9 @@ const ChecklistContent = ({
                   </IconButton>
                 )}
                 {!readOnly && (
-                <IconButton size="small" onClick={() => handleOpenDelete(item._id)} sx={{ color: "#EF4444" }}>
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
+                  <IconButton size="small" onClick={() => handleOpenDelete(item._id)} sx={{ color: "#EF4444" }}>
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
                 )}
               </Box>
             ))}
@@ -255,18 +245,10 @@ export const ProcessChecklistComponent = ({ label, description, context, enabled
     <Box sx={{ px: 2.25, py: 2, bgcolor: "#F8FAFC", borderBottom: "2px solid #E4E6EB", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.95rem" }}>{label || "Checklist"}</Typography>
-        {description && (
-          <Tooltip title={description} arrow>
-            <InfoIcon sx={{ fontSize: 18, color: "#1877F2", cursor: "help" }} />
-          </Tooltip>
-        )}
+        {description && <Tooltip title={description} arrow><InfoIcon sx={{ fontSize: 18, color: "#1877F2", cursor: "help" }} /></Tooltip>}
       </Box>
       <Box sx={{ display: "flex", gap: 0.5 }}>
-        <Tooltip title="Tela cheia">
-          <IconButton size="small" onClick={() => setFullscreen(true)} sx={{ color: "#64748b" }}>
-            <FullscreenIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
+        <Tooltip title="Tela cheia"><IconButton size="small" onClick={() => setFullscreen(true)} sx={{ color: "#64748b" }}><FullscreenIcon fontSize="small" /></IconButton></Tooltip>
         <Tooltip title={collapsed ? "Expandir" : "Recolher"}>
           <IconButton size="small" onClick={() => setCollapsed((v) => !v)} sx={{ color: "#64748b" }}>
             {collapsed ? <ExpandMoreIcon fontSize="small" /> : <ExpandLessIcon fontSize="small" />}
@@ -280,27 +262,18 @@ export const ProcessChecklistComponent = ({ label, description, context, enabled
     <>
       <Box sx={{ border: "1px solid #E4E6EB", borderRadius: 2, bgcolor: "#fff", overflow: "hidden" }}>
         {header}
-        <Collapse in={!collapsed}>
-          <ChecklistContent context={context} enabled={enabled} compact readOnly={readOnly} />
-        </Collapse>
+        <Collapse in={!collapsed}><ChecklistContent context={context} enabled={enabled} compact readOnly={readOnly} /></Collapse>
       </Box>
-
       <Dialog open={fullscreen} onClose={() => setFullscreen(false)} fullScreen>
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
           <Box sx={{ px: 2.25, py: 2, bgcolor: "#F8FAFC", borderBottom: "2px solid #E4E6EB", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "1.1rem" }}>{label || "Checklist"}</Typography>
-              {description && (
-                <Tooltip title={description} arrow>
-                  <InfoIcon sx={{ fontSize: 18, color: "#1877F2", cursor: "help" }} />
-                </Tooltip>
-              )}
+              {description && <Tooltip title={description} arrow><InfoIcon sx={{ fontSize: 18, color: "#1877F2", cursor: "help" }} /></Tooltip>}
             </Box>
             <Button onClick={() => setFullscreen(false)} variant="outlined" sx={{ textTransform: "none", fontWeight: 700, borderRadius: 2 }}>Fechar</Button>
           </Box>
-          <Box sx={{ flex: 1, overflow: "auto", bgcolor: "#fff" }}>
-            <ChecklistContent context={context} enabled={enabled} readOnly={readOnly} />
-          </Box>
+          <Box sx={{ flex: 1, overflow: "auto", bgcolor: "#fff" }}><ChecklistContent context={context} enabled={enabled} readOnly={readOnly} /></Box>
         </Box>
       </Dialog>
     </>
