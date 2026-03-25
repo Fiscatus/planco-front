@@ -1,5 +1,6 @@
 import { Alert, Snackbar } from '@mui/material';
-import { createContext, type ReactNode, useContext, useState } from 'react';
+import { createContext, type ReactNode, useContext, useState, useEffect } from 'react';
+import { apiErrorEmitter } from '@/services/apiErrorEmitter';
 
 type NotificationType = 'success' | 'error' | 'warning' | 'info';
 
@@ -36,19 +37,19 @@ export const NotificationProvider = ({ children }: Props) => {
 
     setNotifications((prev) => {
       const updatedNotifications = [...prev, newNotification];
-
       if (updatedNotifications.length > 3) {
-        const excessCount = updatedNotifications.length - 3;
-        return updatedNotifications.slice(excessCount);
+        return updatedNotifications.slice(updatedNotifications.length - 3);
       }
-
       return updatedNotifications;
     });
 
-    setTimeout(() => {
-      handleClose(id);
-    }, 5000); // 5 seconds duration
+    setTimeout(() => { handleClose(id); }, 5000);
   };
+
+  useEffect(() => {
+    apiErrorEmitter.subscribe((message) => showNotification(message, 'error'));
+    return () => apiErrorEmitter.unsubscribe();
+  }, []);
 
   const handleClose = (id: string) => {
     setNotifications((prev) =>

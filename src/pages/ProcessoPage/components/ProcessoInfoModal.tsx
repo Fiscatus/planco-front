@@ -64,7 +64,7 @@ export const ProcessoInfoModal = ({ open, onClose, flowInstance, currentStage }:
           <Divider />
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
             <Row label='Número do Processo' value={p.processNumber} />
-            <Row label='Data de Criação' value={formatDate(p.createdAt)} />
+            <Row label='Data de Criação' value={formatDate(p.createdAt ?? flowInstance.createdAt)} />
           </Box>
           <Divider />
           <Row label='Gerência Responsável' value={creatorDept} />
