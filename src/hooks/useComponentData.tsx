@@ -78,6 +78,20 @@ export const useSendFileToApproval = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['files', variables.context] });
+      queryClient.invalidateQueries({ queryKey: ['approval-pending', variables.context.processId] });
+      queryClient.invalidateQueries({ queryKey: ['approval-history', variables.context.processId] });
+    }
+  });
+};
+
+export const useFilesByProcess = (processId: string, enabled = true) => {
+  return useQuery({
+    queryKey: ['files-by-process', processId],
+    enabled: !!processId && enabled,
+    staleTime: 0,
+    queryFn: async () => {
+      const response = await api.get('/files/by-process', { params: { processId } });
+      return response.data;
     }
   });
 };
@@ -266,10 +280,23 @@ export const usePendingApproval = (processId: string, enabled = true) => {
   return useQuery({
     queryKey: ['approval-pending', processId],
     enabled,
+    staleTime: 0,
     queryFn: async () => {
       const response = await api.get('/approvals/pending', { 
         params: { processId } 
       });
+      return response.data;
+    }
+  });
+};
+
+export const useApprovalHistory = (processId: string, enabled = true) => {
+  return useQuery({
+    queryKey: ['approval-history', processId],
+    enabled,
+    staleTime: 0,
+    queryFn: async () => {
+      const response = await api.get('/approvals/history', { params: { processId } });
       return response.data;
     }
   });
@@ -287,9 +314,10 @@ export const useResolveApproval = () => {
       });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['approvals'] });
-      queryClient.invalidateQueries({ queryKey: ['approval-pending'] });
+      queryClient.invalidateQueries({ queryKey: ['approval-pending', variables.processId] });
+      queryClient.invalidateQueries({ queryKey: ['approval-history', variables.processId] });
     }
   });
 };

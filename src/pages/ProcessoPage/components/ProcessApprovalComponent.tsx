@@ -10,16 +10,9 @@ import {
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
   Fullscreen as FullscreenIcon,
+  History as HistoryIcon,
 } from "@mui/icons-material";
-import { usePendingApproval, useResolveApproval, useDownloadFile } from "@/hooks";
-
-type ReviewStatus = "in_review" | "approved" | "changes_requested";
-
-const getStatusChip = (status: ReviewStatus) => {
-  if (status === "approved") return { label: "Aprovado", bg: "#ECFDF3", color: "#065F46", icon: <CheckCircleIcon sx={{ fontSize: 16 }} /> };
-  if (status === "changes_requested") return { label: "Correções solicitadas", bg: "#FEE2E2", color: "#B91C1C", icon: <CancelIcon sx={{ fontSize: 16 }} /> };
-  return { label: "Em análise", bg: "#FEF3C7", color: "#92400E", icon: <ScheduleIcon sx={{ fontSize: 16 }} /> };
-};
+import { usePendingApproval, useResolveApproval, useDownloadFile, useApprovalHistory } from "@/hooks";
 
 const formatDate = (date?: string) => {
   if (!date) return "—";
@@ -38,23 +31,23 @@ type ProcessApprovalComponentProps = {
   enabled?: boolean;
   readOnly?: boolean;
   onApproved?: () => void;
-  auditLogs?: Array<{
-    action: string;
-    performedAt: string;
-    reason?: string;
-    fileName?: string;
-  }>;
 };
 
-const ApprovalContent = ({ context, enabled, readOnly = false, onApproved, auditLogs = [] }: {
+const actionConfig: Record<string, { label: string; bg: string; color: string; icon: React.ReactNode }> = {
+  APPROVED:  { label: "Aprovado",              bg: "#ECFDF3", color: "#065F46", icon: <CheckCircleIcon sx={{ fontSize: 14 }} /> },
+  REJECTED:  { label: "Correções solicitadas", bg: "#FEE2E2", color: "#B91C1C", icon: <CancelIcon sx={{ fontSize: 14 }} /> },
+  SUBMITTED: { label: "Enviado para análise",  bg: "#FEF3C7", color: "#92400E", icon: <ScheduleIcon sx={{ fontSize: 14 }} /> },
+};
+
+const ApprovalContent = ({ context, enabled, readOnly = false, onApproved }: {
   context: ProcessApprovalComponentProps["context"];
   enabled: boolean;
   readOnly?: boolean;
   onApproved?: () => void;
-  auditLogs?: ProcessApprovalComponentProps["auditLogs"];
 }) => {
   const queryClient = useQueryClient();
   const { data: pendingData, isLoading } = usePendingApproval(context.processId, enabled);
+  const { data: historyData = [] } = useApprovalHistory(context.processId, enabled);
   const resolveMutation = useResolveApproval();
   const downloadMutation = useDownloadFile();
 
@@ -87,6 +80,20 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved, audit
   const file = pendingData?.fileId;
   const hasPending = !!file;
 
+  // Monta histórico a partir da API /approvals/history
+  // Estrutura: [{ status, fileId: { fileName }, fileName, auditLogs: [{ action, performedAt, reason, performedBy }] }]
+  type HistoryLog = { action: string; performedAt: string; reason?: string; fileName?: string; performedBy?: any };
+  const relevantLogs: HistoryLog[] = (historyData as any[]).flatMap((approval: any) =>
+    (approval.auditLogs || []).map((l: any) => ({
+      action: l.action,
+      performedAt: l.performedAt,
+      reason: l.reason,
+      fileName: approval.fileId?.fileName || approval.fileName,
+      performedBy: l.performedBy,
+    }))
+  ).filter((l: HistoryLog) => Object.keys(actionConfig).includes(l.action))
+   .sort((a: HistoryLog, b: HistoryLog) => a.performedAt > b.performedAt ? 1 : -1);
+
   return (
     <>
       <Box sx={{ px: 2, py: 1, borderBottom: "1px solid #E4E6EB" }}>
@@ -95,8 +102,9 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved, audit
         </Typography>
       </Box>
 
+      {/* Documento pendente */}
       <Box sx={{ p: 2.25 }}>
-        <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.9rem", mb: 1.5 }}>Documentos em análise</Typography>
+        <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.9rem", mb: 1.5 }}>Documento em análise</Typography>
         {!hasPending ? (
           <Typography variant="body2" sx={{ color: "#94a3b8", textAlign: "center", py: 2 }}>Nenhum documento aguardando análise</Typography>
         ) : (
@@ -112,52 +120,67 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved, audit
                 </IconButton>
               </Tooltip>
             </Box>
-            <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-              <Chip icon={getStatusChip("in_review").icon} label={getStatusChip("in_review").label} size="small" sx={{ bgcolor: getStatusChip("in_review").bg, color: getStatusChip("in_review").color, fontWeight: 700, fontSize: "0.75rem", height: 22, "& .MuiChip-icon": { color: getStatusChip("in_review").color } }} />
-              <Chip label={formatDate(pendingData.createdAt)} size="small" sx={{ bgcolor: "#FAFBFC", color: "#64748b", fontWeight: 700, fontSize: "0.75rem", height: 22 }} />
-            </Box>
+            <Chip icon={<ScheduleIcon sx={{ fontSize: 14 }} />} label="Em análise" size="small"
+              sx={{ bgcolor: "#FEF3C7", color: "#92400E", fontWeight: 700, fontSize: "0.75rem", height: 22, "& .MuiChip-icon": { color: "#92400E" } }} />
           </Box>
         )}
       </Box>
 
-      {auditLogs && auditLogs.length > 0 && (() => {
-        const relevant = auditLogs.filter(l => ['FILE_APPROVED','FILE_REJECTED','FILE_SENT_TO_APPROVAL'].includes(l.action));
-        if (!relevant.length) return null;
-        const actionMap: Record<string, { label: string; bg: string; color: string; icon: React.ReactNode }> = {
-          FILE_APPROVED: { label: 'Aprovado', bg: '#ECFDF3', color: '#065F46', icon: <CheckCircleIcon sx={{ fontSize: 14 }} /> },
-          FILE_REJECTED: { label: 'Correções solicitadas', bg: '#FEE2E2', color: '#B91C1C', icon: <CancelIcon sx={{ fontSize: 14 }} /> },
-          FILE_SENT_TO_APPROVAL: { label: 'Enviado para análise', bg: '#FEF3C7', color: '#92400E', icon: <ScheduleIcon sx={{ fontSize: 14 }} /> },
-        };
-        return (
-          <Box sx={{ px: 2.25, pb: 2, borderTop: '1px solid #E4E6EB' }}>
-            <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '0.85rem', mt: 2, mb: 1.5 }}>Histórico</Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {relevant.map((log, idx) => {
-                const cfg = actionMap[log.action];
-                if (!cfg) return null;
-                return (
-                  <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, p: 1.25, bgcolor: '#FAFBFC', borderRadius: 2, border: '1px solid #E4E6EB' }}>
-                    <Chip icon={cfg.icon as any} label={cfg.label} size='small'
-                      sx={{ bgcolor: cfg.bg, color: cfg.color, fontWeight: 700, fontSize: '0.72rem', height: 22, flexShrink: 0, '& .MuiChip-icon': { color: cfg.color } }} />
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      {log.fileName && <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.fileName}</Typography>}
-                      {log.reason && <Typography variant='caption' sx={{ color: '#64748b', display: 'block' }}>Motivo: {log.reason}</Typography>}
-                      <Typography variant='caption' sx={{ color: '#94a3b8' }}>{formatDate(log.performedAt)}</Typography>
-                    </Box>
-                  </Box>
-                );
-              })}
-            </Box>
+      {/* Histórico */}
+      {relevantLogs.length > 0 && (
+        <Box sx={{ px: 2.25, pb: 2.25, borderTop: "1px solid #E4E6EB" }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2, mb: 1.5 }}>
+            <HistoryIcon sx={{ fontSize: 18, color: "#64748b" }} />
+            <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.9rem" }}>Histórico</Typography>
           </Box>
-        );
-      })()}
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0 }}>
+            {relevantLogs.map((log, idx) => {
+              const cfg = actionConfig[log.action];
+              const isLast = idx === relevantLogs.length - 1;
+              return (
+                <Box key={idx} sx={{ display: "flex", gap: 0 }}>
+                  {/* Linha do tempo */}
+                  <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", mr: 1.5, flexShrink: 0 }}>
+                    <Box sx={{ width: 28, height: 28, borderRadius: "50%", bgcolor: cfg.bg, border: `2px solid ${cfg.color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      {cfg.icon}
+                    </Box>
+                    {!isLast && <Box sx={{ width: 2, flex: 1, bgcolor: "#E4E6EB", my: 0.5, minHeight: 16 }} />}
+                  </Box>
+                  {/* Conteúdo */}
+                  <Box sx={{ flex: 1, pb: isLast ? 0 : 2, pt: 0.25 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.25 }}>
+                      <Typography sx={{ fontWeight: 700, color: cfg.color, fontSize: "0.82rem" }}>{cfg.label}</Typography>
+                    </Box>
+                    {log.fileName && (
+                      <Typography sx={{ fontSize: "0.78rem", color: "#475569", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", mb: 0.25 }}>
+                        {log.fileName}
+                      </Typography>
+                    )}
+                    {log.reason && (
+                      <Typography variant="caption" sx={{ color: "#64748b", display: "block", fontStyle: "italic", mb: 0.25 }}>
+                        "{log.reason.trim()}"
+                      </Typography>
+                    )}
+                    <Typography variant="caption" sx={{ color: "#94a3b8" }}>
+                      {log.performedBy ? `${log.performedBy.firstName?.trim()} ${log.performedBy.lastName?.trim()} • ` : ""}{formatDate(log.performedAt)}
+                    </Typography>
+                  </Box>
+                </Box>
+              );
+            })}
+          </Box>
+        </Box>
+      )}
 
+      {/* Botões de ação */}
       {hasPending && !readOnly && (
         <Box sx={{ px: 2.25, pb: 2.25, display: "flex", gap: 1, justifyContent: "flex-end" }}>
-          <Button onClick={() => { setConfirmType("changes_requested"); setConfirmOpen(true); }} variant="outlined" startIcon={<CancelIcon />} sx={{ textTransform: "none", borderRadius: 2, borderColor: "#FECACA", color: "#B91C1C", fontWeight: 700 }}>
+          <Button onClick={() => { setConfirmType("changes_requested"); setConfirmOpen(true); }} variant="outlined" startIcon={<CancelIcon />}
+            sx={{ textTransform: "none", borderRadius: 2, borderColor: "#FECACA", color: "#B91C1C", fontWeight: 700 }}>
             Solicitar correções
           </Button>
-          <Button onClick={() => { setConfirmType("approved"); setConfirmOpen(true); }} variant="contained" startIcon={<CheckCircleIcon />} sx={{ bgcolor: "#16A34A", textTransform: "none", fontWeight: 700, borderRadius: 2 }}>
+          <Button onClick={() => { setConfirmType("approved"); setConfirmOpen(true); }} variant="contained" startIcon={<CheckCircleIcon />}
+            sx={{ bgcolor: "#16A34A", textTransform: "none", fontWeight: 700, borderRadius: 2 }}>
             Aprovar
           </Button>
         </Box>
@@ -186,7 +209,7 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved, audit
   );
 };
 
-export const ProcessApprovalComponent = ({ label, description, context, enabled = true, readOnly = false, onApproved, auditLogs }: ProcessApprovalComponentProps) => {
+export const ProcessApprovalComponent = ({ label, description, context, enabled = true, readOnly = false, onApproved }: ProcessApprovalComponentProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -226,7 +249,7 @@ export const ProcessApprovalComponent = ({ label, description, context, enabled 
       <Box sx={{ border: "1px solid #E4E6EB", borderRadius: 2, bgcolor: "#fff", overflow: "hidden" }}>
         {headerContent()}
         <Collapse in={!collapsed}>
-          <ApprovalContent context={context} enabled={enabled} readOnly={readOnly} onApproved={onApproved} auditLogs={auditLogs} />
+          <ApprovalContent context={context} enabled={enabled} readOnly={readOnly} onApproved={onApproved} />
         </Collapse>
       </Box>
 
@@ -234,7 +257,7 @@ export const ProcessApprovalComponent = ({ label, description, context, enabled 
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
           {headerContent(() => setFullscreen(false))}
           <Box sx={{ flex: 1, overflow: "auto", bgcolor: "#fff" }}>
-            <ApprovalContent context={context} enabled={enabled} readOnly={readOnly} onApproved={onApproved} auditLogs={auditLogs} />
+            <ApprovalContent context={context} enabled={enabled} readOnly={readOnly} onApproved={onApproved} />
           </Box>
         </Box>
       </Dialog>
