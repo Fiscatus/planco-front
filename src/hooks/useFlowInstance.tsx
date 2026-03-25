@@ -55,6 +55,7 @@ export type FlowInstance = {
       stageName?: string;
       componentKey?: string;
       componentLabel?: string;
+      reason?: string;
     }>;
     componentData?: any[];
   }>;

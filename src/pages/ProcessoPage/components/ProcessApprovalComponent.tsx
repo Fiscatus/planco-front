@@ -38,13 +38,20 @@ type ProcessApprovalComponentProps = {
   enabled?: boolean;
   readOnly?: boolean;
   onApproved?: () => void;
+  auditLogs?: Array<{
+    action: string;
+    performedAt: string;
+    reason?: string;
+    fileName?: string;
+  }>;
 };
 
-const ApprovalContent = ({ context, enabled, readOnly = false, onApproved }: {
+const ApprovalContent = ({ context, enabled, readOnly = false, onApproved, auditLogs = [] }: {
   context: ProcessApprovalComponentProps["context"];
   enabled: boolean;
   readOnly?: boolean;
   onApproved?: () => void;
+  auditLogs?: ProcessApprovalComponentProps["auditLogs"];
 }) => {
   const queryClient = useQueryClient();
   const { data: pendingData, isLoading } = usePendingApproval(context.processId, enabled);
@@ -113,6 +120,38 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved }: {
         )}
       </Box>
 
+      {auditLogs && auditLogs.length > 0 && (() => {
+        const relevant = auditLogs.filter(l => ['FILE_APPROVED','FILE_REJECTED','FILE_SENT_TO_APPROVAL'].includes(l.action));
+        if (!relevant.length) return null;
+        const actionMap: Record<string, { label: string; bg: string; color: string; icon: React.ReactNode }> = {
+          FILE_APPROVED: { label: 'Aprovado', bg: '#ECFDF3', color: '#065F46', icon: <CheckCircleIcon sx={{ fontSize: 14 }} /> },
+          FILE_REJECTED: { label: 'Correções solicitadas', bg: '#FEE2E2', color: '#B91C1C', icon: <CancelIcon sx={{ fontSize: 14 }} /> },
+          FILE_SENT_TO_APPROVAL: { label: 'Enviado para análise', bg: '#FEF3C7', color: '#92400E', icon: <ScheduleIcon sx={{ fontSize: 14 }} /> },
+        };
+        return (
+          <Box sx={{ px: 2.25, pb: 2, borderTop: '1px solid #E4E6EB' }}>
+            <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '0.85rem', mt: 2, mb: 1.5 }}>Histórico</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              {relevant.map((log, idx) => {
+                const cfg = actionMap[log.action];
+                if (!cfg) return null;
+                return (
+                  <Box key={idx} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, p: 1.25, bgcolor: '#FAFBFC', borderRadius: 2, border: '1px solid #E4E6EB' }}>
+                    <Chip icon={cfg.icon as any} label={cfg.label} size='small'
+                      sx={{ bgcolor: cfg.bg, color: cfg.color, fontWeight: 700, fontSize: '0.72rem', height: 22, flexShrink: 0, '& .MuiChip-icon': { color: cfg.color } }} />
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      {log.fileName && <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#0f172a', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{log.fileName}</Typography>}
+                      {log.reason && <Typography variant='caption' sx={{ color: '#64748b', display: 'block' }}>Motivo: {log.reason}</Typography>}
+                      <Typography variant='caption' sx={{ color: '#94a3b8' }}>{formatDate(log.performedAt)}</Typography>
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Box>
+          </Box>
+        );
+      })()}
+
       {hasPending && !readOnly && (
         <Box sx={{ px: 2.25, pb: 2.25, display: "flex", gap: 1, justifyContent: "flex-end" }}>
           <Button onClick={() => { setConfirmType("changes_requested"); setConfirmOpen(true); }} variant="outlined" startIcon={<CancelIcon />} sx={{ textTransform: "none", borderRadius: 2, borderColor: "#FECACA", color: "#B91C1C", fontWeight: 700 }}>
@@ -147,7 +186,7 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved }: {
   );
 };
 
-export const ProcessApprovalComponent = ({ label, description, context, enabled = true, readOnly = false, onApproved }: ProcessApprovalComponentProps) => {
+export const ProcessApprovalComponent = ({ label, description, context, enabled = true, readOnly = false, onApproved, auditLogs }: ProcessApprovalComponentProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -187,7 +226,7 @@ export const ProcessApprovalComponent = ({ label, description, context, enabled 
       <Box sx={{ border: "1px solid #E4E6EB", borderRadius: 2, bgcolor: "#fff", overflow: "hidden" }}>
         {headerContent()}
         <Collapse in={!collapsed}>
-          <ApprovalContent context={context} enabled={enabled} readOnly={readOnly} onApproved={onApproved} />
+          <ApprovalContent context={context} enabled={enabled} readOnly={readOnly} onApproved={onApproved} auditLogs={auditLogs} />
         </Collapse>
       </Box>
 
@@ -195,7 +234,7 @@ export const ProcessApprovalComponent = ({ label, description, context, enabled 
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
           {headerContent(() => setFullscreen(false))}
           <Box sx={{ flex: 1, overflow: "auto", bgcolor: "#fff" }}>
-            <ApprovalContent context={context} enabled={enabled} readOnly={readOnly} onApproved={onApproved} />
+            <ApprovalContent context={context} enabled={enabled} readOnly={readOnly} onApproved={onApproved} auditLogs={auditLogs} />
           </Box>
         </Box>
       </Dialog>

@@ -104,7 +104,7 @@ const CommentsContent = ({
     }
   };
 
-  const handleSelectMention = (user: { _id: string; firstName: string; lastName: string }) => {
+  const handleSelectMention = (user: any) => {
     const displayName = `${user.firstName} ${user.lastName}`;
     const cursor = textareaRef.current?.selectionStart ?? displayComment.length;
     const before = displayComment.slice(0, cursor);
@@ -246,7 +246,7 @@ const CommentsContent = ({
             {filteredUsers.map((user) => (
               <Box key={user._id} onMouseDown={(e) => { e.preventDefault(); handleSelectMention(user); }}
                 sx={{ px: 2, py: 1, display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer", "&:hover": { bgcolor: "#F0F2F5" } }}>
-                <Avatar src={user.profilePicture} sx={{ width: 28, height: 28, bgcolor: "#1877F2", fontSize: "0.75rem" }}>
+                <Avatar src={(user as any).profilePicture} sx={{ width: 28, height: 28, bgcolor: "#1877F2", fontSize: "0.75rem" }}>
                   {`${user.firstName?.charAt(0) || ""}${user.lastName?.charAt(0) || ""}`.toUpperCase()}
                 </Avatar>
                 <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: "#0f172a" }}>

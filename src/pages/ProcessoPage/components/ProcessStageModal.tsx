@@ -1,4 +1,4 @@
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Box, Chip, Dialog, DialogContent, IconButton, Tooltip, Typography } from '@mui/material';
 import {
@@ -35,6 +35,11 @@ export const ProcessStageModal = ({ isOpen, onClose, stage, processId, instanceI
   const isCompleted = stageStatus === 'completed';
   const isPending = stageStatus === 'pending';
 
+  // Pega auditLogs da etapa atual do cache do flowInstance
+  const { data: flowInstance } = useQuery({ queryKey: ['flowInstance', processId], enabled: false });
+  const stageAuditLogs = (flowInstance as any)?.stageExecutions
+    ?.find((se: any) => se.stageId === stage?.stageId)?.auditLogs || [];
+
   const handleRefreshAll = () => {
     queryClient.invalidateQueries({ queryKey: ['flowInstance'] });
     queryClient.invalidateQueries({ queryKey: ['form'] });
@@ -65,7 +70,8 @@ export const ProcessStageModal = ({ isOpen, onClose, stage, processId, instanceI
       case 'COMMENTS':
         return <ProcessCommentsComponent key={component.componentKey} label={component.label} context={context} enabled={compEnabled} readOnly={isReadOnly} />;
       case 'APPROVAL':
-        return <ProcessApprovalComponent key={component.componentKey} label={component.label} context={context} enabled={compEnabled} readOnly={isReadOnly} onApproved={onClose} />;
+        return <ProcessApprovalComponent key={component.componentKey} label={component.label} context={context} enabled={compEnabled} readOnly={isReadOnly} onApproved={onClose}
+          auditLogs={stageAuditLogs.filter((l: any) => l.componentKey === component.componentKey)} />;
       case 'SIGNATURE':
         return <ProcessSignatureComponent key={component.componentKey} label={component.label} context={context} enabled={compEnabled} readOnly={isReadOnly} canManage={canManage} />;
       default:

@@ -49,7 +49,7 @@ export const ProcessSignatureComponent = ({
   const [showPassword, setShowPassword] = useState(false);
   const [signingLoading, setSigningLoading] = useState(false);
   const [editSignatories, setEditSignatories] = useState(false);
-  const [selectedSignatories, setSelectedSignatories] = useState<{ _id: string; firstName: string; lastName: string }[]>([]);
+  const [selectedSignatories, setSelectedSignatories] = useState<any[]>([]);
 
   const signatories = sigData?.signatories || [];
   const file = sigData?.file;
