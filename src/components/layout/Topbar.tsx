@@ -188,22 +188,38 @@ const Topbar = ({ onMenuClick, displayNavBarDropdown = false }: TopbarProps) => 
             <Box
             sx={{
               minWidth: 'fit-content',
-              border: '1px solid lightgray',
-              px: 1.5,
-              borderRadius: '21px',
+              border: '1px solid #E2E8F0',
+              px: 2,
+              py: 0.75,
+              borderRadius: '10px',
               boxSizing: 'border-box',
               display: 'flex',
               alignItems: 'center',
-              height: 30,
-              cursor: 'pointer'
+              gap: 1,
+              height: 38,
+              cursor: 'pointer',
+              backgroundColor: '#FFFFFF',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+              '&:hover': {
+                borderColor: '#CBD5E1',
+                backgroundColor: '#F8FAFC',
+                boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.08)',
+                '& .MuiSvgIcon-root': {
+                  color: '#1877F2'
+                }
+              }
             }}
             onClick={handleOpen}
           >
             {pageSet.find((p) => p.route === window.location.pathname)?.icon}
             <Typography sx={{
-              ml: 1
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: '#0f172a',
+              whiteSpace: 'nowrap'
             }}>{pageSet.find((p) => p.route === window.location.pathname)?.name || 'Navegar'}</Typography>
-            <ArrowDropDownIcon sx={{ color: 'rgba(0, 0, 0, 0.54)' }} />
+            <ArrowDropDownIcon sx={{ color: '#64748b', fontSize: 20 }} />
           </Box>
         )}
           <Menu
@@ -215,10 +231,11 @@ const Topbar = ({ onMenuClick, displayNavBarDropdown = false }: TopbarProps) => 
                 sx: {
                   overflow: 'visible',
                   mt: 1.5,
-                  border: '0.3px solid rgba(118, 118, 118, 1)',
-                  minWidth: 356,
+                  border: '1px solid #E2E8F0',
+                  minWidth: 280,
                   borderRadius: '12px',
-                  p: 1.5
+                  p: 1,
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
                 }
               }
             }}
@@ -234,24 +251,33 @@ const Topbar = ({ onMenuClick, displayNavBarDropdown = false }: TopbarProps) => 
                 }}
                 sx={{
                   borderRadius: '8px',
-                  backgroundColor: page.route === window.location.pathname ? 'rgba(24, 119, 242, 0.1)' : 'transparent',
-                  color: page.route === window.location.pathname ? '#1877F2' : 'rgba(0, 0, 0, 0.87)',
+                  mb: 0.5,
+                  px: 1.5,
+                  py: 1.25,
+                  backgroundColor: page.route === window.location.pathname ? '#E7F3FF' : 'transparent',
+                  color: page.route === window.location.pathname ? '#1877F2' : '#334155',
+                  transition: 'all 0.15s ease',
                   '&:hover': {
-                    backgroundColor: 'rgba(24, 119, 242, 0.1)',
+                    backgroundColor: page.route === window.location.pathname ? '#E7F3FF' : '#F8FAFC',
                     color: '#1877F2',
-                    '& .MuiSvgIcon-root': {
+                    transform: 'translateX(4px)',
+                    '& .MuiListItemIcon-root .MuiSvgIcon-root': {
                       color: '#1877F2'
                     }
                   },
-                  '& .MuiSvgIcon-root': {
-                    color: 'rgba(0, 0, 0, 0.54)'
+                  '&:last-child': {
+                    mb: 0
+                  },
+                  '& .MuiListItemIcon-root .MuiSvgIcon-root': {
+                    color: page.route === window.location.pathname ? '#1877F2' : '#64748b',
+                    transition: 'color 0.15s ease'
                   }
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 32 }}>{page.icon}</ListItemIcon>
+                <ListItemIcon sx={{ minWidth: 36 }}>{page.icon}</ListItemIcon>
                 <ListItemText
                   primary={page.name}
-                  sx={{ '& .MuiTypography-root': { fontSize: '0.875rem', fontWeight: 500 } }}
+                  sx={{ '& .MuiTypography-root': { fontSize: '0.9375rem', fontWeight: 600 } }}
                 />
               </MenuItem>
             ))}

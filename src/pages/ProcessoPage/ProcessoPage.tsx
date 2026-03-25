@@ -1,7 +1,8 @@
 import { Box, Typography } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { Loading } from '@/components';
-import { useProcessFlowState } from '@/hooks';
+import { useFlowInstance } from '@/hooks';
+import { useAuth } from '@/hooks';
 import {
   ActionHistory,
   ProcessHeader,
@@ -14,9 +15,12 @@ import {
 const ProcessoPage = () => {
   const { id: processId } = useParams<{ id: string }>();
 
-  const { data: processFlowState, isLoading, error } = useProcessFlowState(processId);
+  const { data: flowInstance, isLoading, error } = useFlowInstance(processId);
+  const { user } = useAuth();
 
-  const isOwner = true;
+  const canAdvance = !!user && !!flowInstance && (
+    flowInstance.process.createdBy === user._id || user.isPlatformAdmin
+  );
 
   if (!processId) {
     return (
@@ -56,7 +60,7 @@ const ProcessoPage = () => {
     );
   }
 
-  if (error || !processFlowState) {
+  if (error || !flowInstance) {
     return (
       <Box
         sx={{
@@ -72,23 +76,62 @@ const ProcessoPage = () => {
           variant='h6'
           sx={{ color: '#b91c1c', textAlign: 'center', fontWeight: 700 }}
         >
-          {error instanceof Error ? error.message : 'Falha ao carregar o fluxo do processo.'}
+          {error instanceof Error ? error.message : 'Falha ao carregar o processo.'}
         </Typography>
       </Box>
     );
   }
 
-  const stages = processFlowState.stages;
+  const stages = flowInstance.snapshotStages
+    .filter(stage => !stage.isOptional || flowInstance.stageExecutions.some(exec => exec.stageId === stage.stageId))
+    .sort((a, b) => a.order - b.order)
+    .map((stage) => {
+      const execution = flowInstance.stageExecutions.find(exec => exec.stageId === stage.stageId);
+      const executionStatus = execution?.status;
+      
+      let status: 'completed' | 'in_progress' | 'pending' = 'pending';
+      if (executionStatus === 'APPROVED' || executionStatus === 'COMPLETED') {
+        status = 'completed';
+      } else if (executionStatus === 'IN_PROGRESS' || executionStatus === 'WAITING_APPROVAL') {
+        status = 'in_progress';
+      }
+
+      const advancedLog = execution?.auditLogs?.find((log: any) => log.action === 'ADVANCED');
+      const wasAdvanced = !!advancedLog;
+
+      return {
+        id: stage.stageId,
+        order: stage.order,
+        stageId: stage.stageId,
+        stageInstanceId: flowInstance._id,
+        title: stage.name,
+        department: stage.approverRoles?.[0] || 'Não informado',
+        status,
+        wasAdvanced,
+        advancedReason: advancedLog?.reason,
+        additionalInfo: executionStatus === 'WAITING_APPROVAL' ? 'Aguardando aprovação' : 
+                        wasAdvanced ? `Avançada manualmente${advancedLog?.reason ? `: ${advancedLog.reason}` : ''}` :
+                        status === 'completed' ? 'Etapa concluída' :
+                        status === 'in_progress' ? 'Etapa atual' : 'Aguardando etapa anterior',
+        components: stage.components.map(comp => ({
+          componentKey: comp.key,
+          componentType: comp.type as any,
+          label: comp.label,
+          required: comp.required,
+          processId: flowInstance.process._id,
+          instanceId: flowInstance._id,
+          stageId: stage.stageId
+        }))
+      };
+    });
+
   const completedStages = stages.filter((stage) => stage.status === 'completed').length;
   const totalStages = stages.length;
   const progress = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
 
-  const processTitle = processFlowState.process.processNumber || processFlowState.process._id;
-  const processSubtitle = processFlowState.process.object || 'Objeto não informado';
-  const processStatus = processFlowState.process.status || 'Em Andamento';
-
-  const staleComponentsCount = processFlowState.staleComponentInstanceKeys.length;
-  const componentErrorsCount = Object.keys(processFlowState.componentErrorsByInstanceKey).length;
+  const processTitle = flowInstance.process.processNumber;
+  const processSubtitle = flowInstance.process.object;
+  const processStatus = flowInstance.process.status;
 
   return (
     <Box
@@ -104,33 +147,8 @@ const ProcessoPage = () => {
           title={processTitle}
           subtitle={processSubtitle}
           status={processStatus}
-          isOwner={isOwner}
+          isOwner={canAdvance}
         />
-
-        {(staleComponentsCount > 0 || componentErrorsCount > 0) && (
-          <Box
-            sx={{
-              mb: 3,
-              p: 2,
-              borderRadius: 2,
-              border: '1px solid #FCD34D',
-              bgcolor: '#FFFBEB'
-            }}
-          >
-            <Typography
-              variant='body2'
-              sx={{ color: '#92400E', fontWeight: 600 }}
-            >
-              {staleComponentsCount > 0
-                ? `${staleComponentsCount} componente(s) retornaram snapshot desatualizado.`
-                : null}
-              {staleComponentsCount > 0 && componentErrorsCount > 0 ? ' ' : null}
-              {componentErrorsCount > 0
-                ? `${componentErrorsCount} componente(s) falharam ao carregar (mantidos para retry).`
-                : null}
-            </Typography>
-          </Box>
-        )}
 
         <ProcessInfoCards />
 
@@ -140,7 +158,12 @@ const ProcessoPage = () => {
           totalStages={totalStages}
         />
 
-        <ProcessStagesSection stages={stages} />
+        <ProcessStagesSection 
+          stages={stages} 
+          processId={flowInstance.process._id}
+          instanceId={flowInstance._id}
+          canAdvance={canAdvance}
+        />
 
         <ActionHistory />
 

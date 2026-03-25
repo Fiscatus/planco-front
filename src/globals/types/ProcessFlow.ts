@@ -28,6 +28,7 @@ export type ProcessFlowStageCard = {
   department: string;
   status: ProcessStageStatus;
   additionalInfo?: string;
+  wasAdvanced?: boolean;
   components: ProcessFlowComponentDescriptor[];
 };
 
