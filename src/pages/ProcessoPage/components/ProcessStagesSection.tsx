@@ -63,7 +63,7 @@ export const ProcessStagesSection = ({ stages, processId, instanceId, canAdvance
             key={stage.id}
             order={stage.order}
             title={stage.title}
-            department={stage.department}
+            departments={stage.departments}
             status={getStageStatus(stage.status)}
             additionalInfo={stage.additionalInfo}
             onClick={() => handleStageClick(stage)}
@@ -71,6 +71,9 @@ export const ProcessStagesSection = ({ stages, processId, instanceId, canAdvance
             instanceId={instanceId}
             onAdvanced={handleCloseModal}
             wasAdvanced={stage.wasAdvanced}
+            dueDate={stage.dueDate}
+            startedAt={stage.startedAt}
+            businessDaysDuration={stage.businessDaysDuration}
           />
         ))}
       </Box>

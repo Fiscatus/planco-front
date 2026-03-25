@@ -17,7 +17,7 @@ export type StageStatus = 'completed' | 'in_progress' | 'pending';
 export type ProcessStageProps = {
   order: number;
   title: string;
-  department: string;
+  departments: string[];
   status: StageStatus;
   additionalInfo?: string;
   onClick?: () => void;
@@ -25,13 +25,33 @@ export type ProcessStageProps = {
   instanceId?: string;
   onAdvanced?: () => void;
   wasAdvanced?: boolean;
+  dueDate?: string;
+  startedAt?: string;
+  businessDaysDuration?: number;
 };
 
-export const ProcessStageCard = ({ order, title, department, status, additionalInfo, onClick, canAdvance, instanceId, onAdvanced, wasAdvanced }: ProcessStageProps) => {
+export const ProcessStageCard = ({ order, title, departments, status, additionalInfo, onClick, canAdvance, instanceId, onAdvanced, wasAdvanced, dueDate, startedAt, businessDaysDuration }: ProcessStageProps) => {
   const [advanceOpen, setAdvanceOpen] = useState(false);
   const [reason, setReason] = useState('');
   const advanceMutation = useAdvanceStage();
   const { showNotification } = useNotification();
+
+  // Calcula se está atrasado
+  const getEffectiveDue = (): Date | null => {
+    if (dueDate) return new Date(dueDate);
+    if (startedAt && businessDaysDuration && businessDaysDuration > 0) {
+      const date = new Date(startedAt);
+      let added = 0;
+      while (added < businessDaysDuration) {
+        date.setDate(date.getDate() + 1);
+        if (date.getDay() !== 0 && date.getDay() !== 6) added++;
+      }
+      return date;
+    }
+    return null;
+  };
+  const effectiveDue = getEffectiveDue();
+  const isOverdue = status !== 'completed' && !!effectiveDue && effectiveDue.getTime() < Date.now();
 
   const handleAdvance = () => {
     if (!instanceId) return;
@@ -52,31 +72,35 @@ export const ProcessStageCard = ({ order, title, department, status, additionalI
   // Card colors por status
   const cardBorder = wasAdvanced || status === 'completed'
     ? '1px solid #BBF7D0'
+    : isOverdue
+    ? '1px solid #FECACA'
     : status === 'in_progress'
     ? '1px solid #BFDBFE'
     : '1px solid #E4E6EB';
 
   const cardBg = wasAdvanced || status === 'completed'
     ? '#F0FDF4'
+    : isOverdue
+    ? '#FFF1F2'
     : status === 'in_progress'
     ? '#EFF6FF'
     : '#fff';
 
   const cardHoverBorder = wasAdvanced || status === 'completed'
     ? '#3bac4e'
+    : isOverdue
+    ? '#F02849'
     : status === 'in_progress'
     ? '#1877F2'
     : '#CBD5E1';
 
-  // Bolinha
-  const circleBg = status === 'completed' ? '#DCFCE7' : status === 'in_progress' ? '#1877F2' : '#F1F5F9';
-  const circleColor = status === 'completed' ? '#16A34A' : status === 'in_progress' ? '#fff' : '#64748b';
+  const circleBg = status === 'completed' ? '#DCFCE7' : isOverdue ? '#FEE2E2' : status === 'in_progress' ? '#1877F2' : '#F1F5F9';
+  const circleColor = status === 'completed' ? '#16A34A' : isOverdue ? '#B91C1C' : status === 'in_progress' ? '#fff' : '#64748b';
 
-  // Chip
   const chipMap = {
-    completed: { label: 'Concluído', bg: '#DCFCE7', color: '#008832', icon: <CheckCircleIcon sx={{ fontSize: 16 }} /> },
-    in_progress: { label: 'Em Andamento', bg: '#E7F3FF', color: '#1877F2', icon: <PlayArrowIcon sx={{ fontSize: 16 }} /> },
-    pending: { label: 'Pendente', bg: '#F1F5F9', color: '#64748b', icon: <HourglassIcon sx={{ fontSize: 16 }} /> },
+    completed:   { label: 'Concluído',    bg: '#DCFCE7', color: '#008832', icon: <CheckCircleIcon sx={{ fontSize: 16 }} /> },
+    in_progress: { label: isOverdue ? 'Atrasado' : 'Em Andamento', bg: isOverdue ? '#FEE2E2' : '#E7F3FF', color: isOverdue ? '#B91C1C' : '#1877F2', icon: isOverdue ? <HourglassIcon sx={{ fontSize: 16 }} /> : <PlayArrowIcon sx={{ fontSize: 16 }} /> },
+    pending:     { label: isOverdue ? 'Atrasado' : 'Pendente',     bg: isOverdue ? '#FEE2E2' : '#F1F5F9', color: isOverdue ? '#B91C1C' : '#64748b', icon: <HourglassIcon sx={{ fontSize: 16 }} /> },
   };
   const chip = chipMap[status];
 
@@ -114,9 +138,15 @@ export const ProcessStageCard = ({ order, title, department, status, additionalI
 
         <Box sx={{ flex: 1 }}>
           <Typography variant='subtitle1' sx={{ fontWeight: 800, color: '#0f172a', mb: 1, lineHeight: 1.3 }}>{title}</Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-            <BusinessCenterIcon sx={{ fontSize: 16, color: '#64748b' }} />
-            <Typography variant='body2' sx={{ color: '#475569', fontWeight: 600 }}>{department}</Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 0.5 }}>
+            <BusinessCenterIcon sx={{ fontSize: 16, color: '#64748b', mt: '2px', flexShrink: 0 }} />
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+              {departments.map((dept, i) => (
+                <Typography key={i} variant='body2' sx={{ color: '#475569', fontWeight: 600 }}>
+                  {dept}{i < departments.length - 1 ? ' •' : ''}
+                </Typography>
+              ))}
+            </Box>
           </Box>
           {additionalInfo && (
             <Typography variant='caption' sx={{ color: status === 'pending' ? '#94a3b8' : '#64748b', display: 'block', mt: 1 }}>

@@ -18,8 +18,16 @@ const ProcessoPage = () => {
   const { data: flowInstance, isLoading, error } = useFlowInstance(processId);
   const { user } = useAuth();
 
+  const createdById = typeof flowInstance?.process.createdBy === 'object'
+    ? flowInstance.process.createdBy._id
+    : flowInstance?.process.createdBy;
+
+  const isManager = flowInstance?.process.managers?.some(m =>
+    (typeof m === 'object' ? m._id : m) === user?._id
+  ) ?? false;
+
   const canAdvance = !!user && !!flowInstance && (
-    flowInstance.process.createdBy === user._id || user.isPlatformAdmin
+    createdById === user._id || user.isPlatformAdmin || isManager
   );
 
   if (!processId) {
@@ -105,10 +113,26 @@ const ProcessoPage = () => {
         stageId: stage.stageId,
         stageInstanceId: flowInstance._id,
         title: stage.name,
-        department: stage.approverRoles?.[0] || 'Não informado',
+        departments: (() => {
+          const depts = stage.responsibleDepartments || [];
+          if (depts.length > 0) {
+            return depts.map(d =>
+              typeof d === 'object' ? `${d.department_acronym} - ${d.department_name}` : d
+            );
+          }
+          // fallback: gerência criadora
+          const creator = flowInstance.process.creatorDepartment;
+          const creatorStr = typeof creator === 'object'
+            ? `${creator.department_acronym} - ${creator.department_name}`
+            : creator || 'Não informado';
+          return [creatorStr];
+        })(),
         status,
         wasAdvanced,
         advancedReason: advancedLog?.reason,
+        businessDaysDuration: stage.businessDaysDuration,
+        startedAt: execution?.startedAt,
+        completedAt: execution?.completedAt,
         additionalInfo: executionStatus === 'WAITING_APPROVAL' ? 'Aguardando aprovação' : 
                         wasAdvanced ? `Avançada manualmente${advancedLog?.reason ? `: ${advancedLog.reason}` : ''}` :
                         status === 'completed' ? 'Etapa concluída' :
@@ -148,9 +172,10 @@ const ProcessoPage = () => {
           subtitle={processSubtitle}
           status={processStatus}
           isOwner={canAdvance}
+          flowInstance={flowInstance}
         />
 
-        <ProcessInfoCards />
+        <ProcessInfoCards flowInstance={flowInstance} stages={stages} />
 
         <ProcessProgress
           progress={progress}
@@ -167,7 +192,13 @@ const ProcessoPage = () => {
 
         <RelatedDocuments processId={flowInstance.process._id} />
 
-        <ActionHistory stageExecutions={flowInstance.stageExecutions} snapshotStages={flowInstance.snapshotStages} />
+        <ActionHistory
+          stageExecutions={flowInstance.stageExecutions}
+          snapshotStages={flowInstance.snapshotStages}
+          stages={stages}
+          processId={flowInstance.process._id}
+          instanceId={flowInstance._id}
+        />
       </Box>
     </Box>
   );

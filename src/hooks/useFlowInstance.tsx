@@ -7,11 +7,19 @@ export type FlowInstance = {
     _id: string;
     processNumber: string;
     object: string;
+    modality?: string;
+    priority?: string;
     status: string;
-    participatingDepartments: string[];
-    creatorDepartment: string;
-    createdBy: string;
+    situation?: string;
+    situation?: string;
+    dueDate?: string;
+    estimatedValue?: number;
+    createdAt?: string;
     currentStage: string;
+    participatingDepartments: Array<string | { _id: string; department_name: string; department_acronym: string }>;
+    creatorDepartment: string | { _id: string; department_name: string; department_acronym: string };
+    createdBy: string | { _id: string; email: string; firstName: string; lastName: string };
+    managers?: Array<string | { _id: string; email: string; firstName: string; lastName: string }>;
   };
   flowModel: {
     _id: string;
@@ -20,6 +28,8 @@ export type FlowInstance = {
   };
   currentStageOrder: number;
   status: string;
+  createdAt: string;
+  updatedAt: string;
   snapshotStages: Array<{
     stageId: string;
     order: number;
@@ -36,9 +46,9 @@ export type FlowInstance = {
       editableRoles?: string[];
       lockedAfterCompletion?: boolean;
     }>;
-    approverRoles?: string[];
-    approverUsers?: string[];
-    responsibleDepartments?: string[];
+    approverRoles?: Array<string | { _id: string; name: string }>;
+    approverUsers?: Array<string | { _id: string; firstName: string; lastName: string }>;
+    responsibleDepartments?: Array<string | { _id: string; department_name: string; department_acronym: string }>;
     businessDaysDuration?: number;
     isOptional?: boolean;
   }>;
@@ -50,7 +60,7 @@ export type FlowInstance = {
     completedAt?: string;
     auditLogs?: Array<{
       action: string;
-      performedBy: string;
+      performedBy: string | { _id: string; email: string; firstName: string; lastName: string };
       performedAt: string;
       stageName?: string;
       componentKey?: string;
@@ -60,8 +70,6 @@ export type FlowInstance = {
     componentData?: any[];
   }>;
   snapshotAuditLogs: any[];
-  createdAt: string;
-  updatedAt: string;
 };
 
 export const useFlowInstance = (processId?: string) => {
@@ -81,6 +89,71 @@ export const useAdvanceStage = () => {
   return useMutation({
     mutationFn: async ({ instanceId, reason }: { instanceId: string; reason?: string }) => {
       const response = await api.post(`/flows/instances/${instanceId}/advance-stage`, { reason });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flowInstance'] });
+    }
+  });
+};
+
+export const useUpdateProcess = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ processId, data }: { processId: string; data: Record<string, any> }) => {
+      const response = await api.put(`/processes/${processId}`, data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flowInstance'] });
+    }
+  });
+};
+
+export const useUpdateStageResponsibleDepartments = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ instanceId, stageId, departmentIds }: { instanceId: string; stageId: string; departmentIds: string[] }) => {
+      const response = await api.patch(`/flows/instances/${instanceId}/stages/${stageId}/responsible-departments`, { departmentIds });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flowInstance'] });
+    }
+  });
+};
+
+export const useAddOptionalStage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ instanceId, stageId }: { instanceId: string; stageId: string }) => {
+      const response = await api.post(`/flows/instances/${instanceId}/optional-stages`, { stageId });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flowInstance'] });
+    }
+  });
+};
+
+export const useRemoveOptionalStage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ instanceId, stageId }: { instanceId: string; stageId: string }) => {
+      const response = await api.delete(`/flows/instances/${instanceId}/optional-stages/${stageId}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flowInstance'] });
+    }
+  });
+};
+
+export const useReorderStages = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ instanceId, stageOrders }: { instanceId: string; stageOrders: { stageId: string; order: number }[] }) => {
+      const response = await api.patch(`/flows/instances/${instanceId}/stages/reorder`, { stages: stageOrders });
       return response.data;
     },
     onSuccess: () => {

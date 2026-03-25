@@ -25,10 +25,13 @@ export type ProcessFlowStageCard = {
   stageId: string;
   stageInstanceId: string;
   title: string;
-  department: string;
+  departments: string[];
   status: ProcessStageStatus;
   additionalInfo?: string;
   wasAdvanced?: boolean;
+  dueDate?: string;
+  startedAt?: string;
+  businessDaysDuration?: number;
   components: ProcessFlowComponentDescriptor[];
 };
 

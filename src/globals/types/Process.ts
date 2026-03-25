@@ -61,10 +61,16 @@ export type CreateProcessDto = {
 };
 
 export type UpdateProcessDto = {
+  processNumber?: string;
+  object?: string;
   dueDate?: string;
   priority?: 'Baixa' | 'Média' | 'Alta';
   modality?: string;
+  estimatedValue?: number;
+  situation?: string;
+  folderId?: string;
   participatingDepartments?: string[];
+  managers?: string[];
 };
 
 export type FolderStatsDto = {
