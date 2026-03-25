@@ -67,12 +67,14 @@ const CommentsContent = ({
   const { users, fetchUsers } = useUsers();
   const { user: currentUser } = useAuth();
 
-  const [newComment, setNewComment] = useState("");
+  const [newComment, setNewComment] = useState(""); // kept for compatibility
+  const [displayComment, setDisplayComment] = useState("");
+  const [mentionMap, setMentionMap] = useState<Record<string, string>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionAnchorPos, setMentionAnchorPos] = useState<{ top: number; left: number } | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
-  const [sortDesc, setSortDesc] = useState(true);
+  const [sortDesc, setSortDesc] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -83,7 +85,7 @@ const CommentsContent = ({
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
-    setNewComment(val);
+    setDisplayComment(val);
     const cursor = e.target.selectionStart ?? val.length;
     const atMatch = val.slice(0, cursor).match(/@(\w*)$/);
     if (atMatch) {
@@ -103,19 +105,31 @@ const CommentsContent = ({
   };
 
   const handleSelectMention = (user: { _id: string; firstName: string; lastName: string }) => {
-    const cursor = textareaRef.current?.selectionStart ?? newComment.length;
-    const before = newComment.slice(0, cursor);
-    const after = newComment.slice(cursor);
-    setNewComment(before.replace(/@(\w*)$/, `@${user._id} `) + after);
+    const displayName = `${user.firstName} ${user.lastName}`;
+    const cursor = textareaRef.current?.selectionStart ?? displayComment.length;
+    const before = displayComment.slice(0, cursor);
+    const after = displayComment.slice(cursor);
+    const newDisplay = before.replace(/@(\w*)$/, `@${displayName} `) + after;
+    setDisplayComment(newDisplay);
+    setMentionMap((prev) => ({ ...prev, [displayName]: user._id }));
     setMentionQuery(null);
     setMentionAnchorPos(null);
     setTimeout(() => textareaRef.current?.focus(), 0);
   };
 
+  const buildTextWithIds = (display: string) => {
+    let result = display;
+    Object.entries(mentionMap).forEach(([name, id]) => {
+      result = result.replaceAll(`@${name}`, `@${id}`);
+    });
+    return result;
+  };
+
   const handleSubmit = () => {
-    if (!newComment.trim() && !selectedFile) return;
-    createMutation.mutate({ context, data: { text: newComment }, file: selectedFile || undefined }, {
-      onSuccess: () => { setNewComment(""); setSelectedFile(null); setMentionQuery(null); }
+    if (!displayComment.trim() && !selectedFile) return;
+    const textToSend = buildTextWithIds(displayComment);
+    createMutation.mutate({ context, data: { text: textToSend }, file: selectedFile || undefined }, {
+      onSuccess: () => { setDisplayComment(""); setNewComment(""); setSelectedFile(null); setMentionQuery(null); setMentionMap({}); }
     });
   };
 
@@ -151,7 +165,7 @@ const CommentsContent = ({
         <Typography variant="body2" sx={{ color: "#64748b", fontSize: "0.8rem" }}>
           {rawComments.length} {rawComments.length === 1 ? "comentário" : "comentários"}
         </Typography>
-        <Tooltip title={sortDesc ? "Mais antigos primeiro" : "Mais recentes primeiro"}>
+        <Tooltip title={sortDesc ? "Mostrar mais antigos primeiro" : "Mostrar mais recentes primeiro"}>
           <Button
             size="small"
             variant="outlined"
@@ -159,7 +173,7 @@ const CommentsContent = ({
             onClick={() => setSortDesc((v) => !v)}
             sx={{ textTransform: "none", fontWeight: 700, borderRadius: 2, borderColor: "#E4E6EB", color: "#64748b", fontSize: "0.75rem", py: 0.25 }}
           >
-            {sortDesc ? "Recentes" : "Antigos"}
+            {sortDesc ? "Mais recentes" : "Mais antigos"}
           </Button>
         </Tooltip>
       </Box>
@@ -257,7 +271,7 @@ const CommentsContent = ({
           <TextField
             fullWidth multiline minRows={3} maxRows={6}
             placeholder="Escreva um comentário... (@ para mencionar)"
-            value={newComment}
+            value={displayComment}
             onChange={handleTextChange}
             onKeyDown={handleKeyDown}
             inputRef={textareaRef}
@@ -269,7 +283,7 @@ const CommentsContent = ({
               <AttachFileIcon fontSize="small" />
             </IconButton>
           </Tooltip>
-          <IconButton onClick={handleSubmit} disabled={createMutation.isPending || (!newComment.trim() && !selectedFile)}
+          <IconButton onClick={handleSubmit} disabled={createMutation.isPending || (!displayComment.trim() && !selectedFile)}
             sx={{ bgcolor: "#1877F2", color: "#fff", borderRadius: 2, "&:hover": { bgcolor: "#166FE5" }, "&.Mui-disabled": { bgcolor: "#E4E6EB" } }}>
             {createMutation.isPending ? <CircularProgress size={18} sx={{ color: "#fff" }} /> : <SendIcon fontSize="small" />}
           </IconButton>
