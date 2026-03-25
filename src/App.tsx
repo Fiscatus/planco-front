@@ -9,9 +9,9 @@ import { BrowserRouter } from 'react-router-dom';
 import { CookiesProvider } from 'react-cookie';
 import { theme } from '@/globals/theme';
 
-const App = () => {
-  const queryClient = new QueryClient();
+const queryClient = new QueryClient();
 
+const App = () => {
   return (
     <CookiesProvider>
       <ThemeProvider theme={theme}>

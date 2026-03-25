@@ -14,6 +14,10 @@ import {
   Card,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Grid,
   List,
   ListItem,
@@ -83,6 +87,8 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
   } = useDepartments();
   const { fetchUsers } = useUsers();
 
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<{ deptId: string; userId: string; name: string } | null>(null);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -982,7 +988,8 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
                                     disabled={!canRemove || removingMember}
                                     onClick={() => {
                                       if (!u._id || !selected) return;
-                                      removeMemberMutation({ deptId: selected._id, userId: u._id });
+                                      setMemberToRemove({ deptId: selected._id, userId: u._id, name: `${u.firstName} ${u.lastName}` });
+                                      setRemoveConfirmOpen(true);
                                     }}
                                     sx={{
                                       minWidth: 'auto',
@@ -1070,6 +1077,33 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
           </Stack>
         </Grid>
       </Grid>
+
+      {/* Confirmação remover membro */}
+      <Dialog open={removeConfirmOpen} onClose={() => setRemoveConfirmOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 700, color: '#0f172a' }}>Remover membro</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ color: '#64748b' }}>
+            Deseja remover <strong>{memberToRemove?.name}</strong> da gerência? Esta ação não pode ser desfeita.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={() => setRemoveConfirmOpen(false)} variant="outlined" sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}>Cancelar</Button>
+          <Button
+            variant="contained"
+            color="error"
+            disabled={removingMember}
+            onClick={() => {
+              if (!memberToRemove) return;
+              removeMemberMutation({ deptId: memberToRemove.deptId, userId: memberToRemove.userId });
+              setRemoveConfirmOpen(false);
+              setMemberToRemove(null);
+            }}
+            sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}
+          >
+            {removingMember ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : 'Remover'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Modais */}
       <EditGerenciaModal

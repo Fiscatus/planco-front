@@ -27,12 +27,12 @@ const getStatusChip = (status?: FileStatus | string) => {
   return { label: "Rascunho", bg: "#F0F2F5", color: "#64748b", icon: <DescriptionIcon sx={{ fontSize: 16 }} /> };
 };
 
-type FileRowProps = { file: any; onSendToApproval: (fileId: string) => void; onDownload: (fileId: string, inline: boolean) => void };
+type FileRowProps = { file: any; onSendToApproval: (fileId: string) => void; onDownload: (fileId: string, inline: boolean) => void; hasApproval: boolean };
 
-const FileRow = ({ file, onSendToApproval, onDownload }: FileRowProps) => {
+const FileRow = ({ file, onSendToApproval, onDownload, hasApproval }: FileRowProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const status = getStatusChip(file.status);
-  const canSubmit = file.status === "draft" && file.category;
+  const canSubmit = hasApproval && file.status === "draft" && file.category;
 
   return (
     <Box sx={{ px: 1.25, py: 1.1, display: "flex", alignItems: "center", gap: 1.5, bgcolor: "#fff", "&:hover": { bgcolor: "#F8FAFC" } }}>
@@ -84,15 +84,18 @@ const FileRow = ({ file, onSendToApproval, onDownload }: FileRowProps) => {
 type ProcessFilesManagementComponentProps = {
   label?: string;
   description?: string;
+  required?: boolean;
   context: { processId: string; stageId: string; componentKey: string };
   enabled?: boolean;
   readOnly?: boolean;
+  hasApproval?: boolean;
 };
 
-const FilesContent = ({ context, enabled, readOnly = false }: {
+const FilesContent = ({ context, enabled, readOnly = false, hasApproval = false }: {
   context: ProcessFilesManagementComponentProps["context"];
   enabled: boolean;
   readOnly?: boolean;
+  hasApproval?: boolean;
 }) => {
   const { data: filesData, isLoading } = useFiles(context, enabled);
   const uploadMutation = useUploadFile();
@@ -169,7 +172,7 @@ const FilesContent = ({ context, enabled, readOnly = false }: {
             <Typography variant="body2">{files.length === 0 ? "Nenhum arquivo enviado" : "Nenhum arquivo encontrado"}</Typography>
           </Box>
         ) : filteredFiles.map((file: any) => (
-          <FileRow key={file._id} file={file} onSendToApproval={handleSendToApproval} onDownload={handleDownload} />
+          <FileRow key={file._id} file={file} onSendToApproval={handleSendToApproval} onDownload={handleDownload} hasApproval={hasApproval} />
         ))}
       </Box>
       <Dialog open={showUploadModal} onClose={handleCancelUpload} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
@@ -211,7 +214,7 @@ const FilesContent = ({ context, enabled, readOnly = false }: {
   );
 };
 
-export const ProcessFilesManagementComponent = ({ label, description, context, enabled = true, readOnly = false }: ProcessFilesManagementComponentProps) => {
+export const ProcessFilesManagementComponent = ({ label, description, required, context, enabled = true, readOnly = false, hasApproval = false }: ProcessFilesManagementComponentProps) => {
   const [collapsed, setCollapsed] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
 
@@ -219,6 +222,7 @@ export const ProcessFilesManagementComponent = ({ label, description, context, e
     <Box sx={{ px: 2.25, py: 2, bgcolor: "#F8FAFC", borderBottom: "2px solid #E4E6EB", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: onClose ? "1.1rem" : "0.95rem" }}>{label || "Gerenciar arquivos"}</Typography>
+        {required && !onClose && <Chip label="Obrigatório" size="small" sx={{ bgcolor: "#FEF3C7", color: "#92400E", fontWeight: 700, fontSize: "0.65rem", height: 18 }} />}
         {description && <Tooltip title={description} arrow><InfoIcon sx={{ fontSize: 18, color: "#1877F2", cursor: "help" }} /></Tooltip>}
       </Box>
       <Box sx={{ display: "flex", gap: 0.5 }}>
@@ -242,12 +246,12 @@ export const ProcessFilesManagementComponent = ({ label, description, context, e
     <>
       <Box sx={{ border: "1px solid #E4E6EB", borderRadius: 2, bgcolor: "#fff", overflow: "hidden" }}>
         {headerContent()}
-        <Collapse in={!collapsed}><FilesContent context={context} enabled={enabled} readOnly={readOnly} /></Collapse>
+        <Collapse in={!collapsed}><FilesContent context={context} enabled={enabled} readOnly={readOnly} hasApproval={hasApproval} /></Collapse>
       </Box>
       <Dialog open={fullscreen} onClose={() => setFullscreen(false)} fullScreen>
         <Box sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
           {headerContent(() => setFullscreen(false))}
-          <Box sx={{ flex: 1, overflow: "auto", bgcolor: "#fff" }}><FilesContent context={context} enabled={enabled} readOnly={readOnly} /></Box>
+          <Box sx={{ flex: 1, overflow: "auto", bgcolor: "#fff" }}><FilesContent context={context} enabled={enabled} readOnly={readOnly} hasApproval={hasApproval} /></Box>
         </Box>
       </Dialog>
     </>

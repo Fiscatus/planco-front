@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Box, Typography, TextField, MenuItem, Collapse, Tooltip, Checkbox, Button, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from "@mui/material";
+import { Box, Typography, TextField, MenuItem, Collapse, Tooltip, Checkbox, Button, Chip, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions, IconButton } from "@mui/material";
 import { Description as DescriptionIcon, Info as InfoIcon, Save as SaveIcon, ExpandMore as ExpandMoreIcon, ExpandLess as ExpandLessIcon, Fullscreen as FullscreenIcon } from "@mui/icons-material";
 import { useForm, useSubmitForm } from "@/hooks";
 import { useNotification } from "@/components/NotificationProvider";
@@ -20,13 +20,14 @@ type FormField = {
 type ProcessFormComponentProps = {
   label?: string;
   description?: string;
+  required?: boolean;
   context: { processId: string; stageId: string; componentKey: string };
   enabled?: boolean;
   readOnly?: boolean;
   previewFields?: FormField[];
 };
 
-export const ProcessFormComponent = ({ label, description, context, enabled = true, readOnly = false, previewFields }: ProcessFormComponentProps) => {
+export const ProcessFormComponent = ({ label, description, required, context, enabled = true, readOnly = false, previewFields }: ProcessFormComponentProps) => {
   const { data: formData, isLoading } = useForm(context, enabled && !previewFields);
   const submitMutation = useSubmitForm();
   const { showNotification } = useNotification();
@@ -123,6 +124,7 @@ export const ProcessFormComponent = ({ label, description, context, enabled = tr
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <DescriptionIcon sx={{ fontSize: 20, color: "#1877F2" }} />
         <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: onClose ? "1.125rem" : "1rem" }}>{label || "Formulário"}</Typography>
+        {required && !onClose && <Chip label="Obrigatório" size="small" sx={{ bgcolor: "#FEF3C7", color: "#92400E", fontWeight: 700, fontSize: "0.65rem", height: 18 }} />}
         {description && <Tooltip title={description} arrow><InfoIcon sx={{ fontSize: 18, color: "#1877F2", cursor: "help" }} /></Tooltip>}
       </Box>
       <Box sx={{ display: "flex", gap: 0.5 }}>

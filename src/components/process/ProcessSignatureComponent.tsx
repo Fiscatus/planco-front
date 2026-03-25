@@ -10,13 +10,14 @@ import { api } from "@/services";
 type ProcessSignatureComponentProps = {
   label?: string;
   description?: string;
+  required?: boolean;
   context: { processId: string; stageId: string; componentKey: string };
   enabled?: boolean;
   readOnly?: boolean;
   canManage?: boolean;
 };
 
-export const ProcessSignatureComponent = ({ label, description, context, enabled = true, readOnly = false, canManage = false }: ProcessSignatureComponentProps) => {
+export const ProcessSignatureComponent = ({ label, description, required, context, enabled = true, readOnly = false, canManage = false }: ProcessSignatureComponentProps) => {
   const { data: sigData, isLoading } = useSignature(context, enabled);
   const setSignatoriesMutation = useSetSignatories();
   const signMutation = useSignDocument();
@@ -71,6 +72,7 @@ export const ProcessSignatureComponent = ({ label, description, context, enabled
     <Box sx={{ px: 2.25, py: 2, bgcolor: "#F8FAFC", borderBottom: "2px solid #E4E6EB", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
       <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
         <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: onClose ? "1.1rem" : "0.95rem" }}>{label || "Assinatura Eletrônica"}</Typography>
+        {required && !onClose && <Chip label="Obrigatório" size="small" sx={{ bgcolor: "#FEF3C7", color: "#92400E", fontWeight: 700, fontSize: "0.65rem", height: 18 }} />}
         {description && <Tooltip title={description} arrow><InfoIcon sx={{ fontSize: 18, color: "#1877F2", cursor: "help" }} /></Tooltip>}
         {allSigned && <Chip icon={<CheckCircleIcon sx={{ fontSize: 14 }} />} label="Todos assinaram" size="small" sx={{ bgcolor: "#DCFCE7", color: "#16A34A", fontWeight: 700, "& .MuiChip-icon": { color: "#16A34A" } }} />}
       </Box>

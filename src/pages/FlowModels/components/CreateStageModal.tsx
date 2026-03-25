@@ -24,6 +24,7 @@ type CreateStageModalProps = {
   existingStages: FlowModelStage[];
   onClose: () => void;
   onCreate: (newStage: FlowModelStage) => void;
+  defaultOptional?: boolean;
 };
 
 function generateStageId() {
@@ -35,6 +36,7 @@ export const CreateStageModal = ({
   existingStages,
   onClose,
   onCreate,
+  defaultOptional = false,
 }: CreateStageModalProps) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -87,12 +89,12 @@ export const CreateStageModal = ({
       setName("");
       setDescription("");
       setBusinessDaysDuration("");
-      setIsOptional(false);
+      setIsOptional(defaultOptional);
       setSelectedRoles([]);
       setSelectedUsers([]);
       setUsersPage(1);
     }
-  }, [open]);
+  }, [open, defaultOptional]);
 
   const nextOrder = useMemo(() => {
     const normalStages = existingStages.filter(s => !s.isOptional);

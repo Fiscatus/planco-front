@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Autocomplete, Box, Button, Chip, CircularProgress, Dialog, Divider,
   IconButton, Tab, Tabs, TextField, Tooltip, Typography, MenuItem, Avatar,
@@ -145,7 +145,7 @@ export const EditProcessModal = ({ open, onClose, flowInstance, initialTab = 0 }
       { instanceId: flowInstance._id, stageId, departmentIds: next },
       {
         onSuccess: () => showNotification('Gerência atualizada!', 'success'),
-        onError: () => showNotification('Erro ao atualizar gerência', 'error'),
+        onError: (e: any) => showNotification(e?.message || 'Erro ao atualizar gerência', 'error'),
       }
     );
   };
@@ -162,8 +162,15 @@ export const EditProcessModal = ({ open, onClose, flowInstance, initialTab = 0 }
   const [stageOrder, setStageOrder] = useState<string[]>([]);
   const [orderChanged, setOrderChanged] = useState(false);
 
+  const originalOrder = useRef<string[]>([]);
+
   useEffect(() => {
-    if (open) { setStageOrder(activeStages.map(s => s.stageId)); setOrderChanged(false); }
+    if (open) {
+      const order = activeStages.map(s => s.stageId);
+      setStageOrder(order);
+      originalOrder.current = order;
+      setOrderChanged(false);
+    }
   }, [open, flowInstance]);
 
   const orderedStages = stageOrder
@@ -203,11 +210,24 @@ export const EditProcessModal = ({ open, onClose, flowInstance, initialTab = 0 }
   };
 
   const handleSaveOrder = () => {
-    const stageOrders = stageOrder.map((id, idx) => ({ stageId: id, order: idx + 1 }));
+    // Manda apenas as stages que mudaram de ordem
+    const changed = stageOrder
+      .map((id, idx) => ({ stageId: id, order: idx + 1 }))
+      .filter(({ stageId, order }) => {
+        const origIdx = originalOrder.current.indexOf(stageId);
+        return origIdx === -1 || origIdx + 1 !== order;
+      });
+
+    if (changed.length === 0) { setOrderChanged(false); return; }
+
     reorderMutation.mutate(
-      { instanceId: flowInstance._id, stageOrders },
+      { instanceId: flowInstance._id, stageOrders: changed },
       {
-        onSuccess: () => { showNotification('Ordem salva!', 'success'); setOrderChanged(false); },
+        onSuccess: () => {
+          showNotification('Ordem salva!', 'success');
+          setOrderChanged(false);
+          originalOrder.current = [...stageOrder];
+        },
         onError: (e: any) => showNotification(e?.message || 'Erro ao salvar ordem', 'error'),
       }
     );
@@ -227,19 +247,8 @@ export const EditProcessModal = ({ open, onClose, flowInstance, initialTab = 0 }
     addOptionalMutation.mutate(
       { instanceId: flowInstance._id, stageId },
       {
-        onSuccess: async () => {
-          showNotification('Etapa ativada!', 'success');
-          // Após ativar, reordena colocando a nova etapa no final
-          const currentStages = flowInstance.snapshotStages
-            .filter(s => !s.isOptional || activeStageIds.has(s.stageId) || s.stageId === stageId)
-            .sort((a, b) => a.order - b.order);
-          const maxOrder = Math.max(...currentStages.map(s => s.order), 0);
-          reorderMutation.mutate({
-            instanceId: flowInstance._id,
-            stageOrders: [{ stageId, order: maxOrder + 1 }],
-          });
-        },
-        onError: () => showNotification('Erro ao ativar etapa', 'error'),
+        onSuccess: () => showNotification('Etapa ativada!', 'success'),
+        onError: (e: any) => showNotification(e?.message || 'Erro ao ativar etapa', 'error'),
       }
     );
   };

@@ -51,25 +51,29 @@ export const ProcessStageModal = ({ isOpen, onClose, stage, processId, instanceI
 
   const compEnabled = isOpen;
   const isReadOnly = isCompleted || isPending;
+  const stageHasApproval = stage.components.some(c => c.componentType === 'APPROVAL');
 
   const renderComponent = (component: ProcessFlowStageCard['components'][number]) => {
     const context = { processId, stageId: stage.stageId, componentKey: component.componentKey };
+    const label = component.required
+      ? `${component.label} *`
+      : component.label;
 
     switch (component.componentType) {
       case 'FORM':
-        return <ProcessFormComponent key={component.componentKey} label={component.label} context={context} enabled={compEnabled} readOnly={isReadOnly} />;
+        return <ProcessFormComponent key={component.componentKey} label={label} required={component.required} context={context} enabled={compEnabled} readOnly={isReadOnly} />;
       case 'FILES_MANAGEMENT':
-        return <ProcessFilesManagementComponent key={component.componentKey} label={component.label} context={context} enabled={compEnabled} readOnly={isReadOnly} />;
+        return <ProcessFilesManagementComponent key={component.componentKey} label={label} required={component.required} context={context} enabled={compEnabled} readOnly={isReadOnly} hasApproval={stageHasApproval} />;
       case 'TIMELINE':
-        return <ProcessTimelineComponent key={component.componentKey} label={component.label} context={context} enabled={compEnabled} readOnly={isReadOnly} />;
+        return <ProcessTimelineComponent key={component.componentKey} label={label} required={component.required} context={context} enabled={compEnabled} readOnly={isReadOnly} />;
       case 'CHECKLIST':
-        return <ProcessChecklistComponent key={component.componentKey} label={component.label} context={context} enabled={compEnabled} readOnly={isReadOnly} />;
+        return <ProcessChecklistComponent key={component.componentKey} label={label} required={component.required} context={context} enabled={compEnabled} readOnly={isReadOnly} />;
       case 'COMMENTS':
-        return <ProcessCommentsComponent key={component.componentKey} label={component.label} context={context} enabled={compEnabled} readOnly={isReadOnly} />;
+        return <ProcessCommentsComponent key={component.componentKey} label={label} required={component.required} context={context} enabled={compEnabled} readOnly={isReadOnly} />;
       case 'APPROVAL':
-        return <ProcessApprovalComponent key={component.componentKey} label={component.label} context={context} enabled={compEnabled} readOnly={isReadOnly} onApproved={onClose} />;
+        return <ProcessApprovalComponent key={component.componentKey} label={label} required={component.required} context={context} enabled={compEnabled} readOnly={isReadOnly} onApproved={onClose} />;
       case 'SIGNATURE':
-        return <ProcessSignatureComponent key={component.componentKey} label={component.label} context={context} enabled={compEnabled} readOnly={isReadOnly} canManage={canManage} />;
+        return <ProcessSignatureComponent key={component.componentKey} label={label} required={component.required} context={context} enabled={compEnabled} readOnly={isReadOnly} canManage={canManage} />;
       default:
         return null;
     }

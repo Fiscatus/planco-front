@@ -58,6 +58,7 @@ const COMPONENT_MAP: Record<string, React.ComponentType<any>> = {
 
 type StageCardProps = {
   stage: FlowModelStage;
+  displayOrder?: number;
   isEditMode?: boolean;
   onEditStage?: (stage: FlowModelStage) => void;
   onDeleteStage?: (stageId: string) => void;
@@ -67,6 +68,7 @@ type StageCardProps = {
 
 export const StageCard = ({
   stage,
+  displayOrder,
   isEditMode = false,
   onEditStage,
   onDeleteStage,
@@ -84,7 +86,7 @@ export const StageCard = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const componentsCount = useMemo(() => stage.components?.length || 0, [stage.components]);
   const safeStageId = String(stage.stageId || '').trim();
-  const safeOrder = typeof stage.order === 'number' && Number.isFinite(stage.order) ? stage.order : 0;
+  const safeOrder = displayOrder ?? (typeof stage.order === 'number' && Number.isFinite(stage.order) ? stage.order : 0);
 
   const handleEdit = (e: React.MouseEvent) => {
     e.stopPropagation();

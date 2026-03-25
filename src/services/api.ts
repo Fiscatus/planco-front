@@ -63,14 +63,10 @@ api.interceptors.response.use(
       ? error.response.data.message.join(', ')
       : error.response?.data?.message || error.message || 'Erro inesperado';
 
-    // Emite notificação global para todos os erros exceto 401 (tratado pelo auth)
-    if (status !== 401) {
-      apiErrorEmitter.emit(message);
-    }
-
     const backendError = new Error(message);
     (backendError as any).status = status;
     (backendError as any).response = error.response;
+    (backendError as any)._emitted = false; // flag para emissão controlada
     throw backendError;
   }
 );
