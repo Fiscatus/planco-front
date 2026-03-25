@@ -165,9 +165,9 @@ const ProcessoPage = () => {
           canAdvance={canAdvance}
         />
 
-        <ActionHistory stageExecutions={flowInstance.stageExecutions} snapshotStages={flowInstance.snapshotStages} />
-
         <RelatedDocuments processId={flowInstance.process._id} />
+
+        <ActionHistory stageExecutions={flowInstance.stageExecutions} snapshotStages={flowInstance.snapshotStages} />
       </Box>
     </Box>
   );
