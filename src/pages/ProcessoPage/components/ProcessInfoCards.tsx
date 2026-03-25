@@ -25,9 +25,30 @@ export const ProcessInfoCards = ({ flowInstance, stages }: Props) => {
   const [deadlinesOpen, setDeadlinesOpen] = useState(false);
   const [pendenciesOpen, setPendenciesOpen] = useState(false);
 
+  const addBusinessDays = (start: string, days: number): Date => {
+    const date = new Date(start);
+    let added = 0;
+    while (added < days) {
+      date.setDate(date.getDate() + 1);
+      if (date.getDay() !== 0 && date.getDay() !== 6) added++;
+    }
+    return date;
+  };
+
+  const isOverdue = (stage: typeof stages[0]) => {
+    if (stage.status === 'completed') return false;
+    const due = stage.dueDate
+      ? new Date(stage.dueDate)
+      : stage.startedAt && stage.businessDaysDuration
+      ? addBusinessDays(stage.startedAt, stage.businessDaysDuration)
+      : null;
+    return !!due && due.getTime() < Date.now();
+  };
+
+  const overdueCount = stages.filter(isOverdue).length;
+
   const currentStage = stages.find(s => s.status === 'in_progress');
   const completedCount = stages.filter(s => s.status === 'completed').length;
-  const pendingCount = stages.filter(s => s.status === 'pending').length;
 
   return (
     <>
@@ -63,19 +84,19 @@ export const ProcessInfoCards = ({ flowInstance, stages }: Props) => {
         </Box>
 
         {/* Card: Pendências */}
-        <Box onClick={() => setPendenciesOpen(true)} sx={{ bgcolor: pendingCount > 0 ? '#FFF1F3' : '#fff', border: `1px solid ${pendingCount > 0 ? '#F02849' : '#E4E6EB'}`, borderRadius: 3, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', '&:hover': { bgcolor: pendingCount > 0 ? '#FFE4E6' : '#F0F9FF' } }}>
+        <Box onClick={() => setPendenciesOpen(true)} sx={{ bgcolor: overdueCount > 0 ? '#FFF1F3' : '#fff', border: `1px solid ${overdueCount > 0 ? '#F02849' : '#E4E6EB'}`, borderRadius: 3, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', '&:hover': { bgcolor: overdueCount > 0 ? '#FFE4E6' : '#F0F9FF' } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: pendingCount > 0 ? '#F02849' : '#F0F2F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <WarningIcon sx={{ color: pendingCount > 0 ? '#fff' : '#64748b' }} />
+            <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: overdueCount > 0 ? '#F02849' : '#F0F2F5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <WarningIcon sx={{ color: overdueCount > 0 ? '#fff' : '#64748b' }} />
             </Box>
             <Box>
-              <Typography variant='body2' sx={{ color: pendingCount > 0 ? '#F02849' : '#64748b', fontWeight: 600 }}>Pendências</Typography>
-              <Typography variant='subtitle1' sx={{ color: pendingCount > 0 ? '#F02849' : '#0f172a', fontWeight: 800 }}>
-                {pendingCount > 0 ? `${pendingCount} Pendentes` : 'Nenhuma pendência'}
+              <Typography variant='body2' sx={{ color: overdueCount > 0 ? '#F02849' : '#64748b', fontWeight: 600 }}>Pendências</Typography>
+              <Typography variant='subtitle1' sx={{ color: overdueCount > 0 ? '#F02849' : '#0f172a', fontWeight: 800 }}>
+                {overdueCount > 0 ? `${overdueCount} Em Atraso` : 'Sem atrasos'}
               </Typography>
             </Box>
           </Box>
-          <IconButton size='small'><ExpandMoreIcon sx={{ color: pendingCount > 0 ? '#F02849' : '#64748b' }} /></IconButton>
+          <IconButton size='small'><ExpandMoreIcon sx={{ color: overdueCount > 0 ? '#F02849' : '#64748b' }} /></IconButton>
         </Box>
       </Box>
 

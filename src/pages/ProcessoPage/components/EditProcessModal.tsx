@@ -40,8 +40,9 @@ type Props = {
 };
 
 const MODALITIES = [
-  'Pregão Eletrônico', 'Pregão Presencial', 'Concorrência', 'Tomada de Preços',
-  'Convite', 'Concurso', 'Leilão', 'Dispensa de Licitação', 'Inexigibilidade',
+  'Concorrência', 'Dispensa de Licitação', 'Inexigibilidade',
+  'Pregão Eletrônico', 'Pregão Presencial', 'Tomada de Preços',
+  'Diálogo Competitivo', 'Leilão', 'Concurso', 'Outros', 'Não Definido',
 ];
 
 export const EditProcessModal = ({ open, onClose, flowInstance, initialTab = 0 }: Props) => {

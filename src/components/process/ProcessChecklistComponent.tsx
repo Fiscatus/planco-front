@@ -4,7 +4,6 @@ import {
   Add as AddIcon,
   CheckCircle as CheckCircleIcon,
   Circle as CircleIcon,
-  Delete as DeleteIcon,
   Edit as EditIcon,
   Info as InfoIcon,
   ExpandMore as ExpandMoreIcon,
@@ -12,7 +11,7 @@ import {
   Fullscreen as FullscreenIcon,
   Search as SearchIcon,
 } from "@mui/icons-material";
-import { useChecklist, useCreateChecklistItem, useToggleChecklistItem, useUpdateChecklistItem, useDeleteChecklistItem } from "@/hooks";
+import { useChecklist, useCreateChecklistItem, useToggleChecklistItem, useUpdateChecklistItem } from "@/hooks";
 
 type ProcessChecklistComponentProps = {
   label?: string;
@@ -41,15 +40,12 @@ const ChecklistContent = ({
   const createMutation = useCreateChecklistItem();
   const toggleMutation = useToggleChecklistItem();
   const updateMutation = useUpdateChecklistItem();
-  const deleteMutation = useDeleteChecklistItem();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState<"Baixa" | "Média" | "Alta">("Média");
   const [editingItem, setEditingItem] = useState<any>(null);
-  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [filterPriority, setFilterPriority] = useState<string>("all");
 
@@ -79,16 +75,6 @@ const ChecklistContent = ({
     if (editingItem?.title?.trim()) {
       updateMutation.mutate({ id: editingItem._id, data: { title: editingItem.title, priority: editingItem.priority }, context }, {
         onSuccess: () => { setEditingItem(null); setShowEditModal(false); }
-      });
-    }
-  };
-
-  const handleOpenDelete = (id: string) => { setDeletingItemId(id); setShowDeleteModal(true); };
-
-  const handleConfirmDelete = () => {
-    if (deletingItemId) {
-      deleteMutation.mutate({ id: deletingItemId, context }, {
-        onSuccess: () => { setDeletingItemId(null); setShowDeleteModal(false); }
       });
     }
   };
@@ -158,11 +144,6 @@ const ChecklistContent = ({
                     <EditIcon fontSize="small" />
                   </IconButton>
                 )}
-                {!readOnly && (
-                  <IconButton size="small" onClick={() => handleOpenDelete(item._id)} sx={{ color: "#EF4444" }}>
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                )}
               </Box>
             ))}
           </Box>
@@ -215,21 +196,6 @@ const ChecklistContent = ({
             startIcon={updateMutation.isPending ? <CircularProgress size={16} /> : <EditIcon />}
             sx={{ bgcolor: "#1877F2", textTransform: "none", fontWeight: 700, borderRadius: 2 }}>
             {updateMutation.isPending ? "Salvando..." : "Salvar"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      <Dialog open={showDeleteModal} onClose={() => setShowDeleteModal(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
-        <DialogTitle sx={{ fontWeight: 700, fontSize: "1.25rem", color: "#0f172a" }}>Excluir Tarefa</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" sx={{ color: "#64748b" }}>Tem certeza que deseja excluir esta tarefa? Esta ação não pode ser desfeita.</Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, py: 2 }}>
-          <Button onClick={() => setShowDeleteModal(false)} variant="outlined" sx={{ textTransform: "none", borderRadius: 2, fontWeight: 700 }}>Cancelar</Button>
-          <Button variant="contained" onClick={handleConfirmDelete} disabled={deleteMutation.isPending}
-            startIcon={deleteMutation.isPending ? <CircularProgress size={16} /> : <DeleteIcon />}
-            sx={{ bgcolor: "#EF4444", textTransform: "none", fontWeight: 700, borderRadius: 2, "&:hover": { bgcolor: "#DC2626" } }}>
-            {deleteMutation.isPending ? "Excluindo..." : "Excluir"}
           </Button>
         </DialogActions>
       </Dialog>

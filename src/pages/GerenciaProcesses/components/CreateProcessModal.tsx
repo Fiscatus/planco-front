@@ -392,6 +392,11 @@ export const CreateProcessModal = ({
                       <MenuItem value='Pregão Eletrônico'>Pregão Eletrônico</MenuItem>
                       <MenuItem value='Pregão Presencial'>Pregão Presencial</MenuItem>
                       <MenuItem value='Tomada de Preços'>Tomada de Preços</MenuItem>
+                      <MenuItem value='Diálogo Competitivo'>Diálogo Competitivo</MenuItem>
+                      <MenuItem value='Leilão'>Leilão</MenuItem>
+                      <MenuItem value='Concurso'>Concurso</MenuItem>
+                      <MenuItem value='Outros'>Outros</MenuItem>
+                      <MenuItem value='Não Definido'>Não Definido</MenuItem>
                     </Select>
                   </FormControl>
                 </Box>

@@ -216,19 +216,6 @@ export const useToggleChecklistItem = () => {
   });
 };
 
-export const useDeleteChecklistItem = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: async ({ id, context }: { id: string; context: ComponentContext }) => {
-      await api.delete(`/checklist/${id}`);
-    },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['checklist', variables.context] });
-    }
-  });
-};
-
 // ==================== COMMENTS ====================
 export const useComments = (context: ComponentContext, filters?: any, enabled = true) => {
   return useQuery({

@@ -147,12 +147,12 @@ const GerenciaProcessesPage = () => {
     mutationFn: async (data: CreateProcessDto) => {
       return await createProcess(data);
     },
-    onSuccess: () => {
-      // Invalidar todas as queries relacionadas a processos
+    onSuccess: (newProcess) => {
       queryClient.invalidateQueries({ queryKey: ['fetchProcessesByDepartment'] });
       queryClient.invalidateQueries({ queryKey: ['fetchProcesses'] });
       showNotification('Processo criado com sucesso!', 'success');
       setCreateModalOpen(false);
+      navigate(`/processos-gerencia/${newProcess._id}`);
     },
     onError: (error: any) => {
       showNotification(error?.response?.data?.message || 'Erro ao criar processo', 'error');
