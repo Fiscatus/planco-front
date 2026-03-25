@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Box, Button, Avatar, Collapse, Dialog, IconButton, Paper, TextField, Tooltip, Typography, CircularProgress } from "@mui/material";
+import { Box, Button, Avatar, Collapse, Dialog, IconButton, Paper, TextField, Tooltip, Typography, CircularProgress, Chip } from "@mui/material";
 import {
   Send as SendIcon,
   AttachFile as AttachFileIcon,
