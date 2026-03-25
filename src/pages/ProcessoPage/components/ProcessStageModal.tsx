@@ -80,7 +80,7 @@ export const ProcessStageModal = ({ isOpen, onClose, stage, processId, instanceI
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
         <Box>
           <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a' }}>{stage.title}</Typography>
-          <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>Etapa {stage.order} • {stage.department}</Typography>
+          <Typography variant="body2" sx={{ color: '#64748b', mt: 0.5 }}>Etapa {stage.order} • {stage.departments?.join(' • ')}</Typography>
         </Box>
         {isCompleted && (
           <Chip icon={<LockIcon sx={{ fontSize: 14 }} />} label="Etapa concluída" size="small"

@@ -11,7 +11,6 @@ export type FlowInstance = {
     priority?: string;
     status: string;
     situation?: string;
-    situation?: string;
     dueDate?: string;
     estimatedValue?: number;
     createdAt?: string;

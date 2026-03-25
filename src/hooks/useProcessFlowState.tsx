@@ -526,7 +526,7 @@ const toStageCards = (params: {
       stageId: stage.stageId,
       stageInstanceId,
       title: stage.name,
-      department: resolveStageDepartment(stage),
+      departments: [resolveStageDepartment(stage)],
       status,
       additionalInfo: resolveStageAdditionalInfo(executionStatus, status),
       components: stage.components.map((component) => ({
