@@ -1,32 +1,32 @@
 import {
+  Add as AddIcon,
+  Clear as ClearIcon,
+  FilterAlt as FilterAltIcon,
+  Search as SearchIcon
+} from '@mui/icons-material';
+import {
   Box,
   Button,
   Card,
-  TextField,
-  Typography,
-  Grid,
   FormControl,
+  Grid,
   MenuItem,
+  Pagination,
   Select,
-  Pagination
+  TextField,
+  Typography
 } from '@mui/material';
-import {
-  Add as AddIcon,
-  Search as SearchIcon,
-  FilterAlt as FilterAltIcon,
-  Clear as ClearIcon
-} from '@mui/icons-material';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Loading, useNotification } from '@/components';
-import { useProcesses, useSearchWithDebounce, useFolders } from '@/hooks';
-import { useActiveDepartment } from '@/contexts';
-import type { FilterProcessesDto, Process, CreateProcessDto } from '@/globals/types';
-import { ProcessTable } from './components/ProcessTable';
-import { ProcessSidebar } from './components/ProcessSidebar';
-import { CreateProcessModal } from './components/CreateProcessModal';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
+import { useCallback, useMemo, useState } from 'react';
+import { Outlet, useNavigate, useSearchParams } from 'react-router-dom';
+import { Loading, useNotification } from '@/components';
+import { useActiveDepartment } from '@/contexts';
+import type { CreateProcessDto, FilterProcessesDto, Process } from '@/globals/types';
+import { useFolders, useProcesses, useSearchWithDebounce } from '@/hooks';
+import { CreateProcessModal } from './components/CreateProcessModal';
+import { ProcessSidebar } from './components/ProcessSidebar';
+import { ProcessTable } from './components/ProcessTable';
 
 const GerenciaProcessesPage = () => {
   const { activeDepartment } = useActiveDepartment();
@@ -35,7 +35,7 @@ const GerenciaProcessesPage = () => {
   const [urlParams, setUrlParams] = useSearchParams();
   const { fetchProcessesByDepartment, createProcess } = useProcesses();
   const { fetchFolders } = useFolders();
-
+  const navigate = useNavigate();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
@@ -104,10 +104,7 @@ const GerenciaProcessesPage = () => {
         return await fetchProcessesByDepartment(activeDepartment._id, processFilters);
       } catch (error: any) {
         console.error('Erro ao buscar processos:', error);
-        showNotification(
-          error?.response?.data?.message || error?.message || 'Erro ao buscar processos',
-          'error'
-        );
+        showNotification(error?.response?.data?.message || error?.message || 'Erro ao buscar processos', 'error');
         return { processes: [], total: 0, page: 1, limit: 10, totalPages: 1 };
       }
     }
@@ -116,7 +113,7 @@ const GerenciaProcessesPage = () => {
   // Filtrar processos por data selecionada e pendência (filtros do frontend)
   const filteredProcesses = useMemo(() => {
     if (!processesData?.processes) return [];
-    
+
     let filtered = processesData.processes;
 
     // Filtrar por pendência
@@ -150,30 +147,36 @@ const GerenciaProcessesPage = () => {
     mutationFn: async (data: CreateProcessDto) => {
       return await createProcess(data);
     },
-    onSuccess: () => {
-      // Invalidar todas as queries relacionadas a processos
+    onSuccess: (newProcess) => {
       queryClient.invalidateQueries({ queryKey: ['fetchProcessesByDepartment'] });
       queryClient.invalidateQueries({ queryKey: ['fetchProcesses'] });
       showNotification('Processo criado com sucesso!', 'success');
       setCreateModalOpen(false);
+      navigate(`/processos-gerencia/${newProcess._id}`);
     },
     onError: (error: any) => {
       showNotification(error?.response?.data?.message || 'Erro ao criar processo', 'error');
     }
   });
 
-  const handleCreateProcess = useCallback((data: CreateProcessDto) => {
-    // Adicionar o departamento ativo como creatorDepartment
-    const processData: CreateProcessDto = {
-      ...data,
-      creatorDepartment: activeDepartment?._id
-    };
-    createProcessMutation(processData);
-  }, [createProcessMutation, activeDepartment]);
+  const handleCreateProcess = useCallback(
+    (data: CreateProcessDto) => {
+      // Adicionar o departamento ativo como creatorDepartment
+      const processData: CreateProcessDto = {
+        ...data,
+        creatorDepartment: activeDepartment?._id
+      };
+      createProcessMutation(processData);
+    },
+    [createProcessMutation, activeDepartment]
+  );
 
-  const handleProcessClick = useCallback((process: Process) => {
-    showNotification('Funcionalidade de visualizar processo em desenvolvimento', 'info');
-  }, [showNotification]);
+  const handleProcessClick = useCallback(
+    (process: Process) => {
+      navigate(`/processos-gerencia/${process._id}`);
+    },
+    [navigate]
+  );
 
   const handleDateClick = useCallback((date: Date) => {
     setSelectedDate(date);
@@ -194,24 +197,33 @@ const GerenciaProcessesPage = () => {
   }, [setUrlParams, handleProcessSearchChange]);
 
   // Handlers de paginação
-  const handleProcessesPageChange = useCallback((_event: unknown, newPage: number) => {
-    const newParams = new URLSearchParams(urlParams);
-    newParams.set('page', String(newPage));
-    setUrlParams(newParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const handleProcessesPageChange = useCallback(
+    (_event: unknown, newPage: number) => {
+      const newParams = new URLSearchParams(urlParams);
+      newParams.set('page', String(newPage));
+      setUrlParams(newParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
-  const handleProcessesLimitChange = useCallback((event: any) => {
-    const newLimit = Number(event.target.value);
-    const newParams = new URLSearchParams(urlParams);
-    newParams.set('limit', String(newLimit));
-    newParams.set('page', '1');
-    setUrlParams(newParams, { replace: true });
-  }, [urlParams, setUrlParams]);
+  const handleProcessesLimitChange = useCallback(
+    (event: any) => {
+      const newLimit = Number(event.target.value);
+      const newParams = new URLSearchParams(urlParams);
+      newParams.set('limit', String(newLimit));
+      newParams.set('page', '1');
+      setUrlParams(newParams, { replace: true });
+    },
+    [urlParams, setUrlParams]
+  );
 
   if (!activeDepartment) {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant='h6' color='error'>
+        <Typography
+          variant='h6'
+          color='error'
+        >
           Nenhuma gerência selecionada
         </Typography>
       </Box>
@@ -268,10 +280,10 @@ const GerenciaProcessesPage = () => {
           </Typography>
         </Box>
 
-        <Box 
-          sx={{ 
-            display: 'flex', 
-            gap: { xs: 1.5, sm: 2 }, 
+        <Box
+          sx={{
+            display: 'flex',
+            gap: { xs: 1.5, sm: 2 },
             flexWrap: { xs: 'wrap', sm: 'nowrap' },
             alignItems: 'center',
             width: { xs: '100%', sm: 'auto' }
@@ -387,7 +399,10 @@ const GerenciaProcessesPage = () => {
               )}
             </Box>
             <Box sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
-              <Grid container spacing={{ xs: 2, sm: 2.5, md: 2.5 }}>
+              <Grid
+                container
+                spacing={{ xs: 2, sm: 2.5, md: 2.5 }}
+              >
                 {/* Campo de busca */}
                 <Grid size={{ xs: 12, sm: 12, md: 6 }}>
                   <TextField
@@ -556,112 +571,125 @@ const GerenciaProcessesPage = () => {
 
         {/* Conteúdo Principal */}
         <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', lg: 'row' } }}>
-        {/* Área Principal */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-
-          {/* Tabela de Processos */}
-          {processesLoading ? (
-            <Loading isLoading={true} />
-          ) : processesError ? (
-            <Card
-              sx={{
-                p: 4,
-                textAlign: 'center',
-                borderRadius: 2,
-                border: '1px solid #E4E6EB',
-                backgroundColor: '#FFFFFF'
-              }}
-            >
-              <Typography variant='h6' color='error' sx={{ mb: 1 }}>
-                Erro ao carregar processos
-              </Typography>
-              <Typography variant='body2' color='text.secondary'>
-                {processesError instanceof Error 
-                  ? processesError.message 
-                  : 'Ocorreu um erro ao buscar os processos. Tente novamente.'}
-              </Typography>
-            </Card>
-          ) : (
-            <>
-              <ProcessTable
-                processes={processes}
-                onProcessClick={handleProcessClick}
-              />
-              
-              {/* Paginação */}
-              {totalProcesses > 0 && (
-                <Box
-                  sx={{
-                    p: 3,
-                    display: 'flex',
-                    flexDirection: { xs: 'column', md: 'row' },
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: 2,
-                    backgroundColor: '#f8fafc',
-                    borderTop: '1px solid #e5e7eb',
-                    borderRadius: '0 0 12px 12px',
-                    mt: 2
-                  }}
+          {/* Área Principal */}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            {/* Tabela de Processos */}
+            {processesLoading ? (
+              <Loading isLoading={true} />
+            ) : processesError ? (
+              <Card
+                sx={{
+                  p: 4,
+                  textAlign: 'center',
+                  borderRadius: 2,
+                  border: '1px solid #E4E6EB',
+                  backgroundColor: '#FFFFFF'
+                }}
+              >
+                <Typography
+                  variant='h6'
+                  color='error'
+                  sx={{ mb: 1 }}
                 >
-                  {/* Pagination Info */}
-                  <Typography
-                    variant='body2'
-                    sx={{ color: '#6b7280', fontSize: '0.875rem' }}
+                  Erro ao carregar processos
+                </Typography>
+                <Typography
+                  variant='body2'
+                  color='text.secondary'
+                >
+                  {processesError instanceof Error
+                    ? processesError.message
+                    : 'Ocorreu um erro ao buscar os processos. Tente novamente.'}
+                </Typography>
+              </Card>
+            ) : (
+              <>
+                <ProcessTable
+                  processes={processes}
+                  onProcessClick={handleProcessClick}
+                />
+
+                {/* Paginação */}
+                {totalProcesses > 0 && (
+                  <Box
+                    sx={{
+                      p: 3,
+                      display: 'flex',
+                      flexDirection: { xs: 'column', md: 'row' },
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: 2,
+                      backgroundColor: '#f8fafc',
+                      borderTop: '1px solid #e5e7eb',
+                      borderRadius: '0 0 12px 12px',
+                      mt: 2
+                    }}
                   >
-                    {((Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10)) + 1}-
-                    {Math.min(Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10), totalProcesses)} de {totalProcesses}
-                  </Typography>
-
-                  {/* Pagination Controls */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Select
-                      value={processesLimit}
-                      onChange={handleProcessesLimitChange}
-                      sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+                    {/* Pagination Info */}
+                    <Typography
+                      variant='body2'
+                      sx={{ color: '#6b7280', fontSize: '0.875rem' }}
                     >
-                      {[5, 10, 25, 50].map((limit) => (
-                        <MenuItem 
-                          key={limit} 
-                          value={limit}
-                          sx={{
-                            '&.Mui-selected': {
-                              backgroundColor: '#f1f5f9',
-                              '&:hover': {
-                                backgroundColor: '#f1f5f9'
+                      {(Number(urlParams.get('page') || 1) - 1) * Number(urlParams.get('limit') || 10) + 1}-
+                      {Math.min(
+                        Number(urlParams.get('page') || 1) * Number(urlParams.get('limit') || 10),
+                        totalProcesses
+                      )}{' '}
+                      de {totalProcesses}
+                    </Typography>
+
+                    {/* Pagination Controls */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <Select
+                        value={processesLimit}
+                        onChange={handleProcessesLimitChange}
+                        sx={{ minWidth: 120, height: 32, fontSize: '0.875rem' }}
+                      >
+                        {[5, 10, 25, 50].map((limit) => (
+                          <MenuItem
+                            key={limit}
+                            value={limit}
+                            sx={{
+                              '&.Mui-selected': {
+                                backgroundColor: '#f1f5f9',
+                                '&:hover': {
+                                  backgroundColor: '#f1f5f9'
+                                }
                               }
-                            }
-                          }}
-                        >
-                          {limit} por página
-                        </MenuItem>
-                      ))}
-                    </Select>
+                            }}
+                          >
+                            {limit} por página
+                          </MenuItem>
+                        ))}
+                      </Select>
 
-                    <Pagination
-                      count={processesTotalPages}
-                      page={Number(urlParams.get('page') || 1)}
-                      onChange={handleProcessesPageChange}
-                      variant='outlined'
-                      shape='rounded'
-                    />
+                      <Pagination
+                        count={processesTotalPages}
+                        page={Number(urlParams.get('page') || 1)}
+                        onChange={handleProcessesPageChange}
+                        variant='outlined'
+                        shape='rounded'
+                      />
+                    </Box>
                   </Box>
-                </Box>
-              )}
-            </>
-          )}
-        </Box>
+                )}
+              </>
+            )}
+          </Box>
 
-        {/* Sidebar */}
-        <Box sx={{ width: { xs: '100%', lg: 320 }, flexShrink: 0 }}>
-          <ProcessSidebar
-            onDateClick={handleDateClick}
-            selectedDate={selectedDate}
-            processes={processes}
-          />
+          {/* Sidebar */}
+          <Box sx={{ width: { xs: '100%', lg: 320 }, flexShrink: 0 }}>
+            <ProcessSidebar
+              onDateClick={handleDateClick}
+              selectedDate={selectedDate}
+              processes={processes}
+            />
+          </Box>
         </Box>
       </Box>
-      </Box>
+
+      {/* Outlet para subrotas */}
+      <Outlet />
 
       {/* Modal de Criar Processo */}
       <CreateProcessModal
@@ -676,4 +704,3 @@ const GerenciaProcessesPage = () => {
 };
 
 export default GerenciaProcessesPage;
-

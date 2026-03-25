@@ -1,18 +1,19 @@
-import { useCallback } from "react";
-import { api } from "@/services";
+import { useCallback } from 'react';
+import { api } from '@/services';
 
 /**
  * Tipos alinhados ao backend (FlowModel schema + DTOs)
  */
 
 export type ComponentType =
-  | "SIGNATURE"
-  | "COMMENTS"
-  | "FORM"
-  | "APPROVAL"
-  | "FILES_MANAGEMENT"
-  | "TIMELINE"
-  | "CHECKLIST"
+  | 'SIGNATURE'
+  | 'COMMENTS'
+  | 'FORM'
+  | 'APPROVAL'
+  | 'FILES_MANAGEMENT'
+  | 'TIMELINE'
+  | 'CHECKLIST'
+  | 'STAGE_PANEL';
 
 export type FlowModelComponent = {
   order: number;
@@ -35,6 +36,8 @@ export type FlowModelStage = {
   components: FlowModelComponent[];
   approverRoles?: string[];
   approverUsers?: string[];
+  requiresApproval?: boolean;
+  canRepeat?: boolean;
   businessDaysDuration?: number;
   isOptional?: boolean;
 };
@@ -80,16 +83,13 @@ export const useFlowModels = () => {
   /**
    * GET /flow-models?isActive=true|false
    */
-  const fetchFlowModels = useCallback(
-    async (isActive?: boolean): Promise<FlowModel[]> => {
-      const params: { isActive?: boolean } = {};
-      if (isActive !== undefined) params.isActive = isActive;
+  const fetchFlowModels = useCallback(async (isActive?: boolean): Promise<FlowModel[]> => {
+    const params: { isActive?: boolean } = {};
+    if (isActive !== undefined) params.isActive = isActive;
 
-      const response = await api.get<FlowModel[]>("/flow-models", { params });
-      return Array.isArray(response.data) ? response.data : [];
-    },
-    [],
-  );
+    const response = await api.get<FlowModel[]>('/flow-models', { params });
+    return Array.isArray(response.data) ? response.data : [];
+  }, []);
 
   /**
    * GET /flow-models/:id
@@ -98,7 +98,7 @@ export const useFlowModels = () => {
     const response = await api.get<FlowModel>(`/flow-models/${id}`);
 
     if (!response.data) {
-      throw new Error("Resposta da API vazia ao buscar modelo de fluxo");
+      throw new Error('Resposta da API vazia ao buscar modelo de fluxo');
     }
 
     return response.data;
@@ -107,34 +107,28 @@ export const useFlowModels = () => {
   /**
    * POST /flow-models
    */
-  const createFlowModel = useCallback(
-    async (data: CreateFlowModelDto): Promise<FlowModel> => {
-      const response = await api.post<FlowModel>("/flow-models", data);
+  const createFlowModel = useCallback(async (data: CreateFlowModelDto): Promise<FlowModel> => {
+    const response = await api.post<FlowModel>('/flow-models', data);
 
-      if (!response.data) {
-        throw new Error("Resposta da API vazia ao criar modelo de fluxo");
-      }
+    if (!response.data) {
+      throw new Error('Resposta da API vazia ao criar modelo de fluxo');
+    }
 
-      return response.data;
-    },
-    [],
-  );
+    return response.data;
+  }, []);
 
   /**
    * PUT /flow-models/:id
    */
-  const updateFlowModel = useCallback(
-    async (id: string, data: UpdateFlowModelDto): Promise<FlowModel> => {
-      const response = await api.put<FlowModel>(`/flow-models/${id}`, data);
+  const updateFlowModel = useCallback(async (id: string, data: UpdateFlowModelDto): Promise<FlowModel> => {
+    const response = await api.put<FlowModel>(`/flow-models/${id}`, data);
 
-      if (!response.data) {
-        throw new Error("Resposta da API vazia ao atualizar modelo de fluxo");
-      }
+    if (!response.data) {
+      throw new Error('Resposta da API vazia ao atualizar modelo de fluxo');
+    }
 
-      return response.data;
-    },
-    [],
-  );
+    return response.data;
+  }, []);
 
   /**
    * DELETE /flow-models/:id
@@ -152,7 +146,7 @@ export const useFlowModels = () => {
     const response = await api.post<FlowModel>(`/flow-models/${id}/duplicate`);
 
     if (!response.data) {
-      throw new Error("Resposta da API vazia ao duplicar modelo de fluxo");
+      throw new Error('Resposta da API vazia ao duplicar modelo de fluxo');
     }
 
     return response.data;
@@ -164,6 +158,6 @@ export const useFlowModels = () => {
     createFlowModel,
     updateFlowModel,
     deleteFlowModel,
-    duplicateFlowModel,
+    duplicateFlowModel
   };
 };

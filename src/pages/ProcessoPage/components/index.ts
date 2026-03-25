@@ -1,0 +1,13 @@
+export { ActionHistory } from './ActionHistory';
+export { EditProcessModal } from './EditProcessModal';
+export { ProcessHeader } from './ProcessHeader';
+export { ProcessInfoCards } from './ProcessInfoCards';
+export { ProcessoInfoModal } from './ProcessoInfoModal';
+export { ProcessDeadlinesModal } from './ProcessDeadlinesModal';
+export { ProcessPendenciesModal } from './ProcessPendenciesModal';
+export { ProcessProgress } from './ProcessProgress';
+export type { ProcessStageProps, StageStatus } from './ProcessStageCard';
+export { ProcessStageCard } from './ProcessStageCard';
+export { ProcessStagesSection } from './ProcessStagesSection';
+export { QuickActionsBtn } from './QuickActionsBtn';
+export { RelatedDocuments } from './RelatedDocuments';

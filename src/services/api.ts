@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { apiErrorEmitter } from './apiErrorEmitter';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -55,22 +56,18 @@ api.interceptors.request.use(
 );
 
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    if (error.response?.data?.message) {
-      const backendError = new Error(error.response.data.message);
-      // biome-ignore lint/suspicious/noExplicitAny: <type any in the backendError>
-      (backendError as any).status = error.response.status;
-      // biome-ignore lint/suspicious/noExplicitAny: <type any in the backendError>
-      (backendError as any).response = error.response;
-      throw backendError;
-    }
-    if (error.code === 'ERR_NETWORK') {
-      throw new Error('Erro de conexão. Verifique se o servidor está rodando.');
-    }
-    throw error;
+    const status = error.response?.status;
+    const message = Array.isArray(error.response?.data?.message)
+      ? error.response.data.message.join(', ')
+      : error.response?.data?.message || error.message || 'Erro inesperado';
+
+    const backendError = new Error(message);
+    (backendError as any).status = status;
+    (backendError as any).response = error.response;
+    (backendError as any)._emitted = false; // flag para emissão controlada
+    throw backendError;
   }
 );
 

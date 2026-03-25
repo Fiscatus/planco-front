@@ -1,4 +1,15 @@
-import { Headphones, Logout, Menu as MenuIcon, Notifications, Search, Settings } from '@mui/icons-material';
+import {
+  AccountTreeOutlined,
+  FolderOutlined,
+  GroupOutlined,
+  Headphones,
+  HomeOutlined,
+  Logout,
+  Menu as MenuIcon,
+  Notifications,
+  Search,
+  Settings
+} from '@mui/icons-material';
 import {
   AppBar,
   Box,
@@ -12,21 +23,37 @@ import {
   Toolbar,
   Typography
 } from '@mui/material';
-import { type MouseEvent, useEffect, useState } from 'react';
+import { ArrowDropDownIcon } from '@mui/x-date-pickers';
+import { type MouseEvent, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks';
-
 import logo from '/assets/isologo.svg';
 
 interface TopbarProps {
   onMenuClick: () => void;
+  displayNavBarDropdown?: boolean;
 }
+
+const pageSet = [
+  { route: '/planejamento-da-contratacao', name: 'Planejamento da Contratação', icon: <HomeOutlined sx={{
+    color: 'rgba(0, 0, 0, 0.54)'
+  }}/> },
+  { route: '/processos-gerencia', name: 'Processos', icon: <GroupOutlined  sx={{
+     color: 'rgba(0, 0, 0, 0.54)'
+  }}/> },
+  { route: '/modelos-fluxo', name: 'Modelos de Fluxo', icon: <AccountTreeOutlined sx={{
+    color: 'rgba(0, 0, 0, 0.54)'
+  }}/> },
+  { route: '/gerenciamento-pastas', name: 'Gerenciamento de Pastas', icon: <FolderOutlined sx={{
+    color: 'rgba(0, 0, 0, 0.54)'
+  }}/> }
+];
 
 // TODO: Implementar busca e notificações
 // TODO: Implementar busca do usuario e informações para colocação no menu
 // TODO: Implementar logout
 
-const Topbar = ({ onMenuClick }: TopbarProps) => {
+const Topbar = ({ onMenuClick, displayNavBarDropdown = false }: TopbarProps) => {
   const { user } = useAuth();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [accountMenuAnchor, setAccountMenuAnchor] = useState<null | HTMLElement>(null);
@@ -35,9 +62,13 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
 
-  useEffect(() => {
-    let scrollTimer: NodeJS.Timeout;
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
 
+  const handleOpen = useCallback((event: React.MouseEvent<HTMLElement>) => setAnchorEl(event.currentTarget), []);
+
+  const handleClose = useCallback(() => setAnchorEl(null), []);
+  useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       setScrollY(currentScrollY);
@@ -47,7 +78,6 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      clearTimeout(scrollTimer);
     };
   }, []);
 
@@ -154,6 +184,104 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
           >
             Planco
           </Typography>
+        {displayNavBarDropdown && (
+            <Box
+            sx={{
+              minWidth: 'fit-content',
+              border: '1px solid #E2E8F0',
+              px: 2,
+              py: 0.75,
+              borderRadius: '10px',
+              boxSizing: 'border-box',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              height: 38,
+              cursor: 'pointer',
+              backgroundColor: '#FFFFFF',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+              '&:hover': {
+                borderColor: '#CBD5E1',
+                backgroundColor: '#F8FAFC',
+                boxShadow: '0 2px 4px 0 rgba(0, 0, 0, 0.08)',
+                '& .MuiSvgIcon-root': {
+                  color: '#1877F2'
+                }
+              }
+            }}
+            onClick={handleOpen}
+          >
+            {pageSet.find((p) => p.route === window.location.pathname)?.icon}
+            <Typography sx={{
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              color: '#0f172a',
+              whiteSpace: 'nowrap'
+            }}>{pageSet.find((p) => p.route === window.location.pathname)?.name || 'Navegar'}</Typography>
+            <ArrowDropDownIcon sx={{ color: '#64748b', fontSize: 20 }} />
+          </Box>
+        )}
+          <Menu
+            anchorEl={anchorEl}
+            open={open}
+            onClose={handleClose}
+            slotProps={{
+              paper: {
+                sx: {
+                  overflow: 'visible',
+                  mt: 1.5,
+                  border: '1px solid #E2E8F0',
+                  minWidth: 280,
+                  borderRadius: '12px',
+                  p: 1,
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                }
+              }
+            }}
+            transformOrigin={{ horizontal: 'center', vertical: 'top' }}
+            anchorOrigin={{ horizontal: 'center', vertical: 'bottom' }}
+          >
+            {pageSet.map((page) => (
+              <MenuItem
+                key={page.route}
+                onClick={() => {
+                  navigate(page.route);
+                  handleClose();
+                }}
+                sx={{
+                  borderRadius: '8px',
+                  mb: 0.5,
+                  px: 1.5,
+                  py: 1.25,
+                  backgroundColor: page.route === window.location.pathname ? '#E7F3FF' : 'transparent',
+                  color: page.route === window.location.pathname ? '#1877F2' : '#334155',
+                  transition: 'all 0.15s ease',
+                  '&:hover': {
+                    backgroundColor: page.route === window.location.pathname ? '#E7F3FF' : '#F8FAFC',
+                    color: '#1877F2',
+                    transform: 'translateX(4px)',
+                    '& .MuiListItemIcon-root .MuiSvgIcon-root': {
+                      color: '#1877F2'
+                    }
+                  },
+                  '&:last-child': {
+                    mb: 0
+                  },
+                  '& .MuiListItemIcon-root .MuiSvgIcon-root': {
+                    color: page.route === window.location.pathname ? '#1877F2' : '#64748b',
+                    transition: 'color 0.15s ease'
+                  }
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 36 }}>{page.icon}</ListItemIcon>
+                <ListItemText
+                  primary={page.name}
+                  sx={{ '& .MuiTypography-root': { fontSize: '0.9375rem', fontWeight: 600 } }}
+                />
+              </MenuItem>
+            ))}
+          </Menu>
         </Box>
 
         <Box
@@ -228,7 +356,6 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
             />
           </Box>
         </Box>
-
         <Box
           sx={{
             display: 'flex',

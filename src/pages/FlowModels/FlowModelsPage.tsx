@@ -414,7 +414,7 @@ const FlowModelsPage = () => {
         return prev;
       }
 
-      // Apenas valida order se não for opcional
+      // Apenas valida order duplicado entre etapas normais
       if (!updatedStage.isOptional && base.some((s, i) => i !== idx && s.order === updatedStage.order && !s.isOptional)) {
         showNotification("Já existe uma etapa com essa ordem (order).", "error");
         return prev;
@@ -428,9 +428,11 @@ const FlowModelsPage = () => {
     showNotification("Etapa atualizada no rascunho. Clique em Salvar para enviar ao backend.", "success");
   }, [isEditMode, showNotification, editingStageOriginalId]);
 
-  const normalizeOrders = useCallback((stages: FlowModelStage[]) => 
-    stages.slice().sort((a, b) => a.order - b.order).map((s, idx) => ({ ...s, order: idx + 1 }))
-  , []);
+  const normalizeOrders = useCallback((stages: FlowModelStage[]) => {
+    const normals = stages.filter(s => !s.isOptional).sort((a, b) => a.order - b.order).map((s, idx) => ({ ...s, order: idx + 1 }));
+    const optionals = stages.filter(s => s.isOptional).sort((a, b) => a.order - b.order).map((s, idx) => ({ ...s, order: idx + 1 }));
+    return [...normals, ...optionals];
+  }, []);
 
   const handleDeleteStage = useCallback((stageId: string) => {
     if (!isEditMode) return;
@@ -445,14 +447,38 @@ const FlowModelsPage = () => {
     if (!isEditMode) return;
     setDraftStages((prev) => {
       if (!prev) return prev;
-      const arr = prev.slice().sort((a, b) => a.order - b.order);
-      const activeIndex = arr.findIndex((s) => s.stageId === activeId);
-      const overIndex = arr.findIndex((s) => s.stageId === overId);
-      if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) return prev;
-      const reordered = [...arr];
-      const [moved] = reordered.splice(activeIndex, 1);
-      reordered.splice(overIndex, 0, moved);
-      return reordered.map((s, idx) => ({ ...s, order: idx + 1 }));
+      // Separa normais e opcionais
+      const normals = prev.filter(s => !s.isOptional).sort((a, b) => a.order - b.order);
+      const optionals = prev.filter(s => s.isOptional).sort((a, b) => a.order - b.order);
+
+      // Descobre em qual grupo estão os dois
+      const activeInNormals = normals.some(s => s.stageId === activeId);
+      const overInNormals = normals.some(s => s.stageId === overId);
+      const activeInOptionals = optionals.some(s => s.stageId === activeId);
+      const overInOptionals = optionals.some(s => s.stageId === overId);
+
+      // Só permite mover dentro do mesmo grupo
+      if (activeInNormals && overInNormals) {
+        const activeIndex = normals.findIndex(s => s.stageId === activeId);
+        const overIndex = normals.findIndex(s => s.stageId === overId);
+        const reordered = [...normals];
+        const [moved] = reordered.splice(activeIndex, 1);
+        reordered.splice(overIndex, 0, moved);
+        const updated = reordered.map((s, idx) => ({ ...s, order: idx + 1 }));
+        return [...updated, ...optionals.map((s, idx) => ({ ...s, order: idx + 1 }))];
+      }
+
+      if (activeInOptionals && overInOptionals) {
+        const activeIndex = optionals.findIndex(s => s.stageId === activeId);
+        const overIndex = optionals.findIndex(s => s.stageId === overId);
+        const reordered = [...optionals];
+        const [moved] = reordered.splice(activeIndex, 1);
+        reordered.splice(overIndex, 0, moved);
+        const updated = reordered.map((s, idx) => ({ ...s, order: idx + 1 }));
+        return [...normals.map((s, idx) => ({ ...s, order: idx + 1 })), ...updated];
+      }
+
+      return prev;
     });
   }, [isEditMode]);
 
@@ -470,15 +496,9 @@ const FlowModelsPage = () => {
         showNotification("Já existe uma etapa com esse stageId.", "error");
         return prev;
       }
-      
-      // Recalcula order se não for opcional
-      let finalStage = newStage;
-      if (!newStage.isOptional) {
-        const normalStages = base.filter(s => !s.isOptional);
-        const maxOrder = normalStages.length > 0 ? Math.max(...normalStages.map(s => s.order)) : 0;
-        finalStage = { ...newStage, order: maxOrder + 1 };
-      }
-      
+      // Calcula o próximo order para qualquer tipo de etapa
+      const maxOrder = base.length > 0 ? Math.max(...base.map(s => s.order)) : 0;
+      const finalStage = { ...newStage, order: maxOrder + 1 };
       return [...base, finalStage];
     });
     setCreateStageOpen(false);
@@ -1035,10 +1055,11 @@ const FlowModelsPage = () => {
                         .filter(stage => !stage.isOptional)
                         .slice()
                         .sort((a, b) => a.order - b.order)
-                        .map((stage) => (
+                        .map((stage, idx) => (
                           <StageCard
                             key={stage.stageId || String(stage.order)}
                             stage={stage}
+                            displayOrder={idx + 1}
                             isEditMode={isEditMode}
                             onEditStage={handleEditStage}
                             onDeleteStage={handleDeleteStage}
@@ -1069,10 +1090,11 @@ const FlowModelsPage = () => {
                       >
                         {stagesToRender
                           .filter(stage => stage.isOptional)
-                          .map((stage) => (
+                          .map((stage, idx) => (
                             <StageCard
                               key={stage.stageId || String(stage.order)}
                               stage={stage}
+                              displayOrder={idx + 1}
                               isEditMode={isEditMode}
                               onEditStage={handleEditStage}
                               onDeleteStage={handleDeleteStage}
