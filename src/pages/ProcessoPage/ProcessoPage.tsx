@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Loading } from '@/components';
 import { useFlowInstance } from '@/hooks';
 import { useAuth } from '@/hooks';
+import { useFlowInstanceSSE } from '@/hooks/useFlowInstanceSSE';
 import {
   ActionHistory,
   ProcessHeader,
@@ -17,6 +18,8 @@ const ProcessoPage = () => {
 
   const { data: flowInstance, isLoading, error } = useFlowInstance(processId);
   const { user } = useAuth();
+
+  useFlowInstanceSSE(flowInstance?._id, processId);
 
   const createdById = typeof flowInstance?.process.createdBy === 'object'
     ? flowInstance.process.createdBy._id
