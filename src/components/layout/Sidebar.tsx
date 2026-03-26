@@ -114,7 +114,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
     return (
       location.pathname === modulePath ||
       (modulePath === '/' && location.pathname === '/') ||
-      (modulePath === '/planejamento-da-contratacao' && location.pathname === '/planejamento-da-contratacao') ||
+      (modulePath === '/planejamento-da-contratacao' && location.pathname.startsWith('/planejamento-da-contratacao')) ||
       (modulePath === '/admin' && location.pathname === '/admin') ||
       (modulePath === '/minhas-gerencias' && location.pathname === '/minhas-gerencias')
     );

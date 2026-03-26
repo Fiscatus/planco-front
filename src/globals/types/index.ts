@@ -54,6 +54,16 @@ export type {
   UpdateRoleDto
 } from './Role';
 export type {
+  CriticalAlert,
+  DepartmentInsightsResponse,
+  DepartmentSummary,
+  InsightsParams,
+  InsightsResponse,
+  MonthCount,
+  PaginatedDepartmentInsights,
+  ProcessKpi
+} from './Insights';
+export type {
   AuthResponse,
   FilterUsersDto,
   LoginDto,

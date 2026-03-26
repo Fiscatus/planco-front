@@ -4,6 +4,7 @@ import {
   GroupOutlined,
   Headphones,
   HomeOutlined,
+  InsightsOutlined,
   Logout,
   Menu as MenuIcon,
   Notifications,
@@ -46,6 +47,9 @@ const pageSet = [
   }}/> },
   { route: '/gerenciamento-pastas', name: 'Gerenciamento de Pastas', icon: <FolderOutlined sx={{
     color: 'rgba(0, 0, 0, 0.54)'
+  }}/> },
+  { route: '/insights-planejamento-da-contratacao', name: 'Insights', icon: <InsightsOutlined sx={{
+    color: 'rgba(0, 0, 0, 0.54)'
   }}/> }
 ];
 
@@ -80,16 +84,6 @@ const Topbar = ({ onMenuClick, displayNavBarDropdown = false }: TopbarProps) => 
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
-
-  const getBackgroundOpacity = () => {
-    if (scrollY <= 10) return 0.9;
-    return 0.6;
-  };
-
-  const getBlurIntensity = () => {
-    if (scrollY <= 10) return '8px';
-    return '4px';
-  };
 
   const handleAccountMenuOpen = (event: MouseEvent<HTMLElement>) => {
     setAccountMenuAnchor(event.currentTarget);
