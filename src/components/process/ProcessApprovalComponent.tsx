@@ -124,6 +124,19 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved }: {
         )}
       </Box>
 
+      {hasPending && !readOnly && (
+        <Box sx={{ px: 2.25, pb: 2, display: "flex", gap: 1, justifyContent: "flex-end" }}>
+          <Button onClick={() => { setConfirmType("changes_requested"); setConfirmOpen(true); }} variant="outlined" startIcon={<CancelIcon />}
+            sx={{ textTransform: "none", borderRadius: 2, borderColor: "#FECACA", color: "#B91C1C", fontWeight: 700 }}>
+            Solicitar correções
+          </Button>
+          <Button onClick={() => { setConfirmType("approved"); setConfirmOpen(true); }} variant="contained" startIcon={<CheckCircleIcon />}
+            sx={{ bgcolor: "#16A34A", textTransform: "none", fontWeight: 700, borderRadius: 2 }}>
+            Aprovar
+          </Button>
+        </Box>
+      )}
+
       {relevantLogs.length > 0 && (
         <Box sx={{ px: 2.25, pb: 2.25, borderTop: "1px solid #E4E6EB" }}>
           <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2, mb: 1.5 }}>
@@ -167,18 +180,7 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved }: {
         </Box>
       )}
 
-      {hasPending && !readOnly && (
-        <Box sx={{ px: 2.25, pb: 2.25, display: "flex", gap: 1, justifyContent: "flex-end" }}>
-          <Button onClick={() => { setConfirmType("changes_requested"); setConfirmOpen(true); }} variant="outlined" startIcon={<CancelIcon />}
-            sx={{ textTransform: "none", borderRadius: 2, borderColor: "#FECACA", color: "#B91C1C", fontWeight: 700 }}>
-            Solicitar correções
-          </Button>
-          <Button onClick={() => { setConfirmType("approved"); setConfirmOpen(true); }} variant="contained" startIcon={<CheckCircleIcon />}
-            sx={{ bgcolor: "#16A34A", textTransform: "none", fontWeight: 700, borderRadius: 2 }}>
-            Aprovar
-          </Button>
-        </Box>
-      )}
+
 
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 700, color: "#0f172a" }}>

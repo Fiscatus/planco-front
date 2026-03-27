@@ -19,13 +19,13 @@ const App = () => {
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
             <ActiveDepartmentProvider>
-              <NotificationProvider>
-                <BrowserRouter>
+              <BrowserRouter>
+                <NotificationProvider>
                   <ChunkLoadErrorBoundary>
                     <AppRouter />
                   </ChunkLoadErrorBoundary>
-                </BrowserRouter>
-              </NotificationProvider>
+                </NotificationProvider>
+              </BrowserRouter>
             </ActiveDepartmentProvider>
           </AuthProvider>
         </QueryClientProvider>

@@ -28,6 +28,20 @@ export type {
 } from './Invite';
 export type { MoveProcessesDto } from './MoveProcesses';
 export type {
+  AppNotification,
+  NotificationCategory,
+  NotificationFilters,
+  PaginatedNotifications
+} from './Notification';
+export type {
+  AlertaCritico,
+  PlanejamentoDashboardResponse,
+  PlanejamentoKpis,
+  Pendencia,
+  ProcessoRecente,
+  ProximoPrazo
+} from './Planejamento';
+export type {
   CreateProcessDto,
   FilterProcessesDto,
   FolderStatsDto,
@@ -53,6 +67,16 @@ export type {
   RoleDeleteResponse,
   UpdateRoleDto
 } from './Role';
+export type {
+  CriticalAlert,
+  DepartmentInsightsResponse,
+  DepartmentSummary,
+  InsightsParams,
+  InsightsResponse,
+  MonthCount,
+  PaginatedDepartmentInsights,
+  ProcessKpi
+} from './Insights';
 export type {
   AuthResponse,
   FilterUsersDto,
