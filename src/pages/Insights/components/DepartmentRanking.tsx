@@ -20,43 +20,37 @@ import {
   Tooltip,
   Typography
 } from '@mui/material';
-import { useCallback, useEffect, useState } from 'react';
-import type { DepartmentSummary, PaginatedDepartmentInsights } from '@/globals/types/Insights';
+import { useEffect, useRef, useState } from 'react';
+import type { DepartmentSummary } from '@/globals/types/Insights';
 import { useDebounce } from '@/hooks';
+import { useDepartmentTable } from '@/hooks/useDepartmentTable';
 
 type Props = {
-  data?: PaginatedDepartmentInsights;
-  loading: boolean;
-  search: string;
-  page: number;
-  limit: number;
-  onSearchChange: (v: string) => void;
-  onPageChange: (p: number) => void;
-  onLimitChange: (l: number) => void;
   onSelect: (dept: DepartmentSummary) => void;
 };
 
-export const DepartmentRanking = ({
-  data,
-  loading,
-  search,
-  page,
-  limit,
-  onSearchChange,
-  onPageChange,
-  onLimitChange,
-  onSelect
-}: Props) => {
-  const [localSearch, setLocalSearch] = useState(search);
+export const DepartmentRanking = ({ onSelect }: Props) => {
+  const [localSearch, setLocalSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+
   const debouncedSearch = useDebounce(localSearch, 400);
+  const isFirstRender = useRef(true);
 
+  // Reseta para página 1 quando a busca muda, mas não na montagem
   useEffect(() => {
-    onSearchChange(debouncedSearch);
-  }, [debouncedSearch, onSearchChange]);
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    setPage(1);
+  }, [debouncedSearch]);
 
-  const handleSearchInput = useCallback((v: string) => {
-    setLocalSearch(v);
-  }, []);
+  const { data, isLoading, isFetching } = useDepartmentTable({
+    search: debouncedSearch || undefined,
+    page,
+    limit
+  });
 
   const total = data?.total ?? 0;
   const totalPages = data?.totalPages ?? 0;
@@ -79,7 +73,7 @@ export const DepartmentRanking = ({
               size='small'
               placeholder='Buscar gerência...'
               value={localSearch}
-              onChange={(e) => handleSearchInput(e.target.value)}
+              onChange={(e) => setLocalSearch(e.target.value)}
               sx={{
                 width: 220,
                 '& .MuiOutlinedInput-root': {
@@ -112,7 +106,7 @@ export const DepartmentRanking = ({
               </TableRow>
             </TableHead>
             <TableBody>
-              {loading ? (
+              {isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
                     {Array.from({ length: 7 }).map((__, j) => (
@@ -136,6 +130,8 @@ export const DepartmentRanking = ({
                     onClick={() => onSelect(dept)}
                     sx={{
                       cursor: 'pointer',
+                      opacity: isFetching ? 0.6 : 1,
+                      transition: 'opacity 0.15s',
                       '& .MuiTableCell-root': { borderBottom: '1px solid #f1f5f9', py: 1.5 },
                       '&:hover': { backgroundColor: '#EBF3FF' }
                     }}
@@ -176,16 +172,15 @@ export const DepartmentRanking = ({
           </Table>
         </TableContainer>
 
-        {/* Paginação — padrão do sistema */}
         <Box sx={{ mt: 2, display: 'flex', flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between', alignItems: 'center', gap: 2, px: 1 }}>
-          <Typography variant='body2' sx={{ color: '#6b7280', fontSize: '0.875rem' }}>
-            {loading ? <CircularProgress size={12} sx={{ mr: 1 }} /> : null}
+          <Typography variant='body2' sx={{ color: '#6b7280', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: 1 }}>
+            {isFetching && <CircularProgress size={12} />}
             {total > 0 ? `${from}–${to} de ${total}` : '0 de 0'}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Select
               value={limit}
-              onChange={(e) => onLimitChange(Number(e.target.value))}
+              onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }}
               sx={{ minWidth: 130, height: 32, fontSize: '0.875rem' }}
             >
               {[5, 10, 20, 50].map((l) => (
@@ -197,7 +192,7 @@ export const DepartmentRanking = ({
             <Pagination
               count={totalPages}
               page={page}
-              onChange={(_, v) => onPageChange(v)}
+              onChange={(_, v) => setPage(v)}
               variant='outlined'
               shape='rounded'
               showFirstButton

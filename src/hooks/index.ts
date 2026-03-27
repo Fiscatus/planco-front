@@ -1,5 +1,6 @@
 export { useAccessControl } from './useAccessControl';
 export { useDepartmentInsights } from './useDepartmentInsights';
+export { useDepartmentTable } from './useDepartmentTable';
 export { useInsights } from './useInsights';
 export { useActiveDepartment } from './useActiveDepartment';
 export { useAuth } from './useAuth';

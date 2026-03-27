@@ -34,7 +34,6 @@ export const DepartmentDetailModal = ({ department, onClose }: Props) => {
   const adapted = data
     ? {
         processes: data.processes,
-        byDepartment: { data: [], total: 0, page: 1, limit: 20, totalPages: 0 },
         users: { total: 0, active: 0, inactive: 0, unverified: 0 },
         approvals: data.approvals,
         processesPerMonth: data.processesPerMonth,

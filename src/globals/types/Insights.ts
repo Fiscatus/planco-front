@@ -52,7 +52,6 @@ export type InsightsParams = {
 
 export type InsightsResponse = {
   processes: ProcessKpi;
-  byDepartment: PaginatedDepartmentInsights;
   users: { total: number; active: number; inactive: number; unverified: number };
   approvals: { pending: number; approved: number; rejected: number };
   processesPerMonth: MonthCount[];

@@ -12,33 +12,14 @@ import { KpiCards } from './components/KpiCards';
 
 const InsightsPage = () => {
   const [selectedDept, setSelectedDept] = useState<DepartmentSummary | null>(null);
-
-  // Filtros da tabela de gerências
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-
-  // Filtro de data para o gráfico de linha
   const [dateFrom, setDateFrom] = useState<Dayjs | null>(null);
   const [dateTo, setDateTo] = useState<Dayjs | null>(null);
 
+  // GET /insights — KPIs, gráficos e alertas. Independente da tabela de gerências.
   const { data, isLoading, isError, refetch, isFetching } = useInsights({
-    search: search || undefined,
-    page,
-    limit,
     dateFrom: dateFrom?.format('YYYY-MM-DD'),
     dateTo: dateTo?.format('YYYY-MM-DD')
   });
-
-  const handleSearchChange = useCallback((v: string) => {
-    setSearch(v);
-    setPage(1);
-  }, []);
-
-  const handleLimitChange = useCallback((l: number) => {
-    setLimit(l);
-    setPage(1);
-  }, []);
 
   const handleDateChange = useCallback((from: Dayjs | null, to: Dayjs | null) => {
     setDateFrom(from);
@@ -47,7 +28,6 @@ const InsightsPage = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: 'grey.50' }}>
-      {/* Header — padrão AdminPage */}
       <Box
         sx={{
           backgroundColor: 'background.paper',
@@ -65,7 +45,7 @@ const InsightsPage = () => {
             Insights do módulo Planejamento da Contratação
           </Typography>
           <Typography variant='body1' color='text.secondary'>
-            Visão geral dos dados importantes do processos licitatórios da organização
+            Visão geral dos dados importantes dos processos licitatórios da organização
           </Typography>
         </Box>
         <Button
@@ -91,7 +71,6 @@ const InsightsPage = () => {
 
       <Divider />
 
-      {/* Content */}
       <Box sx={{ px: { xs: 2, md: 4 }, py: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
         {isError && (
           <Alert severity='error' sx={{ borderRadius: 2 }} onClose={() => refetch()}>
@@ -109,17 +88,8 @@ const InsightsPage = () => {
           onDateChange={handleDateChange}
         />
 
-        <DepartmentRanking
-          data={data?.byDepartment}
-          loading={isLoading}
-          search={search}
-          page={page}
-          limit={limit}
-          onSearchChange={handleSearchChange}
-          onPageChange={setPage}
-          onLimitChange={handleLimitChange}
-          onSelect={setSelectedDept}
-        />
+        {/* GET /insights/departments — query própria, não afeta KPIs/gráficos */}
+        <DepartmentRanking onSelect={setSelectedDept} />
 
         <CriticalAlerts alerts={data?.processes.criticalAlerts} loading={isLoading} />
       </Box>

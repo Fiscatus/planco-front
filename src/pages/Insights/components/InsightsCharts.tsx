@@ -142,7 +142,7 @@ export const InsightsCharts = ({ data, loading, dateFrom, dateTo, onDateChange }
       {/* Bar horizontal — Prioridade */}
       <Grid size={{ xs: 12, md: 6 }}>
         <ChartCard title='Processos por Prioridade'>
-          <ResponsiveContainer width='100%' height={160}>
+          <ResponsiveContainer width='100%' height={235}>
             <BarChart data={priorityData} layout='vertical' margin={{ left: 0 }}>
               <CartesianGrid strokeDasharray='3 3' stroke={theme.palette.divider} horizontal={false} />
               <XAxis type='number' tick={{ fontSize: 11 }} allowDecimals={false} />
@@ -169,7 +169,11 @@ export const InsightsCharts = ({ data, loading, dateFrom, dateTo, onDateChange }
               <LineChart data={monthData} margin={{ left: -10 }}>
                 <CartesianGrid strokeDasharray='3 3' stroke={theme.palette.divider} />
                 <XAxis dataKey='name' tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                <YAxis
+                  tick={{ fontSize: 11 }}
+                  allowDecimals={false}
+                  domain={[0, (dataMax: number) => dataMax + 1]}
+                />
                 <Tooltip />
                 <Line type='monotone' dataKey='Processos' stroke={theme.palette.primary.main} strokeWidth={2} dot={{ r: 4 }} activeDot={{ r: 6 }} />
               </LineChart>
