@@ -2,6 +2,8 @@ export { useAccessControl } from './useAccessControl';
 export { useDepartmentInsights } from './useDepartmentInsights';
 export { useDepartmentTable } from './useDepartmentTable';
 export { useInsights } from './useInsights';
+export { useNotificationSSE } from './useNotificationSSE';
+export { useNotifications, useUnreadCount } from './useNotifications';
 export { usePlanejamentoDashboard } from './usePlanejamentoDashboard';
 export { useActiveDepartment } from './useActiveDepartment';
 export { useAuth } from './useAuth';

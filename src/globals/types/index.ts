@@ -28,6 +28,12 @@ export type {
 } from './Invite';
 export type { MoveProcessesDto } from './MoveProcesses';
 export type {
+  AppNotification,
+  NotificationCategory,
+  NotificationFilters,
+  PaginatedNotifications
+} from './Notification';
+export type {
   AlertaCritico,
   PlanejamentoDashboardResponse,
   PlanejamentoKpis,
