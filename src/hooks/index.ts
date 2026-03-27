@@ -22,4 +22,6 @@ export { useRoles } from './useRoles';
 export { useScreen } from './useScreen';
 export { useSearchWithDebounce } from './useSearchWithDebounce';
 export { useUsers } from './useUsers';
+export { useProfile } from './useProfile';
+export { useOrg } from './useOrg';
 export * from './useComponentData';

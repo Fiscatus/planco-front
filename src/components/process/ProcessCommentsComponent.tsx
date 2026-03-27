@@ -128,6 +128,12 @@ const CommentsContent = ({ context, enabled, limitHeight = true, readOnly = fals
     ? [...rawComments].sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     : [...rawComments].sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
+  // Mapa userId → avatarUrl para uso nas menções
+  const avatarMap = rawComments.reduce<Record<string, string | null>>((acc, c: any) => {
+    if (c.authorId?._id) acc[c.authorId._id] = c.authorId.avatarUrl ?? null;
+    return acc;
+  }, {});
+
   if (isLoading) return <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}><CircularProgress /></Box>;
 
   return (
@@ -158,14 +164,14 @@ const CommentsContent = ({ context, enabled, limitHeight = true, readOnly = fals
               const isOwn = currentUser?._id === comment.authorId?._id;
               return (
                 <Box key={comment._id} sx={{ display: "flex", gap: 1.5, flexDirection: isOwn ? "row-reverse" : "row" }}>
-                  <Avatar src={comment.authorId?.profilePicture} sx={{ width: 32, height: 32, bgcolor: isOwn ? "#16A34A" : "#1877F2", fontSize: "0.875rem", fontWeight: 700, flexShrink: 0 }}>
+                  <Avatar src={comment.authorId?.avatarUrl ?? undefined} sx={{ width: 32, height: 32, bgcolor: isOwn ? "#16A34A" : "#1877F2", fontSize: "0.875rem", fontWeight: 700, flexShrink: 0 }}>
                     {getAuthorInitials(comment.authorId)}
                   </Avatar>
                   <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: isOwn ? "flex-end" : "flex-start" }}>
                     <Box sx={{ display: "inline-block", bgcolor: isOwn ? "#E7F3FF" : "#F0F2F5", borderRadius: isOwn ? "12px 0 12px 12px" : "0 12px 12px 12px", px: 1.5, py: 1, maxWidth: "80%" }}>
                       <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.8rem", mb: 0.25 }}>{getAuthorName(comment.authorId)}</Typography>
                       <Typography sx={{ color: "#0f172a", fontSize: "0.875rem", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-                        {renderCommentText(comment.text, comment.mentions)}
+                        {renderCommentText(comment.text, comment.mentions, avatarMap)}
                       </Typography>
                       {comment.attachmentUrl && (
                         <Box sx={{ mt: 1 }}>
@@ -210,7 +216,7 @@ const CommentsContent = ({ context, enabled, limitHeight = true, readOnly = fals
               {filteredUsers.map((user) => (
                 <Box key={user._id} onMouseDown={(e) => { e.preventDefault(); handleSelectMention(user); }}
                   sx={{ px: 2, py: 1, display: "flex", alignItems: "center", gap: 1.5, cursor: "pointer", "&:hover": { bgcolor: "#F0F2F5" } }}>
-                  <Avatar src={(user as any).profilePicture} sx={{ width: 28, height: 28, bgcolor: "#1877F2", fontSize: "0.75rem" }}>
+                  <Avatar src={(user as any).avatarUrl ?? undefined} sx={{ width: 28, height: 28, bgcolor: "#1877F2", fontSize: "0.75rem" }}>
                     {`${user.firstName?.charAt(0) || ""}${user.lastName?.charAt(0) || ""}`.toUpperCase()}
                   </Avatar>
                   <Typography sx={{ fontSize: "0.875rem", fontWeight: 600, color: "#0f172a" }}>{user.firstName} {user.lastName}</Typography>

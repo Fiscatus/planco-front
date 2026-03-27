@@ -21,6 +21,10 @@ import {
   Checkbox,
   Chip,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   IconButton,
   InputBase,
@@ -171,6 +175,7 @@ const NotificationsPage = () => {
   const [page, setPage]       = useState(1);
   const [limit, setLimit]     = useState(20);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [confirmDeleteRead, setConfirmDeleteRead] = useState(false);
 
   const filters = {
     ...(tab === 'unread'   ? { read: false }     : {}),
@@ -254,7 +259,7 @@ const NotificationsPage = () => {
               Marcar todas como lidas
             </Button>
           )}
-          <Button startIcon={<ClearAllOutlined />} onClick={() => deleteAllRead.mutate()}
+          <Button startIcon={<ClearAllOutlined />} onClick={() => setConfirmDeleteRead(true)}
             sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.875rem', color: '#ffffff', borderRadius: 2, '&:hover': { backgroundColor: '#f1f5f9', color: '#1877F2' } }}>
             Deletar lidas
           </Button>
@@ -405,6 +410,30 @@ const NotificationsPage = () => {
           </Box>
         )}
       </Box>
+
+      <Dialog open={confirmDeleteRead} onClose={() => setConfirmDeleteRead(false)} maxWidth='xs' fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 700, color: '#0f172a', pb: 1 }}>
+          Deletar notificações lidas
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant='body2' sx={{ color: '#64748b' }}>
+            Todas as notificações já lidas serão removidas permanentemente. Esta ação não pode ser desfeita.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
+          <Button onClick={() => setConfirmDeleteRead(false)} variant='outlined' sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2 }}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => { deleteAllRead.mutate(); setConfirmDeleteRead(false); }}
+            variant='contained'
+            disabled={deleteAllRead.isPending}
+            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: 2, bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }}
+          >
+            {deleteAllRead.isPending ? <CircularProgress size={18} sx={{ color: '#fff' }} /> : 'Deletar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </Box>

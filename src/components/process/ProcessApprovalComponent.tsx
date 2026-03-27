@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Box, Button, Chip, Collapse, Dialog, DialogContent, DialogTitle, DialogActions, Typography, TextField, IconButton, Tooltip, CircularProgress } from "@mui/material";
+import { Avatar, Box, Button, Chip, Collapse, Dialog, DialogContent, DialogTitle, DialogActions, Typography, TextField, IconButton, Tooltip, CircularProgress } from "@mui/material";
 import {
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
@@ -170,7 +170,17 @@ const ApprovalContent = ({ context, enabled, readOnly = false, onApproved }: {
                       </Typography>
                     )}
                     <Typography variant="caption" sx={{ color: "#94a3b8" }}>
-                      {log.performedBy ? `${log.performedBy.firstName?.trim()} ${log.performedBy.lastName?.trim()} • ` : ""}{formatDate(log.performedAt)}
+                      {log.performedBy ? (
+                        <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, verticalAlign: 'middle' }}>
+                          <Avatar
+                            src={log.performedBy.avatarUrl ?? undefined}
+                            sx={{ width: 16, height: 16, bgcolor: '#1877F2', fontSize: '0.55rem', fontWeight: 700, display: 'inline-flex' }}
+                          >
+                            {!log.performedBy.avatarUrl && `${log.performedBy.firstName?.charAt(0) || ''}${log.performedBy.lastName?.charAt(0) || ''}`}
+                          </Avatar>
+                          <span>{`${log.performedBy.firstName?.trim()} ${log.performedBy.lastName?.trim()} • `}</span>
+                        </Box>
+                      ) : ""}{formatDate(log.performedAt)}
                     </Typography>
                   </Box>
                 </Box>

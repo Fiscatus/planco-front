@@ -11,6 +11,7 @@ type AuthContextType = {
   signUp(user: RegisterDto): Promise<AuthResponse>;
   signIn(credentials: LoginDto): Promise<AuthResponse>;
   refreshToken(): Promise<AuthResponse>;
+  updateUser(partial: Partial<User>): void;
 };
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);

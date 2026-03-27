@@ -1,9 +1,10 @@
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { AuthContext } from '@/contexts';
 import type { AuthResponse, LoginDto, RegisterDto, User } from '@/globals/types';
 import { api } from '@/services';
 import parseJwtToJson from '@/utils/parseJwtToJson';
+import { registerUserUpdatedHandler, unregisterUserUpdatedHandler, reconnectSSE } from '@/hooks/useNotificationSSE';
 
 const authApiPath = '/auth';
 const localStorageUserKey = '@planco:user';
@@ -37,7 +38,7 @@ const AuthProvider = ({ children }: Props) => {
 
       const decodedJwt = parseJwtToJson(data.access_token);
       if (decodedJwt) {
-        setUser({
+        const baseUser = {
           _id: decodedJwt.sub,
           firstName: decodedJwt.firstName,
           lastName: decodedJwt.lastName,
@@ -46,8 +47,13 @@ const AuthProvider = ({ children }: Props) => {
           org: decodedJwt.org,
           role: decodedJwt.role,
           departments: decodedJwt.departments
-        });
+        };
+        setUser(baseUser);
         setHasOrganization(decodedJwt.org !== null);
+        // Buscar perfil completo para obter avatarUrl
+        api.get('/users/me').then(res => setUser({ ...baseUser, ...res.data })).catch(() => {});
+        // Reconectar SSE com o novo token
+        reconnectSSE();
       }
     }
     return data;
@@ -59,6 +65,10 @@ const AuthProvider = ({ children }: Props) => {
     setUser(undefined);
   };
 
+  const updateUser = (partial: Partial<User>) => {
+    setUser(prev => prev ? { ...prev, ...partial } : prev);
+  };
+
   const refreshToken = async (): Promise<AuthResponse> => {
     const { data } = await api.post(`${authApiPath}/refresh`);
     if (data.access_token) {
@@ -67,7 +77,7 @@ const AuthProvider = ({ children }: Props) => {
 
       const decodedJwt = parseJwtToJson(data.access_token);
       if (decodedJwt) {
-        setUser({
+        const baseUser = {
           _id: decodedJwt.sub,
           firstName: decodedJwt.firstName,
           lastName: decodedJwt.lastName,
@@ -76,12 +86,24 @@ const AuthProvider = ({ children }: Props) => {
           org: decodedJwt.org,
           role: decodedJwt.role,
           departments: decodedJwt.departments
-        });
+        };
+        setUser(baseUser);
         setHasOrganization(decodedJwt.org !== null);
+        api.get('/users/me').then(res => setUser({ ...baseUser, ...res.data })).catch(() => {});
       }
     }
     return data;
   };
+
+  // Registrar handler para USER_UPDATED via SSE
+  // Usa ref para garantir que sempre chama a versão mais recente de refreshToken
+  const refreshTokenRef = useRef(refreshToken);
+  refreshTokenRef.current = refreshToken;
+
+  useEffect(() => {
+    registerUserUpdatedHandler(() => refreshTokenRef.current().catch(() => {}));
+    return () => unregisterUserUpdatedHandler();
+  }, []);
 
   const loadUserFromLocalStorage = () => {
     if (localStorage.getItem(localStorageUserKey)) {
@@ -90,7 +112,7 @@ const AuthProvider = ({ children }: Props) => {
       if (!user && localStorageUser.access_token) {
         const decodedJwt = parseJwtToJson(localStorageUser.access_token);
         if (decodedJwt) {
-          setUser({
+          const baseUser = {
             _id: decodedJwt.sub,
             firstName: decodedJwt.firstName,
             lastName: decodedJwt.lastName,
@@ -99,10 +121,13 @@ const AuthProvider = ({ children }: Props) => {
             org: decodedJwt.org,
             role: decodedJwt.role,
             departments: decodedJwt.departments
-          });
+          };
+          setUser(baseUser);
           setHasOrganization(decodedJwt.org !== null);
+          api.defaults.headers.common.Authorization = `Bearer ${localStorageUser.access_token}`;
+          // Buscar perfil completo para obter avatarUrl
+          api.get('/users/me').then(res => setUser({ ...baseUser, ...res.data })).catch(() => {});
         }
-        api.defaults.headers.common.Authorization = `Bearer ${localStorageUser.access_token}`;
       }
     }
   };
@@ -119,7 +144,7 @@ const AuthProvider = ({ children }: Props) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, signUp, signIn, signOut, refreshToken, hasOrganization, isOrgAdmin, isPlatformAdmin }}
+      value={{ user, signUp, signIn, signOut, refreshToken, updateUser, hasOrganization, isOrgAdmin, isPlatformAdmin }}
     >
       {children}
     </AuthContext.Provider>
