@@ -36,26 +36,15 @@ interface TopbarProps {
 }
 
 const pageSet = [
-  { route: '/planejamento-da-contratacao', name: 'Planejamento da Contratação', icon: <HomeOutlined sx={{
-    color: 'rgba(0, 0, 0, 0.54)'
-  }}/> },
-  { route: '/processos-gerencia', name: 'Processos', icon: <GroupOutlined  sx={{
-     color: 'rgba(0, 0, 0, 0.54)'
-  }}/> },
-  { route: '/modelos-fluxo', name: 'Modelos de Fluxo', icon: <AccountTreeOutlined sx={{
-    color: 'rgba(0, 0, 0, 0.54)'
-  }}/> },
-  { route: '/gerenciamento-pastas', name: 'Gerenciamento de Pastas', icon: <FolderOutlined sx={{
-    color: 'rgba(0, 0, 0, 0.54)'
-  }}/> },
-  { route: '/insights-planejamento-da-contratacao', name: 'Insights', icon: <InsightsOutlined sx={{
-    color: 'rgba(0, 0, 0, 0.54)'
-  }}/> }
+  { route: '/planejamento-da-contratacao', name: 'Planejamento', icon: <HomeOutlined sx={{ color: 'rgba(0, 0, 0, 0.54)' }} /> },
+  { route: '/processos-gerencia', name: 'Processos', icon: <GroupOutlined sx={{ color: 'rgba(0, 0, 0, 0.54)' }} /> },
+  { route: '/modelos-fluxo', name: 'Modelos de Fluxo', icon: <AccountTreeOutlined sx={{ color: 'rgba(0, 0, 0, 0.54)' }} /> },
+  { route: '/gerenciamento-pastas', name: 'Gerenciamento de Pastas', icon: <FolderOutlined sx={{ color: 'rgba(0, 0, 0, 0.54)' }} /> },
+  { route: '/insights', name: 'Insights', icon: <InsightsOutlined sx={{ color: 'rgba(0, 0, 0, 0.54)' }} /> }
 ];
 
 // TODO: Implementar busca e notificações
 // TODO: Implementar busca do usuario e informações para colocação no menu
-// TODO: Implementar logout
 
 const Topbar = ({ onMenuClick, displayNavBarDropdown = false }: TopbarProps) => {
   const { user } = useAuth();

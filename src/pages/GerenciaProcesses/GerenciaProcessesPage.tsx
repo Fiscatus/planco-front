@@ -116,18 +116,12 @@ const GerenciaProcessesPage = () => {
 
     let filtered = processesData.processes;
 
-    // Filtrar por pendência
+    // Filtrar por pendência usando topPendencia da API
     const pendingFilter = urlParams.get('pending');
     if (pendingFilter === 'yes') {
-      // Processos com pendência: status "Em Andamento" (precisa assinar)
-      filtered = filtered.filter((process: Process) => {
-        return process.status === 'Em Andamento';
-      });
+      filtered = filtered.filter((process: Process) => process.topPendencia?.type !== null && process.topPendencia?.type !== undefined);
     } else if (pendingFilter === 'no') {
-      // Processos sem pendência: status "Concluído" ou "Em Atraso"
-      filtered = filtered.filter((process: Process) => {
-        return process.status === 'Concluído' || process.status === 'Em Atraso';
-      });
+      filtered = filtered.filter((process: Process) => !process.topPendencia?.type);
     }
 
     // Filtrar por data selecionada
@@ -179,21 +173,29 @@ const GerenciaProcessesPage = () => {
   );
 
   const handleDateClick = useCallback((date: Date) => {
-    setSelectedDate(date);
+    setSelectedDate(prev => {
+      // toggle: se clicar na mesma data, limpa
+      if (prev && dayjs(prev).isSame(dayjs(date), 'day')) return null;
+      return date;
+    });
   }, []);
+
+  const handleResetAll = useCallback(() => {
+    setSelectedDate(null);
+    setUrlParams(new URLSearchParams());
+    handleProcessSearchChange('');
+  }, [setUrlParams, handleProcessSearchChange]);
 
   // Verificar se há filtros ativos
   const hasActiveFilters = useMemo(() => {
-    const status = urlParams.get('status');
-    const pending = urlParams.get('pending');
-    return !!(status || pending || debouncedProcessSearch);
-  }, [urlParams, debouncedProcessSearch]);
+    return !!(urlParams.get('status') || urlParams.get('pending') || debouncedProcessSearch || selectedDate);
+  }, [urlParams, debouncedProcessSearch, selectedDate]);
 
   // Limpar filtros
   const handleClearFilters = useCallback(() => {
-    const newParams = new URLSearchParams();
-    setUrlParams(newParams);
+    setUrlParams(new URLSearchParams());
     handleProcessSearchChange('');
+    // Não limpa selectedDate aqui — só o handleResetAll limpa tudo
   }, [setUrlParams, handleProcessSearchChange]);
 
   // Handlers de paginação
@@ -231,6 +233,7 @@ const GerenciaProcessesPage = () => {
   }
 
   const processes = filteredProcesses;
+  const allProcesses = processesData?.processes || [];
   const totalProcesses = processesData?.total || filteredProcesses.length;
   const processesLimit = Number(urlParams.get('limit') || 10);
   const processesTotalPages = processesData?.totalPages || Math.ceil(totalProcesses / processesLimit);
@@ -367,35 +370,49 @@ const GerenciaProcessesPage = () => {
                 </Typography>
               </Box>
               {hasActiveFilters && (
-                <Button
-                  variant='outlined'
-                  size='small'
-                  startIcon={<ClearIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />}
-                  onClick={handleClearFilters}
-                  sx={{
-                    minWidth: 'auto',
-                    px: { xs: 1.5, sm: 2 },
-                    py: { xs: 0.75, sm: 0.875 },
-                    fontSize: { xs: '0.75rem', sm: '0.8125rem' },
-                    fontWeight: 600,
-                    color: '#64748b',
-                    borderColor: '#cbd5e1',
-                    textTransform: 'none',
-                    borderRadius: 2,
-                    backgroundColor: '#ffffff',
-                    transition: 'all 0.2s ease-in-out',
-                    width: { xs: '100%', sm: 'auto' },
-                    mt: { xs: 1, sm: 0 },
-                    '&:hover': {
-                      backgroundColor: '#f8fafc',
-                      borderColor: '#94a3b8',
-                      color: '#475569',
-                      boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
-                    }
-                  }}
-                >
-                  Limpar filtros
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  <Button
+                    variant='outlined'
+                    size='small'
+                    startIcon={<ClearIcon sx={{ fontSize: { xs: 14, sm: 16 } }} />}
+                    onClick={handleClearFilters}
+                    sx={{
+                      minWidth: 'auto',
+                      px: { xs: 1.5, sm: 2 },
+                      py: { xs: 0.75, sm: 0.875 },
+                      fontSize: { xs: '0.75rem', sm: '0.8125rem' },
+                      fontWeight: 600,
+                      color: '#64748b',
+                      borderColor: '#cbd5e1',
+                      textTransform: 'none',
+                      borderRadius: 2,
+                      backgroundColor: '#ffffff',
+                      '&:hover': { backgroundColor: '#f8fafc', borderColor: '#94a3b8', color: '#475569' }
+                    }}
+                  >
+                    Limpar filtros
+                  </Button>
+                  <Button
+                    variant='outlined'
+                    size='small'
+                    onClick={handleResetAll}
+                    sx={{
+                      minWidth: 'auto',
+                      px: { xs: 1.5, sm: 2 },
+                      py: { xs: 0.75, sm: 0.875 },
+                      fontSize: { xs: '0.75rem', sm: '0.8125rem' },
+                      fontWeight: 600,
+                      color: '#ba1a1a',
+                      borderColor: 'rgba(186,26,26,0.3)',
+                      textTransform: 'none',
+                      borderRadius: 2,
+                      backgroundColor: '#ffffff',
+                      '&:hover': { backgroundColor: 'rgba(186,26,26,0.04)', borderColor: '#ba1a1a' }
+                    }}
+                  >
+                    Redefinir tudo
+                  </Button>
+                </Box>
               )}
             </Box>
             <Box sx={{ p: { xs: 2, sm: 2.5, md: 3 } }}>
@@ -678,11 +695,13 @@ const GerenciaProcessesPage = () => {
           </Box>
 
           {/* Sidebar */}
-          <Box sx={{ width: { xs: '100%', lg: 320 }, flexShrink: 0 }}>
+          <Box sx={{ width: { xs: '100%', lg: 380 }, flexShrink: 0 }}>
             <ProcessSidebar
               onDateClick={handleDateClick}
+              onProcessClick={handleProcessClick}
+              onResetAll={handleResetAll}
               selectedDate={selectedDate}
-              processes={processes}
+              processes={allProcesses}
             />
           </Box>
         </Box>

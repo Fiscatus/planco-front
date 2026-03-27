@@ -25,6 +25,10 @@ export type Process = {
   org?: string;
   createdAt?: string;
   updatedAt?: string;
+  topPendencia?: {
+    type: string | null;
+    label: string;
+  };
 };
 
 export type PaginatedProcesses = {

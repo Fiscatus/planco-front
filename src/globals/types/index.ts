@@ -28,6 +28,14 @@ export type {
 } from './Invite';
 export type { MoveProcessesDto } from './MoveProcesses';
 export type {
+  AlertaCritico,
+  PlanejamentoDashboardResponse,
+  PlanejamentoKpis,
+  Pendencia,
+  ProcessoRecente,
+  ProximoPrazo
+} from './Planejamento';
+export type {
   CreateProcessDto,
   FilterProcessesDto,
   FolderStatsDto,

@@ -1,5 +1,5 @@
 import { RefreshOutlined } from '@mui/icons-material';
-import { Alert, Box, Button, Divider, Typography } from '@mui/material';
+import { Alert, Box, Button, Typography } from '@mui/material';
 import type { Dayjs } from 'dayjs';
 import { useCallback, useState } from 'react';
 import type { DepartmentSummary } from '@/globals/types/Insights';
@@ -15,7 +15,6 @@ const InsightsPage = () => {
   const [dateFrom, setDateFrom] = useState<Dayjs | null>(null);
   const [dateTo, setDateTo] = useState<Dayjs | null>(null);
 
-  // GET /insights — KPIs, gráficos e alertas. Independente da tabela de gerências.
   const { data, isLoading, isError, refetch, isFetching } = useInsights({
     dateFrom: dateFrom?.format('YYYY-MM-DD'),
     dateTo: dateTo?.format('YYYY-MM-DD')
@@ -27,51 +26,79 @@ const InsightsPage = () => {
   }, []);
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: 'grey.50' }}>
-      <Box
-        sx={{
-          backgroundColor: 'background.paper',
-          borderBottom: 1,
-          borderColor: 'divider',
-          px: { xs: 3, md: 4 },
-          py: 3,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}
-      >
-        <Box>
-          <Typography variant='h3' sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1.2, mb: 0.5 }}>
-            Insights do módulo Planejamento da Contratação
-          </Typography>
-          <Typography variant='body1' color='text.secondary'>
-            Visão geral dos dados importantes dos processos licitatórios da organização
-          </Typography>
-        </Box>
-        <Button
-          startIcon={<RefreshOutlined sx={{ animation: isFetching ? 'spin 1s linear infinite' : 'none' }} />}
-          onClick={() => refetch()}
-          disabled={isFetching}
-          variant='contained'
-          size='small'
+    <Box
+      sx={{
+        width: '100%',
+        minHeight: '100vh',
+        background: 'linear-gradient(180deg, #F7F9FB 0%, #F4F6F8 100%)',
+        pt: { xs: 2, sm: 3, md: 3.5 },
+        px: { xs: 2, sm: 3, md: 4, lg: 5 },
+        pb: { xs: 4, sm: 5, md: 6 }
+      }}
+    >
+      {/* Cabeçalho */}
+      <Box sx={{ mb: { xs: 3, sm: 4, md: 5 } }}>
+        <Box
           sx={{
-            borderRadius: 3,
-            textTransform: 'uppercase',
-            fontWeight: 600,
-            letterSpacing: '0.05em',
-            px: 3,
-            boxShadow: '0 2px 8px rgba(25,118,210,0.2)',
-            '&:hover': { boxShadow: '0 4px 12px rgba(25,118,210,0.3)', transform: 'translateY(-1px)' },
-            '&:disabled': { backgroundColor: '#e3f2fd', color: '#90caf9', boxShadow: 'none' }
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: { xs: 2, sm: 2, md: 3 }
           }}
         >
-          Atualizar
-        </Button>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography
+              variant='h4'
+              sx={{
+                fontWeight: 700,
+                fontSize: { xs: '1.25rem', sm: '1.5rem', md: '1.75rem', lg: '1.875rem' },
+                color: '#212121',
+                mb: { xs: 0.25, sm: 0.5 },
+                lineHeight: { xs: 1.3, sm: 1.2 }
+              }}
+            >
+              Insights do módulo Planejamento da Contratação
+            </Typography>
+            <Typography
+              variant='body1'
+              sx={{
+                color: '#8A8D91',
+                fontSize: { xs: '0.875rem', sm: '0.9375rem', md: '1rem' },
+                lineHeight: { xs: 1.4, sm: 1.5 },
+                display: { xs: 'none', sm: 'block' }
+              }}
+            >
+              Visão geral dos dados importantes dos processos licitatórios da organização
+            </Typography>
+          </Box>
+
+          <Button
+            variant='outlined'
+            startIcon={<RefreshOutlined sx={{ animation: isFetching ? 'spin 1s linear infinite' : 'none' }} />}
+            onClick={() => refetch()}
+            disabled={isFetching}
+            sx={{
+              borderRadius: 2,
+              px: { xs: 2.5, sm: 3, md: 3.5 },
+              py: { xs: 1, sm: 1.125, md: 1.25 },
+              fontSize: { xs: '0.8125rem', sm: '0.875rem' },
+              fontWeight: 600,
+              textTransform: 'none',
+              borderColor: '#1877F2',
+              color: '#1877F2',
+              width: { xs: '100%', sm: 'auto' },
+              mt: { xs: 1, sm: 0 },
+              '&:hover': { borderColor: '#166fe5', backgroundColor: '#f0f9ff' }
+            }}
+          >
+            Atualizar
+          </Button>
+        </Box>
       </Box>
 
-      <Divider />
-
-      <Box sx={{ px: { xs: 2, md: 4 }, py: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Content */}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {isError && (
           <Alert severity='error' sx={{ borderRadius: 2 }} onClose={() => refetch()}>
             Erro ao carregar os dados. Tente novamente.
@@ -88,7 +115,6 @@ const InsightsPage = () => {
           onDateChange={handleDateChange}
         />
 
-        {/* GET /insights/departments — query própria, não afeta KPIs/gráficos */}
         <DepartmentRanking onSelect={setSelectedDept} />
 
         <CriticalAlerts alerts={data?.processes.criticalAlerts} loading={isLoading} />

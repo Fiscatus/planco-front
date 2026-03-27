@@ -23,6 +23,7 @@ const GerenciaProcessesPage = lazy(() => import('@/pages/GerenciaProcesses/Geren
 const FlowModelsPage = lazy(() => import('@/pages/FlowModels/FlowModelsPage'));
 const ProcessoPage = lazy(() => import('@/pages/ProcessoPage/ProcessoPage'));
 const InsightsPage = lazy(() => import('@/pages/Insights/InsightsPage'));
+const PlanejamentoContratacaoPage = lazy(() => import('@/pages/PlanejamentoContratacao/PlanejamentoContratacaoPage'));
 
 // Rotas que não exibem header/sidebar
 const WITHOUT_HEADER_ROUTES = ['/auth', '/verify-email', '/privacy-policy'];
@@ -33,7 +34,7 @@ const NAVBAR_DROPDOWN_PREFIXES = [
   '/processos-gerencia',
   '/modelos-fluxo',
   '/gerenciamento-pastas',
-  '/insights-planejamento-da-contratacao'
+  '/insights'
 ];
 
 // Loading fallback component
@@ -165,13 +166,17 @@ const AppRouter = () => {
               element={<FlowModelsPage />}
             />
 
-            {/* Insights / Planejamento da Contratação */}
+            {/* Planejamento da Contratação */}
             <Route
-              path='/insights-planejamento-da-contratacao'
-              element={<InsightsPage />}
+              path='/planejamento-da-contratacao'
+              element={<PlanejamentoContratacaoPage />}
             />
 
-            
+            {/* Insights */}
+            <Route
+              path='/insights'
+              element={<InsightsPage />}
+            />
             {/* ==================== ROTAS ADMIN ==================== */}
             <Route element={<AdminRoute />}>
               <Route

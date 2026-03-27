@@ -1,229 +1,162 @@
 import {
-  Box,
-  Card,
-  IconButton,
-  Typography
-} from '@mui/material';
-import {
+  CalendarToday as CalendarIcon,
   ChevronLeft as ChevronLeftIcon,
   ChevronRight as ChevronRightIcon,
-  CalendarToday as CalendarIcon
+  TodayOutlined as TodayIcon,
+  Warning as WarningIcon
 } from '@mui/icons-material';
-import type { Process } from '@/globals/types';
-import { useState, useMemo } from 'react';
+import { Box, Button, Card, Chip, IconButton, Tooltip, Typography } from '@mui/material';
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br';
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import type { Process } from '@/globals/types';
 
 dayjs.locale('pt-br');
 
 interface ProcessSidebarProps {
   onDateClick: (date: Date) => void;
+  onProcessClick: (process: Process) => void;
+  onResetAll: () => void;
   selectedDate: Date | null;
   processes: Process[];
 }
 
-const getWeekDates = (date: Date) => {
-  const startOfWeek = dayjs(date).startOf('week');
-  const dates = [];
-  for (let i = 0; i < 7; i++) {
-    dates.push(startOfWeek.add(i, 'day').toDate());
-  }
-  return dates;
+const STATUS_COLOR: Record<string, { bg: string; color: string; dot: string }> = {
+  'Em Andamento': { bg: '#E7F3FF', color: '#105BBE', dot: '#1877F2' },
+  'Em Atraso':    { bg: '#FDE8EC', color: '#B81E34', dot: '#B81E34' },
+  'Atrasado':     { bg: '#FDE8EC', color: '#B81E34', dot: '#B81E34' },
+  'Concluído':    { bg: '#E6F4EA', color: '#1F7A37', dot: '#1F7A37' },
+  'Pendente':     { bg: '#FFF5D6', color: '#B38800', dot: '#B38800' },
 };
 
 const getMonthDates = (date: Date) => {
-  const startOfMonth = dayjs(date).startOf('month');
-  const endOfMonth = dayjs(date).endOf('month');
-  const startDate = startOfMonth.startOf('week');
-  const endDate = endOfMonth.endOf('week');
-  const dates = [];
-  let current = startDate;
-  while (current.isBefore(endDate) || current.isSame(endDate, 'day')) {
-    dates.push(current.toDate());
-    current = current.add(1, 'day');
+  const start = dayjs(date).startOf('month').startOf('week');
+  const end = dayjs(date).endOf('month').endOf('week');
+  const dates: Date[] = [];
+  let cur = start;
+  while (cur.isBefore(end) || cur.isSame(end, 'day')) {
+    dates.push(cur.toDate());
+    cur = cur.add(1, 'day');
   }
   return dates;
 };
 
-const getProcessStatusForDate = (process: Process, date: Date): string | null => {
-  const deadline = process.dueDate;
-  if (!deadline) return null;
-  
-  const processDate = dayjs(deadline);
-  const checkDate = dayjs(date);
-  
-  if (!processDate.isSame(checkDate, 'day')) return null;
-  
-  return process.status || null;
-};
+const LEGEND = [
+  { label: 'Em Atraso',    color: '#B81E34' },
+  { label: 'Em Andamento', color: '#1877F2' },
+  { label: 'Concluído',    color: '#1F7A37' },
+  { label: 'Pendente',     color: '#B38800' },
+];
 
-export const ProcessSidebar = ({
-  onDateClick,
-  selectedDate,
-  processes
-}: ProcessSidebarProps) => {
+export const ProcessSidebar = ({ onDateClick, onProcessClick, onResetAll, selectedDate, processes }: ProcessSidebarProps) => {
+  const navigate = useNavigate();
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  const weekDates = useMemo(() => getWeekDates(currentWeek), [currentWeek]);
+  const weekStart = dayjs(currentWeek).startOf('week');
+  const weekEnd = dayjs(currentWeek).endOf('week');
+  const isCurrentWeek = weekStart.isSame(dayjs().startOf('week'), 'day');
+
+  const weekProcesses = useMemo(() =>
+    processes.filter(p => {
+      if (!p.dueDate) return false;
+      const d = dayjs(p.dueDate);
+      return d.isAfter(weekStart.subtract(1, 'day')) && d.isBefore(weekEnd.add(1, 'day'));
+    }),
+    [processes, weekStart, weekEnd]
+  );
+
   const monthDates = useMemo(() => getMonthDates(currentMonth), [currentMonth]);
 
-  const weekDeadlines = useMemo(() => {
-    return weekDates.filter(date => {
-      return processes.some(process => {
-        const deadline = process.dueDate;
-        if (!deadline) return false;
-        return dayjs(deadline).isSame(dayjs(date), 'day');
-      });
-    }).length;
-  }, [weekDates, processes]);
-
-  const handlePreviousWeek = () => {
-    setCurrentWeek(dayjs(currentWeek).subtract(1, 'week').toDate());
-  };
-
-  const handleNextWeek = () => {
-    setCurrentWeek(dayjs(currentWeek).add(1, 'week').toDate());
-  };
-
-  const handlePreviousMonth = () => {
-    setCurrentMonth(dayjs(currentMonth).subtract(1, 'month').toDate());
-  };
-
-  const handleNextMonth = () => {
-    setCurrentMonth(dayjs(currentMonth).add(1, 'month').toDate());
-  };
-
-  const getDateColor = (date: Date): string | null => {
-    const today = dayjs();
-    const checkDate = dayjs(date);
-    const isToday = checkDate.isSame(today, 'day');
-    const isTomorrow = checkDate.isSame(today.add(1, 'day'), 'day');
-    const isThisWeek = checkDate.isSame(today, 'week');
-    const isPast = checkDate.isBefore(today, 'day');
-
-    // Verificar se há processos com prazo nesta data
-    const hasProcesses = processes.some(process => {
-      const deadline = process.dueDate;
-      if (!deadline) return false;
-      return dayjs(deadline).isSame(checkDate, 'day');
-    });
-
-    if (!hasProcesses) return null;
-
-    if (isPast) return '#B81E34'; // Atrasado - vermelho
-    if (isToday) return '#B38800'; // Hoje - laranja
-    if (isTomorrow) return '#FCD34D'; // Amanhã - amarelo
-    if (isThisWeek) return '#1877F2'; // Esta semana - azul
-    return null;
-  };
-
-  const getDateStatus = (date: Date): string | null => {
-    const processStatuses = processes
-      .map(process => getProcessStatusForDate(process, date))
-      .filter(Boolean) as string[];
-
-    if (processStatuses.length === 0) return null;
-
-    // Priorizar status mais importante
-    if (processStatuses.includes('Atrasado') || processStatuses.includes('Em Atraso')) {
-      return 'Atrasado';
+  const getDateStatus = (date: Date) => {
+    const matching = processes.filter(p => p.dueDate && dayjs(p.dueDate).isSame(dayjs(date), 'day'));
+    if (matching.length === 0) return null;
+    for (const s of ['Em Atraso', 'Atrasado', 'Pendente', 'Em Andamento', 'Concluído']) {
+      if (matching.some(p => p.status === s)) return s;
     }
-    if (processStatuses.includes('Em Andamento')) {
-      return 'Em andamento';
-    }
-    if (processStatuses.includes('Concluído')) {
-      return 'Concluído';
-    }
-    if (processStatuses.includes('Pendente')) {
-      return 'Pendente';
-    }
-
-    return processStatuses[0];
+    return matching[0].status ?? null;
   };
+
+  const getDateProcesses = (date: Date) =>
+    processes.filter(p => p.dueDate && dayjs(p.dueDate).isSame(dayjs(date), 'day'));
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {/* Widget Prazos da Semana */}
-      <Card
-        sx={{
-          p: 2,
-          borderRadius: 2,
-          border: '1px solid #E4E6EB',
-          backgroundColor: '#FFFFFF'
-        }}
-      >
+
+      {/* Prazos da Semana */}
+      <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #E4E6EB', backgroundColor: '#FFFFFF' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography
-            variant='h6'
-            sx={{
-              fontWeight: 700,
-              fontSize: '1rem',
-              color: '#212121'
-            }}
-          >
+          <Typography variant='h6' sx={{ fontWeight: 700, fontSize: '1rem', color: '#212121' }}>
             Prazos da Semana
           </Typography>
-          <Box
-            sx={{
-              width: 32,
-              height: 32,
-              borderRadius: '50%',
-              backgroundColor: '#1877F2',
-              color: '#FFFFFF',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 700,
-              fontSize: '0.875rem'
-            }}
-          >
-            {weekDeadlines}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box sx={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: weekProcesses.length > 0 ? '#1877F2' : '#E4E6EB', color: weekProcesses.length > 0 ? '#fff' : '#8A8D91', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8125rem' }}>
+              {weekProcesses.length}
+            </Box>
           </Box>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <IconButton size='small' onClick={handlePreviousWeek}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+          <IconButton size='small' onClick={() => setCurrentWeek(dayjs(currentWeek).subtract(1, 'week').toDate())}>
             <ChevronLeftIcon fontSize='small' />
           </IconButton>
-          <Typography variant='body2' sx={{ color: '#212121', fontWeight: 600 }}>
-            Esta semana
-          </Typography>
-          <IconButton size='small' onClick={handleNextWeek}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+            <Typography variant='body2' sx={{ color: '#212121', fontWeight: 600 }}>
+              {weekStart.format('DD/MM')} – {weekEnd.format('DD/MM/YYYY')}
+            </Typography>
+            {!isCurrentWeek && (
+              <Button
+                size='small'
+                variant='contained'
+                startIcon={<TodayIcon sx={{ fontSize: 14 }} />}
+                onClick={() => setCurrentWeek(new Date())}
+                sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', borderRadius: 2, py: 0.5, px: 1.5, boxShadow: 'none', backgroundColor: '#1877F2', '&:hover': { backgroundColor: '#166fe5' } }}
+              >
+                Semana atual
+              </Button>
+            )}
+          </Box>
+          <IconButton size='small' onClick={() => setCurrentWeek(dayjs(currentWeek).add(1, 'week').toDate())}>
             <ChevronRightIcon fontSize='small' />
           </IconButton>
         </Box>
 
-        {weekDeadlines === 0 ? (
+        {weekProcesses.length === 0 ? (
           <Typography variant='body2' sx={{ color: '#8A8D91', textAlign: 'center', py: 2 }}>
             Nenhum prazo para esta semana
           </Typography>
         ) : (
-          <Box sx={{ mb: 2 }}>
-            {weekDates.map((date, index) => {
-              const color = getDateColor(date);
-              if (!color) return null;
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {weekProcesses.map(p => {
+              const sc = STATUS_COLOR[p.status ?? ''] ?? { bg: '#F3F4F6', color: '#6B7280', dot: '#6B7280' };
+              const isOverdue = p.status === 'Em Atraso' || p.status === 'Atrasado';
               return (
                 <Box
-                  key={index}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    py: 0.5
-                  }}
+                  key={p._id}
+                  onClick={() => onProcessClick(p)}
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1.5, borderRadius: 2, border: '1px solid #f1f5f9', backgroundColor: sc.bg, cursor: 'pointer', transition: 'all 0.15s', '&:hover': { borderColor: sc.dot, transform: 'translateX(2px)' } }}
                 >
-                  <Box
-                    sx={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: '50%',
-                      backgroundColor: color
-                    }}
-                  />
-                  <Typography variant='caption' sx={{ color: '#212121' }}>
-                    {dayjs(date).format('DD/MM')}
-                  </Typography>
+                  <Box sx={{ flexShrink: 0 }}>
+                    {isOverdue
+                      ? <WarningIcon sx={{ fontSize: 18, color: sc.color }} />
+                      : <CalendarIcon sx={{ fontSize: 18, color: sc.color }} />
+                    }
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: '#212121', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {p.processNumber}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {p.object}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ flexShrink: 0, textAlign: 'right' }}>
+                    <Typography sx={{ fontSize: '0.6875rem', fontWeight: 700, color: sc.color }}>
+                      {dayjs(p.dueDate).format('DD/MM')}
+                    </Typography>
+                    <Chip label={p.status} size='small' sx={{ fontSize: '0.5625rem', fontWeight: 700, height: 16, backgroundColor: 'transparent', color: sc.color, px: 0 }} />
+                  </Box>
                 </Box>
               );
             })}
@@ -231,192 +164,125 @@ export const ProcessSidebar = ({
         )}
 
         {/* Legenda */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 2, pt: 2, borderTop: '1px solid #E4E6EB' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#B81E34' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
-              Atrasado
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#B38800' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
-              Hoje
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#FCD34D' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
-              Amanhã
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#1877F2' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
-              Esta semana
-            </Typography>
-          </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 2, pt: 2, borderTop: '1px solid #E4E6EB' }}>
+          {LEGEND.map(({ label, color }) => (
+            <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: color }} />
+              <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.6875rem' }}>{label}</Typography>
+            </Box>
+          ))}
         </Box>
       </Card>
 
-      {/* Widget Calendário de Prazos */}
-      <Card
-        sx={{
-          p: 2,
-          borderRadius: 2,
-          border: '1px solid #E4E6EB',
-          backgroundColor: '#FFFFFF'
-        }}
-      >
+      {/* Calendário de Prazos */}
+      <Card sx={{ p: 2, borderRadius: 2, border: '1px solid #E4E6EB', backgroundColor: '#FFFFFF' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <IconButton size='small' onClick={handlePreviousMonth}>
+          <IconButton size='small' onClick={() => setCurrentMonth(dayjs(currentMonth).subtract(1, 'month').toDate())}>
             <ChevronLeftIcon fontSize='small' />
           </IconButton>
-          <Typography
-            variant='h6'
-            sx={{
-              fontWeight: 700,
-              fontSize: '1rem',
-              color: '#212121'
-            }}
-          >
-            {dayjs(currentMonth).format('MMMM YYYY')}
-          </Typography>
-          <IconButton size='small' onClick={handleNextMonth}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5 }}>
+            <Typography variant='h6' sx={{ fontWeight: 700, fontSize: '1rem', color: '#212121', textTransform: 'capitalize' }}>
+              {dayjs(currentMonth).format('MMMM YYYY')}
+            </Typography>
+            {!dayjs(currentMonth).isSame(dayjs(), 'month') && (
+              <Button
+                size='small'
+                variant='contained'
+                startIcon={<TodayIcon sx={{ fontSize: 14 }} />}
+                onClick={() => setCurrentMonth(new Date())}
+                sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', borderRadius: 2, py: 0.5, px: 1.5, boxShadow: 'none', backgroundColor: '#1877F2', '&:hover': { backgroundColor: '#166fe5' } }}
+              >
+                Mês atual
+              </Button>
+            )}
+          </Box>
+          <IconButton size='small' onClick={() => setCurrentMonth(dayjs(currentMonth).add(1, 'month').toDate())}>
             <ChevronRightIcon fontSize='small' />
           </IconButton>
         </Box>
 
-        {/* Dias da semana */}
+        {/* Cabeçalho dias */}
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5, mb: 1 }}>
-          {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day) => (
-            <Typography
-              key={day}
-              variant='caption'
-              sx={{
-                textAlign: 'center',
-                fontWeight: 600,
-                color: '#8A8D91',
-                fontSize: '0.75rem'
-              }}
-            >
-              {day}
+          {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => (
+            <Typography key={d} variant='caption' sx={{ textAlign: 'center', fontWeight: 600, color: '#8A8D91', fontSize: '0.6875rem' }}>
+              {d}
             </Typography>
           ))}
         </Box>
 
-        {/* Calendário */}
+        {/* Dias */}
         <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 0.5 }}>
-          {monthDates.map((date, index) => {
+          {monthDates.map((date, idx) => {
             const isCurrentMonth = dayjs(date).isSame(dayjs(currentMonth), 'month');
             const status = getDateStatus(date);
+            const sc = status ? (STATUS_COLOR[status] ?? null) : null;
             const isSelected = selectedDate && dayjs(date).isSame(dayjs(selectedDate), 'day');
             const isToday = dayjs(date).isSame(dayjs(), 'day');
-
-            let backgroundColor = 'transparent';
-            let color = isCurrentMonth ? '#212121' : '#8A8D91';
-
-            if (status) {
-              switch (status) {
-                case 'Atrasado':
-                  backgroundColor = '#FDE8EC';
-                  color = '#B81E34';
-                  break;
-                case 'Em andamento':
-                  backgroundColor = '#E7F3FF';
-                  color = '#105BBE';
-                  break;
-                case 'Concluído':
-                  backgroundColor = '#E6F4EA';
-                  color = '#1F7A37';
-                  break;
-                case 'Pendente':
-                  backgroundColor = '#FFF5D6';
-                  color = '#B38800';
-                  break;
-              }
-            }
-
-            if (isSelected) {
-              backgroundColor = '#1877F2';
-              color = '#FFFFFF';
-            }
+            const dayProcs = getDateProcesses(date);
 
             return (
-              <Box
-                key={index}
-                onClick={() => onDateClick(date)}
-                sx={{
-                  aspectRatio: '1',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 1,
-                  backgroundColor,
-                  color,
-                  cursor: status ? 'pointer' : 'default',
-                  border: isToday ? '2px solid #1877F2' : 'none',
-                  '&:hover': {
-                    backgroundColor: status ? (isSelected ? '#1877F2' : '#F8F9FA') : 'transparent'
-                  }
-                }}
+              <Tooltip
+                key={idx}
+                title={dayProcs.length > 0 ? dayProcs.map(p => `${p.processNumber} — ${p.status}`).join('\n') : ''}
+                arrow
+                placement='top'
+                slotProps={{ tooltip: { sx: { whiteSpace: 'pre-line', fontSize: '0.75rem' } } }}
               >
-                <Typography
-                  variant='caption'
+                <Box
+                  onClick={() => status && onDateClick(date)}
                   sx={{
-                    fontSize: '0.75rem',
-                    fontWeight: isToday ? 700 : 400
+                    aspectRatio: '1',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 1,
+                    backgroundColor: isSelected ? '#1877F2' : sc ? sc.bg : 'transparent',
+                    color: isSelected ? '#FFFFFF' : sc ? sc.color : isCurrentMonth ? '#212121' : '#C0C4CC',
+                    cursor: status ? 'pointer' : 'default',
+                    border: isToday ? '2px solid #1877F2' : '2px solid transparent',
+                    transition: 'all 0.15s',
+                    '&:hover': { backgroundColor: status ? (isSelected ? '#105BBE' : '#F0F4FF') : 'transparent' }
                   }}
                 >
-                  {dayjs(date).format('D')}
-                </Typography>
-              </Box>
+                  <Typography variant='caption' sx={{ fontSize: '0.75rem', fontWeight: isToday ? 700 : 400, lineHeight: 1 }}>
+                    {dayjs(date).format('D')}
+                  </Typography>
+                  {dayProcs.length > 0 && !isSelected && (
+                    <Box sx={{ display: 'flex', gap: '2px', mt: '2px' }}>
+                      {dayProcs.slice(0, 3).map((p, i) => (
+                        <Box key={i} sx={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: STATUS_COLOR[p.status ?? '']?.dot ?? '#8A8D91' }} />
+                      ))}
+                    </Box>
+                  )}
+                </Box>
+              </Tooltip>
             );
           })}
         </Box>
 
         {/* Legenda */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 2, pt: 2, borderTop: '1px solid #E4E6EB' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#B81E34' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
-              Atrasado
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#1877F2' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
-              Em andamento
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#1F7A37' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
-              Concluído
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#B38800' }} />
-            <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.75rem' }}>
-              Pendente
-            </Typography>
-          </Box>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, mt: 2, pt: 2, borderTop: '1px solid #E4E6EB' }}>
+          {LEGEND.map(({ label, color }) => (
+            <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: color }} />
+              <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.6875rem' }}>{label}</Typography>
+            </Box>
+          ))}
         </Box>
 
-        <Typography
-          variant='caption'
-          sx={{
-            color: '#8A8D91',
-            fontSize: '0.75rem',
-            mt: 1,
-            display: 'block',
-            textAlign: 'center'
-          }}
-        >
-          Clique em uma data para filtrar os processos
-        </Typography>
+        {selectedDate && (
+          <Typography variant='caption' sx={{ color: '#1877F2', fontSize: '0.6875rem', mt: 1, display: 'block', textAlign: 'center', fontWeight: 600 }}>
+            Filtrando por {dayjs(selectedDate).format('DD/MM/YYYY')} — clique novamente para limpar
+          </Typography>
+        )}
+        {!selectedDate && (
+          <Typography variant='caption' sx={{ color: '#8A8D91', fontSize: '0.6875rem', mt: 1, display: 'block', textAlign: 'center' }}>
+            Clique em uma data para filtrar os processos
+          </Typography>
+        )}
       </Card>
+
     </Box>
   );
 };
-

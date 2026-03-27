@@ -60,7 +60,7 @@ export const DepartmentRanking = ({ onSelect }: Props) => {
   return (
     <Card sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 1 }}>
       <CardHeader
-        title={<Typography variant='subtitle1' sx={{ fontWeight: 600 }}>Ranking de Gerências</Typography>}
+        title={<Typography variant='subtitle1' sx={{ fontWeight: 600 }}>Insights por Gerências</Typography>}
         subheader={
           <Typography variant='body2' color='text.secondary'>
             {total} gerência{total !== 1 ? 's' : ''} encontrada{total !== 1 ? 's' : ''}
