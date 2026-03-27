@@ -55,17 +55,17 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
           Precisa de Ajuda?
         </Typography>
         <Chip
-          label='Online agora'
+          label='Em desenvolvimento'
           size='small'
           sx={{
-            bgcolor: '#ECFDF5',
-            color: '#059669',
-            fontWeight: 600,
+            bgcolor: '#5498ff',
+            color: '#ffffff',
+            fontWeight: 300,
             fontSize: '0.75rem',
             px: 2,
             py: 0.5,
             borderRadius: '9999px',
-            border: '1px solid #D1FAE5',
+            border: '1px solid #4b93ff',
             '@media (max-width: 767px)': {
               fontSize: '0.6875rem', // 11px para mobile
               px: 1.5, // 12px para mobile
@@ -174,7 +174,7 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
             '@media (max-width: 767px)': {
               fontSize: '0.9375rem' // 15px para mobile
             }
-          }}>(99) 99999-9999</Typography>
+          }}>(31) 99197-4315</Typography>
         </Box>
         <Box sx={{ 
           display: 'flex', 
@@ -212,7 +212,7 @@ const SupportSection = ({ onNavigateHistoria, onOpenChat, embedded = true }: Pro
             '@media (max-width: 767px)': {
               fontSize: '0.9375rem' // 15px para mobile
             }
-          }}>ajuda@planco.co.br</Typography>
+          }}>gabrielmiranda3004@gmail.com</Typography>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ 

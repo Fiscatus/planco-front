@@ -31,6 +31,7 @@ import { type MouseEvent, useCallback, useEffect, useRef, useState } from 'react
 import { useNavigate } from 'react-router-dom';
 import { NotificationDropdown } from '@/components/NotificationDropdown';
 import { useNotification } from '@/components/NotificationProvider';
+import { useSupportChat } from '@/contexts';
 import { useAuth } from '@/hooks';
 import { useNotificationSSE, useUserUpdatedSSE } from '@/hooks/useNotificationSSE';
 import { useUnreadCount } from '@/hooks/useNotifications';
@@ -54,6 +55,7 @@ const Topbar = ({ onMenuClick, displayNavBarDropdown = false }: TopbarProps) => 
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { showAppNotification } = useNotification();
+  const { openChat } = useSupportChat();
 
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
   const [accountMenuAnchor, setAccountMenuAnchor] = useState<null | HTMLElement>(null);
@@ -259,7 +261,7 @@ const Topbar = ({ onMenuClick, displayNavBarDropdown = false }: TopbarProps) => 
                 <ListItemIcon sx={{ minWidth: 32 }}><Settings sx={{ fontSize: 16 }} /></ListItemIcon>
                 <ListItemText primary='Configurações' sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }} />
               </MenuItem>
-              <MenuItem onClick={() => { navigate('/suporte'); handleAccountMenuClose(); }} sx={{ py: 1, minHeight: 36 }}>
+              <MenuItem onClick={() => { handleAccountMenuClose(); openChat(); }} sx={{ py: 1, minHeight: 36 }}>
                 <ListItemIcon sx={{ minWidth: 32 }}><Headphones sx={{ fontSize: 16 }} /></ListItemIcon>
                 <ListItemText primary='Suporte' sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }} />
               </MenuItem>

@@ -2,6 +2,7 @@ import { useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { useAuth } from '@/hooks';
+import { useSupportChat } from '@/contexts';
 import { FaqSection } from './components/FaqSection';
 import { HeroSection } from './components/HeroSection';
 import { ModulesSection } from './components/ModulesSection';
@@ -14,6 +15,7 @@ const OrganizationHome = () => {
   const modulosSectionRef = useRef<HTMLDivElement | null>(null);
   const tutoriaisSectionRef = useRef<HTMLDivElement | null>(null);
   const faqSectionRef = useRef<HTMLDivElement | null>(null);
+  const { openChat } = useSupportChat();
 
   const handleScrollToModulos = useCallback(() => {
     modulosSectionRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -92,9 +94,7 @@ const OrganizationHome = () => {
         }}>
           <SupportSection
             onNavigateHistoria={() => navigate('/historia')}
-            onOpenChat={() => {
-              return;
-            }} //TODO: Integrar com o chat
+            onOpenChat={openChat}
           />
         </Box>
       </Box>

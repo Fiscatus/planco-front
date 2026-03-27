@@ -129,10 +129,10 @@ const CommentsContent = ({ context, enabled, limitHeight = true, readOnly = fals
     : [...rawComments].sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
   // Mapa userId → avatarUrl para uso nas menções
-  const avatarMap = rawComments.reduce<Record<string, string | null>>((acc, c: any) => {
+  const avatarMap = rawComments.reduce((acc: Record<string, string | null>, c: any) => {
     if (c.authorId?._id) acc[c.authorId._id] = c.authorId.avatarUrl ?? null;
     return acc;
-  }, {});
+  }, {} as Record<string, string | null>);
 
   if (isLoading) return <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}><CircularProgress /></Box>;
 
