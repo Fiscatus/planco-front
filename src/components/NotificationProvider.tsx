@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { NotificationToast } from '@/components/NotificationToast';
 import { apiErrorEmitter } from '@/services/apiErrorEmitter';
 import { api } from '@/services';
+import { playNotificationSound } from '@/hooks/useNotificationPrefs';
 import type { AppNotification } from '@/globals/types';
 import { getNotificationLink } from '@/utils/notificationLink';
 
@@ -57,6 +58,7 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
 
   const showAppNotification = useCallback((notification: AppNotification) => {
     const id = `app_${notification._id}_${Date.now()}`;
+    playNotificationSound();
     setAppToasts(prev => {
       const next = [...prev, { id, notification, exiting: false }];
       return next.length > MAX ? next.slice(next.length - MAX) : next;

@@ -130,7 +130,7 @@ export const ProcessSidebar = ({ onDateClick, onProcessClick, onResetAll, select
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             {weekProcesses.map(p => {
               const sc = STATUS_COLOR[p.status ?? ''] ?? { bg: '#F3F4F6', color: '#6B7280', dot: '#6B7280' };
-              const isOverdue = p.status === 'Em Atraso' || p.status === 'Atrasado';
+              const isOverdue = p.status === 'Em Atraso';
               return (
                 <Box
                   key={p._id}

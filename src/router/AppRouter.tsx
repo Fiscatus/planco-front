@@ -25,6 +25,7 @@ const ProcessoPage = lazy(() => import('@/pages/ProcessoPage/ProcessoPage'));
 const InsightsPage = lazy(() => import('@/pages/Insights/InsightsPage'));
 const PlanejamentoContratacaoPage = lazy(() => import('@/pages/PlanejamentoContratacao/PlanejamentoContratacaoPage'));
 const NotificationsPage = lazy(() => import('@/pages/Notifications/NotificationsPage'));
+const SettingsPage = lazy(() => import('@/pages/Settings/SettingsPage'));
 
 // Rotas que não exibem header/sidebar
 const WITHOUT_HEADER_ROUTES = ['/auth', '/verify-email', '/privacy-policy'];
@@ -180,10 +181,10 @@ const AppRouter = () => {
             />
 
             {/* Notificações */}
-            <Route
-              path='/notificacoes'
-              element={<NotificationsPage />}
-            />
+            <Route path='/notificacoes' element={<NotificationsPage />} />
+
+            {/* Configurações */}
+            <Route path='/configuracoes' element={<SettingsPage />} />
             {/* ==================== ROTAS ADMIN ==================== */}
             <Route element={<AdminRoute />}>
               <Route
