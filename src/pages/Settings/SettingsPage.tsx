@@ -1,4 +1,4 @@
-import { NotificationsOutlined, VolumeOffOutlined, VolumeUpOutlined } from '@mui/icons-material';
+import { BusinessOutlined, NotificationsOutlined, PersonOutlined, VolumeOffOutlined, VolumeUpOutlined } from '@mui/icons-material';
 import {
   Box,
   Card,
@@ -13,6 +13,8 @@ import {
 import { useState } from 'react';
 import type { NotificationSound } from '@/hooks/useNotificationPrefs';
 import { playNotificationSound, useNotificationPrefs } from '@/hooks/useNotificationPrefs';
+import ProfileSection from './ProfileSection';
+import OrgSection from './OrgSection';
 
 const SOUND_OPTIONS: { value: NotificationSound; label: string; description: string }[] = [
   { value: 'chime', label: 'Chime', description: 'Dois tons suaves e descendentes' },
@@ -22,7 +24,7 @@ const SOUND_OPTIONS: { value: NotificationSound; label: string; description: str
 ];
 
 const SettingsPage = () => {
-  const [tab, setTab] = useState('notifications');
+  const [tab, setTab] = useState('profile');
   const { prefs, update } = useNotificationPrefs();
 
   const handleSoundToggle = (enabled: boolean) => {
@@ -77,6 +79,18 @@ const SettingsPage = () => {
             }}
           >
             <Tab
+              value='profile'
+              label='Perfil'
+              icon={<PersonOutlined sx={{ fontSize: 18 }} />}
+              iconPosition='start'
+            />
+            <Tab
+              value='org'
+              label='Organização'
+              icon={<BusinessOutlined sx={{ fontSize: 18 }} />}
+              iconPosition='start'
+            />
+            <Tab
               value='notifications'
               label='Notificações'
               icon={<NotificationsOutlined sx={{ fontSize: 18 }} />}
@@ -87,6 +101,10 @@ const SettingsPage = () => {
 
         {/* Conteúdo */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
+          {tab === 'profile' && <ProfileSection />}
+
+          {tab === 'org' && <OrgSection />}
+
           {tab === 'notifications' && (
             <Card sx={{ border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <Box sx={{ px: 3, py: 2.5, borderBottom: '1px solid #f1f5f9', backgroundColor: '#fafbfc' }}>

@@ -79,10 +79,13 @@ export type {
 } from './Insights';
 export type {
   AuthResponse,
+  ChangePasswordDto,
   FilterUsersDto,
   LoginDto,
   PaginatedUsersDto,
   RegisterDto,
   ToggleUserStatusResponse,
+  UpdateProfileDto,
   User
 } from './User';
+export type { Org, OrgEndereco, UpdateOrgDto } from './Org';

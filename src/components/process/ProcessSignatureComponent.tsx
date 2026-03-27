@@ -164,7 +164,7 @@ export const ProcessSignatureComponent = ({ label, description, required, contex
                 <Box key={s.userId?._id || s.userId || idx}>
                   <Box sx={{ py: 1.5, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 2 }}>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                      <Avatar sx={{ width: 32, height: 32, bgcolor: s.signed ? "#16A34A" : "#94a3b8", fontSize: "0.8rem", fontWeight: 700 }}>{s.displayName?.charAt(0) || "?"}</Avatar>
+                      <Avatar src={s.avatarUrl ?? undefined} sx={{ width: 32, height: 32, bgcolor: s.signed ? "#16A34A" : "#94a3b8", fontSize: "0.8rem", fontWeight: 700 }}>{!s.avatarUrl && (s.displayName?.charAt(0) || "?")}</Avatar>
                       <Box>
                         <Typography sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.875rem" }}>{s.displayName}</Typography>
                         {s.signed && s.signedAt && (
@@ -222,7 +222,7 @@ export const ProcessSignatureComponent = ({ label, description, required, contex
             onChange={(_, v) => setSelectedSignatories(v)} onOpen={() => { if (users.length === 0) fetchUsers({ limit: 100 }); }}
             renderOption={(props, option) => (
               <Box component="li" {...props} sx={{ display: "flex", alignItems: "center", gap: 1.5, py: 1 }}>
-                <Avatar sx={{ width: 28, height: 28, bgcolor: "#1877F2", fontSize: "0.75rem", fontWeight: 700 }}>{`${option.firstName?.charAt(0) || ""}${option.lastName?.charAt(0) || ""}`.toUpperCase()}</Avatar>
+                <Avatar src={(option as any).avatarUrl ?? undefined} sx={{ width: 28, height: 28, bgcolor: "#1877F2", fontSize: "0.75rem", fontWeight: 700 }}>{!((option as any).avatarUrl) && `${option.firstName?.charAt(0) || ""}${option.lastName?.charAt(0) || ""}`.toUpperCase()}</Avatar>
                 <Typography sx={{ fontSize: "0.875rem", fontWeight: 600 }}>{option.firstName} {option.lastName}</Typography>
               </Box>
             )}
@@ -234,7 +234,7 @@ export const ProcessSignatureComponent = ({ label, description, required, contex
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.75 }}>
                 {selectedSignatories.map((u) => (
                   <Chip key={u._id} label={`${u.firstName} ${u.lastName}`} size="small"
-                    avatar={<Avatar sx={{ bgcolor: "#1877F2", fontSize: "0.65rem" }}>{`${u.firstName?.charAt(0) || ""}${u.lastName?.charAt(0) || ""}`.toUpperCase()}</Avatar>}
+                    avatar={<Avatar src={(u as any).avatarUrl ?? undefined} sx={{ bgcolor: "#1877F2", fontSize: "0.65rem" }}>{!((u as any).avatarUrl) && `${u.firstName?.charAt(0) || ""}${u.lastName?.charAt(0) || ""}`.toUpperCase()}</Avatar>}
                     sx={{ bgcolor: "#E7F3FF", color: "#1877F2", fontWeight: 700, fontSize: "0.75rem" }} />
                 ))}
               </Box>

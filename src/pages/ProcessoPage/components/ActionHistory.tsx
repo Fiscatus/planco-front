@@ -24,7 +24,7 @@ import { useDownloadFile } from '@/hooks';
 import { ProcessStageModal } from './ProcessStageModal';
 import type { ProcessFlowStageCard } from '@/globals/types';
 
-type PerformedBy = string | { _id: string; email: string; firstName: string; lastName: string };
+type PerformedBy = string | { _id: string; email: string; firstName: string; lastName: string; avatarUrl?: string | null };
 
 type AuditLog = {
   action: string;
@@ -126,6 +126,7 @@ const getPerformedBy = (p: PerformedBy) => {
     return {
       name: `${p.firstName?.trim()} ${p.lastName?.trim()}`.trim(),
       initials: `${p.firstName?.charAt(0) || ''}${p.lastName?.charAt(0) || ''}`.toUpperCase(),
+      avatarUrl: p.avatarUrl ?? undefined,
     };
   }
   return null;
@@ -236,6 +237,15 @@ export const ActionHistory = ({ stageExecutions, snapshotStages, stages, process
                   const { title, detail } = buildDescription(log);
                   if (!cfg) return null;
 
+                  // avatarMap para menções no comentário
+                  const mentionAvatarMap = (log.commentMentions || []).reduce<Record<string, string | null>>((acc, m) => {
+                    // performedBy pode ter o avatar do autor; para outros mencionados não temos aqui
+                    if (typeof log.performedBy === 'object' && log.performedBy?._id === m.userId) {
+                      acc[m.userId] = log.performedBy.avatarUrl ?? null;
+                    }
+                    return acc;
+                  }, {});
+
                   return (
                     <Box key={idx} sx={{ display: 'flex', gap: 0, cursor: 'pointer', borderRadius: 2, p: 0.5, mx: -0.5, '&:hover': { bgcolor: '#F8FAFC' }, transition: 'background 0.15s' }}
                       onClick={() => handleLogClick(log._stageId)}>
@@ -258,7 +268,7 @@ export const ActionHistory = ({ stageExecutions, snapshotStages, stages, process
                         {log.action === 'COMMENT_ADDED' && log.commentText && (
                           <Typography component='div' sx={{ fontSize: '0.8rem', color: '#475569', mb: 0.5, wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>
                             <Box component='span' sx={{ fontWeight: 700, color: '#0f172a' }}>Comentário: </Box>
-                            {renderCommentText(log.commentText, log.commentMentions)}
+                            {renderCommentText(log.commentText, log.commentMentions, mentionAvatarMap)}
                           </Typography>
                         )}
 
@@ -283,7 +293,9 @@ export const ActionHistory = ({ stageExecutions, snapshotStages, stages, process
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                           {performer && (
                             <>
-                              <Avatar sx={{ width: 18, height: 18, bgcolor: '#1877F2', fontSize: '0.6rem', fontWeight: 700 }}>{performer.initials}</Avatar>
+                              <Avatar src={performer.avatarUrl} sx={{ width: 18, height: 18, bgcolor: '#1877F2', fontSize: '0.6rem', fontWeight: 700 }}>
+                                {!performer.avatarUrl && performer.initials}
+                              </Avatar>
                               <Typography variant='caption' sx={{ color: '#475569', fontWeight: 600 }}>{performer.name}</Typography>
                               <Typography variant='caption' sx={{ color: '#94a3b8' }}>•</Typography>
                             </>
