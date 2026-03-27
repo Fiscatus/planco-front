@@ -27,8 +27,9 @@ const PlanejamentoContratacaoPage = lazy(() => import('@/pages/PlanejamentoContr
 const NotificationsPage = lazy(() => import('@/pages/Notifications/NotificationsPage'));
 const SettingsPage = lazy(() => import('@/pages/Settings/SettingsPage'));
 
-// Rotas que não exibem header/sidebar
-const WITHOUT_HEADER_ROUTES = ['/auth', '/verify-email', '/privacy-policy'];
+const ForgotPasswordPage = lazy(() => import('@/pages/Auth/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('@/pages/Auth/ResetPasswordPage'));
+const WITHOUT_HEADER_ROUTES = ['/auth', '/verify-email', '/privacy-policy', '/auth/forgot-password', '/reset-password'];
 
 // Prefixos de rotas que exibem o dropdown da navbar
 const NAVBAR_DROPDOWN_PREFIXES = [
@@ -94,14 +95,10 @@ const AppRouter = () => {
             path='/verify-email'
             element={<VerifyEmail />}
           />
-          <Route
-            path='/privacy-policy'
-            element={<PrivacyPolicy />}
-          />
-          <Route
-            path='/not-access'
-            element={<NotAccessPage />}
-          />
+          <Route path='/privacy-policy' element={<PrivacyPolicy />} />
+          <Route path='/auth/forgot-password' element={<ForgotPasswordPage />} />
+          <Route path='/reset-password' element={<ResetPasswordPage />} />
+          <Route path='/not-access' element={<NotAccessPage />} />
           <Route
             path='/404'
             element={<NotFoundPage />}
