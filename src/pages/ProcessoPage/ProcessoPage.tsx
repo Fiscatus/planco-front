@@ -120,12 +120,12 @@ const ProcessoPage = () => {
           const depts = stage.responsibleDepartments || [];
           if (depts.length > 0) {
             return depts.map(d =>
-              typeof d === 'object' ? `${d.department_acronym} - ${d.department_name}` : d
+              d && typeof d === 'object' ? `${d.department_acronym} - ${d.department_name}` : d || 'Não informado'
             );
           }
           // fallback: gerência criadora
           const creator = flowInstance.process.creatorDepartment;
-          const creatorStr = typeof creator === 'object'
+          const creatorStr = creator && typeof creator === 'object'
             ? `${creator.department_acronym} - ${creator.department_name}`
             : creator || 'Não informado';
           return [creatorStr];

@@ -137,7 +137,7 @@ export const EditProcessModal = ({ open, onClose, flowInstance, initialTab = 0 }
     });
 
   const getSelectedDepts = (stage: FlowInstance['snapshotStages'][0]) =>
-    (stage.responsibleDepartments || []).map(d => typeof d === 'object' ? d._id : d);
+    (stage.responsibleDepartments || []).map(d => d && typeof d === 'object' ? d._id : d).filter(Boolean);
 
   const handleToggleDept = (stageId: string, deptId: string, current: string[]) => {
     const next = current.includes(deptId) ? current.filter(id => id !== deptId) : [...current, deptId];
@@ -302,7 +302,7 @@ export const EditProcessModal = ({ open, onClose, flowInstance, initialTab = 0 }
             <Autocomplete
               multiple
               options={(departments as Dept[]).filter(d => {
-                const creatorId = typeof p.creatorDepartment === 'object' ? p.creatorDepartment._id : p.creatorDepartment;
+                const creatorId = p.creatorDepartment && typeof p.creatorDepartment === 'object' ? p.creatorDepartment._id : p.creatorDepartment;
                 return d._id !== creatorId;
               })}
               getOptionLabel={d => `${d.department_acronym} - ${d.department_name}`}
@@ -323,7 +323,7 @@ export const EditProcessModal = ({ open, onClose, flowInstance, initialTab = 0 }
             <Autocomplete
               multiple
               options={users.filter(u => {
-                const createdById = typeof p.createdBy === 'object' ? p.createdBy._id : p.createdBy;
+                const createdById = p.createdBy && typeof p.createdBy === 'object' ? p.createdBy._id : p.createdBy;
                 return u._id !== createdById;
               })}
               getOptionLabel={u => `${u.firstName} ${u.lastName}`}

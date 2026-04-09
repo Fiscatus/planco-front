@@ -41,6 +41,7 @@ import { StageCard } from "./components/StageCard";
 import { EditStageModal } from "./components/EditStageModal";
 import { CreateStageModal } from "./components/CreateStageModal";
 import { ConfirmDialog } from "./components/ConfirmDialog";
+import { DuplicateFlowModelModal } from "./components/DuplicateFlowModelModal";
 
 type TabValue = "all" | "system" | "mine";
 
@@ -92,6 +93,9 @@ const FlowModelsPage = () => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [deleteModelDialogOpen, setDeleteModelDialogOpen] = useState(false);
+  const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
+  const [duplicateTargetId, setDuplicateTargetId] = useState<string | null>(null);
+  const [duplicateDefaults, setDuplicateDefaults] = useState({ name: '', description: '' });
 
   const {
     search: modelSearch,
@@ -222,7 +226,8 @@ const FlowModelsPage = () => {
   });
 
   const { mutate: duplicateModelMutation, isPending: duplicatingModel } = useMutation({
-    mutationFn: duplicateFlowModel,
+    mutationFn: ({ id, name, description }: { id: string; name: string; description: string }) =>
+      duplicateFlowModel(id, { name, description }),
     onSuccess: (newModel) => {
       queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
       showNotification("Modelo duplicado com sucesso!", "success");
@@ -310,9 +315,20 @@ const FlowModelsPage = () => {
     }
   }, [menuModelId, deleteModelMutation, handleMenuClose]);
 
+  const openDuplicateModal = useCallback((modelId: string) => {
+    const model = flowModels.find((m) => m._id === modelId);
+    if (!model) return;
+    setDuplicateTargetId(modelId);
+    setDuplicateDefaults({
+      name: `${model.name} (Cópia)`,
+      description: model.description || ''
+    });
+    setDuplicateModalOpen(true);
+  }, [flowModels]);
+
   const handleDuplicate = useCallback(() => {
-    if (menuModelId) duplicateModelMutation(menuModelId);
-  }, [menuModelId, duplicateModelMutation]);
+    if (menuModelId) openDuplicateModal(menuModelId);
+  }, [menuModelId, openDuplicateModal]);
 
   const handleEditFlow = useCallback(() => {
     if (!selectedModel) return;
@@ -1007,7 +1023,7 @@ const FlowModelsPage = () => {
                       <Button
                         variant="contained"
                         startIcon={<ContentCopyIcon />}
-                        onClick={() => duplicateModelMutation(selectedModel._id)}
+                        onClick={() => openDuplicateModal(selectedModel._id)}
                         disabled={duplicatingModel}
                         sx={{
                           bgcolor: "#1877F2",
@@ -1227,6 +1243,20 @@ const FlowModelsPage = () => {
         title="Alterações não salvas"
         message="Você está no modo de edição. As alterações não salvas serão perdidas. Deseja continuar?"
       />
+      <DuplicateFlowModelModal
+        open={duplicateModalOpen}
+        onClose={() => { setDuplicateModalOpen(false); setDuplicateTargetId(null); }}
+        defaultName={duplicateDefaults.name}
+        defaultDescription={duplicateDefaults.description}
+        loading={duplicatingModel}
+        onConfirm={(name, description) => {
+          const id = duplicateTargetId || selectedModel?._id;
+          if (id) duplicateModelMutation({ id, name, description });
+          setDuplicateModalOpen(false);
+          setDuplicateTargetId(null);
+        }}
+      />
+
       <ConfirmDialog
         open={deleteModelDialogOpen}
         onClose={() => setDeleteModelDialogOpen(false)}

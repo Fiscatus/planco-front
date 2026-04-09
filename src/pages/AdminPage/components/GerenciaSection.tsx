@@ -838,7 +838,7 @@ const GerenciaSection = ({ currentTab }: GerenciaSectionProps) => {
                       >
                         Telefone
                       </Typography>
-                      <Typography variant='body2'>{selected.department_phone}</Typography>
+                      <Typography variant='body2'>{selected.department_phone || 'Não mencionado'}</Typography>
                     </Grid>
                     {selected.description && (
                       <Grid size={{ xs: 12, md: 6 }}>
