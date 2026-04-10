@@ -137,7 +137,7 @@ export const EditProcessModal = ({ open, onClose, flowInstance, initialTab = 0 }
     });
 
   const getSelectedDepts = (stage: FlowInstance['snapshotStages'][0]) =>
-    (stage.responsibleDepartments || []).map(d => d && typeof d === 'object' ? d._id : d).filter(Boolean);
+    (stage.responsibleDepartments || []).map(d => d && typeof d === 'object' ? (d as any)._id : d).filter((id): id is string => !!id);
 
   const handleToggleDept = (stageId: string, deptId: string, current: string[]) => {
     const next = current.includes(deptId) ? current.filter(id => id !== deptId) : [...current, deptId];

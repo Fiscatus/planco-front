@@ -25,7 +25,7 @@ export type ProcessFlowStageCard = {
   stageId: string;
   stageInstanceId: string;
   title: string;
-  departments: string[];
+  departments: (string | { _id: string; department_name: string; department_acronym: string })[];
   status: ProcessStageStatus;
   additionalInfo?: string;
   wasAdvanced?: boolean;
