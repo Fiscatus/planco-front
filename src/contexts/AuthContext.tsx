@@ -4,6 +4,7 @@ import { createContext } from 'react';
 
 type AuthContextType = {
   user: User | undefined;
+  isAuthLoading: boolean;
   hasOrganization: boolean;
   isOrgAdmin: boolean;
   isPlatformAdmin: boolean;

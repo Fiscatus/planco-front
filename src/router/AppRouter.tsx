@@ -1,5 +1,5 @@
 import { Box, CircularProgress } from '@mui/material';
-import { lazy, Suspense, useMemo } from 'react';
+import { lazy, Suspense, useEffect, useMemo } from 'react';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import { AppLayout } from '@/components';
@@ -41,12 +41,12 @@ const NAVBAR_DROPDOWN_PREFIXES = [
 ];
 
 // Loading fallback component
-const LoadingFallback = () => (
+const PageLoading = () => (
   <Box
     display='flex'
     justifyContent='center'
     alignItems='center'
-    height='100px'
+    height='100vh'
     width='100%'
   >
     <CircularProgress />
@@ -55,8 +55,12 @@ const LoadingFallback = () => (
 
 const AppRouter = () => {
   const { pathname } = useLocation();
-  const { user, hasOrganization } = useAuth();
+  const { user, hasOrganization, isAuthLoading } = useAuth();
   const { isDesktop } = useScreen();
+
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+
+  if (isAuthLoading) return <PageLoading />;
 
   // Determina se deve esconder header baseado na rota
   const routeWithoutHeader = useMemo(
@@ -84,7 +88,7 @@ const AppRouter = () => {
       hideSidebar={!hasOrganization || routeWithoutHeader}
       displayNavBarDropdown={displayNavBarDropdown}
     >
-      <Suspense fallback={<LoadingFallback />}>
+      <Suspense fallback={<PageLoading />}>
         <Routes>
           {/* ==================== ROTAS PÚBLICAS ==================== */}
           <Route
