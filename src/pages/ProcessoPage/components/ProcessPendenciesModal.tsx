@@ -5,7 +5,7 @@ import type { FlowInstance } from '@/hooks/useFlowInstance';
 type Stage = {
   title: string;
   status: 'completed' | 'in_progress' | 'pending';
-  departments: string[];
+  departments: (string | { _id: string; department_name: string; department_acronym: string })[];
   order: number;
   dueDate?: string;
   startedAt?: string;
@@ -117,7 +117,7 @@ export const ProcessPendenciesModal = ({ open, onClose, stages }: Props) => {
                         {stage.title}
                       </Typography>
                       <Typography variant='caption' sx={{ color: '#64748b', fontWeight: 600 }}>
-                        {stage.departments.join(' • ') || '—'}
+                        {stage.departments.map(d => typeof d === 'object' ? `${d.department_acronym} - ${d.department_name}` : d).join(' • ') || '—'}
                       </Typography>
                     </Box>
                   </Box>

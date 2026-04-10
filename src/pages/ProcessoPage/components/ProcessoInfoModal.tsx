@@ -29,17 +29,17 @@ export const ProcessoInfoModal = ({ open, onClose, flowInstance, currentStage }:
 
   const formatDate = (d?: string) => d ? new Date(d).toLocaleDateString('pt-BR') : '—';
 
-  const creatorDept = typeof p.creatorDepartment === 'object'
-    ? `${p.creatorDepartment.department_acronym} - ${p.creatorDepartment.department_name}`
-    : p.creatorDepartment || '—';
+  const creatorDept = p.creatorDepartment && typeof p.creatorDepartment === 'object'
+    ? `${(p.creatorDepartment as any).department_acronym} - ${(p.creatorDepartment as any).department_name}`
+    : (p.creatorDepartment as string) || '—';
 
-  const createdByName = typeof p.createdBy === 'object'
-    ? `${p.createdBy.firstName} ${p.createdBy.lastName}`
-    : p.createdBy || '—';
+  const createdByName = p.createdBy && typeof p.createdBy === 'object'
+    ? `${(p.createdBy as any).firstName} ${(p.createdBy as any).lastName}`
+    : (p.createdBy as string) || '—';
 
   const participatingDepts = p.participatingDepartments?.length
     ? p.participatingDepartments.map(d =>
-        typeof d === 'object' ? `${d.department_acronym} - ${d.department_name}` : d
+        d && typeof d === 'object' ? `${d.department_acronym} - ${d.department_name}` : d || '—'
       ).join(' • ')
     : '—';
 

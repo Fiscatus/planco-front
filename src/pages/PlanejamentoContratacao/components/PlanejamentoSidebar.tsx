@@ -155,14 +155,14 @@ export const PlanejamentoSidebar = ({ pendencias, proximosPrazos, loading }: Pro
         </Box>
       </Card>
 
-      {/* Próximos Prazos */}
+      {/* Prazos dos Processos da Gerência */}
       <Card sx={{ border: '1px solid', borderColor: '#e2e8f0', boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)', overflow: 'hidden', backgroundColor: '#ffffff' }}>
         <Box sx={{ px: 3, py: 3, borderBottom: '1px solid #f1f5f9', backgroundColor: '#fafbfc' }}>
           <Typography sx={{ fontWeight: 600, fontSize: '1rem', color: '#0f172a', letterSpacing: '-0.01em' }}>
-            Próximos prazos
+            Prazos dos Processos da Gerência
           </Typography>
           <Typography sx={{ fontSize: '0.8125rem', color: '#64748b', mt: 0.25 }}>
-            Prazos dos processos da gerência
+            Próximos prazos
           </Typography>
         </Box>
 

@@ -5,6 +5,7 @@ import type { AuthResponse, LoginDto, RegisterDto, User } from '@/globals/types'
 import { api } from '@/services';
 import parseJwtToJson from '@/utils/parseJwtToJson';
 import { registerUserUpdatedHandler, unregisterUserUpdatedHandler, reconnectSSE } from '@/hooks/useNotificationSSE';
+import { apiErrorEmitter } from '@/services/apiErrorEmitter';
 
 const authApiPath = '/auth';
 const localStorageUserKey = '@planco:user';
@@ -15,6 +16,7 @@ type Props = {
 
 const AuthProvider = ({ children }: Props) => {
   const [user, setUser] = useState<User | undefined>();
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [hasOrganization, setHasOrganization] = useState(false);
   const [isOrgAdmin, setIsOrgAdmin] = useState(false);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
@@ -105,46 +107,56 @@ const AuthProvider = ({ children }: Props) => {
     return () => unregisterUserUpdatedHandler();
   }, []);
 
-  const loadUserFromLocalStorage = () => {
-    if (localStorage.getItem(localStorageUserKey)) {
-      const localStorageUser = JSON.parse(String(localStorage.getItem(localStorageUserKey)));
-      verifyAuth(localStorageUser.access_token);
-      if (!user && localStorageUser.access_token) {
-        const decodedJwt = parseJwtToJson(localStorageUser.access_token);
-        if (decodedJwt) {
-          const baseUser = {
-            _id: decodedJwt.sub,
-            firstName: decodedJwt.firstName,
-            lastName: decodedJwt.lastName,
-            email: decodedJwt.email,
-            isPlatformAdmin: decodedJwt.isPlatformAdmin,
-            org: decodedJwt.org,
-            role: decodedJwt.role,
-            departments: decodedJwt.departments
-          };
-          setUser(baseUser);
-          setHasOrganization(decodedJwt.org !== null);
-          api.defaults.headers.common.Authorization = `Bearer ${localStorageUser.access_token}`;
-          // Buscar perfil completo para obter avatarUrl
-          api.get('/users/me').then(res => setUser({ ...baseUser, ...res.data })).catch(() => {});
-        }
-      }
-    }
-  };
+  useEffect(() => {
+    apiErrorEmitter.onUnauthorized(signOut);
+    return () => apiErrorEmitter.offUnauthorized();
+  }, []);
 
   const verifyAuth = (accessToken: string) => {
     const decodedJwt = parseJwtToJson(accessToken);
     if (decodedJwt.exp * 1000 < Date.now()) {
       signOut();
       localStorage.removeItem(localStorageUserKey);
+      return false;
     }
+    return true;
   };
 
-  loadUserFromLocalStorage();
+  useEffect(() => {
+    const localStorageUser = localStorage.getItem(localStorageUserKey);
+    if (localStorageUser) {
+      try {
+        const parsed = JSON.parse(localStorageUser);
+        const isValid = verifyAuth(parsed.access_token);
+        if (isValid && parsed.access_token) {
+          const decodedJwt = parseJwtToJson(parsed.access_token);
+          if (decodedJwt) {
+            const baseUser = {
+              _id: decodedJwt.sub,
+              firstName: decodedJwt.firstName,
+              lastName: decodedJwt.lastName,
+              email: decodedJwt.email,
+              isPlatformAdmin: decodedJwt.isPlatformAdmin,
+              org: decodedJwt.org,
+              role: decodedJwt.role,
+              departments: decodedJwt.departments
+            };
+            setUser(baseUser);
+            setHasOrganization(decodedJwt.org !== null);
+            api.defaults.headers.common.Authorization = `Bearer ${parsed.access_token}`;
+            api.get('/users/me').then(res => setUser({ ...baseUser, ...res.data })).catch(() => {});
+          }
+        }
+      } catch {
+        localStorage.removeItem(localStorageUserKey);
+      }
+    }
+    setIsAuthLoading(false);
+  }, []);
 
   return (
     <AuthContext.Provider
-      value={{ user, signUp, signIn, signOut, refreshToken, updateUser, hasOrganization, isOrgAdmin, isPlatformAdmin }}
+      value={{ user, isAuthLoading, signUp, signIn, signOut, refreshToken, updateUser, hasOrganization, isOrgAdmin, isPlatformAdmin }}
     >
       {children}
     </AuthContext.Provider>

@@ -17,7 +17,7 @@ export type StageStatus = 'completed' | 'in_progress' | 'pending';
 export type ProcessStageProps = {
   order: number;
   title: string;
-  departments: string[];
+  departments: (string | { _id: string; department_name: string; department_acronym: string })[];
   status: StageStatus;
   additionalInfo?: string;
   onClick?: () => void;
@@ -141,11 +141,14 @@ export const ProcessStageCard = ({ order, title, departments, status, additional
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 0.5 }}>
             <BusinessCenterIcon sx={{ fontSize: 16, color: '#64748b', mt: '2px', flexShrink: 0 }} />
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-              {departments.map((dept, i) => (
-                <Typography key={i} variant='body2' sx={{ color: '#475569', fontWeight: 600 }}>
-                  {dept}{i < departments.length - 1 ? ' •' : ''}
-                </Typography>
-              ))}
+              {departments.map((dept, i) => {
+                const label = typeof dept === 'object' ? `${dept.department_acronym} - ${dept.department_name}` : dept;
+                return (
+                  <Typography key={i} variant='body2' sx={{ color: '#475569', fontWeight: 600 }}>
+                    {label}{i < departments.length - 1 ? ' •' : ''}
+                  </Typography>
+                );
+              })}
             </Box>
           </Box>
           {additionalInfo && (

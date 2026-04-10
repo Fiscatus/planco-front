@@ -11,7 +11,7 @@ type Props = {
   stages: Array<{
     title: string;
     status: 'completed' | 'in_progress' | 'pending';
-    departments: string[];
+    departments: (string | { _id: string; department_name: string; department_acronym: string })[];
     order: number;
     startedAt?: string;
     completedAt?: string;

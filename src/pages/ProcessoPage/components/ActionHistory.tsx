@@ -18,9 +18,11 @@ import {
   AttachFile as AttachFileIcon,
   Image as ImageIcon,
 } from '@mui/icons-material';
-import { Avatar, Box, Chip, Collapse, Dialog, IconButton, MenuItem, Select, Typography } from '@mui/material';
+import { Avatar, Box, Button, Chip, CircularProgress, Collapse, Dialog, IconButton, MenuItem, Select, Typography } from '@mui/material';
+import { PictureAsPdf as PdfIcon } from '@mui/icons-material';
 import { renderCommentText, type CommentMention } from '@/utils/renderCommentText';
 import { useDownloadFile } from '@/hooks';
+import { api } from '@/services';
 import { ProcessStageModal } from './ProcessStageModal';
 import type { ProcessFlowStageCard } from '@/globals/types';
 
@@ -182,6 +184,22 @@ export const ActionHistory = ({ stageExecutions, snapshotStages, stages, process
   const [limit, setLimit] = useState(10);
   const [collapsed, setCollapsed] = useState(false);
   const [modalStage, setModalStage] = useState<ProcessFlowStageCard | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
+
+  const handleExportAudit = async () => {
+    setExportLoading(true);
+    try {
+      const response = await api.get(`/flows/instances/${instanceId}/audit-export`, { responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `auditoria-${instanceId}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExportLoading(false);
+    }
+  };
 
   const handleLogClick = (stageId: string) => {
     const stage = stages.find(s => s.stageId === stageId);
@@ -216,9 +234,22 @@ export const ActionHistory = ({ stageExecutions, snapshotStages, stages, process
           <Typography variant='h6' sx={{ fontWeight: 800, color: '#0f172a' }}>Histórico de Ações</Typography>
           {totalItems > 0 && <Chip label={totalItems} size='small' sx={{ bgcolor: '#F1F5F9', color: '#64748b', fontWeight: 700, fontSize: '0.75rem', height: 22 }} />}
         </Box>
-        <IconButton size='small' onClick={() => setCollapsed(v => !v)} sx={{ color: '#64748b' }}>
-          {collapsed ? <ExpandMoreIcon fontSize='small' /> : <ExpandLessIcon fontSize='small' />}
-        </IconButton>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {totalItems > 0 && (
+            <Button
+              variant='outlined'
+              onClick={handleExportAudit}
+              disabled={exportLoading}
+              startIcon={exportLoading ? <CircularProgress size={16} /> : <PdfIcon sx={{ color: '#DC2626' }} />}
+              sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, borderColor: '#E4E6EB', color: '#64748b', '&:hover': { borderColor: '#DC2626', color: '#DC2626', bgcolor: '#FEF2F2' } }}
+            >
+              {exportLoading ? 'Gerando PDF...' : 'Exportar auditoria'}
+            </Button>
+          )}
+          <IconButton size='small' onClick={() => setCollapsed(v => !v)} sx={{ color: '#64748b' }}>
+            {collapsed ? <ExpandMoreIcon fontSize='small' /> : <ExpandLessIcon fontSize='small' />}
+          </IconButton>
+        </Box>
       </Box>
 
       <Collapse in={!collapsed}>

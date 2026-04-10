@@ -142,8 +142,8 @@ export const useFlowModels = () => {
    * POST /flow-models/:id/duplicate
    * Duplica um modelo existente e retorna o novo modelo.
    */
-  const duplicateFlowModel = useCallback(async (id: string): Promise<FlowModel> => {
-    const response = await api.post<FlowModel>(`/flow-models/${id}/duplicate`);
+  const duplicateFlowModel = useCallback(async (id: string, data?: { name?: string; description?: string }): Promise<FlowModel> => {
+    const response = await api.post<FlowModel>(`/flow-models/${id}/duplicate`, data ?? {});
 
     if (!response.data) {
       throw new Error('Resposta da API vazia ao duplicar modelo de fluxo');

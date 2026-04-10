@@ -4,7 +4,7 @@ import { Close as CloseIcon, Schedule as ScheduleIcon, CheckCircle as CheckCircl
 type Stage = {
   title: string;
   status: 'completed' | 'in_progress' | 'pending';
-  departments: string[];
+  departments: (string | { _id: string; department_name: string; department_acronym: string })[];
   order: number;
   startedAt?: string;
   completedAt?: string;
@@ -97,7 +97,7 @@ export const ProcessDeadlinesModal = ({ open, onClose, stages, completedCount }:
                 </Box>
                 <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: '0.875rem' }}>{stage.title}</Typography>
               </Box>
-              <Typography sx={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 600 }}>{stage.departments.join(' • ') || '—'}</Typography>
+              <Typography sx={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 600 }}>{stage.departments.map(d => typeof d === 'object' ? `${d.department_acronym} - ${d.department_name}` : d).join(' • ') || '—'}</Typography>
               <Typography sx={{ color: '#64748b', fontSize: '0.8rem' }}>{fmt(stage.startedAt)}</Typography>
               <Typography sx={{ color: '#64748b', fontSize: '0.8rem' }}>{fmt(getEffectiveDueDate(stage))}</Typography>
               <Typography sx={{ color: '#64748b', fontSize: '0.8rem' }}>

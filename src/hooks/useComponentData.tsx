@@ -107,6 +107,20 @@ export const useDownloadFile = () => {
   });
 };
 
+export const useDownloadZip = () => {
+  return useMutation({
+    mutationFn: async (fileIds: string[]) => {
+      const response = await api.post('/files/download-zip', { fileIds }, { responseType: 'blob' });
+      const url = URL.createObjectURL(new Blob([response.data], { type: 'application/zip' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'documentos.zip';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+  });
+};
+
 // ==================== TIMELINE ====================
 export const useTimeline = (context: ComponentContext, filters?: any, enabled = true) => {
   return useQuery({
