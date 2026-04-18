@@ -96,6 +96,19 @@ export const useAdvanceStage = () => {
   });
 };
 
+export const useRollbackStage = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ instanceId, reason }: { instanceId: string; reason: string }) => {
+      const response = await api.post(`/flows/instances/${instanceId}/rollback-stage`, { reason });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['flowInstance'] });
+    }
+  });
+};
+
 export const useUpdateProcess = () => {
   const queryClient = useQueryClient();
   return useMutation({

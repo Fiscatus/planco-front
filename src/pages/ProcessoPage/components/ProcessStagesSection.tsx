@@ -9,9 +9,10 @@ type ProcessStagesSectionProps = {
   processId: string;
   instanceId: string;
   canAdvance?: boolean;
+  canRollback?: boolean;
 };
 
-export const ProcessStagesSection = ({ stages, processId, instanceId, canAdvance }: ProcessStagesSectionProps) => {
+export const ProcessStagesSection = ({ stages, processId, instanceId, canAdvance, canRollback }: ProcessStagesSectionProps) => {
   const [selectedStage, setSelectedStage] = useState<ProcessFlowStageCard | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStageStatus, setSelectedStageStatus] = useState<'completed' | 'in_progress' | 'pending'>('pending');
@@ -68,6 +69,7 @@ export const ProcessStagesSection = ({ stages, processId, instanceId, canAdvance
             additionalInfo={stage.additionalInfo}
             onClick={() => handleStageClick(stage)}
             canAdvance={canAdvance}
+            canRollback={canRollback}
             instanceId={instanceId}
             onAdvanced={handleCloseModal}
             wasAdvanced={stage.wasAdvanced}

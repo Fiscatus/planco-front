@@ -12,6 +12,7 @@ import {
   Event as TimelineIcon,
   BorderColor as SignatureIcon,
   FastForward as AdvancedIcon,
+  ArrowBack as RollbackIcon,
   Group as GroupIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon,
@@ -46,6 +47,8 @@ type AuditLog = {
   taskTitle?: string;
   eventTitle?: string;
   signatories?: string[];
+  fromStageName?: string;
+  toStageName?: string;
   [key: string]: any;
 };
 
@@ -89,6 +92,7 @@ const actionConfig: Record<string, { color: string; bg: string; icon: React.Reac
   SIGNATURE_SIGNED:           { color: '#065F46', bg: '#ECFDF3', icon: <SignatureIcon   sx={{ fontSize: 14 }} /> },
   SIGNATURE_SIGNATORIES_SET:  { color: '#1D4ED8', bg: '#EFF6FF', icon: <GroupIcon       sx={{ fontSize: 14 }} /> },
   ADVANCED:                   { color: '#92400E', bg: '#FEF3C7', icon: <AdvancedIcon    sx={{ fontSize: 14 }} /> },
+  ROLLED_BACK:                { color: '#DC2626', bg: '#FEE2E2', icon: <RollbackIcon    sx={{ fontSize: 14 }} /> },
   APPROVED:                   { color: '#065F46', bg: '#ECFDF3', icon: <CheckCircleIcon sx={{ fontSize: 14 }} /> },
 };
 
@@ -113,6 +117,7 @@ const buildDescription = (log: AuditLog): { title: string; detail?: string } => 
     case 'SIGNATURE_SIGNED':        return { title: `Documento assinado${comp ? ` em "${log.componentLabel}"` : ''}` };
     case 'SIGNATURE_SIGNATORIES_SET': return { title: `Signatários definidos${comp ? ` em "${log.componentLabel}"` : ''}`, detail: log.signatories?.join(', ') };
     case 'ADVANCED':                return { title: 'Etapa avançada manualmente', detail: log.reason };
+    case 'ROLLED_BACK':             return { title: `Etapa retrocedida`, detail: `${log.fromStageName ?? ''} → ${log.toStageName ?? ''}${log.reason ? `\n${log.reason}` : ''}` };
     case 'APPROVED':                return { title: 'Etapa aprovada', detail: log.reason };
     default:                        return { title: log.action.replace(/_/g, ' ').toLowerCase(), detail: log.reason };
   }
@@ -130,6 +135,9 @@ const getPerformedBy = (p: PerformedBy) => {
       initials: `${p.firstName?.charAt(0) || ''}${p.lastName?.charAt(0) || ''}`.toUpperCase(),
       avatarUrl: p.avatarUrl ?? undefined,
     };
+  }
+  if (typeof p === 'string' && p) {
+    return { name: `Usuário (${p.slice(-6)})`, initials: '?', avatarUrl: undefined };
   }
   return null;
 };
