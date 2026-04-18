@@ -6,10 +6,11 @@ import {
   PlayArrow as PlayArrowIcon,
   RemoveRedEye as ViewIcon,
   ArrowForward as AdvanceIcon,
+  ArrowBack as RollbackIcon,
   FastForward as FastForwardIcon,
 } from '@mui/icons-material';
 import { Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from '@mui/material';
-import { useAdvanceStage } from '@/hooks/useFlowInstance';
+import { useAdvanceStage, useRollbackStage } from '@/hooks/useFlowInstance';
 import { useNotification } from '@/components/NotificationProvider';
 
 export type StageStatus = 'completed' | 'in_progress' | 'pending';
@@ -22,6 +23,7 @@ export type ProcessStageProps = {
   additionalInfo?: string;
   onClick?: () => void;
   canAdvance?: boolean;
+  canRollback?: boolean;
   instanceId?: string;
   onAdvanced?: () => void;
   wasAdvanced?: boolean;
@@ -30,10 +32,13 @@ export type ProcessStageProps = {
   businessDaysDuration?: number;
 };
 
-export const ProcessStageCard = ({ order, title, departments, status, additionalInfo, onClick, canAdvance, instanceId, onAdvanced, wasAdvanced, dueDate, startedAt, businessDaysDuration }: ProcessStageProps) => {
+export const ProcessStageCard = ({ order, title, departments, status, additionalInfo, onClick, canAdvance, canRollback, instanceId, onAdvanced, wasAdvanced, dueDate, startedAt, businessDaysDuration }: ProcessStageProps) => {
   const [advanceOpen, setAdvanceOpen] = useState(false);
+  const [rollbackOpen, setRollbackOpen] = useState(false);
   const [reason, setReason] = useState('');
+  const [rollbackReason, setRollbackReason] = useState('');
   const advanceMutation = useAdvanceStage();
+  const rollbackMutation = useRollbackStage();
   const { showNotification } = useNotification();
 
   // Calcula se está atrasado
@@ -64,6 +69,22 @@ export const ProcessStageCard = ({ order, title, departments, status, additional
       },
       onError: (err: any) => {
         const msg = err?.response?.data?.message || 'Erro ao avançar etapa';
+        showNotification(Array.isArray(msg) ? msg.join(', ') : msg, 'error');
+      }
+    });
+  };
+
+  const handleRollback = () => {
+    if (!instanceId || !rollbackReason.trim()) return;
+    rollbackMutation.mutate({ instanceId, reason: rollbackReason }, {
+      onSuccess: () => {
+        showNotification('Etapa retrocedida com sucesso!', 'success');
+        setRollbackOpen(false);
+        setRollbackReason('');
+        onAdvanced?.();
+      },
+      onError: (err: any) => {
+        const msg = err?.response?.data?.message || 'Erro ao retroceder etapa';
         showNotification(Array.isArray(msg) ? msg.join(', ') : msg, 'error');
       }
     });
@@ -163,14 +184,47 @@ export const ProcessStageCard = ({ order, title, departments, status, additional
           {btnConfig.text}
         </Button>
 
-        {canAdvance && status === 'in_progress' && (
-          <Button variant='outlined' fullWidth startIcon={<AdvanceIcon sx={{ fontSize: 18 }} />}
-            onClick={() => setAdvanceOpen(true)}
-            sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, py: 1, borderColor: '#16A34A', color: '#16A34A', '&:hover': { borderColor: '#15803D', bgcolor: '#F0FDF4' } }}>
-            Avançar Etapa
-          </Button>
+        {(canAdvance || canRollback) && status === 'in_progress' && (
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            {canRollback && (
+              <Button variant='outlined' fullWidth startIcon={<RollbackIcon sx={{ fontSize: 18 }} />}
+                onClick={() => setRollbackOpen(true)}
+                sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, py: 1, borderColor: '#DC2626', color: '#DC2626', '&:hover': { borderColor: '#B91C1C', bgcolor: '#FFF1F2' } }}>
+                Retroceder
+              </Button>
+            )}
+            {canAdvance && (
+              <Button variant='outlined' fullWidth startIcon={<AdvanceIcon sx={{ fontSize: 18 }} />}
+                onClick={() => setAdvanceOpen(true)}
+                sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, py: 1, borderColor: '#16A34A', color: '#16A34A', '&:hover': { borderColor: '#15803D', bgcolor: '#F0FDF4' } }}>
+                Avançar
+              </Button>
+            )}
+          </Box>
         )}
       </Box>
+
+      <Dialog open={rollbackOpen} onClose={() => { setRollbackOpen(false); setRollbackReason(''); }} maxWidth='xs' fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
+        <DialogTitle sx={{ fontWeight: 700, fontSize: '1.1rem', color: '#0f172a' }}>Retroceder Etapa</DialogTitle>
+        <DialogContent>
+          <Typography variant='body2' sx={{ color: '#64748b', mb: 2 }}>
+            Deseja retroceder a etapa <strong>{title}</strong>? A etapa anterior voltará para <strong>Em Andamento</strong>. Informe o motivo obrigatoriamente.
+          </Typography>
+          <TextField fullWidth multiline rows={3} label='Motivo (obrigatório)'
+            value={rollbackReason} onChange={(e) => setRollbackReason(e.target.value)}
+            placeholder='Descreva o motivo para retroceder...' />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={() => { setRollbackOpen(false); setRollbackReason(''); }} variant='outlined' sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2 }}>
+            Cancelar
+          </Button>
+          <Button onClick={handleRollback} variant='contained' disabled={rollbackMutation.isPending || !rollbackReason.trim()}
+            startIcon={rollbackMutation.isPending ? <CircularProgress size={16} /> : <RollbackIcon />}
+            sx={{ bgcolor: '#DC2626', textTransform: 'none', fontWeight: 700, borderRadius: 2, '&:hover': { bgcolor: '#B91C1C' } }}>
+            {rollbackMutation.isPending ? 'Retrocedendo...' : 'Confirmar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={advanceOpen} onClose={() => setAdvanceOpen(false)} maxWidth='xs' fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
         <DialogTitle sx={{ fontWeight: 700, fontSize: '1.1rem', color: '#0f172a' }}>Avançar Etapa</DialogTitle>

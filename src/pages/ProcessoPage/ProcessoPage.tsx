@@ -108,7 +108,11 @@ const ProcessoPage = () => {
       }
 
       const advancedLog = execution?.auditLogs?.find((log: any) => log.action === 'ADVANCED');
-      const wasAdvanced = !!advancedLog;
+      const lastRelevantLog = execution?.auditLogs
+        ?.filter((log: any) => log.action === 'ADVANCED' || log.action === 'ROLLED_BACK')
+        .sort((a: any, b: any) => (a.performedAt > b.performedAt ? 1 : -1))
+        .at(-1);
+      const wasAdvanced = !!advancedLog && lastRelevantLog?.action === 'ADVANCED';
 
       return {
         id: stage.stageId,
@@ -191,6 +195,7 @@ const ProcessoPage = () => {
           processId={flowInstance.process._id}
           instanceId={flowInstance._id}
           canAdvance={canAdvance}
+          canRollback={canAdvance}
         />
 
         <RelatedDocuments processId={flowInstance.process._id} />

@@ -42,6 +42,7 @@ import { EditStageModal } from "./components/EditStageModal";
 import { CreateStageModal } from "./components/CreateStageModal";
 import { ConfirmDialog } from "./components/ConfirmDialog";
 import { DuplicateFlowModelModal } from "./components/DuplicateFlowModelModal";
+import { EditFlowModelModal } from "./components/EditFlowModelModal";
 
 type TabValue = "all" | "system" | "mine";
 
@@ -96,6 +97,9 @@ const FlowModelsPage = () => {
   const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
   const [duplicateTargetId, setDuplicateTargetId] = useState<string | null>(null);
   const [duplicateDefaults, setDuplicateDefaults] = useState({ name: '', description: '' });
+  const [editModelModalOpen, setEditModelModalOpen] = useState(false);
+  const [editModelTargetId, setEditModelTargetId] = useState<string | null>(null);
+  const [editModelDefaults, setEditModelDefaults] = useState({ name: '', description: '' });
 
   const {
     search: modelSearch,
@@ -245,6 +249,21 @@ const FlowModelsPage = () => {
     onError: (error: Error) => showNotification(error?.message || "Erro ao duplicar modelo", "error"),
   });
 
+  const { mutate: editModelAttributesMutation, isPending: editingModelAttributes } = useMutation({
+    mutationFn: ({ id, name, description }: { id: string; name: string; description: string }) =>
+      updateFlowModel(id, { name, description }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
+      queryClient.invalidateQueries({ queryKey: ["findFlowModelById", editModelTargetId] });
+      showNotification("Modelo atualizado com sucesso!", "success");
+      setEditModelModalOpen(false);
+      setEditModelTargetId(null);
+      setAnchorEl(null);
+      setMenuModelId(null);
+    },
+    onError: (error: Error) => showNotification(error?.message || "Erro ao atualizar modelo", "error"),
+  });
+
   const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: TabValue) => {
     const updateTab = () => {
       setSelectedTab(newValue);
@@ -329,6 +348,15 @@ const FlowModelsPage = () => {
   const handleDuplicate = useCallback(() => {
     if (menuModelId) openDuplicateModal(menuModelId);
   }, [menuModelId, openDuplicateModal]);
+
+  const handleOpenEditModelModal = useCallback(() => {
+    if (!menuModelId) return;
+    const model = flowModels.find((m) => m._id === menuModelId);
+    if (!model) return;
+    setEditModelTargetId(menuModelId);
+    setEditModelDefaults({ name: model.name, description: model.description || '' });
+    setEditModelModalOpen(true);
+  }, [menuModelId, flowModels]);
 
   const handleEditFlow = useCallback(() => {
     if (!selectedModel) return;
@@ -1194,6 +1222,13 @@ const FlowModelsPage = () => {
                 </MenuItem>
 
                 {!isSystem && (
+                  <MenuItem onClick={handleOpenEditModelModal} disabled={deletingModel || duplicatingModel}>
+                    <EditIcon sx={{ mr: 1, fontSize: 20 }} />
+                    Editar atributos
+                  </MenuItem>
+                )}
+
+                {!isSystem && (
                   <MenuItem onClick={handleDelete} disabled={deletingModel || duplicatingModel}>
                     <DeleteIcon sx={{ mr: 1, fontSize: 20 }} />
                     {deletingModel ? "Excluindo..." : "Excluir"}
@@ -1254,6 +1289,17 @@ const FlowModelsPage = () => {
           if (id) duplicateModelMutation({ id, name, description });
           setDuplicateModalOpen(false);
           setDuplicateTargetId(null);
+        }}
+      />
+
+      <EditFlowModelModal
+        open={editModelModalOpen}
+        onClose={() => { setEditModelModalOpen(false); setEditModelTargetId(null); }}
+        defaultName={editModelDefaults.name}
+        defaultDescription={editModelDefaults.description}
+        loading={editingModelAttributes}
+        onConfirm={(name, description) => {
+          if (editModelTargetId) editModelAttributesMutation({ id: editModelTargetId, name, description });
         }}
       />
 
