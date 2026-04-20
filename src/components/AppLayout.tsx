@@ -7,14 +7,12 @@ type AppLayoutProps = {
   children: ReactNode;
   hideHeader?: boolean;
   hideSidebar?: boolean;
-  displayNavBarDropdown?: boolean;
 };
 
 const AppLayout = ({
   children,
   hideHeader = false,
-  hideSidebar = false,
-  displayNavBarDropdown = false
+  hideSidebar = false
 }: AppLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -37,7 +35,7 @@ const AppLayout = ({
             width: '100%'
           }}
         >
-          {!hideHeader && <Topbar onMenuClick={handleMenuClick} displayNavBarDropdown={displayNavBarDropdown} />}
+          {!hideHeader && <Topbar onMenuClick={handleMenuClick} />}
 
           <Box
             sx={{
