@@ -1224,7 +1224,7 @@ const FlowModelsPage = () => {
                 {!isSystem && (
                   <MenuItem onClick={handleOpenEditModelModal} disabled={deletingModel || duplicatingModel}>
                     <EditIcon sx={{ mr: 1, fontSize: 20 }} />
-                    Editar atributos
+                    Editar Informações
                   </MenuItem>
                 )}
 

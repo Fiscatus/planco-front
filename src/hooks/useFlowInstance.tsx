@@ -71,13 +71,19 @@ export type FlowInstance = {
   snapshotAuditLogs: any[];
 };
 
-export const useFlowInstance = (processId?: string) => {
+export const useFlowInstance = (processId?: string, filters?: { stageName?: string; departmentId?: string; status?: string }) => {
   return useQuery({
-    queryKey: ['flowInstance', processId],
+    queryKey: ['flowInstance', processId, filters],
     enabled: !!processId,
+    placeholderData: (prev) => prev,
     queryFn: async (): Promise<FlowInstance> => {
       if (!processId) throw new Error('ID do processo não informado');
-      const response = await api.get<FlowInstance>(`/flows/instances/process/${processId}`);
+      const params = new URLSearchParams();
+      if (filters?.stageName) params.set('stageName', filters.stageName);
+      if (filters?.departmentId) params.set('departmentId', filters.departmentId);
+      if (filters?.status) params.set('status', filters.status);
+      const query = params.toString();
+      const response = await api.get<FlowInstance>(`/flows/instances/process/${processId}${query ? `?${query}` : ''}`);
       return response.data;
     }
   });

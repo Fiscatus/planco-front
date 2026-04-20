@@ -186,7 +186,7 @@ export const ProcessStageCard = ({ order, title, departments, status, additional
 
         {(canAdvance || canRollback) && status === 'in_progress' && (
           <Box sx={{ display: 'flex', gap: 1 }}>
-            {canRollback && (
+            {canRollback && order > 1 && (
               <Button variant='outlined' fullWidth startIcon={<RollbackIcon sx={{ fontSize: 18 }} />}
                 onClick={() => setRollbackOpen(true)}
                 sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, py: 1, borderColor: '#DC2626', color: '#DC2626', '&:hover': { borderColor: '#B91C1C', bgcolor: '#FFF1F2' } }}>

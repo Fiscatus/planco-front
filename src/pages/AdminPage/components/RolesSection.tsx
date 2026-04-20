@@ -346,7 +346,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                   variant='h6'
                   sx={{ fontWeight: 500, px: 1 }}
                 >
-                  Roles
+                  Funções
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Button
@@ -377,7 +377,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                       boxShadow: 1
                     }}
                   >
-                    Nova Role
+                    Nova Função
                   </Button>
                 </Box>
               </Box>
@@ -414,7 +414,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 />
                 <TextField
                   fullWidth
-                  placeholder='Buscar roles...'
+                  placeholder='Buscar funções...'
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   size='small'
@@ -539,7 +539,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                             variant='body2'
                             color='text.secondary'
                           >
-                            Nenhuma role encontrada
+                            Nenhuma função encontrada
                           </Typography>
                         </Box>
                       )}
@@ -662,13 +662,13 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                         mb: 0.5
                       }}
                     >
-                      {selectedRole ? selectedRole.name : 'Role selecionada'}
+                      {selectedRole ? selectedRole.name : 'Função selecionada'}
                     </Typography>
                     <Typography
                       variant='body2'
                       color='text.secondary'
                     >
-                      {selectedRole ? 'Detalhes da role selecionada' : 'Selecione uma role à esquerda'}
+                      {selectedRole ? 'Detalhes da função selecionada' : 'Selecione uma função à esquerda'}
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.5, sm: 0.75, lg: 1 } }}>
@@ -726,29 +726,49 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                       variant='body2'
                       fontWeight={500}
                       color='text.secondary'
-                      sx={{ mb: 1 }}
+                      sx={{ mb: 1.5 }}
                     >
                       Permissões ({selectedRole.permissions.length})
                     </Typography>
-                    {selectedRole.permissions.length > 0 ? (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                        {selectedRole.permissions.map((permission) => (
-                          <Chip
-                            key={permission}
-                            label={permission}
-                            size='small'
-                            sx={{
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              bgcolor: 'warning.main',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: 2
-                            }}
-                          />
-                        ))}
-                      </Box>
-                    ) : (
+                    {selectedRole.permissions.length > 0 ? (() => {
+                      const permMap = new Map((permissionsData || []).map(p => [p.key, p]));
+                      const grouped = selectedRole.permissions.reduce<Record<string, PermissionDto[]>>((acc, key) => {
+                        const perm = permMap.get(key);
+                        const cat = perm?.category?.toUpperCase() ?? 'OUTROS';
+                        if (!acc[cat]) acc[cat] = [];
+                        acc[cat].push(perm ?? { key, label: key, category: 'OUTROS', action: '' });
+                        return acc;
+                      }, {});
+                      return (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {Object.entries(grouped).map(([cat, perms]) => (
+                            <Box key={cat}>
+                              <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', mb: 0.75 }}>
+                                {cat}
+                              </Typography>
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                                {perms.map(p => (
+                                  <Chip
+                                    key={p.key}
+                                    label={p.label}
+                                    size='small'
+                                    sx={{
+                                      fontSize: '0.8rem',
+                                      fontWeight: 600,
+                                      height: 26,
+                                      bgcolor: '#EFF6FF',
+                                      color: '#1D4ED8',
+                                      border: '1px solid #BFDBFE',
+                                      borderRadius: 1.5,
+                                    }}
+                                  />
+                                ))}
+                              </Box>
+                            </Box>
+                          ))}
+                        </Box>
+                      );
+                    })() : (
                       <Typography
                         variant='body2'
                         color='text.secondary'
@@ -799,7 +819,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 fontSize: '1.25rem'
               }}
             >
-              Criar Nova Role
+              Criar Nova Função
             </Typography>
             <IconButton
               onClick={handleCloseModals}
@@ -827,11 +847,11 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                   fontSize: '0.875rem'
                 }}
               >
-                Nome da Role *
+                Nome da Função *
               </Typography>
               <TextField
                 fullWidth
-                placeholder='Digite o nome da role'
+                placeholder='Digite o nome da função'
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
                 required
@@ -1032,7 +1052,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
               }
             }}
           >
-            Criar Role
+            Criar Função
           </Button>
         </Box>
       </Dialog>
@@ -1069,7 +1089,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 fontSize: '1.25rem'
               }}
             >
-              Editar Role
+              Editar Função
             </Typography>
             <IconButton
               onClick={handleCloseModals}
@@ -1097,11 +1117,11 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                   fontSize: '0.875rem'
                 }}
               >
-                Nome da Role *
+                Nome da Função *
               </Typography>
               <TextField
                 fullWidth
-                placeholder='Digite o nome da role'
+                placeholder='Digite o nome da função'
                 value={roleName}
                 onChange={(e) => setRoleName(e.target.value)}
                 required
@@ -1149,7 +1169,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                     }
                   }}
                 >
-                  O nome da role "Administrador" não pode ser alterado
+                  O nome da função "Administrador" não pode ser alterado
                 </Alert>
               )}
             </Box>
@@ -1382,7 +1402,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                 fontSize: '1.5rem'
               }}
             >
-              Confirmar Exclusão da Role
+              Confirmar Exclusão da Função
             </Typography>
           </Box>
 
@@ -1398,7 +1418,7 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                   fontSize: '1rem'
                 }}
               >
-                Tem certeza que deseja excluir a role{' '}
+                Tem certeza que deseja excluir a função{' '}
                 <strong style={{ color: '#1F2937' }}>{deleteImpact.roleName}</strong>?
               </Typography>
 
@@ -1420,14 +1440,14 @@ const RolesSection = ({ currentTab }: RolesSectionProps) => {
                     fontSize: '0.875rem'
                   }}
                 >
-                  Detalhes da role:
+                  Detalhes da função:
                 </Typography>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                   <Typography
                     variant='body2'
                     sx={{ fontSize: '0.875rem' }}
                   >
-                    <strong style={{ fontWeight: 500 }}>Role:</strong> {deleteImpact.roleName}
+                    <strong style={{ fontWeight: 500 }}>Função:</strong> {deleteImpact.roleName}
                   </Typography>
                   <Typography
                     variant='body2'

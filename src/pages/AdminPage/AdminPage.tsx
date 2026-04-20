@@ -68,10 +68,10 @@ const createPages = (permissions: {
 
   if (permissions.canAccessRoles) {
     pages.push({
-      label: 'Roles',
+      label: 'Funções',
       value: 'roles',
       icon: <AdminPanelSettingsOutlined />,
-      description: 'Configure roles e permissões',
+      description: 'Configure funções e permissões',
       component: RolesSection
     });
   }

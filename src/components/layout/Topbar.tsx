@@ -193,24 +193,6 @@ const Topbar = ({ onMenuClick, displayNavBarDropdown = false }: TopbarProps) => 
             </Menu>
           </Box>
 
-          {/* Center — search */}
-          <Box sx={{ flex: 1, display: { xs: 'none', sm: 'flex' }, justifyContent: 'center', mx: 2, minWidth: 0, maxWidth: '32rem' }}>
-            <Box sx={{ position: 'relative', width: '100%', display: 'flex', alignItems: 'center' }}>
-              <Search sx={{ position: 'absolute', left: 16, color: '#64748B', fontSize: 20, pointerEvents: 'none', zIndex: 1 }} />
-              <InputBase
-                placeholder='Buscar por processos, contratos ou relatórios...'
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                sx={{
-                  width: '100%', height: 44, borderRadius: '12px', backgroundColor: '#F8FAFC',
-                  border: '1px solid #E2E8F0', pl: 6, pr: 3, fontSize: '0.875rem', color: '#1E293B',
-                  boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)',
-                  '&:hover': { borderColor: '#CBD5E1', backgroundColor: '#F1F5F9' }
-                }}
-              />
-            </Box>
-          </Box>
-
           {/* Right — notifications + avatar */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0, minWidth: 0 }}>
             <IconButton

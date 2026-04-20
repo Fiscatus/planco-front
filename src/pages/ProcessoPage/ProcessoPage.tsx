@@ -4,6 +4,7 @@ import { Loading } from '@/components';
 import { useFlowInstance } from '@/hooks';
 import { useAuth } from '@/hooks';
 import { useFlowInstanceSSE } from '@/hooks/useFlowInstanceSSE';
+import { useState } from 'react';
 import {
   ActionHistory,
   ProcessHeader,
@@ -16,7 +17,9 @@ import {
 const ProcessoPage = () => {
   const { id: processId } = useParams<{ id: string }>();
 
-  const { data: flowInstance, isLoading, error } = useFlowInstance(processId);
+  const [stageFilters, setStageFilters] = useState<{ stageName?: string; departmentId?: string; status?: string }>({});
+
+  const { data: flowInstance, isLoading, error } = useFlowInstance(processId, stageFilters);
   const { user } = useAuth();
 
   useFlowInstanceSSE(flowInstance?._id, processId);
@@ -55,7 +58,7 @@ const ProcessoPage = () => {
     );
   }
 
-  if (isLoading) {
+  if (isLoading && !flowInstance) {
     return (
       <Box
         sx={{
@@ -156,6 +159,18 @@ const ProcessoPage = () => {
       };
     });
 
+  // Departamentos únicos de todas as etapas do snapshot (para o filtro)
+  const allDepartments = flowInstance
+    ? Array.from(
+        new Map(
+          flowInstance.snapshotStages
+            .flatMap(s => (s.responsibleDepartments ?? []) as any[])
+            .filter(d => d && typeof d === 'object' && d._id)
+            .map(d => [d._id, d])
+        ).values()
+      )
+    : [];
+
   const completedStages = stages.filter((stage) => stage.status === 'completed').length;
   const totalStages = stages.length;
   const progress = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
@@ -190,12 +205,15 @@ const ProcessoPage = () => {
           totalStages={totalStages}
         />
 
-        <ProcessStagesSection 
-          stages={stages} 
+        <ProcessStagesSection
+          stages={stages}
           processId={flowInstance.process._id}
           instanceId={flowInstance._id}
           canAdvance={canAdvance}
           canRollback={canAdvance}
+          departments={allDepartments}
+          filters={stageFilters}
+          onFilterChange={setStageFilters}
         />
 
         <RelatedDocuments processId={flowInstance.process._id} />
