@@ -75,41 +75,6 @@ const modules: Module[] = [
       { label: 'Gerenciamento de Pastas', icon: <FolderOutlined sx={{ fontSize: 16 }} />, path: '/gerenciamento-pastas' },
       { label: 'Insights', icon: <InsightsOutlined sx={{ fontSize: 16 }} />, path: '/insights' },
     ]
-  },
-  {
-    label: 'Gestão Contratual',
-    icon: <FolderOpen sx={{ fontSize: 20 }} />,
-    path: '/gestao-contratual',
-    description: 'Gerencie contratos e documentos',
-    disabled: true
-  },
-  {
-    label: 'Execução Contratual',
-    icon: <AssignmentTurnedIn sx={{ fontSize: 20 }} />,
-    path: '/execucao-contratual',
-    description: 'Monitore a execução do contrato',
-    disabled: true
-  },
-  {
-    label: 'Processo Licitatório',
-    icon: <Gavel sx={{ fontSize: 20 }} />,
-    path: '/processo-licitatorio',
-    description: 'Acompanhe o processo licitatório',
-    disabled: true
-  },
-  {
-    label: 'Relatórios',
-    icon: <BarChart sx={{ fontSize: 20 }} />,
-    path: '/relatorios',
-    description: 'Visualize dados estratégicos',
-    disabled: true
-  },
-  {
-    label: 'Configurações do Fluxo',
-    icon: <Settings sx={{ fontSize: 20 }} />,
-    path: '/configuracoes-fluxo',
-    description: 'Personalize o fluxo de trabalho',
-    disabled: true
   }
 ];
 

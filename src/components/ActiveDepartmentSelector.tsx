@@ -49,9 +49,9 @@ export const ActiveDepartmentSelector = ({
 
   if (availableDepartments.length === 0) {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Business sx={{ fontSize: 20, color: 'text.secondary' }} />
-        <Typography variant="body2" color="text.secondary">
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 1.5, py: 1, bgcolor: '#FFF7ED', border: '1px solid #FED7AA', borderRadius: 2 }}>
+        <Business sx={{ fontSize: 18, color: '#EA580C', flexShrink: 0 }} />
+        <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600, color: '#C2410C' }}>
           Nenhuma gerência disponível
         </Typography>
       </Box>

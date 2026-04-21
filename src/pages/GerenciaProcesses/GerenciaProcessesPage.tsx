@@ -2,7 +2,10 @@ import {
   Add as AddIcon,
   Clear as ClearIcon,
   FilterAlt as FilterAltIcon,
-  Search as SearchIcon
+  Search as SearchIcon,
+  BusinessCenter as BusinessCenterIcon,
+  Refresh as RefreshIcon,
+  ErrorOutline as ErrorOutlineIcon,
 } from '@mui/icons-material';
 import {
   Box,
@@ -221,13 +224,26 @@ const GerenciaProcessesPage = () => {
 
   if (!activeDepartment) {
     return (
-      <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography
-          variant='h6'
-          color='error'
-        >
-          Nenhuma gerência selecionada
-        </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', bgcolor: '#F8FAFC', py: 4, px: 2 }}>
+        <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, maxWidth: 480 }}>
+          <BusinessCenterIcon sx={{ fontSize: 100, color: '#1877F2', opacity: 0.8 }} />
+          <Box>
+            <Typography variant='h2' sx={{ fontSize: { xs: '1.25rem', md: '1.5rem' }, fontWeight: 600, color: '#1f2937', mb: 1 }}>
+              Nenhuma gerência selecionada
+            </Typography>
+            <Typography variant='body1' sx={{ color: '#6b7280', fontSize: '0.9375rem', lineHeight: 1.6 }}>
+              Selecione uma gerência na seção de minhas gerências.
+            </Typography>
+          </Box>
+          <Button
+            variant='contained'
+            startIcon={<RefreshIcon />}
+            onClick={() => window.location.reload()}
+            sx={{ bgcolor: '#1877F2', textTransform: 'none', fontWeight: 600, px: 4, py: 1.5, borderRadius: 2, boxShadow: 'none', fontSize: '0.9375rem', '&:hover': { bgcolor: '#166fe5', boxShadow: '0 4px 12px rgba(24,119,242,0.3)' } }}
+          >
+            Recarregar página
+          </Button>
+        </Box>
       </Box>
     );
   }
@@ -594,31 +610,27 @@ const GerenciaProcessesPage = () => {
             {processesLoading ? (
               <Loading isLoading={true} />
             ) : processesError ? (
-              <Card
-                sx={{
-                  p: 4,
-                  textAlign: 'center',
-                  borderRadius: 2,
-                  border: '1px solid #E4E6EB',
-                  backgroundColor: '#FFFFFF'
-                }}
-              >
-                <Typography
-                  variant='h6'
-                  color='error'
-                  sx={{ mb: 1 }}
-                >
-                  Erro ao carregar processos
-                </Typography>
-                <Typography
-                  variant='body2'
-                  color='text.secondary'
-                >
-                  {processesError instanceof Error
-                    ? processesError.message
-                    : 'Ocorreu um erro ao buscar os processos. Tente novamente.'}
-                </Typography>
-              </Card>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 10 }}>
+                <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, maxWidth: 400 }}>
+                  <ErrorOutlineIcon sx={{ fontSize: 80, color: '#1877F2', opacity: 0.8 }} />
+                  <Box>
+                    <Typography variant='h2' sx={{ fontSize: '1.25rem', fontWeight: 600, color: '#1f2937', mb: 1 }}>
+                      Erro ao carregar processos
+                    </Typography>
+                    <Typography variant='body1' sx={{ color: '#6b7280', fontSize: '0.875rem', lineHeight: 1.6 }}>
+                      {processesError instanceof Error ? processesError.message : 'Ocorreu um erro inesperado. Tente recarregar a página.'}
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant='contained'
+                    startIcon={<RefreshIcon />}
+                    onClick={() => window.location.reload()}
+                    sx={{ bgcolor: '#1877F2', textTransform: 'none', fontWeight: 600, px: 4, py: 1.5, borderRadius: 2, boxShadow: 'none', fontSize: '0.9375rem', '&:hover': { bgcolor: '#166fe5', boxShadow: '0 4px 12px rgba(24,119,242,0.3)' } }}
+                  >
+                    Recarregar página
+                  </Button>
+                </Box>
+              </Box>
             ) : (
               <>
                 <ProcessTable

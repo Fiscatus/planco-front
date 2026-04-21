@@ -1,4 +1,5 @@
-import { Alert, Box, Typography } from '@mui/material';
+import { Alert, Box, Button, Typography } from '@mui/material';
+import { BusinessCenter as BusinessCenterIcon, Refresh as RefreshIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useActiveDepartment } from '@/contexts';
 import { usePlanejamentoDashboard } from '@/hooks/usePlanejamentoDashboard';
@@ -15,8 +16,26 @@ const PlanejamentoContratacaoPage = () => {
 
   if (!activeDepartment) {
     return (
-      <Box sx={{ p: 4, textAlign: 'center' }}>
-        <Typography variant='h6' color='error'>Nenhuma gerência selecionada</Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', bgcolor: '#F8FAFC', py: 4, px: 2 }}>
+        <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, maxWidth: 480 }}>
+          <BusinessCenterIcon sx={{ fontSize: 100, color: '#1877F2', opacity: 0.8 }} />
+          <Box>
+            <Typography variant='h2' sx={{ fontSize: { xs: '1.25rem', md: '1.5rem' }, fontWeight: 600, color: '#1f2937', mb: 1 }}>
+              Nenhuma gerência selecionada
+            </Typography>
+            <Typography variant='body1' sx={{ color: '#6b7280', fontSize: '0.9375rem', lineHeight: 1.6 }}>
+              Selecione uma gerência na seção de minhas gerências.
+            </Typography>
+          </Box>
+          <Button
+            variant='contained'
+            startIcon={<RefreshIcon />}
+            onClick={() => window.location.reload()}
+            sx={{ bgcolor: '#1877F2', textTransform: 'none', fontWeight: 600, px: 4, py: 1.5, borderRadius: 2, boxShadow: 'none', fontSize: '0.9375rem', '&:hover': { bgcolor: '#166fe5', boxShadow: '0 4px 12px rgba(24,119,242,0.3)' } }}
+          >
+            Recarregar página
+          </Button>
+        </Box>
       </Box>
     );
   }
