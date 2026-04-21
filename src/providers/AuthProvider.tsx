@@ -1,9 +1,11 @@
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 
 import { AuthContext } from '@/contexts';
 import type { AuthResponse, LoginDto, RegisterDto, User } from '@/globals/types';
 import { api } from '@/services';
 import parseJwtToJson from '@/utils/parseJwtToJson';
+import { registerUserUpdatedHandler, unregisterUserUpdatedHandler, reconnectSSE } from '@/hooks/useNotificationSSE';
+import { apiErrorEmitter } from '@/services/apiErrorEmitter';
 
 const authApiPath = '/auth';
 const localStorageUserKey = '@planco:user';
@@ -14,6 +16,7 @@ type Props = {
 
 const AuthProvider = ({ children }: Props) => {
   const [user, setUser] = useState<User | undefined>();
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [hasOrganization, setHasOrganization] = useState(false);
   const [isOrgAdmin, setIsOrgAdmin] = useState(false);
   const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
@@ -37,7 +40,7 @@ const AuthProvider = ({ children }: Props) => {
 
       const decodedJwt = parseJwtToJson(data.access_token);
       if (decodedJwt) {
-        setUser({
+        const baseUser = {
           _id: decodedJwt.sub,
           firstName: decodedJwt.firstName,
           lastName: decodedJwt.lastName,
@@ -46,8 +49,13 @@ const AuthProvider = ({ children }: Props) => {
           org: decodedJwt.org,
           role: decodedJwt.role,
           departments: decodedJwt.departments
-        });
+        };
+        setUser(baseUser);
         setHasOrganization(decodedJwt.org !== null);
+        // Buscar perfil completo para obter avatarUrl
+        api.get('/users/me').then(res => setUser({ ...baseUser, ...res.data })).catch(() => {});
+        // Reconectar SSE com o novo token
+        reconnectSSE();
       }
     }
     return data;
@@ -59,6 +67,10 @@ const AuthProvider = ({ children }: Props) => {
     setUser(undefined);
   };
 
+  const updateUser = (partial: Partial<User>) => {
+    setUser(prev => prev ? { ...prev, ...partial } : prev);
+  };
+
   const refreshToken = async (): Promise<AuthResponse> => {
     const { data } = await api.post(`${authApiPath}/refresh`);
     if (data.access_token) {
@@ -67,7 +79,7 @@ const AuthProvider = ({ children }: Props) => {
 
       const decodedJwt = parseJwtToJson(data.access_token);
       if (decodedJwt) {
-        setUser({
+        const baseUser = {
           _id: decodedJwt.sub,
           firstName: decodedJwt.firstName,
           lastName: decodedJwt.lastName,
@@ -76,50 +88,75 @@ const AuthProvider = ({ children }: Props) => {
           org: decodedJwt.org,
           role: decodedJwt.role,
           departments: decodedJwt.departments
-        });
+        };
+        setUser(baseUser);
         setHasOrganization(decodedJwt.org !== null);
+        api.get('/users/me').then(res => setUser({ ...baseUser, ...res.data })).catch(() => {});
       }
     }
     return data;
   };
 
-  const loadUserFromLocalStorage = () => {
-    if (localStorage.getItem(localStorageUserKey)) {
-      const localStorageUser = JSON.parse(String(localStorage.getItem(localStorageUserKey)));
-      verifyAuth(localStorageUser.access_token);
-      if (!user && localStorageUser.access_token) {
-        const decodedJwt = parseJwtToJson(localStorageUser.access_token);
-        if (decodedJwt) {
-          setUser({
-            _id: decodedJwt.sub,
-            firstName: decodedJwt.firstName,
-            lastName: decodedJwt.lastName,
-            email: decodedJwt.email,
-            isPlatformAdmin: decodedJwt.isPlatformAdmin,
-            org: decodedJwt.org,
-            role: decodedJwt.role,
-            departments: decodedJwt.departments
-          });
-          setHasOrganization(decodedJwt.org !== null);
-        }
-        api.defaults.headers.common.Authorization = `Bearer ${localStorageUser.access_token}`;
-      }
-    }
-  };
+  // Registrar handler para USER_UPDATED via SSE
+  // Usa ref para garantir que sempre chama a versão mais recente de refreshToken
+  const refreshTokenRef = useRef(refreshToken);
+  refreshTokenRef.current = refreshToken;
+
+  useEffect(() => {
+    registerUserUpdatedHandler(() => refreshTokenRef.current().catch(() => {}));
+    return () => unregisterUserUpdatedHandler();
+  }, []);
+
+  useEffect(() => {
+    apiErrorEmitter.onUnauthorized(signOut);
+    return () => apiErrorEmitter.offUnauthorized();
+  }, []);
 
   const verifyAuth = (accessToken: string) => {
     const decodedJwt = parseJwtToJson(accessToken);
     if (decodedJwt.exp * 1000 < Date.now()) {
       signOut();
       localStorage.removeItem(localStorageUserKey);
+      return false;
     }
+    return true;
   };
 
-  loadUserFromLocalStorage();
+  useEffect(() => {
+    const localStorageUser = localStorage.getItem(localStorageUserKey);
+    if (localStorageUser) {
+      try {
+        const parsed = JSON.parse(localStorageUser);
+        const isValid = verifyAuth(parsed.access_token);
+        if (isValid && parsed.access_token) {
+          const decodedJwt = parseJwtToJson(parsed.access_token);
+          if (decodedJwt) {
+            const baseUser = {
+              _id: decodedJwt.sub,
+              firstName: decodedJwt.firstName,
+              lastName: decodedJwt.lastName,
+              email: decodedJwt.email,
+              isPlatformAdmin: decodedJwt.isPlatformAdmin,
+              org: decodedJwt.org,
+              role: decodedJwt.role,
+              departments: decodedJwt.departments
+            };
+            setUser(baseUser);
+            setHasOrganization(decodedJwt.org !== null);
+            api.defaults.headers.common.Authorization = `Bearer ${parsed.access_token}`;
+            api.get('/users/me').then(res => setUser({ ...baseUser, ...res.data })).catch(() => {});
+          }
+        }
+      } catch {
+        localStorage.removeItem(localStorageUserKey);
+      }
+    }
+    setIsAuthLoading(false);
+  }, []);
 
   return (
     <AuthContext.Provider
-      value={{ user, signUp, signIn, signOut, refreshToken, hasOrganization, isOrgAdmin, isPlatformAdmin }}
+      value={{ user, isAuthLoading, signUp, signIn, signOut, refreshToken, updateUser, hasOrganization, isOrgAdmin, isPlatformAdmin }}
     >
       {children}
     </AuthContext.Provider>

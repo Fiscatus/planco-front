@@ -4,14 +4,21 @@ import {
   BarChart,
   Business,
   Close,
+  ExpandLess,
+  ExpandMore,
   FolderOpen,
   Gavel,
   Home,
   Settings,
-  Shield
+  Shield,
+  AccountTreeOutlined,
+  GroupOutlined,
+  InsightsOutlined,
+  FolderOutlined,
 } from '@mui/icons-material';
 import {
   Box,
+  Collapse,
   Drawer,
   IconButton,
   List,
@@ -21,7 +28,7 @@ import {
   ListItemText,
   Typography
 } from '@mui/material';
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { version } from '@/../package.json';
 import { useAccessControl } from '@/hooks';
@@ -33,12 +40,19 @@ type SidebarProps = {
   onClose: () => void;
 };
 
+type SubItem = {
+  label: string;
+  icon: ReactNode;
+  path: string;
+};
+
 type Module = {
   label: string;
   icon: ReactNode;
   path: string;
   description: string;
   disabled?: boolean;
+  subItems?: SubItem[];
 };
 
 const dashboard = {
@@ -53,42 +67,14 @@ const modules: Module[] = [
     label: 'Planejamento da Contratação',
     icon: <Assignment sx={{ fontSize: 20 }} />,
     path: '/planejamento-da-contratacao',
-    description: 'Organize todas as fases da contratação'
-  },
-  {
-    label: 'Gestão Contratual',
-    icon: <FolderOpen sx={{ fontSize: 20 }} />,
-    path: '/gestao-contratual',
-    description: 'Gerencie contratos e documentos',
-    disabled: true
-  },
-  {
-    label: 'Execução Contratual',
-    icon: <AssignmentTurnedIn sx={{ fontSize: 20 }} />,
-    path: '/execucao-contratual',
-    description: 'Monitore a execução do contrato',
-    disabled: true
-  },
-  {
-    label: 'Processo Licitatório',
-    icon: <Gavel sx={{ fontSize: 20 }} />,
-    path: '/processo-licitatorio',
-    description: 'Acompanhe o processo licitatório',
-    disabled: true
-  },
-  {
-    label: 'Relatórios',
-    icon: <BarChart sx={{ fontSize: 20 }} />,
-    path: '/relatorios',
-    description: 'Visualize dados estratégicos',
-    disabled: true
-  },
-  {
-    label: 'Configurações do Fluxo',
-    icon: <Settings sx={{ fontSize: 20 }} />,
-    path: '/configuracoes-fluxo',
-    description: 'Personalize o fluxo de trabalho',
-    disabled: true
+    description: 'Organize todas as fases da contratação',
+    subItems: [
+      { label: 'Painel', icon: <Home sx={{ fontSize: 16 }} />, path: '/planejamento-da-contratacao' },
+      { label: 'Processos', icon: <GroupOutlined sx={{ fontSize: 16 }} />, path: '/processos-gerencia' },
+      { label: 'Modelos de Fluxo', icon: <AccountTreeOutlined sx={{ fontSize: 16 }} />, path: '/modelos-fluxo' },
+      { label: 'Gerenciamento de Pastas', icon: <FolderOutlined sx={{ fontSize: 16 }} />, path: '/gerenciamento-pastas' },
+      { label: 'Insights', icon: <InsightsOutlined sx={{ fontSize: 16 }} />, path: '/insights' },
+    ]
   }
 ];
 
@@ -96,6 +82,25 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { canAccessAdmin, isAdminOnly } = useAccessControl();
+
+  const SUBROUTES = ['/processos-gerencia', '/modelos-fluxo', '/gerenciamento-pastas', '/insights', '/planejamento-da-contratacao'];
+  const isInPlanejamento = SUBROUTES.some(r => location.pathname.startsWith(r));
+
+  const STORAGE_KEY = '@planco:sidebar_expanded_module';
+  const getInitialExpanded = () => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved !== null) return saved === '' ? null : saved;
+    return '/planejamento-da-contratacao'; // padrão: aberto
+  };
+
+  const [expandedModule, setExpandedModule] = useState<string | null>(getInitialExpanded);
+
+  useEffect(() => {
+    if (isInPlanejamento && expandedModule !== '/planejamento-da-contratacao') {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved === null) setExpandedModule('/planejamento-da-contratacao');
+    }
+  }, [location.pathname, isInPlanejamento]);
 
   useEffect(() => {
     function handleEsc(e: KeyboardEvent) {
@@ -106,19 +111,34 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
   }, [open, onClose]);
 
   const handleModuleClick = (module: Module) => {
+    if (module.subItems?.length) {
+      const next = expandedModule === module.path ? null : module.path;
+      setExpandedModule(next);
+      localStorage.setItem(STORAGE_KEY, next ?? '');
+      return;
+    }
     navigate(module.path);
     onClose();
   };
 
+  const handleSubItemClick = (path: string) => {
+    navigate(path);
+    onClose();
+  };
+
   const isActiveModule = (modulePath: string) => {
+    if (modulePath === '/planejamento-da-contratacao') {
+      return SUBROUTES.some(r => location.pathname.startsWith(r));
+    }
     return (
       location.pathname === modulePath ||
       (modulePath === '/' && location.pathname === '/') ||
-      (modulePath === '/planejamento-da-contratacao' && location.pathname === '/planejamento-da-contratacao') ||
       (modulePath === '/admin' && location.pathname === '/admin') ||
       (modulePath === '/minhas-gerencias' && location.pathname === '/minhas-gerencias')
     );
   };
+
+  const isActiveSubItem = (path: string) => location.pathname.startsWith(path) && (path !== '/planejamento-da-contratacao' || location.pathname === '/planejamento-da-contratacao');
 
   const isActiveDashboard = (dashboardPath: string) => {
     return location.pathname === dashboardPath;
@@ -253,11 +273,7 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
 
         <List sx={{ px: 2 }}>
           {modules.map((module) => (
-            <ListItem
-              key={module.label}
-              disablePadding
-              sx={{ mb: 0.25 }}
-            >
+            <ListItem key={module.label} disablePadding sx={{ mb: 0.25, flexDirection: 'column', alignItems: 'stretch' }}>
               <ListItemButton
                 onClick={() => handleModuleClick(module)}
                 disabled={module.disabled}
@@ -269,60 +285,72 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                   opacity: module.disabled ? 0.5 : 1,
                   cursor: module.disabled ? 'not-allowed' : 'pointer',
                   '&:hover': {
-                    backgroundColor: module.disabled
-                      ? 'transparent'
-                      : isActiveModule(module.path)
-                        ? '#eff6ff'
-                        : '#f9fafb',
-                    borderLeft: module.disabled
-                      ? '4px solid transparent'
-                      : isActiveModule(module.path)
-                        ? '4px solid #2563eb'
-                        : '4px solid #d1d5db'
+                    backgroundColor: module.disabled ? 'transparent' : isActiveModule(module.path) ? '#eff6ff' : '#f9fafb',
+                    borderLeft: module.disabled ? '4px solid transparent' : isActiveModule(module.path) ? '4px solid #2563eb' : '4px solid #d1d5db'
                   },
                   py: 1,
                   px: 2
                 }}
               >
-                <ListItemIcon
-                  sx={{
-                    minWidth: 32,
-                    color: isActiveModule(module.path) ? '#2563eb' : module.disabled ? '#9ca3af' : '#6b7280'
-                  }}
-                >
+                <ListItemIcon sx={{ minWidth: 32, color: isActiveModule(module.path) ? '#2563eb' : module.disabled ? '#9ca3af' : '#6b7280' }}>
                   {module.icon}
                 </ListItemIcon>
                 <ListItemText
                   primary={
-                    <Typography
-                      variant='body2'
-                      sx={{
-                        fontWeight: 500,
-                        lineHeight: 1.2,
-                        fontSize: '0.875rem',
-                        color: module.disabled ? '#9ca3af' : 'inherit'
-                      }}
-                    >
+                    <Typography variant='body2' sx={{ fontWeight: 500, lineHeight: 1.2, fontSize: '0.875rem', color: module.disabled ? '#9ca3af' : 'inherit' }}>
                       {module.label}
                     </Typography>
                   }
                   secondary={
-                    <Typography
-                      variant='caption'
-                      sx={{
-                        color: '#6b7280',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        lineHeight: 1.2,
-                        fontSize: '0.75rem'
-                      }}
-                    >
+                    <Typography variant='caption' sx={{ color: '#6b7280', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.2, fontSize: '0.75rem' }}>
                       {module.description}
                     </Typography>
                   }
                 />
+                {module.subItems?.length && !module.disabled && (
+                  expandedModule === module.path
+                    ? <ExpandLess sx={{ fontSize: 18, color: '#6b7280', ml: 0.5 }} />
+                    : <ExpandMore sx={{ fontSize: 18, color: '#6b7280', ml: 0.5 }} />
+                )}
               </ListItemButton>
+
+              {/* Sub-itens */}
+              {module.subItems?.length && (
+                <Collapse in={expandedModule === module.path} timeout='auto' unmountOnExit>
+                  <List disablePadding sx={{ pl: 2, mt: 0.5, mb: 0.5 }}>
+                    {module.subItems.map(sub => (
+                      <ListItemButton
+                        key={sub.path}
+                        onClick={() => handleSubItemClick(sub.path)}
+                        sx={{
+                          borderRadius: 1,
+                          py: 0.75,
+                          px: 1.5,
+                          mb: 0.25,
+                          borderLeft: isActiveSubItem(sub.path) ? '3px solid #2563eb' : '3px solid transparent',
+                          backgroundColor: isActiveSubItem(sub.path) ? '#eff6ff' : 'transparent',
+                          color: isActiveSubItem(sub.path) ? '#2563eb' : '#4b5563',
+                          '&:hover': {
+                            backgroundColor: isActiveSubItem(sub.path) ? '#eff6ff' : '#f9fafb',
+                            borderLeft: isActiveSubItem(sub.path) ? '3px solid #2563eb' : '3px solid #d1d5db',
+                          }
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: 28, color: isActiveSubItem(sub.path) ? '#2563eb' : '#9ca3af' }}>
+                          {sub.icon}
+                        </ListItemIcon>
+                        <ListItemText
+                          primary={
+                            <Typography variant='body2' sx={{ fontSize: '0.8125rem', fontWeight: isActiveSubItem(sub.path) ? 600 : 400, lineHeight: 1.3 }}>
+                              {sub.label}
+                            </Typography>
+                          }
+                        />
+                      </ListItemButton>
+                    ))}
+                  </List>
+                </Collapse>
+              )}
             </ListItem>
           ))}
         </List>
@@ -523,10 +551,10 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
         open={open}
         onClose={onClose}
         sx={{
-          width: 320,
+          width: 360,
           flexShrink: 0,
           '& .MuiDrawer-paper': {
-            width: 320,
+            width: 360,
             boxSizing: 'border-box',
             backgroundColor: 'white',
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',

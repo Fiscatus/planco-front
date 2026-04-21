@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { apiErrorEmitter } from './apiErrorEmitter';
 
 const BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -54,23 +55,60 @@ api.interceptors.request.use(
   }
 );
 
+let isRefreshing = false;
+let refreshQueue: Array<(token: string) => void> = [];
+
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response?.data?.message) {
-      const backendError = new Error(error.response.data.message);
-      // biome-ignore lint/suspicious/noExplicitAny: <type any in the backendError>
-      (backendError as any).status = error.response.status;
-      // biome-ignore lint/suspicious/noExplicitAny: <type any in the backendError>
-      (backendError as any).response = error.response;
-      throw backendError;
+  (response) => response,
+  async (error) => {
+    const status = error.response?.status;
+    const originalRequest = error.config;
+
+    if (status === 401 && !originalRequest._retry && !originalRequest.url?.includes('/auth/refresh')) {
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          refreshQueue.push((token) => {
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            resolve(api(originalRequest));
+          });
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const userData = localStorage.getItem('@planco:user');
+        const parsed = userData ? JSON.parse(userData) : null;
+        const { data } = await axios.post(
+          `${BASE_URL}/auth/refresh`,
+          {},
+          { headers: { Authorization: `Bearer ${parsed?.access_token}` } }
+        );
+        const newToken = data.access_token;
+        localStorage.setItem('@planco:user', JSON.stringify(data));
+        api.defaults.headers.common.Authorization = `Bearer ${newToken}`;
+        refreshQueue.forEach((cb) => cb(newToken));
+        refreshQueue = [];
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      } catch {
+        refreshQueue = [];
+        apiErrorEmitter.emit('__unauthorized__');
+      } finally {
+        isRefreshing = false;
+      }
     }
-    if (error.code === 'ERR_NETWORK') {
-      throw new Error('Erro de conexão. Verifique se o servidor está rodando.');
-    }
-    throw error;
+
+    const message = Array.isArray(error.response?.data?.message)
+      ? error.response.data.message.join(', ')
+      : error.response?.data?.message || error.message || 'Erro inesperado';
+
+    const backendError = new Error(message);
+    (backendError as any).status = status;
+    (backendError as any).response = error.response;
+    (backendError as any)._emitted = false;
+    throw backendError;
   }
 );
 

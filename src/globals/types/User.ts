@@ -23,6 +23,8 @@ export type User = {
   }>;
   createdAt?: string;
   updatedAt?: string;
+  emailVerified?: boolean;
+  avatarUrl?: string;
 };
 
 export type AuthResponse = {
@@ -66,4 +68,17 @@ export type PaginatedUsersDto = {
 export type ToggleUserStatusResponse = {
   message: string;
   isActive: boolean;
+};
+
+export type UpdateProfileDto = {
+  firstName: string;
+  lastName: string;
+  cpf?: string;
+  phone?: string;
+};
+
+export type ChangePasswordDto = {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
 };

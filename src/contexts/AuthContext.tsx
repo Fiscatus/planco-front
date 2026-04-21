@@ -4,6 +4,7 @@ import { createContext } from 'react';
 
 type AuthContextType = {
   user: User | undefined;
+  isAuthLoading: boolean;
   hasOrganization: boolean;
   isOrgAdmin: boolean;
   isPlatformAdmin: boolean;
@@ -11,6 +12,7 @@ type AuthContextType = {
   signUp(user: RegisterDto): Promise<AuthResponse>;
   signIn(credentials: LoginDto): Promise<AuthResponse>;
   refreshToken(): Promise<AuthResponse>;
+  updateUser(partial: Partial<User>): void;
 };
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);

@@ -1,4 +1,18 @@
 export type {
+  CreateDepartmentDto,
+  Department,
+  PaginatedDepartments,
+  UpdateDepartmentDto
+} from './Department';
+export type {
+  CreateFolderDto,
+  FilterFoldersDto,
+  Folder,
+  PaginatedFolders,
+  ToggleFavoriteResponse,
+  UpdateFolderDto
+} from './Folder';
+export type {
   AcceptInviteResponse,
   CreateInviteDto,
   DeclineInviteResponse,
@@ -12,44 +26,66 @@ export type {
   InviteUser,
   PaginatedInvitesDto
 } from './Invite';
+export type { MoveProcessesDto } from './MoveProcesses';
+export type {
+  AppNotification,
+  NotificationCategory,
+  NotificationFilters,
+  PaginatedNotifications
+} from './Notification';
+export type {
+  AlertaCritico,
+  PlanejamentoDashboardResponse,
+  PlanejamentoKpis,
+  Pendencia,
+  ProcessoRecente,
+  ProximoPrazo
+} from './Planejamento';
+export type {
+  CreateProcessDto,
+  FilterProcessesDto,
+  FolderStatsDto,
+  PaginatedProcesses,
+  Process,
+  UpdateProcessDto
+} from './Process';
+export type {
+  ProcessComponentType,
+  ProcessFlowComponentDescriptor,
+  ProcessFlowComponentState,
+  ProcessFlowSnapshotMeta,
+  ProcessFlowStageCard,
+  ProcessFlowState,
+  ProcessStageStatus
+} from './ProcessFlow';
+export type {
+  CreateRoleDto,
+  PermissionDto,
+  PermissionsResponseDto,
+  Role,
+  RoleDeleteImpact,
+  RoleDeleteResponse,
+  UpdateRoleDto
+} from './Role';
+export type {
+  CriticalAlert,
+  DepartmentInsightsResponse,
+  DepartmentSummary,
+  InsightsParams,
+  InsightsResponse,
+  MonthCount,
+  PaginatedDepartmentInsights,
+  ProcessKpi
+} from './Insights';
 export type {
   AuthResponse,
+  ChangePasswordDto,
   FilterUsersDto,
   LoginDto,
   PaginatedUsersDto,
   RegisterDto,
   ToggleUserStatusResponse,
+  UpdateProfileDto,
   User
 } from './User';
-export type {
-  CreateRoleDto,
-  UpdateRoleDto,
-  Role,
-  RoleDeleteImpact,
-  RoleDeleteResponse,
-  PermissionDto,
-  PermissionsResponseDto
-} from './Role';
-export type {
-  Department,
-  PaginatedDepartments,
-  CreateDepartmentDto,
-  UpdateDepartmentDto
-} from './Department';
-export type {
-  Folder,
-  PaginatedFolders,
-  CreateFolderDto,
-  UpdateFolderDto,
-  FilterFoldersDto,
-  ToggleFavoriteResponse
-} from './Folder';
-export type {
-  Process,
-  PaginatedProcesses,
-  FilterProcessesDto,
-  CreateProcessDto,
-  UpdateProcessDto,
-  FolderStatsDto
-} from './Process';
-export type { MoveProcessesDto } from './MoveProcesses';
+export type { Org, OrgEndereco, UpdateOrgDto } from './Org';

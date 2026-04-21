@@ -1,8 +1,7 @@
 import { Box } from '@mui/material';
 import { type ReactNode, useState } from 'react';
-
-import { Footer } from './layout/Footer';
 import { Sidebar, Topbar } from './layout';
+import { Footer } from './layout/Footer';
 
 type AppLayoutProps = {
   children: ReactNode;
@@ -10,7 +9,11 @@ type AppLayoutProps = {
   hideSidebar?: boolean;
 };
 
-const AppLayout = ({ children, hideHeader = false, hideSidebar = false }: AppLayoutProps) => {
+const AppLayout = ({
+  children,
+  hideHeader = false,
+  hideSidebar = false
+}: AppLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleMenuClick = () => {

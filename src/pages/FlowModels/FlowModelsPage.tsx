@@ -41,6 +41,8 @@ import { StageCard } from "./components/StageCard";
 import { EditStageModal } from "./components/EditStageModal";
 import { CreateStageModal } from "./components/CreateStageModal";
 import { ConfirmDialog } from "./components/ConfirmDialog";
+import { DuplicateFlowModelModal } from "./components/DuplicateFlowModelModal";
+import { EditFlowModelModal } from "./components/EditFlowModelModal";
 
 type TabValue = "all" | "system" | "mine";
 
@@ -92,6 +94,12 @@ const FlowModelsPage = () => {
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [deleteModelDialogOpen, setDeleteModelDialogOpen] = useState(false);
+  const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
+  const [duplicateTargetId, setDuplicateTargetId] = useState<string | null>(null);
+  const [duplicateDefaults, setDuplicateDefaults] = useState({ name: '', description: '' });
+  const [editModelModalOpen, setEditModelModalOpen] = useState(false);
+  const [editModelTargetId, setEditModelTargetId] = useState<string | null>(null);
+  const [editModelDefaults, setEditModelDefaults] = useState({ name: '', description: '' });
 
   const {
     search: modelSearch,
@@ -222,7 +230,8 @@ const FlowModelsPage = () => {
   });
 
   const { mutate: duplicateModelMutation, isPending: duplicatingModel } = useMutation({
-    mutationFn: duplicateFlowModel,
+    mutationFn: ({ id, name, description }: { id: string; name: string; description: string }) =>
+      duplicateFlowModel(id, { name, description }),
     onSuccess: (newModel) => {
       queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
       showNotification("Modelo duplicado com sucesso!", "success");
@@ -238,6 +247,21 @@ const FlowModelsPage = () => {
       setMenuModelId(null);
     },
     onError: (error: Error) => showNotification(error?.message || "Erro ao duplicar modelo", "error"),
+  });
+
+  const { mutate: editModelAttributesMutation, isPending: editingModelAttributes } = useMutation({
+    mutationFn: ({ id, name, description }: { id: string; name: string; description: string }) =>
+      updateFlowModel(id, { name, description }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["fetchFlowModels"] });
+      queryClient.invalidateQueries({ queryKey: ["findFlowModelById", editModelTargetId] });
+      showNotification("Modelo atualizado com sucesso!", "success");
+      setEditModelModalOpen(false);
+      setEditModelTargetId(null);
+      setAnchorEl(null);
+      setMenuModelId(null);
+    },
+    onError: (error: Error) => showNotification(error?.message || "Erro ao atualizar modelo", "error"),
   });
 
   const handleTabChange = useCallback((_event: React.SyntheticEvent, newValue: TabValue) => {
@@ -310,9 +334,29 @@ const FlowModelsPage = () => {
     }
   }, [menuModelId, deleteModelMutation, handleMenuClose]);
 
+  const openDuplicateModal = useCallback((modelId: string) => {
+    const model = flowModels.find((m) => m._id === modelId);
+    if (!model) return;
+    setDuplicateTargetId(modelId);
+    setDuplicateDefaults({
+      name: `${model.name} (Cópia)`,
+      description: model.description || ''
+    });
+    setDuplicateModalOpen(true);
+  }, [flowModels]);
+
   const handleDuplicate = useCallback(() => {
-    if (menuModelId) duplicateModelMutation(menuModelId);
-  }, [menuModelId, duplicateModelMutation]);
+    if (menuModelId) openDuplicateModal(menuModelId);
+  }, [menuModelId, openDuplicateModal]);
+
+  const handleOpenEditModelModal = useCallback(() => {
+    if (!menuModelId) return;
+    const model = flowModels.find((m) => m._id === menuModelId);
+    if (!model) return;
+    setEditModelTargetId(menuModelId);
+    setEditModelDefaults({ name: model.name, description: model.description || '' });
+    setEditModelModalOpen(true);
+  }, [menuModelId, flowModels]);
 
   const handleEditFlow = useCallback(() => {
     if (!selectedModel) return;
@@ -414,7 +458,7 @@ const FlowModelsPage = () => {
         return prev;
       }
 
-      // Apenas valida order se não for opcional
+      // Apenas valida order duplicado entre etapas normais
       if (!updatedStage.isOptional && base.some((s, i) => i !== idx && s.order === updatedStage.order && !s.isOptional)) {
         showNotification("Já existe uma etapa com essa ordem (order).", "error");
         return prev;
@@ -428,9 +472,11 @@ const FlowModelsPage = () => {
     showNotification("Etapa atualizada no rascunho. Clique em Salvar para enviar ao backend.", "success");
   }, [isEditMode, showNotification, editingStageOriginalId]);
 
-  const normalizeOrders = useCallback((stages: FlowModelStage[]) => 
-    stages.slice().sort((a, b) => a.order - b.order).map((s, idx) => ({ ...s, order: idx + 1 }))
-  , []);
+  const normalizeOrders = useCallback((stages: FlowModelStage[]) => {
+    const normals = stages.filter(s => !s.isOptional).sort((a, b) => a.order - b.order).map((s, idx) => ({ ...s, order: idx + 1 }));
+    const optionals = stages.filter(s => s.isOptional).sort((a, b) => a.order - b.order).map((s, idx) => ({ ...s, order: idx + 1 }));
+    return [...normals, ...optionals];
+  }, []);
 
   const handleDeleteStage = useCallback((stageId: string) => {
     if (!isEditMode) return;
@@ -445,14 +491,38 @@ const FlowModelsPage = () => {
     if (!isEditMode) return;
     setDraftStages((prev) => {
       if (!prev) return prev;
-      const arr = prev.slice().sort((a, b) => a.order - b.order);
-      const activeIndex = arr.findIndex((s) => s.stageId === activeId);
-      const overIndex = arr.findIndex((s) => s.stageId === overId);
-      if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) return prev;
-      const reordered = [...arr];
-      const [moved] = reordered.splice(activeIndex, 1);
-      reordered.splice(overIndex, 0, moved);
-      return reordered.map((s, idx) => ({ ...s, order: idx + 1 }));
+      // Separa normais e opcionais
+      const normals = prev.filter(s => !s.isOptional).sort((a, b) => a.order - b.order);
+      const optionals = prev.filter(s => s.isOptional).sort((a, b) => a.order - b.order);
+
+      // Descobre em qual grupo estão os dois
+      const activeInNormals = normals.some(s => s.stageId === activeId);
+      const overInNormals = normals.some(s => s.stageId === overId);
+      const activeInOptionals = optionals.some(s => s.stageId === activeId);
+      const overInOptionals = optionals.some(s => s.stageId === overId);
+
+      // Só permite mover dentro do mesmo grupo
+      if (activeInNormals && overInNormals) {
+        const activeIndex = normals.findIndex(s => s.stageId === activeId);
+        const overIndex = normals.findIndex(s => s.stageId === overId);
+        const reordered = [...normals];
+        const [moved] = reordered.splice(activeIndex, 1);
+        reordered.splice(overIndex, 0, moved);
+        const updated = reordered.map((s, idx) => ({ ...s, order: idx + 1 }));
+        return [...updated, ...optionals.map((s, idx) => ({ ...s, order: idx + 1 }))];
+      }
+
+      if (activeInOptionals && overInOptionals) {
+        const activeIndex = optionals.findIndex(s => s.stageId === activeId);
+        const overIndex = optionals.findIndex(s => s.stageId === overId);
+        const reordered = [...optionals];
+        const [moved] = reordered.splice(activeIndex, 1);
+        reordered.splice(overIndex, 0, moved);
+        const updated = reordered.map((s, idx) => ({ ...s, order: idx + 1 }));
+        return [...normals.map((s, idx) => ({ ...s, order: idx + 1 })), ...updated];
+      }
+
+      return prev;
     });
   }, [isEditMode]);
 
@@ -470,15 +540,9 @@ const FlowModelsPage = () => {
         showNotification("Já existe uma etapa com esse stageId.", "error");
         return prev;
       }
-      
-      // Recalcula order se não for opcional
-      let finalStage = newStage;
-      if (!newStage.isOptional) {
-        const normalStages = base.filter(s => !s.isOptional);
-        const maxOrder = normalStages.length > 0 ? Math.max(...normalStages.map(s => s.order)) : 0;
-        finalStage = { ...newStage, order: maxOrder + 1 };
-      }
-      
+      // Calcula o próximo order para qualquer tipo de etapa
+      const maxOrder = base.length > 0 ? Math.max(...base.map(s => s.order)) : 0;
+      const finalStage = { ...newStage, order: maxOrder + 1 };
       return [...base, finalStage];
     });
     setCreateStageOpen(false);
@@ -987,7 +1051,7 @@ const FlowModelsPage = () => {
                       <Button
                         variant="contained"
                         startIcon={<ContentCopyIcon />}
-                        onClick={() => duplicateModelMutation(selectedModel._id)}
+                        onClick={() => openDuplicateModal(selectedModel._id)}
                         disabled={duplicatingModel}
                         sx={{
                           bgcolor: "#1877F2",
@@ -1035,10 +1099,11 @@ const FlowModelsPage = () => {
                         .filter(stage => !stage.isOptional)
                         .slice()
                         .sort((a, b) => a.order - b.order)
-                        .map((stage) => (
+                        .map((stage, idx) => (
                           <StageCard
                             key={stage.stageId || String(stage.order)}
                             stage={stage}
+                            displayOrder={idx + 1}
                             isEditMode={isEditMode}
                             onEditStage={handleEditStage}
                             onDeleteStage={handleDeleteStage}
@@ -1069,10 +1134,11 @@ const FlowModelsPage = () => {
                       >
                         {stagesToRender
                           .filter(stage => stage.isOptional)
-                          .map((stage) => (
+                          .map((stage, idx) => (
                             <StageCard
                               key={stage.stageId || String(stage.order)}
                               stage={stage}
+                              displayOrder={idx + 1}
                               isEditMode={isEditMode}
                               onEditStage={handleEditStage}
                               onDeleteStage={handleDeleteStage}
@@ -1156,6 +1222,13 @@ const FlowModelsPage = () => {
                 </MenuItem>
 
                 {!isSystem && (
+                  <MenuItem onClick={handleOpenEditModelModal} disabled={deletingModel || duplicatingModel}>
+                    <EditIcon sx={{ mr: 1, fontSize: 20 }} />
+                    Editar Informações
+                  </MenuItem>
+                )}
+
+                {!isSystem && (
                   <MenuItem onClick={handleDelete} disabled={deletingModel || duplicatingModel}>
                     <DeleteIcon sx={{ mr: 1, fontSize: 20 }} />
                     {deletingModel ? "Excluindo..." : "Excluir"}
@@ -1205,6 +1278,31 @@ const FlowModelsPage = () => {
         title="Alterações não salvas"
         message="Você está no modo de edição. As alterações não salvas serão perdidas. Deseja continuar?"
       />
+      <DuplicateFlowModelModal
+        open={duplicateModalOpen}
+        onClose={() => { setDuplicateModalOpen(false); setDuplicateTargetId(null); }}
+        defaultName={duplicateDefaults.name}
+        defaultDescription={duplicateDefaults.description}
+        loading={duplicatingModel}
+        onConfirm={(name, description) => {
+          const id = duplicateTargetId || selectedModel?._id;
+          if (id) duplicateModelMutation({ id, name, description });
+          setDuplicateModalOpen(false);
+          setDuplicateTargetId(null);
+        }}
+      />
+
+      <EditFlowModelModal
+        open={editModelModalOpen}
+        onClose={() => { setEditModelModalOpen(false); setEditModelTargetId(null); }}
+        defaultName={editModelDefaults.name}
+        defaultDescription={editModelDefaults.description}
+        loading={editingModelAttributes}
+        onConfirm={(name, description) => {
+          if (editModelTargetId) editModelAttributesMutation({ id: editModelTargetId, name, description });
+        }}
+      />
+
       <ConfirmDialog
         open={deleteModelDialogOpen}
         onClose={() => setDeleteModelDialogOpen(false)}

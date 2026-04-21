@@ -40,23 +40,26 @@ import { useRolesAndDepartments } from "@/hooks/useRolesAndDepartments";
 import { useUsers } from "@/hooks/useUsers";
 import { useNotification } from "@/components/NotificationProvider";
 import { AddComponentModal } from "./AddComponentModal";
-import { SignatureComponent } from "./SignatureComponent";
-import { FilesManagementComponent } from "./FilesManagementComponent";
-import { ApprovalComponent } from "./ApprovalComponent";
-import { TimelineComponent } from "./TimelineComponent";
-import { CommentsComponent } from "./CommentsComponent";
-import { ChecklistComponent } from "./ChecklistComponent";
-import { FormComponent } from "./FormComponent";
+import {
+  ProcessApprovalComponent,
+  ProcessChecklistComponent,
+  ProcessCommentsComponent,
+  ProcessFilesManagementComponent,
+  ProcessFormComponent,
+  ProcessSignatureComponent,
+  ProcessTimelineComponent,
+} from '@/components/process';
 
-// Mapeamento de componentes implementados
+const PREVIEW_CONTEXT = { processId: 'preview', stageId: 'preview', componentKey: 'preview' };
+
 const COMPONENT_MAP: Record<string, React.ComponentType<any>> = {
-  SIGNATURE: SignatureComponent,
-  FILES_MANAGEMENT: FilesManagementComponent,
-  APPROVAL: ApprovalComponent,
-  TIMELINE: TimelineComponent,
-  COMMENTS: CommentsComponent,
-  CHECKLIST: ChecklistComponent,
-  FORM: FormComponent,
+  APPROVAL:         (p: any) => <ProcessApprovalComponent         {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly />,
+  CHECKLIST:        (p: any) => <ProcessChecklistComponent        {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly />,
+  COMMENTS:         (p: any) => <ProcessCommentsComponent         {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly />,
+  FILES_MANAGEMENT: (p: any) => <ProcessFilesManagementComponent  {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly />,
+  SIGNATURE:        (p: any) => <ProcessSignatureComponent        {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly />,
+  TIMELINE:         (p: any) => <ProcessTimelineComponent         {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly />,
+  FORM:             (p: any) => <ProcessFormComponent             {...p} context={PREVIEW_CONTEXT} enabled={false} readOnly previewFields={p.config?.fields} />,
 };
 
 // Componentes que têm implementação de preview

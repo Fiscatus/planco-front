@@ -219,7 +219,9 @@ const SignIn = ({ setIsSignIn }: Props) => {
               Senha
             </Typography>
             <Link
-              href='/auth/forgot-password'
+              component='button'
+              type='button'
+              onClick={() => navigate('/auth/forgot-password')}
               sx={{
                 fontSize: '0.875rem',
                 color: '#1877F2',

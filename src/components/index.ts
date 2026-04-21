@@ -5,5 +5,7 @@ export { ChunkLoadErrorBoundary } from './ChunkLoadErrorBoundary';
 export { Loading } from './Loading';
 export { NotificationProvider, useNotification } from './NotificationProvider';
 export { PrivacyPolicyModal } from './PrivacyPolicyModal';
+export { SupportChat } from './SupportChat';
 export { TermsOfUseModal } from './TermsOfUseModal';
 export * from './modals';
+export * from './process';
