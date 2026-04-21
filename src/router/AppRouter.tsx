@@ -31,14 +31,6 @@ const ForgotPasswordPage = lazy(() => import('@/pages/Auth/ForgotPasswordPage'))
 const ResetPasswordPage = lazy(() => import('@/pages/Auth/ResetPasswordPage'));
 const WITHOUT_HEADER_ROUTES = ['/auth', '/verify-email', '/privacy-policy', '/auth/forgot-password', '/reset-password'];
 
-// Prefixos de rotas que exibem o dropdown da navbar
-const NAVBAR_DROPDOWN_PREFIXES = [
-  '/planejamento-da-contratacao',
-  '/processos-gerencia',
-  '/modelos-fluxo',
-  '/gerenciamento-pastas',
-  '/insights'
-];
 
 // Loading fallback component
 const PageLoading = () => (
@@ -68,11 +60,7 @@ const AppRouter = () => {
     [pathname]
   );
 
-  // Determina se deve exibir dropdown na navbar (funciona com subrotas)
-  const displayNavBarDropdown = useMemo(
-    () => NAVBAR_DROPDOWN_PREFIXES.some((prefix) => pathname.startsWith(prefix)),
-    [pathname]
-  );
+  // Determina se deve exibir dropdown na navbar — removido
 
   // Redireciona usuário não autenticado para auth
   const defaultRedirect = useMemo(() => {
@@ -86,7 +74,6 @@ const AppRouter = () => {
     <AppLayout
       hideHeader={!hasOrganization || routeWithoutHeader}
       hideSidebar={!hasOrganization || routeWithoutHeader}
-      displayNavBarDropdown={displayNavBarDropdown}
     >
       <Suspense fallback={<PageLoading />}>
         <Routes>
