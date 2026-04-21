@@ -85,11 +85,21 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
 
   const SUBROUTES = ['/processos-gerencia', '/modelos-fluxo', '/gerenciamento-pastas', '/insights', '/planejamento-da-contratacao'];
   const isInPlanejamento = SUBROUTES.some(r => location.pathname.startsWith(r));
-  const [expandedModule, setExpandedModule] = useState<string | null>(isInPlanejamento ? '/planejamento-da-contratacao' : null);
 
-  // Auto-expande quando navega para uma sub-rota
+  const STORAGE_KEY = '@planco:sidebar_expanded_module';
+  const getInitialExpanded = () => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved !== null) return saved === '' ? null : saved;
+    return '/planejamento-da-contratacao'; // padrão: aberto
+  };
+
+  const [expandedModule, setExpandedModule] = useState<string | null>(getInitialExpanded);
+
   useEffect(() => {
-    if (isInPlanejamento) setExpandedModule('/planejamento-da-contratacao');
+    if (isInPlanejamento && expandedModule !== '/planejamento-da-contratacao') {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved === null) setExpandedModule('/planejamento-da-contratacao');
+    }
   }, [location.pathname, isInPlanejamento]);
 
   useEffect(() => {
@@ -102,7 +112,9 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
 
   const handleModuleClick = (module: Module) => {
     if (module.subItems?.length) {
-      setExpandedModule(prev => prev === module.path ? null : module.path);
+      const next = expandedModule === module.path ? null : module.path;
+      setExpandedModule(next);
+      localStorage.setItem(STORAGE_KEY, next ?? '');
       return;
     }
     navigate(module.path);
