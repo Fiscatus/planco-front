@@ -119,14 +119,6 @@ const GerenciaProcessesPage = () => {
 
     let filtered = processesData.processes;
 
-    // Filtrar por pendência usando topPendencia da API
-    const pendingFilter = urlParams.get('pending');
-    if (pendingFilter === 'yes') {
-      filtered = filtered.filter((process: Process) => process.topPendencia?.type !== null && process.topPendencia?.type !== undefined);
-    } else if (pendingFilter === 'no') {
-      filtered = filtered.filter((process: Process) => !process.topPendencia?.type);
-    }
-
     // Filtrar por data selecionada
     if (selectedDate) {
       filtered = filtered.filter((process: Process) => {

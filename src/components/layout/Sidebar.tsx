@@ -69,11 +69,11 @@ const modules: Module[] = [
     path: '/planejamento-da-contratacao',
     description: 'Organize todas as fases da contratação',
     subItems: [
-      { label: 'Painel', icon: <Home sx={{ fontSize: 16 }} />, path: '/planejamento-da-contratacao' },
-      { label: 'Processos', icon: <GroupOutlined sx={{ fontSize: 16 }} />, path: '/processos-gerencia' },
-      { label: 'Modelos de Fluxo', icon: <AccountTreeOutlined sx={{ fontSize: 16 }} />, path: '/modelos-fluxo' },
-      { label: 'Gerenciamento de Pastas', icon: <FolderOutlined sx={{ fontSize: 16 }} />, path: '/gerenciamento-pastas' },
-      { label: 'Insights', icon: <InsightsOutlined sx={{ fontSize: 16 }} />, path: '/insights' },
+      { label: 'Painel', icon: <Home sx={{ fontSize: 30 }} />, path: '/planejamento-da-contratacao' },
+      { label: 'Processos', icon: <GroupOutlined sx={{ fontSize: 30 }} />, path: '/processos-gerencia' },
+      { label: 'Modelos de Fluxo', icon: <AccountTreeOutlined sx={{ fontSize: 30 }} />, path: '/modelos-fluxo' },
+      { label: 'Gerenciamento de Pastas', icon: <FolderOutlined sx={{ fontSize: 30 }} />, path: '/gerenciamento-pastas' },
+      { label: 'Insights', icon: <InsightsOutlined sx={{ fontSize: 30 }} />, path: '/insights' },
     ]
   }
 ];
@@ -336,12 +336,12 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                           }
                         }}
                       >
-                        <ListItemIcon sx={{ minWidth: 28, color: isActiveSubItem(sub.path) ? '#2563eb' : '#9ca3af' }}>
+                        <ListItemIcon sx={{ minWidth: 32, color: isActiveSubItem(sub.path) ? '#2563eb' : '#9ca3af' }}>
                           {sub.icon}
                         </ListItemIcon>
                         <ListItemText
                           primary={
-                            <Typography variant='body2' sx={{ fontSize: '0.8125rem', fontWeight: isActiveSubItem(sub.path) ? 600 : 400, lineHeight: 1.3 }}>
+                            <Typography variant='body2' sx={{ fontSize: '0.875rem', fontWeight: isActiveSubItem(sub.path) ? 600 : 400, lineHeight: 1.3 }}>
                               {sub.label}
                             </Typography>
                           }
