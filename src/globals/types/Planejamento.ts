@@ -12,8 +12,10 @@ export type AlertaCritico = {
   processId: string;
   processNumber: string;
   object: string;
-  alertType: 'vencido' | 'assinatura' | 'juridico' | 'outro';
+  alertType: 'vencido' | 'etapa_atrasada' | 'assinatura' | 'juridico' | 'outro';
   description: string;
+  stageName?: string;
+  stageDueDate?: string;
 };
 
 export type ProcessoRecente = {
@@ -21,8 +23,8 @@ export type ProcessoRecente = {
   processNumber: string;
   object: string;
   currentStage: string;
-  status: 'em_dia' | 'atrasado' | 'prazo';
-  daysLate: number;
+  stageStatus: 'em_dia' | 'atrasada' | 'vence_hoje' | 'concluida';
+  processStatus: 'em_andamento' | 'em_risco' | 'atrasado' | 'finalizado' | 'paralisado';
   dueDate: string;
 };
 
@@ -45,10 +47,18 @@ export type ProximoPrazo = {
   date: string;
 };
 
+export type Paginated<T> = {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
 export type PlanejamentoDashboardResponse = {
   kpis: PlanejamentoKpis;
-  alertasCriticos: AlertaCritico[];
-  processosRecentes: ProcessoRecente[];
+  alertasCriticos: Paginated<AlertaCritico>;
+  processosRecentes: Paginated<ProcessoRecente>;
   pendencias: Pendencia[];
   proximosPrazos: ProximoPrazo[];
 };

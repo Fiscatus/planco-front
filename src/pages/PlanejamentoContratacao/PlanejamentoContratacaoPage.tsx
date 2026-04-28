@@ -1,5 +1,6 @@
 import { Alert, Box, Button, Typography } from '@mui/material';
 import { BusinessCenter as BusinessCenterIcon, Refresh as RefreshIcon } from '@mui/icons-material';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useActiveDepartment } from '@/contexts';
 import { usePlanejamentoDashboard } from '@/hooks/usePlanejamentoDashboard';
@@ -12,7 +13,18 @@ const PlanejamentoContratacaoPage = () => {
   const navigate = useNavigate();
   const { activeDepartment } = useActiveDepartment();
 
-  const { data, isLoading, isError, refetch } = usePlanejamentoDashboard(activeDepartment?._id);
+  const [alertasPage, setAlertasPage] = useState(1);
+  const [alertasLimit, setAlertasLimit] = useState(5);
+  const [recentesPage, setRecentesPage] = useState(1);
+  const [recentesLimit, setRecentesLimit] = useState(5);
+
+  const { data, isLoading, isError, refetch } = usePlanejamentoDashboard({
+    departmentId: activeDepartment?._id,
+    alertasPage,
+    alertasLimit,
+    recentesPage,
+    recentesLimit,
+  });
 
   if (!activeDepartment) {
     return (
@@ -96,8 +108,22 @@ const PlanejamentoContratacaoPage = () => {
         <Box sx={{ display: 'flex', gap: 3, flexDirection: { xs: 'column', lg: 'row' } }}>
           {/* Coluna esquerda */}
           <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <AlertasCriticos alerts={data?.alertasCriticos} loading={isLoading} />
-            <ProcessosRecentes processes={data?.processosRecentes} loading={isLoading} />
+            <AlertasCriticos
+              data={data?.alertasCriticos}
+              loading={isLoading}
+              page={alertasPage}
+              limit={alertasLimit}
+              onPageChange={setAlertasPage}
+              onLimitChange={(l) => { setAlertasLimit(l); setAlertasPage(1); }}
+            />
+            <ProcessosRecentes
+              data={data?.processosRecentes}
+              loading={isLoading}
+              page={recentesPage}
+              limit={recentesLimit}
+              onPageChange={setRecentesPage}
+              onLimitChange={(l) => { setRecentesLimit(l); setRecentesPage(1); }}
+            />
           </Box>
 
           {/* Sidebar direita */}
