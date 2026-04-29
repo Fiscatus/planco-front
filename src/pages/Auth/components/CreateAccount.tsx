@@ -1,19 +1,23 @@
-import { Box, Button, Checkbox, Grid, IconButton, InputAdornment, TextField, Typography } from '@mui/material';
-import { Controller, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import {
-  PersonAdd,
-  Visibility,
-  VisibilityOff
-} from '@mui/icons-material';
-import { PrivacyPolicyModal, TermsOfUseModal, useNotification } from '@/components';
-
-import type { RegisterDto } from '@/globals/types/User';
-import { useAuth } from '@/hooks';
+  Box,
+  Button,
+  Checkbox,
+  CircularProgress,
+  Grid,
+  IconButton,
+  InputAdornment,
+  TextField,
+  Typography
+} from '@mui/material';
 import { useMutation } from '@tanstack/react-query';
 import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import logo from '/assets/isologo.svg';
+import { PrivacyPolicyModal, TermsOfUseModal, useNotification } from '@/components';
+import type { RegisterDto } from '@/globals/types/User';
+import { useAuth } from '@/hooks';
 
 type Props = {
   setIsSignIn: (value: boolean) => void;
@@ -50,14 +54,8 @@ const formatPhone = (value: string) => {
 
 const authSchema = z
   .object({
-    name: z
-      .string()
-      .min(2, 'Mínimo de 2 caracteres')
-      .max(100, 'Máximo 100 caracteres'),
-    lastName: z
-      .string()
-      .min(2, 'Mínimo de 2 caracteres')
-      .max(100, 'Máximo 100 caracteres'),
+    name: z.string().min(2, 'Mínimo de 2 caracteres').max(100, 'Máximo 100 caracteres'),
+    lastName: z.string().min(2, 'Mínimo de 2 caracteres').max(100, 'Máximo 100 caracteres'),
     email: z.email('Email não é válido'),
     cpf: z
       .string()
@@ -87,7 +85,45 @@ const authSchema = z
     path: ['confirmPassword']
   });
 
-const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail }: Props) => {
+const inputSx = (hasError: boolean) => ({
+  width: '100%',
+  '& .MuiOutlinedInput-root': {
+    height: '48px',
+    borderRadius: '10px',
+    backgroundColor: 'white',
+    '& fieldset': {
+      borderColor: hasError ? '#ef4444' : '#E5E7EB',
+      borderWidth: '1.5px'
+    },
+    '&:hover fieldset': {
+      borderColor: hasError ? '#ef4444' : '#D1D5DB'
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#1d4ed8',
+      borderWidth: '1.5px',
+      boxShadow: '0 0 0 3px rgba(29,78,216,0.12)'
+    }
+  },
+  '& .MuiInputBase-input': {
+    padding: '12px 14px',
+    fontSize: '0.875rem',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    '&::placeholder': { color: '#9CA3AF', opacity: 1 }
+  }
+});
+
+const labelSx = {
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+  fontSize: '0.8125rem',
+  fontWeight: 500,
+  color: '#374151',
+  mb: 0.75,
+  display: 'block'
+};
+
+const errorSx = { color: '#ef4444', fontSize: '0.75rem', mt: 0.5, ml: 0.5 };
+
+const CreateAccount = ({ setIsSignIn: _setIsSignIn, setRegistrationSuccess, setRegisteredEmail }: Props) => {
   const { signUp } = useAuth();
   const { showNotification } = useNotification();
 
@@ -116,7 +152,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
         showNotification('Erro ao criar conta. Tente novamente.', 'error');
       }
     },
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       setRegisteredEmail(variables.email);
       setRegistrationSuccess(true);
       showNotification('Conta criada! Verifique seu email para ativar.', 'success');
@@ -129,8 +165,8 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
       lastName: formData.lastName,
       email: formData.email,
       password: formData.password,
-      cpf: formData.cpf, // Mantém formatação: 552.607.380-71
-      phone: formData.phone.replace(/\D/g, '') // Remove formatação: 11999999999
+      cpf: formData.cpf,
+      phone: formData.phone.replace(/\D/g, '')
     };
 
     signUpMutation(registerData);
@@ -147,455 +183,177 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
 
   return (
     <Box>
+      {/* Headline */}
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          component='h1'
+          sx={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontWeight: 600,
+            fontSize: { xs: '1.875rem', sm: '2.125rem', md: '2.375rem', lg: '3rem' },
+            color: '#0B1220',
+            lineHeight: 1.1,
+            letterSpacing: '-0.03em',
+            mb: 1
+          }}
+        >
+          Solicite seu{' '}
+          <Box
+            component='em'
+            sx={{ fontWeight: 300, fontStyle: 'italic', color: '#1d4ed8', fontSize: 'inherit' }}
+          >
+            acesso.
+          </Box>
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontSize: '0.875rem',
+            color: '#6B7280',
+            mb: '36px'
+          }}
+        >
+          Validamos sua solicitação em até 1 dia útil.
+        </Typography>
+      </Box>
+
       <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Cabeçalho */}
-        <Box sx={{ mb: 2, textAlign: 'center' }}>
-          <img 
-            src={logo} 
-            alt="Planco Logo" 
-            style={{ 
-              width: '40px', 
-              height: '40px',
-              objectFit: 'contain',
-              display: 'block',
-              margin: '0 auto 8px auto'
-            }} 
-          />
-          <Typography
-            variant='h4'
-            component='h1'
-            fontWeight={700}
-            sx={{
-              color: '#212529',
-              mb: 0.5,
-              fontSize: { xs: '1.5rem', sm: '1.75rem' }
-            }}
-          >
-            Crie sua Conta
-          </Typography>
-          <Typography
-            sx={{
-              color: '#6C757D',
-              fontSize: '0.875rem'
-            }}
-          >
-            Preencha os campos abaixo para se cadastrar.
-          </Typography>
-        </Box>
-        {/* Seção de Informações Pessoais */}
-        <Box sx={{ mb: 2.5 }}>
-          <Typography
-            variant='h6'
-            sx={{
-              fontSize: '1rem',
-              fontWeight: 600,
-              color: '#212529',
-              mb: 1.5
-            }}
-          >
-            Informações Pessoais
-          </Typography>
-
-          <Grid
-            container
-            spacing={2}
-          >
-            <Grid
-              size={{ xs: 12, sm: 6 }}
-            >
-              <Typography
-                variant='body2'
-                sx={{
-                  mb: 1,
-                  fontWeight: 500,
-                  color: '#495057',
-                  fontSize: '0.875rem'
-                }}
-              >
-                Nome
-              </Typography>
-              <Controller
-                name='name'
-                control={control}
-                defaultValue=''
-                render={({ field }) => (
-                  <Box>
-                    <TextField
-                      {...field}
-                      type='text'
-                      placeholder='Seu nome'
-                      onFocus={() => clearErrors('name')}
-                      sx={{
-                        width: '100%',
-                        '& .MuiOutlinedInput-root': {
-                          height: '44px',
-                          borderRadius: '8px',
-                          backgroundColor: 'white',
-                          '& fieldset': {
-                            borderColor: errors.name ? '#DC3545' : '#CED4DA',
-                            borderWidth: '1px'
-                          },
-                          '&:hover fieldset': {
-                            borderColor: errors.name ? '#DC3545' : '#ADB5BD'
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#1877F2',
-                            borderWidth: '2px'
-                          }
-                        },
-                        '& .MuiInputBase-input': {
-                          padding: '8px 12px',
-                          fontSize: '0.875rem',
-                          '&::placeholder': {
-                            color: '#6C757D',
-                            opacity: 1
-                          }
-                        }
-                      }}
-                    />
-                    {errors.name && (
-                      <Typography
-                        sx={{
-                          color: '#DC3545',
-                          fontSize: '0.75rem',
-                          mt: 0.5,
-                          ml: 1
-                        }}
-                      >
-                        {errors.name.message}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-              />
-            </Grid>
-            <Grid
-              size={{ xs: 12, sm: 6 }}
-            >
-              <Typography
-                variant='body2'
-                sx={{
-                  mb: 1,
-                  fontWeight: 500,
-                  color: '#495057',
-                  fontSize: '0.875rem'
-                }}
-              >
-                Sobrenome
-              </Typography>
-              <Controller
-                name='lastName'
-                control={control}
-                defaultValue=''
-                render={({ field }) => (
-                  <Box>
-                    <TextField
-                      {...field}
-                      type='text'
-                      placeholder='Seu sobrenome'
-                      onFocus={() => clearErrors('lastName')}
-                      sx={{
-                        width: '100%',
-                        '& .MuiOutlinedInput-root': {
-                          height: '44px',
-                          borderRadius: '8px',
-                          backgroundColor: 'white',
-                          '& fieldset': {
-                            borderColor: errors.lastName ? '#DC3545' : '#CED4DA',
-                            borderWidth: '1px'
-                          },
-                          '&:hover fieldset': {
-                            borderColor: errors.lastName ? '#DC3545' : '#ADB5BD'
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#1877F2',
-                            borderWidth: '2px'
-                          }
-                        },
-                        '& .MuiInputBase-input': {
-                          padding: '8px 12px',
-                          fontSize: '0.875rem',
-                          '&::placeholder': {
-                            color: '#6C757D',
-                            opacity: 1
-                          }
-                        }
-                      }}
-                    />
-                    {errors.lastName && (
-                      <Typography
-                        sx={{
-                          color: '#DC3545',
-                          fontSize: '0.75rem',
-                          mt: 0.5,
-                          ml: 1
-                        }}
-                      >
-                        {errors.lastName.message}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-              />
-            </Grid>
-          </Grid>
-        </Box>
-
-        {/* Seção de Informações de Contato */}
-        <Box sx={{ mb: 2.5 }}>
-          <Grid
-            container
-            spacing={2}
-          >
-            <Grid
-              size={{ xs: 12 }}
-            >
-              <Typography
-                variant='body2'
-                sx={{
-                  mb: 1,
-                  fontWeight: 500,
-                  color: '#495057',
-                  fontSize: '0.875rem'
-                }}
-              >
-                CPF
-              </Typography>
-              <Controller
-                name='cpf'
-                control={control}
-                defaultValue=''
-                render={({ field }) => (
-                  <Box>
-                    <TextField
-                      {...field}
-                      type='text'
-                      placeholder='000.000.000-00'
-                      onFocus={() => clearErrors('cpf')}
-                      onChange={(e) => {
-                        const formattedValue = formatCPF(e.target.value);
-                        field.onChange(formattedValue);
-                      }}
-                      inputProps={{
-                        maxLength: 14
-                      }}
-                      sx={{
-                        width: '100%',
-                        '& .MuiOutlinedInput-root': {
-                          height: '44px',
-                          borderRadius: '8px',
-                          backgroundColor: 'white',
-                          '& fieldset': {
-                            borderColor: errors.cpf ? '#DC3545' : '#CED4DA',
-                            borderWidth: '1px'
-                          },
-                          '&:hover fieldset': {
-                            borderColor: errors.cpf ? '#DC3545' : '#ADB5BD'
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#1877F2',
-                            borderWidth: '2px'
-                          }
-                        },
-                        '& .MuiInputBase-input': {
-                          padding: '8px 12px',
-                          fontSize: '0.875rem',
-                          '&::placeholder': {
-                            color: '#6C757D',
-                            opacity: 1
-                          }
-                        }
-                      }}
-                    />
-                    {errors.cpf && (
-                      <Typography
-                        sx={{
-                          color: '#DC3545',
-                          fontSize: '0.75rem',
-                          mt: 0.5,
-                          ml: 1
-                        }}
-                      >
-                        {errors.cpf.message}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-              />
-            </Grid>
-            <Grid
-              size={{ xs: 12 }}
-            >
-              <Typography
-                variant='body2'
-                sx={{
-                  mb: 1,
-                  fontWeight: 500,
-                  color: '#495057',
-                  fontSize: '0.875rem'
-                }}
-              >
-                Telefone
-              </Typography>
-              <Controller
-                name='phone'
-                control={control}
-                defaultValue=''
-                render={({ field }) => (
-                  <Box>
-                    <TextField
-                      {...field}
-                      type='text'
-                      placeholder='(11) 99999-9999'
-                      onFocus={() => clearErrors('phone')}
-                      onChange={(e) => {
-                        const formattedValue = formatPhone(e.target.value);
-                        field.onChange(formattedValue);
-                      }}
-                      inputProps={{
-                        maxLength: 15
-                      }}
-                      sx={{
-                        width: '100%',
-                        '& .MuiOutlinedInput-root': {
-                          height: '44px',
-                          borderRadius: '8px',
-                          backgroundColor: 'white',
-                          '& fieldset': {
-                            borderColor: errors.phone ? '#DC3545' : '#CED4DA',
-                            borderWidth: '1px'
-                          },
-                          '&:hover fieldset': {
-                            borderColor: errors.phone ? '#DC3545' : '#ADB5BD'
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#1877F2',
-                            borderWidth: '2px'
-                          }
-                        },
-                        '& .MuiInputBase-input': {
-                          padding: '8px 12px',
-                          fontSize: '0.875rem',
-                          '&::placeholder': {
-                            color: '#6C757D',
-                            opacity: 1
-                          }
-                        }
-                      }}
-                    />
-                    {errors.phone && (
-                      <Typography
-                        sx={{
-                          color: '#DC3545',
-                          fontSize: '0.75rem',
-                          mt: 0.5,
-                          ml: 1
-                        }}
-                      >
-                        {errors.phone.message}
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-              />
-            </Grid>
-          </Grid>
-        </Box>
-
-        {/* Seção de Informações de Acesso */}
-        <Box sx={{ mb: 2.5 }}>
-          <Typography
-            variant='h6'
-            sx={{
-              fontSize: '1rem',
-              fontWeight: 600,
-              color: '#212529',
-              mb: 1.5
-            }}
-          >
-            Informações de Acesso
-          </Typography>
-
-          <Box sx={{ mb: 2 }}>
-            <Typography
-              variant='body2'
-              sx={{
-                mb: 1,
-                fontWeight: 500,
-                color: '#495057',
-                fontSize: '0.875rem'
-              }}
-            >
-              E-mail
-            </Typography>
+        {/* Row 1: Nome + Sobrenome */}
+        <Grid
+          container
+          spacing={1.5}
+          sx={{ mb: 1.5 }}
+        >
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Typography sx={labelSx}>Nome</Typography>
             <Controller
-              name='email'
+              name='name'
               control={control}
               defaultValue=''
               render={({ field }) => (
                 <Box>
                   <TextField
                     {...field}
-                    type='email'
-                    placeholder='seuemail@exemplo.com'
-                    onFocus={() => clearErrors('email')}
-                    sx={{
-                      width: '100%',
-                      '& .MuiOutlinedInput-root': {
-                        height: '44px',
-                        borderRadius: '8px',
-                        backgroundColor: 'white',
-                        '& fieldset': {
-                          borderColor: errors.email ? '#DC3545' : '#CED4DA',
-                          borderWidth: '1px'
-                        },
-                        '&:hover fieldset': {
-                          borderColor: errors.email ? '#DC3545' : '#ADB5BD'
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#1877F2',
-                          borderWidth: '2px'
-                        }
-                      },
-                      '& .MuiInputBase-input': {
-                        padding: '8px 12px',
-                        fontSize: '0.875rem',
-                        '&::placeholder': {
-                          color: '#6C757D',
-                          opacity: 1
-                        }
-                      }
-                    }}
+                    type='text'
+                    placeholder='Seu nome'
+                    onFocus={() => clearErrors('name')}
+                    sx={inputSx(!!errors.name)}
                   />
-                  {errors.email && (
-                    <Typography
-                      sx={{
-                        color: '#DC3545',
-                        fontSize: '0.75rem',
-                        mt: 0.5,
-                        ml: 1
-                      }}
-                    >
-                      {errors.email.message}
-                    </Typography>
-                  )}
+                  {errors.name && <Typography sx={errorSx}>{errors.name.message}</Typography>}
                 </Box>
               )}
             />
-          </Box>
-          {/* Campos de Senha */}
-          <Box sx={{ mb: 2 }}>
-            <Typography
-              variant='body2'
-              sx={{
-                mb: 1,
-                fontWeight: 500,
-                color: '#495057',
-                fontSize: '0.875rem'
-              }}
-            >
-              Senha
-            </Typography>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Typography sx={labelSx}>Sobrenome</Typography>
+            <Controller
+              name='lastName'
+              control={control}
+              defaultValue=''
+              render={({ field }) => (
+                <Box>
+                  <TextField
+                    {...field}
+                    type='text'
+                    placeholder='Seu sobrenome'
+                    onFocus={() => clearErrors('lastName')}
+                    sx={inputSx(!!errors.lastName)}
+                  />
+                  {errors.lastName && <Typography sx={errorSx}>{errors.lastName.message}</Typography>}
+                </Box>
+              )}
+            />
+          </Grid>
+        </Grid>
+
+        {/* Row 2: E-mail (full width) */}
+        <Box sx={{ mb: 1.5 }}>
+          <Typography sx={labelSx}>E-mail institucional</Typography>
+          <Controller
+            name='email'
+            control={control}
+            defaultValue=''
+            render={({ field }) => (
+              <Box>
+                <TextField
+                  {...field}
+                  type='email'
+                  placeholder='nome@orgao.gov.br'
+                  onFocus={() => clearErrors('email')}
+                  sx={inputSx(!!errors.email)}
+                />
+                {errors.email && <Typography sx={errorSx}>{errors.email.message}</Typography>}
+              </Box>
+            )}
+          />
+        </Box>
+
+        {/* Row 3: CPF + Telefone */}
+        <Grid
+          container
+          spacing={1.5}
+          sx={{ mb: 1.5 }}
+        >
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Typography sx={labelSx}>CPF</Typography>
+            <Controller
+              name='cpf'
+              control={control}
+              defaultValue=''
+              render={({ field }) => (
+                <Box>
+                  <TextField
+                    {...field}
+                    type='text'
+                    placeholder='000.000.000-00'
+                    onFocus={() => clearErrors('cpf')}
+                    onChange={(e) => {
+                      const formattedValue = formatCPF(e.target.value);
+                      field.onChange(formattedValue);
+                    }}
+                    inputProps={{ maxLength: 14 }}
+                    sx={inputSx(!!errors.cpf)}
+                  />
+                  {errors.cpf && <Typography sx={errorSx}>{errors.cpf.message}</Typography>}
+                </Box>
+              )}
+            />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Typography sx={labelSx}>Telefone</Typography>
+            <Controller
+              name='phone'
+              control={control}
+              defaultValue=''
+              render={({ field }) => (
+                <Box>
+                  <TextField
+                    {...field}
+                    type='text'
+                    placeholder='(11) 99999-9999'
+                    onFocus={() => clearErrors('phone')}
+                    onChange={(e) => {
+                      const formattedValue = formatPhone(e.target.value);
+                      field.onChange(formattedValue);
+                    }}
+                    inputProps={{ maxLength: 15 }}
+                    sx={inputSx(!!errors.phone)}
+                  />
+                  {errors.phone && <Typography sx={errorSx}>{errors.phone.message}</Typography>}
+                </Box>
+              )}
+            />
+          </Grid>
+        </Grid>
+
+        {/* Row 4: Senha + Confirmar Senha */}
+        <Grid
+          container
+          spacing={1.5}
+          sx={{ mb: 2 }}
+        >
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Typography sx={labelSx}>Senha</Typography>
             <Controller
               name='password'
               control={control}
@@ -613,70 +371,22 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                           <IconButton
                             onClick={() => setShowPassword(!showPassword)}
                             edge='end'
-                            sx={{ color: '#6C757D' }}
+                            sx={{ color: '#9CA3AF', '&:hover': { color: '#6B7280' } }}
                           >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                            {showPassword ? <VisibilityOff fontSize='small' /> : <Visibility fontSize='small' />}
                           </IconButton>
                         </InputAdornment>
                       )
                     }}
-                    sx={{
-                      width: '100%',
-                      '& .MuiOutlinedInput-root': {
-                        height: '44px',
-                        borderRadius: '8px',
-                        backgroundColor: 'white',
-                        '& fieldset': {
-                          borderColor: errors.password ? '#DC3545' : '#CED4DA',
-                          borderWidth: '1px'
-                        },
-                        '&:hover fieldset': {
-                          borderColor: errors.password ? '#DC3545' : '#ADB5BD'
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#1877F2',
-                          borderWidth: '2px'
-                        }
-                      },
-                      '& .MuiInputBase-input': {
-                        padding: '8px 12px',
-                        fontSize: '0.875rem',
-                        '&::placeholder': {
-                          color: '#6C757D',
-                          opacity: 1
-                        }
-                      }
-                    }}
+                    sx={inputSx(!!errors.password)}
                   />
-                  {errors.password && (
-                    <Typography
-                      sx={{
-                        color: '#DC3545',
-                        fontSize: '0.75rem',
-                        mt: 0.5,
-                        ml: 1
-                      }}
-                    >
-                      {errors.password.message}
-                    </Typography>
-                  )}
+                  {errors.password && <Typography sx={errorSx}>{errors.password.message}</Typography>}
                 </Box>
               )}
             />
-          </Box>
-
-          <Box sx={{ mb: 2 }}>
-            <Typography
-              variant='body2'
-              sx={{
-                mb: 1,
-                fontWeight: 500,
-                color: '#495057',
-                fontSize: '0.875rem'
-              }}
-            >
-              Confirmar Senha
-            </Typography>
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <Typography sx={labelSx}>Confirmar senha</Typography>
             <Controller
               name='confirmPassword'
               control={control}
@@ -686,7 +396,7 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                   <TextField
                     {...field}
                     type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder='Confirme sua senha'
+                    placeholder='Repita a senha'
                     onFocus={() => clearErrors('confirmPassword')}
                     InputProps={{
                       endAdornment: (
@@ -694,172 +404,121 @@ const CreateAccount = ({ setIsSignIn, setRegistrationSuccess, setRegisteredEmail
                           <IconButton
                             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                             edge='end'
-                            sx={{ color: '#6C757D' }}
+                            sx={{ color: '#9CA3AF', '&:hover': { color: '#6B7280' } }}
                           >
-                            {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                            {showConfirmPassword ? <VisibilityOff fontSize='small' /> : <Visibility fontSize='small' />}
                           </IconButton>
                         </InputAdornment>
                       )
                     }}
-                    sx={{
-                      width: '100%',
-                      '& .MuiOutlinedInput-root': {
-                        height: '44px',
-                        borderRadius: '8px',
-                        backgroundColor: 'white',
-                        '& fieldset': {
-                          borderColor: errors.confirmPassword ? '#DC3545' : '#CED4DA',
-                          borderWidth: '1px'
-                        },
-                        '&:hover fieldset': {
-                          borderColor: errors.confirmPassword ? '#DC3545' : '#ADB5BD'
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#1877F2',
-                          borderWidth: '2px'
-                        }
-                      },
-                      '& .MuiInputBase-input': {
-                        padding: '8px 12px',
-                        fontSize: '0.875rem',
-                        '&::placeholder': {
-                          color: '#6C757D',
-                          opacity: 1
-                        }
-                      }
-                    }}
+                    sx={inputSx(!!errors.confirmPassword)}
                   />
-                  {errors.confirmPassword && (
-                    <Typography
-                      sx={{
-                        color: '#DC3545',
-                        fontSize: '0.75rem',
-                        mt: 0.5,
-                        ml: 1
-                      }}
-                    >
-                      {errors.confirmPassword.message}
-                    </Typography>
-                  )}
+                  {errors.confirmPassword && <Typography sx={errorSx}>{errors.confirmPassword.message}</Typography>}
                 </Box>
               )}
             />
-          </Box>
-        </Box>
-        {/* Seção de Termos e Condições */}
-        <Box sx={{ mb: 2.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5 }}>
-            <Checkbox
-              checked={acceptedTerms}
-              onChange={(e) => setAcceptedTerms(e.target.checked)}
-              sx={{
-                mt: 0.5,
-                '&.Mui-checked': {
-                  color: '#1877F2'
-                }
-              }}
-            />
+          </Grid>
+        </Grid>
+
+        {/* Terms */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25, mb: 2.5 }}>
+          <Checkbox
+            checked={acceptedTerms}
+            onChange={(e) => setAcceptedTerms(e.target.checked)}
+            sx={{
+              p: 0,
+              mt: 0.25,
+              color: '#E5E7EB',
+              borderRadius: '5px',
+              '&.Mui-checked': { color: '#1d4ed8' },
+              '& .MuiSvgIcon-root': { fontSize: 20, borderRadius: '4px' }
+            }}
+          />
+          <Typography
+            sx={{
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: '0.8125rem',
+              color: '#6B7280',
+              lineHeight: 1.55
+            }}
+          >
+            Aceito os{' '}
             <Typography
-              variant='body2'
-              sx={{
-                fontSize: '0.875rem',
-                color: '#6C757D',
-                lineHeight: 1.5
-              }}
+              component='span'
+              onClick={() => setTermsModalOpen(true)}
+              sx={{ color: '#1d4ed8', fontWeight: 600, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
             >
-              Li e aceito a{' '}
-              <Typography
-                component='span'
-                onClick={() => setPrivacyModalOpen(true)}
-                sx={{
-                  color: '#1877F2',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                  '&:hover': {
-                    textDecoration: 'none'
-                  }
-                }}
-              >
-                política de privacidade
-              </Typography>{' '}
-              e os{' '}
-              <Typography
-                component='span'
-                onClick={() => setTermsModalOpen(true)}
-                sx={{
-                  color: '#1877F2',
-                  textDecoration: 'underline',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                  '&:hover': {
-                    textDecoration: 'none'
-                  }
-                }}
-              >
-                termos de uso
-              </Typography>{' '}
-              do sistema.
-            </Typography>
-          </Box>
+              termos de uso
+            </Typography>{' '}
+            e a{' '}
+            <Typography
+              component='span'
+              onClick={() => setPrivacyModalOpen(true)}
+              sx={{ color: '#1d4ed8', fontWeight: 600, cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+            >
+              política de privacidade
+            </Typography>{' '}
+            do sistema.
+          </Typography>
         </Box>
 
-        {/* Botão de Cadastro */}
+        {/* CTA */}
         <Button
           disabled={!isDirty || !acceptedTerms || signingUp}
           type='submit'
           fullWidth
           sx={{
-            height: '48px',
-            borderRadius: '8px',
-            backgroundColor: '#1877F2',
+            height: '54px',
+            borderRadius: '12px',
+            backgroundColor: '#1d4ed8',
             color: 'white',
-            fontSize: '1rem',
+            fontSize: '0.9375rem',
             fontWeight: 600,
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
             textTransform: 'none',
             mb: 2,
-            '&:hover': {
-              backgroundColor: '#166FE5'
+            boxShadow: '0 14px 30px -12px rgba(29,78,216,0.5), inset 0 1px 0 rgba(255,255,255,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            '&:hover:not(:disabled)': {
+              backgroundColor: '#1e40af',
+              transform: 'translateY(-1px)',
+              '& .arrow-icon': { transform: 'translateX(4px)' }
             },
-            '&:disabled': {
-              backgroundColor: '#E9ECEF',
-              color: '#6C757D'
-            },
-            transition: 'all 0.2s ease-in-out'
+            '&:active:not(:disabled)': { transform: 'translateY(0)' },
+            '&:disabled': { backgroundColor: '#E5E7EB', color: '#9CA3AF', boxShadow: 'none' },
+            transition: 'all 0.2s ease'
           }}
         >
-          Criar conta
+          {signingUp ? (
+            <CircularProgress
+              size={20}
+              sx={{ color: 'white' }}
+            />
+          ) : (
+            <>
+              Solicitar acesso
+              <Box
+                component='svg'
+                className='arrow-icon'
+                width={18}
+                height={18}
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth={2}
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                sx={{ transition: 'transform 0.2s ease', flexShrink: 0 }}
+              >
+                <path d='M5 12h14M12 5l7 7-7 7' />
+              </Box>
+            </>
+          )}
         </Button>
-
-        {/* Link para Login */}
-        <Typography
-          sx={{
-            fontSize: '0.875rem',
-            color: '#6C757D',
-            textAlign: 'center'
-          }}
-        >
-          Já possui uma conta?{' '}
-          <Typography
-            component='span'
-            onClick={() => {
-              setIsSignIn(true);
-            }}
-            sx={{
-              fontSize: '0.875rem',
-              color: '#1877F2',
-              textDecoration: 'none',
-              fontWeight: 500,
-              cursor: 'pointer',
-              '&:hover': {
-                textDecoration: 'underline'
-              }
-            }}
-          >
-            Entrar
-          </Typography>
-        </Typography>
       </form>
+
       <PrivacyPolicyModal
         open={privacyModalOpen}
         onClose={() => setPrivacyModalOpen(false)}

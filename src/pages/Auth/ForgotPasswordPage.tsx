@@ -1,9 +1,35 @@
-import { ArrowBackOutlined, EmailOutlined, LockResetOutlined } from '@mui/icons-material';
-import { Box, Button, CircularProgress, TextField, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, Link, TextField, Typography } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthSplitLayout } from '@/components/auth';
 import { api } from '@/services';
-import logo from '/assets/isologo.svg';
+
+const inputSx = (hasError: boolean) => ({
+  width: '100%',
+  '& .MuiOutlinedInput-root': {
+    height: '52px',
+    borderRadius: '10px',
+    backgroundColor: 'white',
+    '& fieldset': {
+      borderColor: hasError ? '#ef4444' : '#E5E7EB',
+      borderWidth: '1.5px'
+    },
+    '&:hover fieldset': {
+      borderColor: hasError ? '#ef4444' : '#D1D5DB'
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#1d4ed8',
+      borderWidth: '1.5px',
+      boxShadow: '0 0 0 3px rgba(29,78,216,0.12)'
+    }
+  },
+  '& .MuiInputBase-input': {
+    padding: '14px 16px',
+    fontSize: '0.9375rem',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    '&::placeholder': { color: '#9CA3AF', opacity: 1 }
+  }
+});
 
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
@@ -27,47 +53,120 @@ const ForgotPasswordPage = () => {
     }
   };
 
+  const handleResend = async () => {
+    if (!email.trim()) return;
+    setLoading(true);
+    setError('');
+    try {
+      await api.post('/auth/forgot-password', { email });
+      setSent(true);
+    } catch (err: any) {
+      setError(err.message || 'Erro ao reenviar email. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const topRightSlot = (
+    <Box
+      component='button'
+      type='button'
+      onClick={() => navigate('/auth')}
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 0.75,
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        p: 0,
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
+        fontSize: '0.8125rem',
+        color: '#6B7280',
+        transition: 'color 0.15s ease',
+        '&:hover': { color: '#0B1220' }
+      }}
+    >
+      <Box
+        component='svg'
+        width={16}
+        height={16}
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth={2}
+        strokeLinecap='round'
+        strokeLinejoin='round'
+      >
+        <path d='M19 12H5M12 19l-7-7 7-7' />
+      </Box>
+      Voltar para login
+    </Box>
+  );
+
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#F8FAFC', px: 2 }}>
-      <Box sx={{ width: '100%', maxWidth: 440, bgcolor: '#fff', borderRadius: 3, border: '1px solid #e2e8f0', boxShadow: '0 4px 24px rgba(0,0,0,0.06)', p: { xs: 3, sm: 4 } }}>
-
-        <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <img src={logo} alt='Planco' style={{ width: 48, height: 48, objectFit: 'contain', marginBottom: 12 }} />
-          <Box sx={{ width: 56, height: 56, borderRadius: '50%', bgcolor: '#EBF3FF', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
-            <LockResetOutlined sx={{ fontSize: 28, color: '#1877F2' }} />
+    <AuthSplitLayout topRightSlot={topRightSlot}>
+      {!sent ? (
+        /* Form state */
+        <Box>
+          <Box sx={{ mb: 5 }}>
+            <Typography
+              component='h1'
+              sx={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontWeight: 600,
+                fontSize: { xs: '2rem', sm: '2.25rem', md: '2.5rem', lg: '3.25rem' },
+                color: '#0B1220',
+                lineHeight: 1.1,
+                letterSpacing: '-0.03em',
+                mb: 1
+              }}
+            >
+              Recuperar{' '}
+              <Box
+                component='em'
+                sx={{ fontWeight: 300, fontStyle: 'italic', color: '#1d4ed8', fontSize: 'inherit' }}
+              >
+                senha.
+              </Box>
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: '0.9375rem',
+                color: '#6B7280',
+                lineHeight: 1.55
+              }}
+            >
+              Informe seu e-mail e enviaremos um link seguro para você redefinir sua senha.
+            </Typography>
           </Box>
-          <Typography variant='h5' sx={{ fontWeight: 700, color: '#0f172a', mb: 0.5 }}>
-            Esqueceu sua senha?
-          </Typography>
-          <Typography sx={{ fontSize: '0.875rem', color: '#64748b' }}>
-            {sent
-              ? 'Verifique seu e-mail para continuar.'
-              : 'Informe seu e-mail e enviaremos um link para redefinir sua senha.'}
-          </Typography>
-        </Box>
 
-        {!sent ? (
           <form onSubmit={handleSubmit}>
-            <Box sx={{ mb: 2 }}>
-              <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: '#495057', mb: 0.75 }}>E-mail</Typography>
+            <Box sx={{ mb: 0.75 }}>
+              <Typography
+                sx={{
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  fontSize: '0.8125rem',
+                  fontWeight: 500,
+                  color: '#374151',
+                  mb: 0.75
+                }}
+              >
+                E-mail
+              </Typography>
               <TextField
                 fullWidth
                 type='email'
-                placeholder='seuemail@exemplo.com'
+                placeholder='nome@orgao.gov.br'
                 value={email}
-                onChange={e => { setEmail(e.target.value); setError(''); }}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setError('');
+                }}
                 error={!!error}
                 helperText={error}
-                InputProps={{ startAdornment: <EmailOutlined sx={{ fontSize: 20, color: '#94a3b8', mr: 1 }} /> }}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    height: 48, borderRadius: 2,
-                    '& fieldset': { borderColor: error ? '#DC3545' : '#CED4DA' },
-                    '&:hover fieldset': { borderColor: '#ADB5BD' },
-                    '&.Mui-focused fieldset': { borderColor: '#1877F2', borderWidth: 2 }
-                  },
-                  '& .MuiInputBase-input': { fontSize: '0.875rem' }
-                }}
+                sx={inputSx(!!error)}
               />
             </Box>
 
@@ -76,40 +175,312 @@ const ForgotPasswordPage = () => {
               fullWidth
               disabled={loading || !email.trim()}
               sx={{
-                height: 48, borderRadius: 2, bgcolor: '#1877F2', color: '#fff',
-                fontWeight: 600, fontSize: '0.9375rem', textTransform: 'none', mb: 2,
-                '&:hover': { bgcolor: '#166FE5' },
-                '&:disabled': { bgcolor: '#E9ECEF', color: '#6C757D' }
+                height: '54px',
+                borderRadius: '12px',
+                backgroundColor: '#1d4ed8',
+                color: 'white',
+                fontSize: '0.9375rem',
+                fontWeight: 600,
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                textTransform: 'none',
+                mt: 2.25,
+                mb: 2.75,
+                boxShadow: '0 14px 30px -12px rgba(29,78,216,0.5), inset 0 1px 0 rgba(255,255,255,0.12)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                '&:hover:not(:disabled)': {
+                  backgroundColor: '#1e40af',
+                  transform: 'translateY(-1px)',
+                  '& .arrow-icon': { transform: 'translateX(4px)' }
+                },
+                '&:active:not(:disabled)': { transform: 'translateY(0)' },
+                '&:disabled': { backgroundColor: '#E5E7EB', color: '#9CA3AF', boxShadow: 'none' },
+                transition: 'all 0.2s ease'
               }}
             >
-              {loading ? <CircularProgress size={20} sx={{ color: '#fff' }} /> : 'Enviar link de redefinição'}
+              {loading ? (
+                <CircularProgress
+                  size={20}
+                  sx={{ color: 'white' }}
+                />
+              ) : (
+                <>
+                  Enviar link de recuperação
+                  <Box
+                    component='svg'
+                    className='arrow-icon'
+                    width={18}
+                    height={18}
+                    viewBox='0 0 24 24'
+                    fill='none'
+                    stroke='currentColor'
+                    strokeWidth={2}
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    sx={{ transition: 'transform 0.2s ease', flexShrink: 0 }}
+                  >
+                    <path d='M5 12h14M12 5l7 7-7 7' />
+                  </Box>
+                </>
+              )}
             </Button>
-          </form>
-        ) : (
-          <Box sx={{ textAlign: 'center', py: 2, mb: 2 }}>
-            <Box sx={{ width: 64, height: 64, borderRadius: '50%', bgcolor: '#DCFCE7', display: 'flex', alignItems: 'center', justifyContent: 'center', mx: 'auto', mb: 2 }}>
-              <EmailOutlined sx={{ fontSize: 32, color: '#16a34a' }} />
+
+            {/* Security note */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                component='svg'
+                width={12}
+                height={12}
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='#475467'
+                strokeWidth={2}
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                sx={{ flexShrink: 0 }}
+              >
+                <path d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' />
+              </Box>
+              <Typography
+                sx={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: '0.78125rem', color: '#475467' }}
+              >
+                Validade do link:{' '}
+                <Box
+                  component='strong'
+                  sx={{ fontWeight: 600 }}
+                >
+                  30 minutos
+                </Box>
+              </Typography>
             </Box>
-            <Typography sx={{ fontSize: '0.9375rem', color: '#374151', fontWeight: 500, mb: 0.5 }}>
-              Link enviado!
-            </Typography>
-            <Typography sx={{ fontSize: '0.8125rem', color: '#64748b' }}>
-              Se este e-mail estiver cadastrado, você receberá as instruções em breve. Verifique também a pasta de spam.
+          </form>
+
+          {/* Footer link */}
+          <Typography
+            sx={{
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: '0.875rem',
+              color: '#6B7280',
+              textAlign: 'center',
+              mt: 4
+            }}
+          >
+            Lembrou sua senha?{' '}
+            <Link
+              component='button'
+              type='button'
+              onClick={() => navigate('/auth')}
+              sx={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: '0.875rem',
+                color: '#1d4ed8',
+                fontWeight: 600,
+                textDecoration: 'none',
+                '&:hover': { textDecoration: 'underline' }
+              }}
+            >
+              Entrar
+            </Link>
+          </Typography>
+        </Box>
+      ) : (
+        /* Sent state */
+        <Box>
+          {/* Icon circle */}
+          <Box
+            sx={{
+              width: 56,
+              height: 56,
+              borderRadius: '14px',
+              backgroundColor: '#EFF6FF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              mb: 3
+            }}
+          >
+            <Box
+              component='svg'
+              width={28}
+              height={28}
+              viewBox='0 0 24 24'
+              fill='none'
+              stroke='#1d4ed8'
+              strokeWidth={1.75}
+              strokeLinecap='round'
+              strokeLinejoin='round'
+            >
+              <path d='M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z' />
+              <polyline points='22,6 12,13 2,6' />
+            </Box>
+          </Box>
+
+          <Typography
+            component='h1'
+            sx={{
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontWeight: 600,
+              fontSize: { xs: '2rem', sm: '2.25rem', md: '2.5rem', lg: '3.25rem' },
+              color: '#0B1220',
+              lineHeight: 1.1,
+              letterSpacing: '-0.03em',
+              mb: 1
+            }}
+          >
+            Verifique seu{' '}
+            <Box
+              component='em'
+              sx={{ fontWeight: 300, fontStyle: 'italic', color: '#1d4ed8', fontSize: 'inherit' }}
+            >
+              e-mail.
+            </Box>
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: '0.9375rem',
+              color: '#6B7280',
+              lineHeight: 1.55,
+              mb: 4
+            }}
+          >
+            Enviamos um link de recuperação para{' '}
+            <Box
+              component='strong'
+              sx={{ color: '#0B1220', fontWeight: 600 }}
+            >
+              {email}
+            </Box>
+            . Verifique sua caixa de entrada e a pasta de spam.
+          </Typography>
+
+          {/* Info card */}
+          <Box
+            sx={{
+              border: '1px solid #E5E7EB',
+              borderRadius: '14px',
+              p: 2.25,
+              mb: 3,
+              display: 'flex',
+              gap: 1.75,
+              alignItems: 'flex-start'
+            }}
+          >
+            <Box
+              sx={{
+                width: 38,
+                height: 38,
+                borderRadius: '10px',
+                backgroundColor: '#F1F5F9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}
+            >
+              <Box
+                component='svg'
+                width={18}
+                height={18}
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='#475467'
+                strokeWidth={1.75}
+                strokeLinecap='round'
+                strokeLinejoin='round'
+              >
+                <circle
+                  cx='12'
+                  cy='12'
+                  r='10'
+                />
+                <polyline points='12,6 12,12 16,14' />
+              </Box>
+            </Box>
+            <Typography
+              sx={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: '0.8125rem',
+                color: '#475467',
+                lineHeight: 1.55
+              }}
+            >
+              Não recebeu? Verifique novamente em alguns minutos ou{' '}
+              <Box
+                component='span'
+                onClick={() => setSent(false)}
+                sx={{
+                  color: '#1d4ed8',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  '&:hover': { textDecoration: 'underline' }
+                }}
+              >
+                tente outro e-mail
+              </Box>
+              .
             </Typography>
           </Box>
-        )}
 
-        <Button
-          startIcon={<ArrowBackOutlined sx={{ fontSize: 16 }} />}
-          onClick={() => navigate('/auth')}
-          fullWidth
-          variant='outlined'
-          sx={{ height: 44, borderRadius: 2, textTransform: 'none', fontWeight: 600, borderColor: '#e2e8f0', color: '#64748b', '&:hover': { borderColor: '#1877F2', color: '#1877F2', bgcolor: '#EBF3FF' } }}
-        >
-          Voltar ao login
-        </Button>
-      </Box>
-    </Box>
+          {/* Resend button */}
+          <Button
+            onClick={handleResend}
+            disabled={loading}
+            fullWidth
+            sx={{
+              height: '54px',
+              borderRadius: '12px',
+              backgroundColor: 'transparent',
+              color: '#0B1220',
+              fontSize: '0.9375rem',
+              fontWeight: 600,
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              textTransform: 'none',
+              mb: 3,
+              border: '1.5px solid #E5E7EB',
+              '&:hover': { backgroundColor: '#F9FAFB', borderColor: '#D1D5DB' },
+              '&:disabled': { backgroundColor: '#F9FAFB', color: '#9CA3AF' }
+            }}
+          >
+            {loading ? (
+              <CircularProgress
+                size={20}
+                sx={{ color: '#6B7280' }}
+              />
+            ) : (
+              'Reenviar link'
+            )}
+          </Button>
+
+          <Typography
+            sx={{
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontSize: '0.875rem',
+              color: '#6B7280',
+              textAlign: 'center'
+            }}
+          >
+            Lembrou sua senha?{' '}
+            <Link
+              component='button'
+              type='button'
+              onClick={() => navigate('/auth')}
+              sx={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: '0.875rem',
+                color: '#1d4ed8',
+                fontWeight: 600,
+                textDecoration: 'none',
+                '&:hover': { textDecoration: 'underline' }
+              }}
+            >
+              Entrar
+            </Link>
+          </Typography>
+        </Box>
+      )}
+    </AuthSplitLayout>
   );
 };
 

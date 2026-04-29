@@ -1,154 +1,82 @@
-import { Box, Typography, useTheme } from '@mui/material';
-
+import { Box } from '@mui/material';
+import { useState } from 'react';
+import { AuthSplitLayout } from '@/components/auth';
 import CreateAccount from './components/CreateAccount';
 import RegistrationSuccess from './components/RegistrationSuccess';
-import GavelIcon from '@mui/icons-material/Gavel';
 import SignIn from './components/SignIn';
-import { useState } from 'react';
 
 const Auth = () => {
   const [isSignIn, setIsSignIn] = useState(true);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState('');
-  const theme = useTheme();
 
-  return (
+  const handleBackToLogin = () => {
+    if (registrationSuccess) setRegistrationSuccess(false);
+    setIsSignIn(true);
+  };
+
+  // Login: sem slot no topo. Demais telas: link "← Já tenho conta"
+  const topRightSlot = isSignIn ? null : (
     <Box
+      component='button'
+      type='button'
+      onClick={handleBackToLogin}
       sx={{
-        minHeight: '100vh',
-        display: 'flex',
+        display: 'inline-flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 100%)',
-        padding: { xs: 2, sm: 3 }
+        gap: 0.75,
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        p: 0,
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
+        fontSize: '0.8125rem',
+        color: '#6B7280',
+        transition: 'color 0.15s ease',
+        '&:hover': { color: '#0B1220' }
       }}
     >
       <Box
-        sx={{
-          maxWidth: '1200px',
-          width: '100%',
-          minHeight: { lg: '90vh' },
-          borderRadius: { xs: 2, sm: 3 },
-          overflow: 'hidden',
-          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.1)',
-          backgroundColor: 'white',
-          display: 'flex',
-          flexDirection: { xs: 'column', lg: 'row' }
-        }}
+        component='svg'
+        width={15}
+        height={15}
+        viewBox='0 0 24 24'
+        fill='none'
+        stroke='currentColor'
+        strokeWidth={2}
+        strokeLinecap='round'
+        strokeLinejoin='round'
       >
-        {/* Seção do Formulário */}
-        <Box
-          sx={{
-            flex: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: { xs: 3, sm: 4, lg: 6 },
-            backgroundColor: 'white'
-          }}
-        >
-          <Box sx={{ width: '100%', maxWidth: '400px' }}>
-            {registrationSuccess ? (
-              <RegistrationSuccess 
-                email={registeredEmail} 
-                setIsSignIn={setIsSignIn}
-                setRegistrationSuccess={setRegistrationSuccess}
-              />
-            ) : isSignIn ? (
-              <SignIn setIsSignIn={setIsSignIn} />
-            ) : (
-              <CreateAccount 
-                setIsSignIn={setIsSignIn} 
-                setRegistrationSuccess={setRegistrationSuccess}
-                setRegisteredEmail={setRegisteredEmail}
-              />
-            )}
-          </Box>
-        </Box>
-
-        {/* Seção Lateral com Branding */}
-        <Box
-          sx={{
-            flex: 1,
-            display: { xs: 'none', lg: 'flex' },
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'linear-gradient(135deg, #1877F2 0%, #42A5F5 100%)',
-            position: 'relative',
-            overflow: 'hidden'
-          }}
-        >
-          {/* Conteúdo principal centralizado */}
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              width: '100%',
-              padding: 4,
-              gap: 4,
-              position: 'relative',
-              zIndex: 2
-            }}
-          >
-            {/* Logo centralizada */}
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: 3
-              }}
-            >
-              <img 
-                src='/assets/isologo.svg' 
-                alt="Planco Logo" 
-                style={{ 
-                  width: '120px', 
-                  height: '120px',
-                  objectFit: 'contain'
-                }} 
-              />
-            </Box>
-
-            {/* Título */}
-            <Typography
-              variant='h2'
-              sx={{
-                fontWeight: 700,
-                color: 'white',
-                textAlign: 'center',
-                lineHeight: 1.1,
-                fontSize: { lg: '3rem', xl: '3.5rem' },
-                maxWidth: '500px',
-                textShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-                marginBottom: 2
-              }}
-            >
-              Planco
-            </Typography>
-
-            {/* Descrição */}
-            <Typography
-              variant='h5'
-              sx={{
-                color: 'rgba(255, 255, 255, 0.9)',
-                textAlign: 'center',
-                lineHeight: 1.5,
-                fontSize: { lg: '1.25rem', xl: '1.375rem' },
-                maxWidth: '520px',
-                fontWeight: 400,
-                textShadow: '0 1px 4px rgba(0, 0, 0, 0.2)'
-              }}
-            >
-              A plataforma inteligente que conecta todas as fases da licitação pública.
-            </Typography>
-          </Box>
-        </Box>
+        <path d='M19 12H5M12 19l-7-7 7-7' />
       </Box>
+      Já tenho conta
     </Box>
+  );
+
+  // CreateAccount usa maxWidth 480; Login e RegistrationSuccess usam o default 440
+  const formMaxWidth = !registrationSuccess && !isSignIn ? 480 : 440;
+
+  return (
+    <AuthSplitLayout
+      topRightSlot={topRightSlot}
+      formMaxWidth={formMaxWidth}
+    >
+      {registrationSuccess ? (
+        <RegistrationSuccess
+          email={registeredEmail}
+          setIsSignIn={setIsSignIn}
+          setRegistrationSuccess={setRegistrationSuccess}
+        />
+      ) : isSignIn ? (
+        <SignIn setIsSignIn={setIsSignIn} />
+      ) : (
+        <CreateAccount
+          setIsSignIn={setIsSignIn}
+          setRegistrationSuccess={setRegistrationSuccess}
+          setRegisteredEmail={setRegisteredEmail}
+        />
+      )}
+    </AuthSplitLayout>
   );
 };
 
