@@ -6,6 +6,7 @@ import {
   WarningAmberOutlined
 } from '@mui/icons-material';
 import { Box, Card, CardContent, Grid, Skeleton, Typography } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import type { PlanejamentoKpis } from '@/globals/types';
 
 type KpiCardProps = {
@@ -14,10 +15,28 @@ type KpiCardProps = {
   icon: React.ReactNode;
   color: string;
   bg: string;
+  onClick?: () => void;
 };
 
-const KpiCard = ({ label, value, icon, color, bg }: KpiCardProps) => (
-  <Card sx={{ height: '100%', border: '1px solid', borderColor: 'divider', boxShadow: 1 }}>
+const KpiCard = ({ label, value, icon, color, bg, onClick }: KpiCardProps) => (
+  <Card
+    onClick={onClick}
+    sx={{
+      height: '100%',
+      border: '1px solid',
+      borderColor: 'divider',
+      boxShadow: 1,
+      cursor: onClick ? 'pointer' : 'default',
+      transition: 'box-shadow 0.15s, border-color 0.15s, transform 0.15s',
+      ...(onClick && {
+        '&:hover': {
+          boxShadow: 4,
+          borderColor: color,
+          transform: 'translateY(-2px)',
+        },
+      }),
+    }}
+  >
     <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, p: '16px !important' }}>
       <Box sx={{ width: 44, height: 44, borderRadius: 2, backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color, flexShrink: 0 }}>
         {icon}
@@ -34,9 +53,16 @@ const KpiCard = ({ label, value, icon, color, bg }: KpiCardProps) => (
   </Card>
 );
 
-type Props = { kpis?: PlanejamentoKpis; loading: boolean; onAprovacaoClick?: () => void };
+type Props = { kpis?: PlanejamentoKpis; loading: boolean };
 
 export const PlanejamentoKpiCards = ({ kpis, loading }: Props) => {
+  const navigate = useNavigate();
+
+  const go = (params: Record<string, string>) => {
+    const qs = new URLSearchParams(params).toString();
+    navigate(`/processos-gerencia?${qs}`);
+  };
+
   if (loading) {
     return (
       <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -57,43 +83,49 @@ export const PlanejamentoKpiCards = ({ kpis, loading }: Props) => {
       value: kpis.emAndamento,
       icon: <TrendingUpOutlined />,
       color: '#1877F2',
-      bg: '#E7F3FF'
+      bg: '#E7F3FF',
+      onClick: () => go({ status: 'Em Andamento' }),
     },
     {
       label: 'Esta Semana',
       value: kpis.emAndamentoEstaSemana,
       icon: <TrendingUpOutlined />,
       color: '#0369a1',
-      bg: '#e0f2fe'
+      bg: '#e0f2fe',
+      onClick: () => go({ status: 'Em Andamento', period: 'week' }),
     },
     {
       label: 'Prazos Críticos',
       value: kpis.prazosCriticos,
       icon: <WarningAmberOutlined />,
       color: kpis.prazosCriticos > 0 ? '#ba1a1a' : '#64748b',
-      bg: kpis.prazosCriticos > 0 ? '#FEE2E2' : '#f1f5f9'
+      bg: kpis.prazosCriticos > 0 ? '#FEE2E2' : '#f1f5f9',
+      onClick: () => go({ status: 'Em Atraso' }),
     },
     {
       label: 'Concluídos (Mês)',
       value: kpis.concluidosMes,
       icon: <CheckCircleOutlined />,
       color: '#1F7A37',
-      bg: '#DCFCE7'
+      bg: '#DCFCE7',
+      onClick: () => go({ status: 'Concluído', period: 'month' }),
     },
     {
       label: 'Aguard. Aprovação',
       value: kpis.aguardandoAprovacao,
       icon: <HourglassEmptyOutlined />,
       color: '#C2410C',
-      bg: '#FFEDD5'
+      bg: '#FFEDD5',
+      onClick: () => go({ currentStage: 'Aprovação' }),
     },
     {
       label: 'Aguard. Revisão',
       value: kpis.aguardandoRevisao,
       icon: <RateReviewOutlined />,
       color: '#B38800',
-      bg: '#FEF9C3'
-    }
+      bg: '#FEF9C3',
+      onClick: () => go({ currentStage: 'Revisão' }),
+    },
   ];
 
   return (

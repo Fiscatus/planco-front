@@ -6,6 +6,8 @@ import {
   BusinessCenter as BusinessCenterIcon,
   Refresh as RefreshIcon,
   ErrorOutline as ErrorOutlineIcon,
+  ViewList as ViewListIcon,
+  ViewKanban as ViewKanbanIcon,
 } from '@mui/icons-material';
 import {
   Box,
@@ -17,6 +19,8 @@ import {
   Pagination,
   Select,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -28,6 +32,7 @@ import { useActiveDepartment } from '@/contexts';
 import type { CreateProcessDto, FilterProcessesDto, Process } from '@/globals/types';
 import { useFolders, useProcesses, useSearchWithDebounce } from '@/hooks';
 import { CreateProcessModal } from './components/CreateProcessModal';
+import { ProcessKanban } from './components/ProcessKanban';
 import { ProcessSidebar } from './components/ProcessSidebar';
 import { ProcessTable } from './components/ProcessTable';
 
@@ -41,6 +46,9 @@ const GerenciaProcessesPage = () => {
   const navigate = useNavigate();
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>(() =>
+    (localStorage.getItem('@planco:processes_view') as 'list' | 'kanban') || 'list'
+  );
 
   const {
     search: processSearch,
@@ -194,6 +202,18 @@ const GerenciaProcessesPage = () => {
   }, [setUrlParams, handleProcessSearchChange]);
 
   // Handlers de paginação
+  const handleViewModeChange = (_: React.MouseEvent, val: 'list' | 'kanban') => {
+    if (!val) return;
+    setViewMode(val);
+    localStorage.setItem('@planco:processes_view', val);
+    if (val === 'kanban') {
+      const newParams = new URLSearchParams(urlParams);
+      newParams.set('limit', '10');
+      newParams.set('page', '1');
+      setUrlParams(newParams, { replace: true });
+    }
+  };
+
   const handleProcessesPageChange = useCallback(
     (_event: unknown, newPage: number) => {
       const newParams = new URLSearchParams(urlParams);
@@ -363,19 +383,29 @@ const GerenciaProcessesPage = () => {
                 gap: { xs: 1.5, sm: 0 }
               }}
             >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
-                <FilterAltIcon sx={{ color: '#1877F2', fontSize: { xs: 18, sm: 20 } }} />
-                <Typography
-                  variant='subtitle1'
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
+                  <FilterAltIcon sx={{ color: '#1877F2', fontSize: { xs: 18, sm: 20 } }} />
+                  <Typography variant='subtitle1' sx={{ fontWeight: 600, fontSize: { xs: '0.875rem', sm: '0.9375rem' }, color: '#0f172a', letterSpacing: '-0.01em' }}>
+                    Filtros de Pesquisa
+                  </Typography>
+                </Box>
+                <ToggleButtonGroup
+                  value={viewMode}
+                  exclusive
+                  onChange={handleViewModeChange}
+                  size='small'
                   sx={{
-                    fontWeight: 600,
-                    fontSize: { xs: '0.875rem', sm: '0.9375rem' },
-                    color: '#0f172a',
-                    letterSpacing: '-0.01em'
+                    '& .MuiToggleButton-root': {
+                      border: '1px solid #e2e8f0', color: '#64748b', px: 1.5, py: 0.5, textTransform: 'none', fontSize: '0.8125rem', fontWeight: 600,
+                      '&.Mui-selected': { backgroundColor: '#EFF6FF', color: '#1877F2', borderColor: '#BFDBFE' },
+                      '&:hover': { backgroundColor: '#f8fafc' },
+                    }
                   }}
                 >
-                  Filtros de Pesquisa
-                </Typography>
+                  <ToggleButton value='list'><ViewListIcon sx={{ fontSize: 18, mr: 0.5 }} />Lista</ToggleButton>
+                  <ToggleButton value='kanban'><ViewKanbanIcon sx={{ fontSize: 18, mr: 0.5 }} />Kanban</ToggleButton>
+                </ToggleButtonGroup>
               </Box>
               {hasActiveFilters && (
                 <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -625,13 +655,25 @@ const GerenciaProcessesPage = () => {
               </Box>
             ) : (
               <>
-                <ProcessTable
-                  processes={processes}
-                  onProcessClick={handleProcessClick}
-                />
+                {viewMode === 'list' ? (
+                  <ProcessTable processes={processes} onProcessClick={handleProcessClick} />
+                ) : (
+                  <ProcessKanban
+                    processes={processes}
+                    total={totalProcesses}
+                    limit={processesLimit}
+                    onLimitChange={(l) => {
+                      const newParams = new URLSearchParams(urlParams);
+                      newParams.set('limit', String(l));
+                      newParams.set('page', '1');
+                      setUrlParams(newParams, { replace: true });
+                    }}
+                    onProcessClick={handleProcessClick}
+                  />
+                )}
 
-                {/* Paginação */}
-                {totalProcesses > 0 && (
+                {/* Paginação — apenas no modo lista */}
+                {viewMode === 'list' && totalProcesses > 0 && (
                   <Box
                     sx={{
                       p: 3,
