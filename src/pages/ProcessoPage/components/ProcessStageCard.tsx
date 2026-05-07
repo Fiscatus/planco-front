@@ -7,7 +7,6 @@ import {
   RemoveRedEye as ViewIcon,
   ArrowForward as AdvanceIcon,
   ArrowBack as RollbackIcon,
-  FastForward as FastForwardIcon,
 } from '@mui/icons-material';
 import { Box, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography } from '@mui/material';
 import { useAdvanceStage, useRollbackStage } from '@/hooks/useFlowInstance';
@@ -151,10 +150,7 @@ export const ProcessStageCard = ({ order, title, departments, status, additional
           </Box>
           <Chip icon={chip.icon} label={chip.label} size='small'
             sx={{ bgcolor: chip.bg, color: chip.color, fontWeight: 700, fontSize: '0.75rem', height: 24, '& .MuiChip-icon': { color: chip.color } }} />
-          {wasAdvanced && (
-            <Chip icon={<FastForwardIcon sx={{ fontSize: 14 }} />} label='Avançada' size='small'
-              sx={{ bgcolor: '#FEF3C7', color: '#92400E', fontWeight: 700, fontSize: '0.75rem', height: 24, '& .MuiChip-icon': { color: '#92400E' } }} />
-          )}
+
         </Box>
 
         <Box sx={{ flex: 1 }}>

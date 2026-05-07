@@ -1,4 +1,5 @@
 import {
+  Feedback,
   Headphones,
   Logout,
   Menu as MenuIcon,
@@ -23,6 +24,7 @@ import { type MouseEvent, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { NotificationDropdown } from '@/components/NotificationDropdown';
 import { useNotification } from '@/components/NotificationProvider';
+import { FeedbackModal } from '@/components/FeedbackModal';
 import { useSupportChat } from '@/contexts';
 import { useAuth } from '@/hooks';
 import { useNotificationSSE, useUserUpdatedSSE } from '@/hooks/useNotificationSSE';
@@ -42,6 +44,7 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
 
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
   const [accountMenuAnchor, setAccountMenuAnchor] = useState<null | HTMLElement>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const { data: unreadCount = 0 } = useUnreadCount();
 
@@ -171,6 +174,10 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
                 <ListItemIcon sx={{ minWidth: 32 }}><Headphones sx={{ fontSize: 16 }} /></ListItemIcon>
                 <ListItemText primary='Suporte' sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }} />
               </MenuItem>
+              <MenuItem onClick={() => { setFeedbackOpen(true); handleAccountMenuClose(); }} sx={{ py: 1, minHeight: 36 }}>
+                <ListItemIcon sx={{ minWidth: 32 }}><Feedback sx={{ fontSize: 16 }} /></ListItemIcon>
+                <ListItemText primary='Enviar Feedback' sx={{ '& .MuiTypography-root': { fontSize: '0.875rem' } }} />
+              </MenuItem>
               <Divider />
               <MenuItem onClick={handleLogout} sx={{ py: 1, minHeight: 36, color: '#dc2626', '&:hover': { backgroundColor: '#fef2f2' } }}>
                 <ListItemIcon sx={{ minWidth: 32 }}><Logout sx={{ fontSize: 16, color: '#dc2626' }} /></ListItemIcon>
@@ -187,6 +194,8 @@ const Topbar = ({ onMenuClick }: TopbarProps) => {
         onViewAll={() => { navigate('/notificacoes'); setNotificationsAnchor(null); }}
         unreadCount={unreadCount}
       />
+
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </>
   );
 };

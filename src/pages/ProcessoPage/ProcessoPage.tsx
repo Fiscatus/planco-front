@@ -98,9 +98,11 @@ const ProcessoPage = () => {
 
   const stages = flowInstance.snapshotStages
     .filter(stage => !stage.isOptional || flowInstance.stageExecutions.some(exec => exec.stageId === stage.stageId))
-    .sort((a, b) => a.order - b.order)
     .map((stage) => {
       const execution = flowInstance.stageExecutions.find(exec => exec.stageId === stage.stageId);
+      // Usa stageOrder da execution como fonte de verdade (backend calcula a posição real)
+      // Fallback para stage.order caso a execution não exista (etapa ainda não iniciada sem execution)
+      const effectiveOrder = execution?.stageOrder ?? stage.order;
       const executionStatus = execution?.status;
       
       let status: 'completed' | 'in_progress' | 'pending' = 'pending';
@@ -119,7 +121,7 @@ const ProcessoPage = () => {
 
       return {
         id: stage.stageId,
-        order: stage.order,
+        order: effectiveOrder,
         stageId: stage.stageId,
         stageInstanceId: flowInstance._id,
         title: stage.name,
@@ -157,7 +159,8 @@ const ProcessoPage = () => {
           stageId: stage.stageId
         }))
       };
-    });
+    })
+    .sort((a, b) => a.order - b.order);
 
   // Departamentos únicos de todas as etapas do snapshot (para o filtro)
   const allDepartments = flowInstance
