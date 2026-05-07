@@ -36,6 +36,7 @@ const ForgotPasswordPage = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
+  const [resent, setResent] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -55,6 +56,7 @@ const ForgotPasswordPage = () => {
 
   const handleResend = async () => {
     if (!email.trim()) return;
+    setResent(true);
     setLoading(true);
     setError('');
     try {
@@ -426,7 +428,7 @@ const ForgotPasswordPage = () => {
           {/* Resend button */}
           <Button
             onClick={handleResend}
-            disabled={loading}
+            disabled={loading || resent}
             fullWidth
             sx={{
               height: '54px',

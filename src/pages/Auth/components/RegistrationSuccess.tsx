@@ -20,8 +20,6 @@ const RegistrationSuccess = ({ email, setIsSignIn, setRegistrationSuccess }: Pro
       showNotification('Email de verificação reenviado!', 'success');
     } catch (error: any) {
       showNotification(error.message || 'Erro ao reenviar email.', 'error');
-    } finally {
-      setResending(false);
     }
   };
 

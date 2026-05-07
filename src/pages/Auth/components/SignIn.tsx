@@ -66,6 +66,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
   const [shouldRedirectAfterLogin, setShouldRedirectAfterLogin] = useState(false);
   const [emailNotVerified, setEmailNotVerified] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [resending, setResending] = useState(false);
 
   const { mutate: signInMutation, isPending: signingIn } = useMutation({
     mutationFn: async (credentials: LoginDto) => {
@@ -96,6 +97,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
   };
 
   const handleResendVerification = async () => {
+    setResending(true);
     try {
       await api.post('/auth/resend-verification', { email: userEmail });
       showNotification('Email de verificação reenviado!', 'success');
@@ -302,6 +304,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
         {emailNotVerified && (
           <Button
             onClick={handleResendVerification}
+            disabled={resending}
             fullWidth
             sx={{
               height: '48px',
