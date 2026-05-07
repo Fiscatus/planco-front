@@ -1,22 +1,15 @@
-import { Box, Button, IconButton, InputAdornment, Link, TextField, Typography } from '@mui/material';
-import { Controller, useForm } from 'react-hook-form';
-import {
-  Lock,
-  Person,
-  Visibility,
-  VisibilityOff
-} from '@mui/icons-material';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { Box, Button, CircularProgress, IconButton, InputAdornment, Link, TextField, Typography } from '@mui/material';
+import { useMutation } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-
+import { Controller, useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { z } from 'zod';
+import { useNotification } from '@/components';
 import type { LoginDto } from '@/globals/types/User';
 import { useAuth } from '@/hooks';
-import { useMutation } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
-import { useNotification } from '@/components';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { api } from '@/services';
-import logo from '/assets/isologo.svg';
 
 type Props = {
   setIsSignIn: (value: boolean) => void;
@@ -30,6 +23,41 @@ const authSchema = z.object({
     .max(25, 'A senha deve ter no máximo 25 caracteres')
 });
 
+const inputSx = (hasError: boolean) => ({
+  width: '100%',
+  '& .MuiOutlinedInput-root': {
+    height: '52px',
+    borderRadius: '10px',
+    backgroundColor: 'white',
+    '& fieldset': {
+      borderColor: hasError ? '#ef4444' : '#E5E7EB',
+      borderWidth: '1.5px'
+    },
+    '&:hover fieldset': {
+      borderColor: hasError ? '#ef4444' : '#D1D5DB'
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#1d4ed8',
+      borderWidth: '1.5px',
+      boxShadow: '0 0 0 3px rgba(29,78,216,0.12)'
+    }
+  },
+  '& .MuiInputBase-input': {
+    padding: '14px 16px',
+    fontSize: '0.9375rem',
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    '&::placeholder': { color: '#9CA3AF', opacity: 1 }
+  }
+});
+
+const labelSx = {
+  fontFamily: "'Plus Jakarta Sans', sans-serif",
+  fontSize: '0.8125rem',
+  fontWeight: 500,
+  color: '#374151',
+  mb: 0.75
+};
+
 const SignIn = ({ setIsSignIn }: Props) => {
   const { signIn, hasOrganization, user } = useAuth();
   const { showNotification } = useNotification();
@@ -38,6 +66,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
   const [shouldRedirectAfterLogin, setShouldRedirectAfterLogin] = useState(false);
   const [emailNotVerified, setEmailNotVerified] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [resending, setResending] = useState(false);
 
   const { mutate: signInMutation, isPending: signingIn } = useMutation({
     mutationFn: async (credentials: LoginDto) => {
@@ -68,6 +97,7 @@ const SignIn = ({ setIsSignIn }: Props) => {
   };
 
   const handleResendVerification = async () => {
+    setResending(true);
     try {
       await api.post('/auth/resend-verification', { email: userEmail });
       showNotification('Email de verificação reenviado!', 'success');
@@ -98,52 +128,43 @@ const SignIn = ({ setIsSignIn }: Props) => {
 
   return (
     <Box>
+      {/* Headline */}
+      <Box sx={{ mb: 5 }}>
+        <Typography
+          component='h1'
+          sx={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontWeight: 600,
+            fontSize: { xs: '2rem', sm: '2.25rem', md: '2.5rem', lg: '3.25rem' },
+            color: '#0B1220',
+            lineHeight: 1.1,
+            letterSpacing: '-0.03em',
+            mb: 1
+          }}
+        >
+          Bem-vindo{' '}
+          <Box
+            component='em'
+            sx={{ fontWeight: 300, fontStyle: 'italic', color: '#1d4ed8', fontSize: 'inherit' }}
+          >
+            de volta.
+          </Box>
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontSize: '0.9375rem',
+            color: '#6B7280'
+          }}
+        >
+          Acesse sua conta para continuar.
+        </Typography>
+      </Box>
+
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Box sx={{ mb: 4, textAlign: 'center' }}>
-          <img 
-            src={logo} 
-            alt="Planco Logo" 
-            style={{ 
-              width: '64px', 
-              height: '64px',
-              objectFit: 'contain',
-              display: 'block',
-              margin: '0 auto 16px auto'
-            }} 
-          />
-          <Typography
-            variant='h4'
-            component='h1'
-            fontWeight={700}
-            sx={{
-              color: '#212529',
-              mb: 1,
-              fontSize: { xs: '1.75rem', sm: '2rem' }
-            }}
-          >
-            Acesso ao Sistema
-          </Typography>
-          <Typography
-            sx={{
-              color: '#6C757D',
-              fontSize: '1rem'
-            }}
-          >
-            Entre na sua conta para continuar
-          </Typography>
-        </Box>
-        <Box sx={{ mb: 3 }}>
-          <Typography
-            variant='body2'
-            sx={{
-              mb: 1,
-              fontWeight: 500,
-              color: '#495057',
-              fontSize: '0.875rem'
-            }}
-          >
-            E-mail
-          </Typography>
+        {/* Email */}
+        <Box sx={{ mb: 2.5 }}>
+          <Typography sx={labelSx}>E-mail</Typography>
           <Controller
             name='email'
             control={control}
@@ -153,52 +174,12 @@ const SignIn = ({ setIsSignIn }: Props) => {
                 <TextField
                   {...field}
                   type='email'
-                  placeholder='seuemail@exemplo.com'
+                  placeholder='nome@orgao.gov.br'
                   onFocus={() => clearErrors('email')}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Person sx={{ color: '#6C757D' }} />
-                      </InputAdornment>
-                    )
-                  }}
-                  sx={{
-                    width: '100%',
-                    '& .MuiOutlinedInput-root': {
-                      height: '48px',
-                      borderRadius: '8px',
-                      backgroundColor: 'white',
-                      '& fieldset': {
-                        borderColor: errors.email ? '#DC3545' : '#CED4DA',
-                        borderWidth: '1px'
-                      },
-                      '&:hover fieldset': {
-                        borderColor: errors.email ? '#DC3545' : '#ADB5BD'
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#1877F2',
-                        borderWidth: '2px'
-                      }
-                    },
-                    '& .MuiInputBase-input': {
-                      padding: '12px 14px',
-                      fontSize: '0.875rem',
-                      '&::placeholder': {
-                        color: '#6C757D',
-                        opacity: 1
-                      }
-                    }
-                  }}
+                  sx={inputSx(!!errors.email)}
                 />
                 {errors.email && (
-                  <Typography
-                    sx={{
-                      color: '#DC3545',
-                      fontSize: '0.75rem',
-                      mt: 0.5,
-                      ml: 1
-                    }}
-                  >
+                  <Typography sx={{ color: '#ef4444', fontSize: '0.75rem', mt: 0.5, ml: 0.5 }}>
                     {errors.email.message}
                   </Typography>
                 )}
@@ -206,30 +187,22 @@ const SignIn = ({ setIsSignIn }: Props) => {
             )}
           />
         </Box>
+
+        {/* Password */}
         <Box sx={{ mb: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            <Typography
-              variant='body2'
-              sx={{
-                fontWeight: 500,
-                color: '#495057',
-                fontSize: '0.875rem'
-              }}
-            >
-              Senha
-            </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
+            <Typography sx={labelSx}>Senha</Typography>
             <Link
               component='button'
               type='button'
               onClick={() => navigate('/auth/forgot-password')}
               sx={{
-                fontSize: '0.875rem',
-                color: '#1877F2',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontSize: '0.8125rem',
+                color: '#1d4ed8',
                 textDecoration: 'none',
                 fontWeight: 500,
-                '&:hover': {
-                  textDecoration: 'underline'
-                }
+                '&:hover': { textDecoration: 'underline' }
               }}
             >
               Esqueceu sua senha?
@@ -244,63 +217,25 @@ const SignIn = ({ setIsSignIn }: Props) => {
                 <TextField
                   {...field}
                   type={showPassword ? 'text' : 'password'}
-                  placeholder='Digite sua senha'
+                  placeholder='••••••••••••'
                   onFocus={() => clearErrors('password')}
                   InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Lock sx={{ color: '#6C757D' }} />
-                      </InputAdornment>
-                    ),
                     endAdornment: (
                       <InputAdornment position='end'>
                         <IconButton
                           onClick={() => setShowPassword(!showPassword)}
                           edge='end'
-                          sx={{ color: '#6C757D' }}
+                          sx={{ color: '#9CA3AF', '&:hover': { color: '#6B7280' } }}
                         >
-                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                          {showPassword ? <VisibilityOff fontSize='small' /> : <Visibility fontSize='small' />}
                         </IconButton>
                       </InputAdornment>
                     )
                   }}
-                  sx={{
-                    width: '100%',
-                    '& .MuiOutlinedInput-root': {
-                      height: '48px',
-                      borderRadius: '8px',
-                      backgroundColor: 'white',
-                      '& fieldset': {
-                        borderColor: errors.password ? '#DC3545' : '#CED4DA',
-                        borderWidth: '1px'
-                      },
-                      '&:hover fieldset': {
-                        borderColor: errors.password ? '#DC3545' : '#ADB5BD'
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#1877F2',
-                        borderWidth: '2px'
-                      }
-                    },
-                    '& .MuiInputBase-input': {
-                      padding: '12px 14px',
-                      fontSize: '0.875rem',
-                      '&::placeholder': {
-                        color: '#6C757D',
-                        opacity: 1
-                      }
-                    }
-                  }}
+                  sx={inputSx(!!errors.password)}
                 />
                 {errors.password && (
-                  <Typography
-                    sx={{
-                      color: '#DC3545',
-                      fontSize: '0.75rem',
-                      mt: 0.5,
-                      ml: 1
-                    }}
-                  >
+                  <Typography sx={{ color: '#ef4444', fontSize: '0.75rem', mt: 0.5, ml: 0.5 }}>
                     {errors.password.message}
                   </Typography>
                 )}
@@ -308,80 +243,111 @@ const SignIn = ({ setIsSignIn }: Props) => {
             )}
           />
         </Box>
+
+        {/* CTA */}
         <Button
           disabled={!isDirty || signingIn}
           type='submit'
           fullWidth
           sx={{
-            height: '48px',
-            borderRadius: '8px',
-            backgroundColor: '#1877F2',
+            height: '54px',
+            borderRadius: '12px',
+            backgroundColor: '#1d4ed8',
             color: 'white',
-            fontSize: '1rem',
+            fontSize: '0.9375rem',
             fontWeight: 600,
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
             textTransform: 'none',
-            mb: 3,
-            '&:hover': {
-              backgroundColor: '#166FE5'
+            mb: 2,
+            boxShadow: '0 14px 30px -12px rgba(29,78,216,0.5), inset 0 1px 0 rgba(255,255,255,0.12)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            '&:hover:not(:disabled)': {
+              backgroundColor: '#1e40af',
+              transform: 'translateY(-1px)',
+              '& .arrow-icon': { transform: 'translateX(4px)' }
             },
-            '&:disabled': {
-              backgroundColor: '#E9ECEF',
-              color: '#6C757D'
-            },
-            transition: 'all 0.2s ease-in-out'
+            '&:active:not(:disabled)': { transform: 'translateY(0)' },
+            '&:disabled': { backgroundColor: '#E5E7EB', color: '#9CA3AF', boxShadow: 'none' },
+            transition: 'all 0.2s ease'
           }}
         >
-          Entrar
+          {signingIn ? (
+            <CircularProgress
+              size={20}
+              sx={{ color: 'white' }}
+            />
+          ) : (
+            <>
+              Entrar
+              <Box
+                component='svg'
+                className='arrow-icon'
+                width={18}
+                height={18}
+                viewBox='0 0 24 24'
+                fill='none'
+                stroke='currentColor'
+                strokeWidth={2}
+                strokeLinecap='round'
+                strokeLinejoin='round'
+                sx={{ transition: 'transform 0.2s ease', flexShrink: 0 }}
+              >
+                <path d='M5 12h14M12 5l7 7-7 7' />
+              </Box>
+            </>
+          )}
         </Button>
 
+        {/* Resend verification */}
         {emailNotVerified && (
           <Button
             onClick={handleResendVerification}
+            disabled={resending}
             fullWidth
             sx={{
               height: '48px',
-              borderRadius: '8px',
+              borderRadius: '10px',
               backgroundColor: 'white',
-              color: '#1877F2',
-              fontSize: '1rem',
+              color: '#1d4ed8',
+              fontSize: '0.9375rem',
               fontWeight: 600,
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
               textTransform: 'none',
-              mb: 3,
-              border: '2px solid #1877F2',
-              '&:hover': {
-                backgroundColor: '#F8F9FA'
-              }
+              mb: 2,
+              border: '1.5px solid #1d4ed8',
+              '&:hover': { backgroundColor: '#EFF6FF' }
             }}
           >
             Reenviar email de verificação
           </Button>
         )}
 
+        {/* Link para solicitar acesso — abaixo do botão Entrar, centralizado */}
         <Typography
           sx={{
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
             fontSize: '0.875rem',
-            color: '#6C757D',
-            textAlign: 'center'
+            color: '#6B7280',
+            textAlign: 'center',
+            mt: 1
           }}
         >
           Não tem uma conta?{' '}
           <Typography
             component='span'
-            onClick={() => {
-              setIsSignIn(false);
-            }}
+            onClick={() => setIsSignIn(false)}
             sx={{
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
               fontSize: '0.875rem',
-              color: '#1877F2',
-              textDecoration: 'none',
-              fontWeight: 500,
+              color: '#1d4ed8',
+              fontWeight: 600,
               cursor: 'pointer',
-              '&:hover': {
-                textDecoration: 'underline'
-              }
+              '&:hover': { textDecoration: 'underline' }
             }}
           >
-            Cadastre-se
+            Solicite acesso
           </Typography>
         </Typography>
       </form>
