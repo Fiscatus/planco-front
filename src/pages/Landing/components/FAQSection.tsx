@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Box, Collapse } from '@mui/material';
-import { BLUE_500, INK_100, INK_400, INK_500, INK_900, CONTAINER_SX } from '../constants';
+import { BLUE_500, INK_100, INK_400, INK_500, INK_900, CONTAINER_SX, DARK } from '../constants';
 import { RevealBox } from './RevealBox';
+import { useLandingTheme } from '../LandingThemeContext';
 
 const FAQS = [
   {
@@ -38,6 +39,8 @@ const ChevronIcon = () => (
 
 const FAQSection = () => {
   const [open, setOpen] = useState<number | null>(0);
+  const { mode } = useLandingTheme();
+  const dark = mode === 'dark';
 
   const toggle = (idx: number) => setOpen(prev => (prev === idx ? null : idx));
 
@@ -48,7 +51,7 @@ const FAQSection = () => {
           <Box sx={{ display: 'inline-block', fontSize: '12px', color: BLUE_500, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', mb: '14px' }}>
             Perguntas frequentes
           </Box>
-          <Box component='h2' sx={{ fontSize: 'clamp(30px, 3.6vw, 44px)', lineHeight: 1.1, letterSpacing: '-0.025em', fontWeight: 500, color: INK_900, m: 0 }}>
+          <Box component='h2' sx={{ fontSize: 'clamp(30px, 3.6vw, 44px)', lineHeight: 1.1, letterSpacing: '-0.025em', fontWeight: 500, color: dark ? DARK.text : INK_900, m: 0 }}>
             Tudo o que você
             <br />
             quer saber{' '}
@@ -61,8 +64,8 @@ const FAQSection = () => {
             <Box
               key={idx}
               sx={{
-                borderBottom: `1px solid ${INK_100}`,
-                ...(idx === 0 ? { borderTop: `1px solid ${INK_100}` } : {}),
+                borderBottom: `1px solid ${dark ? DARK.border : INK_100}`,
+                ...(idx === 0 ? { borderTop: `1px solid ${dark ? DARK.border : INK_100}` } : {}),
               }}
             >
               <Box
@@ -75,7 +78,7 @@ const FAQSection = () => {
                   px: '8px',
                   fontSize: '16px',
                   fontWeight: 500,
-                  color: open === idx ? BLUE_500 : INK_900,
+                  color: open === idx ? BLUE_500 : (dark ? DARK.text : INK_900),
                   letterSpacing: '-0.005em',
                   display: 'flex',
                   alignItems: 'center',
@@ -94,7 +97,7 @@ const FAQSection = () => {
                   component='span'
                   sx={{
                     display: 'flex',
-                    color: open === idx ? BLUE_500 : INK_400,
+                    color: open === idx ? BLUE_500 : (dark ? DARK.textSubtle : INK_400),
                     flexShrink: 0,
                     transition: 'transform .25s ease, color .15s',
                     transform: open === idx ? 'rotate(180deg)' : 'none',
@@ -104,7 +107,7 @@ const FAQSection = () => {
                 </Box>
               </Box>
               <Collapse in={open === idx}>
-                <Box sx={{ px: '8px', pb: '24px', fontSize: '15px', color: INK_500, lineHeight: 1.65 }}>
+                <Box sx={{ px: '8px', pb: '24px', fontSize: '15px', color: dark ? DARK.textMuted : INK_500, lineHeight: 1.65 }}>
                   {faq.a}
                 </Box>
               </Collapse>

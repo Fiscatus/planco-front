@@ -35,3 +35,14 @@ export const CONTAINER_SX = {
   mx: 'auto',
   px: { xs: '20px', sm: '32px' },
 } as const;
+
+// Dark mode tokens
+export const DARK = {
+  bg: '#0B0F1A',
+  surface: '#131825',
+  surfaceAlt: '#1A2035',
+  border: '#1E2A3D',
+  text: '#E8ECF4',
+  textMuted: '#8B95A8',
+  textSubtle: '#5E6A7E',
+} as const;

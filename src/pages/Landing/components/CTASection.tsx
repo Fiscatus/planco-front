@@ -1,13 +1,6 @@
-import { Box, Button } from '@mui/material';
-import { Link } from 'react-router-dom';
-import { BLUE_500, BLUE_600, BLUE_700, INK_25, CONTAINER_SX } from '../constants';
+import { Box } from '@mui/material';
+import { BLUE_500, BLUE_700, CONTAINER_SX } from '../constants';
 import { RevealBox } from './RevealBox';
-
-const ArrowIcon = () => (
-  <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-    <path d='M5 12h14'/><path d='m12 5 7 7-7 7'/>
-  </svg>
-);
 
 const CTASection = () => (
   <Box component='section' id='cta' sx={{ py: '88px' }}>
@@ -43,55 +36,9 @@ const CTASection = () => (
         </Box>
         <Box
           component='p'
-          sx={{ fontSize: '17px', color: 'rgba(255,255,255,0.85)', maxWidth: 540, mx: 'auto', mb: '32px', lineHeight: 1.55, position: 'relative', fontWeight: 400 }}
+          sx={{ fontSize: '17px', color: 'rgba(255,255,255,0.85)', maxWidth: 540, mx: 'auto', mb: 0, lineHeight: 1.55, position: 'relative', fontWeight: 400 }}
         >
-          Agende uma demonstração guiada de 30 minutos e veja como o Planco se adapta à estrutura e aos fluxos do seu órgão.
-        </Box>
-
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: '12px', flexWrap: 'wrap', position: 'relative' }}>
-          <Button
-            component={Link}
-            to='/solicitar-demonstracao'
-            disableElevation
-            sx={{
-              background: '#fff',
-              color: BLUE_600,
-              fontWeight: 500,
-              fontSize: '15px',
-              textTransform: 'none',
-              px: '22px',
-              height: '46px',
-              borderRadius: '6px',
-              boxShadow: '0 4px 14px rgba(13, 71, 161, 0.24)',
-              gap: '8px',
-              '&:hover': { background: INK_25, boxShadow: '0 8px 20px rgba(13, 71, 161, 0.32)' },
-              '& .arrow': { transition: 'transform .15s' },
-              '&:hover .arrow': { transform: 'translateX(2px)' },
-            }}
-          >
-            Solicitar demonstração
-            <Box className='arrow' component='span' sx={{ display: 'flex', alignItems: 'center' }}>
-              <ArrowIcon />
-            </Box>
-          </Button>
-          <Button
-            component={Link}
-            to='/solicitar-demonstracao'
-            disableElevation
-            sx={{
-              color: '#fff',
-              background: 'transparent',
-              fontWeight: 500,
-              fontSize: '15px',
-              textTransform: 'none',
-              px: '22px',
-              height: '46px',
-              borderRadius: '6px',
-              '&:hover': { background: 'rgba(255,255,255,0.12)', color: '#fff' },
-            }}
-          >
-            Falar com a equipe
-          </Button>
+          Veja como o Planco se adapta à estrutura e aos fluxos do seu órgão assistindo ao vídeo acima.
         </Box>
       </RevealBox>
     </Box>

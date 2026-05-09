@@ -1,20 +1,35 @@
 import { useEffect, useState } from 'react';
-import { Box, Button } from '@mui/material';
+import { Box, Button, IconButton } from '@mui/material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { BLUE_500, BLUE_600, INK_25, INK_50, INK_100, INK_600, INK_700, INK_900, SHADOW_XS } from '../constants';
+import { BLUE_500, INK_50, INK_100, INK_600, INK_700, INK_900, DARK } from '../constants';
+import { useLandingTheme } from '../LandingThemeContext';
 
 const NAV_ANCHORS = [
-  { label: 'Produto',        sectionId: 'produto' },
+  { label: 'Produto', sectionId: 'produto' },
   { label: 'Funcionalidades', sectionId: 'funcionalidades' },
-  { label: 'Como funciona',  sectionId: 'processo' },
-  { label: 'Segurança',      sectionId: 'seguranca' },
-  { label: 'FAQ',            sectionId: 'faq' },
+  { label: 'Como funciona', sectionId: 'processo' },
+  { label: 'Segurança', sectionId: 'seguranca' },
+  { label: 'FAQ', sectionId: 'faq' },
 ];
+
+const SunIcon = () => (
+  <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+    <circle cx='12' cy='12' r='5'/><path d='M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42'/>
+  </svg>
+);
+
+const MoonIcon = () => (
+  <svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+    <path d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'/>
+  </svg>
+);
 
 const LandingNavbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const { mode, toggle } = useLandingTheme();
+  const dark = mode === 'dark';
 
   const scrollToSection = (sectionId: string) => {
     if (pathname === '/') {
@@ -43,8 +58,10 @@ const LandingNavbar = () => {
         zIndex: 100,
         backdropFilter: 'saturate(180%) blur(16px)',
         WebkitBackdropFilter: 'saturate(180%) blur(16px)',
-        background: scrolled ? 'rgba(255,255,255,0.94)' : 'rgba(255,255,255,0.82)',
-        borderBottom: `1px solid ${scrolled ? INK_100 : 'transparent'}`,
+        background: dark
+          ? scrolled ? 'rgba(11,15,26,0.92)' : 'rgba(11,15,26,0.8)'
+          : scrolled ? 'rgba(255,255,255,0.94)' : 'rgba(255,255,255,0.82)',
+        borderBottom: `1px solid ${scrolled ? (dark ? DARK.border : INK_100) : 'transparent'}`,
         transition: 'border-color .2s, background .2s',
       }}
     >
@@ -71,28 +88,16 @@ const LandingNavbar = () => {
             fontWeight: 500,
             fontSize: '19px',
             letterSpacing: '-0.01em',
-            color: INK_900,
+            color: dark ? DARK.text : INK_900,
             textDecoration: 'none',
           }}
         >
-          <Box
-            component='img'
-            src='/assets/isologo.svg'
-            alt='Planco'
-            sx={{ width: 22, height: 27, flexShrink: 0 }}
-          />
+          <Box component='img' src='/assets/isologo.svg' alt='Planco' sx={{ width: 22, height: 27, flexShrink: 0 }} />
           Planco
         </Box>
 
-        {/* Nav links — hidden below 900px */}
-        <Box
-          component='nav'
-          sx={{
-            display: { xs: 'none', md: 'flex' },
-            alignItems: 'center',
-            gap: '32px',
-          }}
-        >
+        {/* Nav links */}
+        <Box component='nav' sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: '32px' }}>
           {NAV_ANCHORS.map(link => (
             <Box
               key={link.label}
@@ -100,7 +105,7 @@ const LandingNavbar = () => {
               onClick={() => scrollToSection(link.sectionId)}
               sx={{
                 fontSize: '14px',
-                color: INK_600,
+                color: dark ? DARK.textMuted : INK_600,
                 fontWeight: 500,
                 textDecoration: 'none',
                 transition: 'color .15s',
@@ -117,14 +122,21 @@ const LandingNavbar = () => {
           ))}
         </Box>
 
-        {/* CTA buttons */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Actions */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <IconButton
+            onClick={toggle}
+            size='small'
+            sx={{ color: dark ? DARK.textMuted : INK_700, '&:hover': { color: BLUE_500 } }}
+          >
+            {dark ? <SunIcon /> : <MoonIcon />}
+          </IconButton>
           <Button
             component={Link}
             to='/auth'
             disableElevation
             sx={{
-              color: INK_700,
+              color: dark ? DARK.text : INK_700,
               background: 'transparent',
               fontWeight: 500,
               fontSize: '14px',
@@ -133,34 +145,10 @@ const LandingNavbar = () => {
               height: '40px',
               borderRadius: '6px',
               minWidth: 0,
-              '&:hover': { color: BLUE_500, background: INK_50 },
+              '&:hover': { color: BLUE_500, background: dark ? DARK.surfaceAlt : INK_50 },
             }}
           >
             Entrar
-          </Button>
-          <Button
-            component={Link}
-            to='/solicitar-demonstracao'
-            disableElevation
-            sx={{
-              background: BLUE_500,
-              color: '#fff',
-              fontWeight: 500,
-              fontSize: '14px',
-              textTransform: 'none',
-              px: '18px',
-              height: '40px',
-              borderRadius: '6px',
-              minWidth: 0,
-              whiteSpace: 'nowrap',
-              boxShadow: `0 1px 2px rgba(25, 118, 210, 0.18)`,
-              '&:hover': {
-                background: BLUE_600,
-                boxShadow: '0 4px 10px rgba(25, 118, 210, 0.25)',
-              },
-            }}
-          >
-            Solicitar demonstração
           </Button>
         </Box>
       </Box>

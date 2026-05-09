@@ -1,6 +1,7 @@
 import { Box } from '@mui/material';
-import { BLUE_50, BLUE_500, INK_100, INK_25, INK_500, INK_900, CONTAINER_SX } from '../constants';
+import { BLUE_50, BLUE_500, INK_100, INK_25, INK_500, INK_900, CONTAINER_SX, DARK } from '../constants';
 import { RevealBox } from './RevealBox';
+import { useLandingTheme } from '../LandingThemeContext';
 
 const FEATURES = [
   {
@@ -63,73 +64,78 @@ const FEATURES = [
   },
 ];
 
-const FeaturesGrid = () => (
-  <Box component='section' id='funcionalidades' sx={{ py: '112px' }}>
-    <Box sx={CONTAINER_SX}>
-      <RevealBox sx={{ maxWidth: 720, mx: 'auto', mb: '64px', textAlign: 'center' }}>
-        <Box sx={{ display: 'inline-block', fontSize: '12px', color: BLUE_500, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', mb: '14px' }}>
-          Funcionalidades
-        </Box>
-        <Box component='h2' sx={{ fontSize: 'clamp(30px, 3.6vw, 44px)', lineHeight: 1.1, letterSpacing: '-0.025em', fontWeight: 500, color: INK_900, m: 0, mb: '18px' }}>
-          Todo o ciclo do processo
-          <br />
-          em um{' '}
-          <Box component='span' sx={{ color: BLUE_500 }}>só ambiente</Box>.
-        </Box>
-        <Box component='p' sx={{ fontSize: '17px', color: INK_500, lineHeight: 1.55, m: 0, fontWeight: 400 }}>
-          Responsáveis, prazos, documentos e aprovações registrados em cada etapa, do início ao encerramento do contrato.
-        </Box>
-      </RevealBox>
+const FeaturesGrid = () => {
+  const { mode } = useLandingTheme();
+  const dark = mode === 'dark';
 
-      <RevealBox
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2,1fr)', md: 'repeat(3,1fr)' },
-          gap: '1px',
-          background: INK_100,
-          border: `1px solid ${INK_100}`,
-          borderRadius: '12px',
-          overflow: 'hidden',
-        }}
-      >
-        {FEATURES.map(feat => (
-          <Box
-            key={feat.title}
-            sx={{
-              background: '#fff',
-              p: '32px 28px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-              transition: 'background .2s',
-              '&:hover': { background: INK_25 },
-            }}
-          >
+  return (
+    <Box component='section' id='funcionalidades' sx={{ py: '112px' }}>
+      <Box sx={CONTAINER_SX}>
+        <RevealBox sx={{ maxWidth: 720, mx: 'auto', mb: '64px', textAlign: 'center' }}>
+          <Box sx={{ display: 'inline-block', fontSize: '12px', color: BLUE_500, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', mb: '14px' }}>
+            Funcionalidades
+          </Box>
+          <Box component='h2' sx={{ fontSize: 'clamp(30px, 3.6vw, 44px)', lineHeight: 1.1, letterSpacing: '-0.025em', fontWeight: 500, color: dark ? DARK.text : INK_900, m: 0, mb: '18px' }}>
+            Todo o ciclo do processo
+            <br />
+            em um{' '}
+            <Box component='span' sx={{ color: BLUE_500 }}>só ambiente</Box>.
+          </Box>
+          <Box component='p' sx={{ fontSize: '17px', color: dark ? DARK.textMuted : INK_500, lineHeight: 1.55, m: 0, fontWeight: 400 }}>
+            Responsáveis, prazos, documentos e aprovações registrados em cada etapa, do início ao encerramento do contrato.
+          </Box>
+        </RevealBox>
+
+        <RevealBox
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2,1fr)', md: 'repeat(3,1fr)' },
+            gap: '1px',
+            background: dark ? DARK.border : INK_100,
+            border: `1px solid ${dark ? DARK.border : INK_100}`,
+            borderRadius: '12px',
+            overflow: 'hidden',
+          }}
+        >
+          {FEATURES.map(feat => (
             <Box
+              key={feat.title}
               sx={{
-                width: 40, height: 40,
-                borderRadius: '8px',
-                background: BLUE_50,
-                color: BLUE_500,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: '4px',
+                background: dark ? DARK.surface : '#fff',
+                p: '32px 28px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+                transition: 'background .2s',
+                '&:hover': { background: dark ? DARK.surfaceAlt : INK_25 },
               }}
             >
-              {feat.icon}
+              <Box
+                sx={{
+                  width: 40, height: 40,
+                  borderRadius: '8px',
+                  background: dark ? 'rgba(25,118,210,0.15)' : BLUE_50,
+                  color: BLUE_500,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: '4px',
+                }}
+              >
+                {feat.icon}
+              </Box>
+              <Box component='h3' sx={{ fontSize: '17px', fontWeight: 500, color: dark ? DARK.text : INK_900, m: 0, letterSpacing: '-0.01em' }}>
+                {feat.title}
+              </Box>
+              <Box component='p' sx={{ fontSize: '14px', color: dark ? DARK.textMuted : INK_500, lineHeight: 1.6, m: 0, fontWeight: 400 }}>
+                {feat.desc}
+              </Box>
             </Box>
-            <Box component='h3' sx={{ fontSize: '17px', fontWeight: 500, color: INK_900, m: 0, letterSpacing: '-0.01em' }}>
-              {feat.title}
-            </Box>
-            <Box component='p' sx={{ fontSize: '14px', color: INK_500, lineHeight: 1.6, m: 0, fontWeight: 400 }}>
-              {feat.desc}
-            </Box>
-          </Box>
-        ))}
-      </RevealBox>
+          ))}
+        </RevealBox>
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 export { FeaturesGrid };

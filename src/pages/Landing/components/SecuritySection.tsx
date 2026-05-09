@@ -1,6 +1,7 @@
 import { Box } from '@mui/material';
-import { BLUE_50, BLUE_500, INK_100, INK_500, INK_900, CONTAINER_SX } from '../constants';
+import { BLUE_50, BLUE_500, INK_100, INK_500, INK_900, CONTAINER_SX, DARK } from '../constants';
 import { RevealBox } from './RevealBox';
+import { useLandingTheme } from '../LandingThemeContext';
 
 const CARDS = [
   {
@@ -42,69 +43,74 @@ const CARDS = [
   },
 ];
 
-const SecuritySection = () => (
-  <Box component='section' id='seguranca' sx={{ py: '88px' }}>
-    <Box sx={CONTAINER_SX}>
-      <RevealBox sx={{ maxWidth: 720, mx: 'auto', mb: '64px', textAlign: 'center' }}>
-        <Box sx={{ display: 'inline-block', fontSize: '12px', color: BLUE_500, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', mb: '14px' }}>
-          Segurança e conformidade
-        </Box>
-        <Box component='h2' sx={{ fontSize: 'clamp(30px, 3.6vw, 44px)', lineHeight: 1.1, letterSpacing: '-0.025em', fontWeight: 500, color: INK_900, m: 0, mb: '18px' }}>
-          Construído para o{' '}
-          <Box component='span' sx={{ color: BLUE_500 }}>setor público</Box>.
-        </Box>
-        <Box component='p' sx={{ fontSize: '17px', color: INK_500, lineHeight: 1.55, m: 0, fontWeight: 400 }}>
-          Padrões de segurança, privacidade e operação adequados ao regime jurídico e às exigências dos órgãos de controle.
-        </Box>
-      </RevealBox>
+const SecuritySection = () => {
+  const { mode } = useLandingTheme();
+  const dark = mode === 'dark';
 
-      <RevealBox
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: 'repeat(2,1fr)', md: 'repeat(4,1fr)' },
-          gap: '20px',
-        }}
-      >
-        {CARDS.map(card => (
-          <Box
-            key={card.title}
-            sx={{
-              p: '28px 24px',
-              background: '#fff',
-              border: `1px solid ${INK_100}`,
-              borderRadius: '12px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '10px',
-              transition: 'border-color .2s',
-              '&:hover': { borderColor: '#90CAF9' },
-            }}
-          >
+  return (
+    <Box component='section' id='seguranca' sx={{ py: '88px' }}>
+      <Box sx={CONTAINER_SX}>
+        <RevealBox sx={{ maxWidth: 720, mx: 'auto', mb: '64px', textAlign: 'center' }}>
+          <Box sx={{ display: 'inline-block', fontSize: '12px', color: BLUE_500, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', mb: '14px' }}>
+            Segurança e conformidade
+          </Box>
+          <Box component='h2' sx={{ fontSize: 'clamp(30px, 3.6vw, 44px)', lineHeight: 1.1, letterSpacing: '-0.025em', fontWeight: 500, color: dark ? DARK.text : INK_900, m: 0, mb: '18px' }}>
+            Construído para o{' '}
+            <Box component='span' sx={{ color: BLUE_500 }}>setor público</Box>.
+          </Box>
+          <Box component='p' sx={{ fontSize: '17px', color: dark ? DARK.textMuted : INK_500, lineHeight: 1.55, m: 0, fontWeight: 400 }}>
+            Padrões de segurança, privacidade e operação adequados ao regime jurídico e às exigências dos órgãos de controle.
+          </Box>
+        </RevealBox>
+
+        <RevealBox
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2,1fr)', md: 'repeat(4,1fr)' },
+            gap: '20px',
+          }}
+        >
+          {CARDS.map(card => (
             <Box
+              key={card.title}
               sx={{
-                width: 36, height: 36,
-                borderRadius: '8px',
-                background: BLUE_50,
-                color: BLUE_500,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mb: '8px',
+                p: '28px 24px',
+                background: dark ? DARK.surface : '#fff',
+                border: `1px solid ${dark ? DARK.border : INK_100}`,
+                borderRadius: '12px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                transition: 'border-color .2s',
+                '&:hover': { borderColor: dark ? BLUE_500 : '#90CAF9' },
               }}
             >
-              {card.icon}
+              <Box
+                sx={{
+                  width: 36, height: 36,
+                  borderRadius: '8px',
+                  background: dark ? 'rgba(25,118,210,0.15)' : BLUE_50,
+                  color: BLUE_500,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mb: '8px',
+                }}
+              >
+                {card.icon}
+              </Box>
+              <Box component='h4' sx={{ fontSize: '15px', fontWeight: 500, color: dark ? DARK.text : INK_900, m: 0, letterSpacing: '-0.005em' }}>
+                {card.title}
+              </Box>
+              <Box component='p' sx={{ fontSize: '13px', color: dark ? DARK.textMuted : INK_500, lineHeight: 1.55, m: 0 }}>
+                {card.desc}
+              </Box>
             </Box>
-            <Box component='h4' sx={{ fontSize: '15px', fontWeight: 500, color: INK_900, m: 0, letterSpacing: '-0.005em' }}>
-              {card.title}
-            </Box>
-            <Box component='p' sx={{ fontSize: '13px', color: INK_500, lineHeight: 1.55, m: 0 }}>
-              {card.desc}
-            </Box>
-          </Box>
-        ))}
-      </RevealBox>
+          ))}
+        </RevealBox>
+      </Box>
     </Box>
-  </Box>
-);
+  );
+};
 
 export { SecuritySection };

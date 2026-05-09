@@ -29,8 +29,7 @@ const SettingsPage = lazy(() => import('@/pages/Settings/SettingsPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/Auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('@/pages/Auth/ResetPasswordPage'));
 const LandingPage = lazy(() => import('@/pages/Landing/LandingPage'));
-const DemoRequestPage = lazy(() => import('@/pages/DemoRequest/DemoRequestPage'));
-const WITHOUT_HEADER_ROUTES = ['/auth', '/verify-email', '/privacy-policy', '/auth/forgot-password', '/reset-password', '/solicitar-demonstracao'];
+const WITHOUT_HEADER_ROUTES = ['/auth', '/verify-email', '/privacy-policy', '/auth/forgot-password', '/reset-password'];
 
 
 // Loading fallback component
@@ -89,7 +88,6 @@ const AppRouter = () => {
           />
           <Route path='/privacy-policy' element={<PrivacyPolicy />} />
           <Route path='/auth/forgot-password' element={<ForgotPasswordPage />} />
-          <Route path='/solicitar-demonstracao' element={<DemoRequestPage />} />
           <Route path='/reset-password' element={<ResetPasswordPage />} />
           <Route path='/not-access' element={<NotAccessPage />} />
           <Route
