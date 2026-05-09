@@ -1,15 +1,12 @@
 import {
   Assignment as AssignmentIcon,
   CalendarToday as CalendarIcon,
-  CheckCircle as CheckCircleIcon,
-  Edit as EditIcon,
   SwapVert as SwapVertIcon,
   Visibility as VisibilityIcon,
   Warning as WarningIcon
 } from '@mui/icons-material';
 import {
   Box,
-  Button,
   Chip,
   IconButton,
   Table,
@@ -42,66 +39,11 @@ const getStatusColor = (status?: string) => {
   }
 };
 
-const PendenciaCell = ({ process, onProcessClick }: { process: Process; onProcessClick?: (p: Process) => void }) => {
-  const pendencia = process.topPendencia;
-  const hasPendencia = pendencia?.type !== null && pendencia?.type !== undefined;
-
-  return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-      {hasPendencia ? (
-        <Button
-          size='small'
-          startIcon={<EditIcon />}
-          onClick={() => onProcessClick?.(process)}
-          sx={{
-            textTransform: 'none',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            px: 1.5,
-            py: 0.5,
-            borderRadius: 2,
-            backgroundColor: '#1877F2',
-            color: '#FFFFFF',
-            '&:hover': { backgroundColor: '#166fe5' }
-          }}
-        >
-          {pendencia?.label ?? 'Pendência'}
-        </Button>
-      ) : (
-        <Chip
-          icon={<CheckCircleIcon sx={{ fontSize: '14px !important', color: '#1F7A37' }} />}
-          label='Sem pendência'
-          size='small'
-          onClick={() => onProcessClick?.(process)}
-          sx={{
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            px: 1,
-            borderRadius: '16px',
-            backgroundColor: '#FFFFFF',
-            color: '#1F7A37',
-            border: '1px solid #E4E6EB',
-            height: '28px',
-            cursor: 'pointer',
-            '&:hover': { backgroundColor: '#E6F4EA', borderColor: '#D1D5DB' }
-          }}
-        />
-      )}
-
-      <Tooltip title='Visualizar processo' arrow placement='top'>
-        <IconButton
-          size='small'
-          onClick={() => onProcessClick?.(process)}
-          sx={{
-            width: 32, height: 32, borderRadius: '50%', color: '#8A8D91',
-            '&:hover': { backgroundColor: 'rgba(24,119,242,0.08)', color: '#1877F2' }
-          }}
-        >
-          <VisibilityIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-      </Tooltip>
-    </Box>
-  );
+const STAGE_STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; border: string }> = {
+  em_dia:     { label: 'Em dia',     bg: 'rgba(0,110,41,0.05)',   color: '#006e29', border: 'rgba(0,110,41,0.1)' },
+  atrasada:   { label: 'Atrasada',   bg: 'rgba(186,26,26,0.05)',  color: '#ba1a1a', border: 'rgba(186,26,26,0.1)' },
+  vence_hoje: { label: 'Vence hoje', bg: 'rgba(202,138,4,0.08)',  color: '#ca8a04', border: 'rgba(202,138,4,0.15)' },
+  concluida:  { label: 'Concluída',  bg: 'rgba(99,102,241,0.07)', color: '#4f46e5', border: 'rgba(99,102,241,0.15)' },
 };
 
 export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) => {
@@ -160,9 +102,9 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
               </TableCell>
               <TableCell sx={{ minWidth: { xs: 200, md: 400 } }}>Objeto</TableCell>
               <TableCell>Etapa Atual</TableCell>
-              <TableCell>Prazo Final</TableCell>
+              <TableCell align='center'>Prazo Final da Etapa</TableCell>
               <TableCell sx={{ minWidth: 140 }}>Situação</TableCell>
-              <TableCell>Pendências</TableCell>
+              <TableCell align='center'>Prazo Final do Processo</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -216,25 +158,29 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                         sx={{ fontSize: '0.75rem', fontWeight: 600, borderRadius: '20px', backgroundColor: '#FFFFFF', color: '#3A3B3C', border: '1px solid #E4E6EB', height: '28px' }}
                       />
                     </TableCell>
-                    <TableCell>
-                      {process.dueDate ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <TableCell align='center'>
+                      {process.stageDueDate ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
                           <CalendarIcon sx={{ fontSize: 16, color: '#8A8D91' }} />
                           <Typography variant='body2' sx={{ color: '#212121' }}>
-                            {dayjs(process.dueDate).format('DD/MM/YYYY')}
+                            {dayjs(process.stageDueDate).format('DD/MM/YYYY')}
                           </Typography>
                         </Box>
                       ) : (
-                        <Typography variant='body2' sx={{ color: '#8A8D91' }}>N/A</Typography>
+                        <Typography variant='body2' sx={{ color: '#8A8D91', textAlign: 'center' }}>—</Typography>
                       )}
                     </TableCell>
                     <TableCell sx={{ minWidth: 140 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Chip
-                          label={process.status || 'N/A'}
-                          size='small'
-                          sx={{ fontSize: '0.75rem', fontWeight: statusColor.fontWeight, borderRadius: '16px', backgroundColor: '#FFFFFF', color: statusColor.color, border: '1px solid #E4E6EB', height: '28px' }}
-                        />
+                        {process.stageStatus ? (
+                          <Chip
+                            label={STAGE_STATUS_CONFIG[process.stageStatus]?.label ?? process.stageStatus}
+                            size='small'
+                            sx={{ fontSize: '0.75rem', fontWeight: 900, borderRadius: '999px', backgroundColor: STAGE_STATUS_CONFIG[process.stageStatus]?.bg, color: STAGE_STATUS_CONFIG[process.stageStatus]?.color, border: `1px solid ${STAGE_STATUS_CONFIG[process.stageStatus]?.border}`, height: '28px' }}
+                          />
+                        ) : (
+                          <Chip label={process.status || 'N/A'} size='small' sx={{ fontSize: '0.75rem', fontWeight: statusColor.fontWeight, borderRadius: '16px', backgroundColor: '#FFFFFF', color: statusColor.color, border: '1px solid #E4E6EB', height: '28px' }} />
+                        )}
                         {process.status === 'Em Atraso' && (
                           <Box sx={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: 'rgba(184,30,52,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(184,30,52,0.2)' }}>
                             <WarningIcon sx={{ fontSize: 18, color: '#B81E34' }} />
@@ -242,8 +188,17 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                         )}
                       </Box>
                     </TableCell>
-                    <TableCell onClick={e => e.stopPropagation()}>
-                      <PendenciaCell process={process} onProcessClick={onProcessClick} />
+                    <TableCell align='center'>
+                      {process.dueDate ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                          <CalendarIcon sx={{ fontSize: 16, color: '#8A8D91' }} />
+                          <Typography variant='body2' sx={{ color: '#212121' }}>
+                            {dayjs(process.dueDate).format('DD/MM/YYYY')}
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <Typography variant='body2' sx={{ color: '#8A8D91', textAlign: 'center' }}>—</Typography>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

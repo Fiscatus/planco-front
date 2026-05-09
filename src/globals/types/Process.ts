@@ -13,6 +13,8 @@ export type Process = {
   modality?: string;
   priority?: 'Baixa' | 'Média' | 'Alta';
   status?: 'Em Andamento' | 'Em Atraso' | 'Concluído' | 'Pendente';
+  stageStatus?: 'em_dia' | 'atrasada' | 'vence_hoje' | 'concluida';
+  stageDueDate?: string | null;
   dueDate?: string;
   estimatedValue?: number;
   folder?:
@@ -25,10 +27,6 @@ export type Process = {
   org?: string;
   createdAt?: string;
   updatedAt?: string;
-  topPendencia?: {
-    type: string | null;
-    label: string;
-  };
 };
 
 export type PaginatedProcesses = {

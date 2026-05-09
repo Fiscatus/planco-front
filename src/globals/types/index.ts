@@ -35,6 +35,7 @@ export type {
 } from './Notification';
 export type {
   AlertaCritico,
+  Paginated,
   PlanejamentoDashboardResponse,
   PlanejamentoKpis,
   Pendencia,

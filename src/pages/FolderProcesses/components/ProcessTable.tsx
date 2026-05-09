@@ -1,6 +1,7 @@
 import {
   Assignment as AssignmentIcon,
   AttachFile as AttachFileIcon,
+  CalendarToday as CalendarIcon,
   SwapVert as SwapVertIcon,
   Visibility as VisibilityIcon,
   WarningOutlined as WarningIcon
@@ -19,7 +20,15 @@ import {
   Typography
 } from '@mui/material';
 import { useMemo, useState } from 'react';
+import dayjs from 'dayjs';
 import type { Process } from '@/globals/types';
+
+const STAGE_STATUS_CONFIG: Record<string, { label: string; bg: string; color: string; border: string }> = {
+  em_dia:     { label: 'Em dia',     bg: 'rgba(0,110,41,0.05)',   color: '#006e29', border: 'rgba(0,110,41,0.1)' },
+  atrasada:   { label: 'Atrasada',   bg: 'rgba(186,26,26,0.05)',  color: '#ba1a1a', border: 'rgba(186,26,26,0.1)' },
+  vence_hoje: { label: 'Vence hoje', bg: 'rgba(202,138,4,0.08)',  color: '#ca8a04', border: 'rgba(202,138,4,0.15)' },
+  concluida:  { label: 'Concluída',  bg: 'rgba(99,102,241,0.07)', color: '#4f46e5', border: 'rgba(99,102,241,0.15)' },
+};
 
 interface ProcessTableProps {
   processes: Process[];
@@ -276,9 +285,11 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
               </TableCell>
               <TableCell sx={{ minWidth: { xs: 200, sm: 300, md: 400, lg: 500 } }}>Objeto</TableCell>
               <TableCell>Etapa Atual</TableCell>
+              <TableCell align='center'>Prazo Final da Etapa</TableCell>
               <TableCell>Modalidade</TableCell>
               <TableCell>Prioridade</TableCell>
               <TableCell>Situação</TableCell>
+              <TableCell align='center'>Prazo Final do Processo</TableCell>
               <TableCell>Visualizar</TableCell>
             </TableRow>
           </TableHead>
@@ -466,6 +477,18 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                       />
                     </Box>
                   </TableCell>
+                  <TableCell align='center'>
+                    {process.stageDueDate ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                        <CalendarIcon sx={{ fontSize: 16, color: '#8A8D91' }} />
+                        <Typography variant='body2' sx={{ color: '#212121', fontSize: '0.875rem' }}>
+                          {dayjs(process.stageDueDate).format('DD/MM/YYYY')}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant='body2' sx={{ color: '#8A8D91', textAlign: 'center' }}>—</Typography>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start' }}>
                       <Chip
@@ -528,67 +551,37 @@ export const ProcessTable = ({ processes, onProcessClick }: ProcessTableProps) =
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, justifyContent: 'flex-start' }}>
-                      <Chip
-                        label={process.status || 'N/A'}
-                        size='small'
-                        sx={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '0.75rem',
-                          fontWeight: getStatusColor(process.status).fontWeight || 600,
-                          padding: '6px 12px',
-                          borderRadius: '16px',
-                          whiteSpace: 'nowrap',
-                          backgroundColor: '#FFFFFF',
-                          color: getStatusColor(process.status).color,
-                          border: '1px solid #E4E6EB',
-                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-                          height: '28px',
-                          minWidth: 'fit-content',
-                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                          '&:hover': {
-                            borderColor: '#D1D5DB',
-                            boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
-                            transform: 'translateY(-1px)'
-                          }
-                        }}
-                      />
+                      {process.stageStatus ? (
+                        <Chip
+                          label={STAGE_STATUS_CONFIG[process.stageStatus]?.label ?? process.stageStatus}
+                          size='small'
+                          sx={{ fontSize: '0.75rem', fontWeight: 900, borderRadius: '999px', backgroundColor: STAGE_STATUS_CONFIG[process.stageStatus]?.bg, color: STAGE_STATUS_CONFIG[process.stageStatus]?.color, border: `1px solid ${STAGE_STATUS_CONFIG[process.stageStatus]?.border}`, height: '28px' }}
+                        />
+                      ) : (
+                        <Chip
+                          label={process.status || 'N/A'}
+                          size='small'
+                          sx={{ fontSize: '0.75rem', fontWeight: getStatusColor(process.status).fontWeight || 600, borderRadius: '16px', backgroundColor: '#FFFFFF', color: getStatusColor(process.status).color, border: '1px solid #E4E6EB', height: '28px' }}
+                        />
+                      )}
                       {['Em Atraso', 'Atrasado'].includes(process.status || '') && (
-                        <Box
-                          sx={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: '50%',
-                            backgroundColor: 'rgba(184, 30, 52, 0.12)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            filter: 'drop-shadow(0 2px 3px rgba(184, 30, 52, 0.25))',
-                            animation: 'pulseAlert 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                            flexShrink: 0,
-                            border: '1px solid rgba(184, 30, 52, 0.2)',
-                            transition: 'all 0.2s ease',
-                            '&:hover': {
-                              backgroundColor: 'rgba(184, 30, 52, 0.18)',
-                              transform: 'scale(1.05)'
-                            },
-                            '@keyframes pulseAlert': {
-                              '0%, 100%': {
-                                opacity: 1,
-                                transform: 'scale(1)'
-                              },
-                              '50%': {
-                                opacity: 0.8,
-                                transform: 'scale(1.08)'
-                              }
-                            }
-                          }}
-                        >
+                        <Box sx={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: 'rgba(184, 30, 52, 0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid rgba(184, 30, 52, 0.2)' }}>
                           <WarningIcon sx={{ fontSize: 18, color: '#B81E34' }} />
                         </Box>
                       )}
                     </Box>
+                  </TableCell>
+                  <TableCell align='center'>
+                    {process.dueDate ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                        <CalendarIcon sx={{ fontSize: 16, color: '#8A8D91' }} />
+                        <Typography variant='body2' sx={{ color: '#212121', fontSize: '0.875rem' }}>
+                          {dayjs(process.dueDate).format('DD/MM/YYYY')}
+                        </Typography>
+                      </Box>
+                    ) : (
+                      <Typography variant='body2' sx={{ color: '#8A8D91', textAlign: 'center' }}>—</Typography>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-start', gap: 0.5, alignItems: 'center' }}>

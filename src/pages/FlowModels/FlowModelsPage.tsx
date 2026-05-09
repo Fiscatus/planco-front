@@ -393,12 +393,14 @@ const FlowModelsPage = () => {
       return;
     }
 
-    const stageOrders = draftStages.map((s) => s.order);
+    const stageOrders = draftStages.filter(s => !s.isOptional).map((s) => s.order);
     if (stageOrders.length !== new Set(stageOrders).size) {
       showNotification("Existem etapas com order repetido.", "error");
       return;
     }
 
+    // Garante order = 0 para todas as opcionais antes de enviar
+    const normalizedStages = draftStages.map(s => s.isOptional ? { ...s, order: 0 } : s);
     for (const st of draftStages) {
       const keys = (st.components || []).map((c) => c.key);
       if (keys.length !== new Set(keys).size) {
@@ -421,7 +423,7 @@ const FlowModelsPage = () => {
 
     updateModelMutation({
       id: selectedModelId,
-      data: { stages: draftStages },
+      data: { stages: normalizedStages },
     });
   }, [selectedModelId, draftStages, updateModelMutation, showNotification]);
 
@@ -474,7 +476,7 @@ const FlowModelsPage = () => {
 
   const normalizeOrders = useCallback((stages: FlowModelStage[]) => {
     const normals = stages.filter(s => !s.isOptional).sort((a, b) => a.order - b.order).map((s, idx) => ({ ...s, order: idx + 1 }));
-    const optionals = stages.filter(s => s.isOptional).sort((a, b) => a.order - b.order).map((s, idx) => ({ ...s, order: idx + 1 }));
+    const optionals = stages.filter(s => s.isOptional).map(s => ({ ...s, order: 0 }));
     return [...normals, ...optionals];
   }, []);
 
@@ -540,9 +542,11 @@ const FlowModelsPage = () => {
         showNotification("Já existe uma etapa com esse stageId.", "error");
         return prev;
       }
-      // Calcula o próximo order para qualquer tipo de etapa
-      const maxOrder = base.length > 0 ? Math.max(...base.map(s => s.order)) : 0;
-      const finalStage = { ...newStage, order: maxOrder + 1 };
+      // Etapas opcionais sempre têm order = 0
+      const maxOrder = base.filter(s => !newStage.isOptional && !s.isOptional).length > 0
+        ? Math.max(...base.filter(s => !s.isOptional).map(s => s.order))
+        : 0;
+      const finalStage = { ...newStage, order: newStage.isOptional ? 0 : maxOrder + 1 };
       return [...base, finalStage];
     });
     setCreateStageOpen(false);

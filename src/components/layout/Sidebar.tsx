@@ -15,6 +15,7 @@ import {
   GroupOutlined,
   InsightsOutlined,
   FolderOutlined,
+  Feedback,
 } from '@mui/icons-material';
 import {
   Box,
@@ -31,7 +32,8 @@ import {
 import { type ReactNode, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { version } from '@/../package.json';
-import { useAccessControl } from '@/hooks';
+import { useAccessControl, useAuth } from '@/hooks';
+import { FeedbackModal } from '@/components/FeedbackModal';
 
 import logo from '/assets/isologo.svg';
 
@@ -69,11 +71,11 @@ const modules: Module[] = [
     path: '/planejamento-da-contratacao',
     description: 'Organize todas as fases da contratação',
     subItems: [
-      { label: 'Painel', icon: <Home sx={{ fontSize: 16 }} />, path: '/planejamento-da-contratacao' },
-      { label: 'Processos', icon: <GroupOutlined sx={{ fontSize: 16 }} />, path: '/processos-gerencia' },
-      { label: 'Modelos de Fluxo', icon: <AccountTreeOutlined sx={{ fontSize: 16 }} />, path: '/modelos-fluxo' },
-      { label: 'Gerenciamento de Pastas', icon: <FolderOutlined sx={{ fontSize: 16 }} />, path: '/gerenciamento-pastas' },
-      { label: 'Insights', icon: <InsightsOutlined sx={{ fontSize: 16 }} />, path: '/insights' },
+      { label: 'Painel', icon: <Home sx={{ fontSize: 30 }} />, path: '/planejamento-da-contratacao' },
+      { label: 'Processos', icon: <GroupOutlined sx={{ fontSize: 30 }} />, path: '/processos-gerencia' },
+      { label: 'Modelos de Fluxo', icon: <AccountTreeOutlined sx={{ fontSize: 30 }} />, path: '/modelos-fluxo' },
+      { label: 'Gerenciamento de Pastas', icon: <FolderOutlined sx={{ fontSize: 30 }} />, path: '/gerenciamento-pastas' },
+      { label: 'Insights', icon: <InsightsOutlined sx={{ fontSize: 30 }} />, path: '/insights' },
     ]
   }
 ];
@@ -82,6 +84,8 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { canAccessAdmin, isAdminOnly } = useAccessControl();
+  const { user } = useAuth();
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const SUBROUTES = ['/processos-gerencia', '/modelos-fluxo', '/gerenciamento-pastas', '/insights', '/planejamento-da-contratacao'];
   const isInPlanejamento = SUBROUTES.some(r => location.pathname.startsWith(r));
@@ -336,12 +340,12 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
                           }
                         }}
                       >
-                        <ListItemIcon sx={{ minWidth: 28, color: isActiveSubItem(sub.path) ? '#2563eb' : '#9ca3af' }}>
+                        <ListItemIcon sx={{ minWidth: 32, color: isActiveSubItem(sub.path) ? '#2563eb' : '#9ca3af' }}>
                           {sub.icon}
                         </ListItemIcon>
                         <ListItemText
                           primary={
-                            <Typography variant='body2' sx={{ fontSize: '0.8125rem', fontWeight: isActiveSubItem(sub.path) ? 600 : 400, lineHeight: 1.3 }}>
+                            <Typography variant='body2' sx={{ fontSize: '0.875rem', fontWeight: isActiveSubItem(sub.path) ? 600 : 400, lineHeight: 1.3 }}>
                               {sub.label}
                             </Typography>
                           }
@@ -501,6 +505,29 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
 
       <Box sx={{ borderTop: '1px solid #e5e7eb', p: 2 }}>
         <Box sx={{ textAlign: 'center' }}>
+          {user?.org && (
+            <ListItemButton
+              onClick={() => { setFeedbackOpen(true); onClose(); }}
+              sx={{
+                borderRadius: 1, mb: 1,
+                border: '1px solid transparent',
+                color: '#4b5563',
+                '&:hover': { backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', color: '#1877F2' },
+                py: 1, px: 2
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 32, color: 'inherit' }}>
+                <Feedback sx={{ fontSize: 20 }} />
+              </ListItemIcon>
+              <ListItemText
+                primary={
+                  <Typography variant='body2' sx={{ fontWeight: 500, fontSize: '0.875rem' }}>
+                    Enviar Feedback
+                  </Typography>
+                }
+              />
+            </ListItemButton>
+          )}
           <Typography
             variant='caption'
             sx={{
@@ -565,6 +592,8 @@ const Sidebar = ({ open, onClose }: SidebarProps) => {
       >
         {drawerContent}
       </Drawer>
+
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </>
   );
 };
