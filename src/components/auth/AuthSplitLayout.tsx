@@ -38,7 +38,11 @@ export const AuthSplitLayout = ({ children, topRightSlot, formMaxWidth = 440 }: 
             flexShrink: 0
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+          <Box
+            component='a'
+            href='/'
+            sx={{ display: 'flex', alignItems: 'center', gap: 1.25, textDecoration: 'none' }}
+          >
             <img
               src='/assets/isologo.svg'
               alt='Planco'

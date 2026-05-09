@@ -4,7 +4,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import { AppLayout } from '@/components';
 import { useAuth } from '@/hooks/useAuth';
-import { useScreen } from '@/hooks/useScreen';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { AdminRoute, ProtectedRoute } from './guards';
 
 // Lazy loaded pages
@@ -29,6 +29,7 @@ const SettingsPage = lazy(() => import('@/pages/Settings/SettingsPage'));
 
 const ForgotPasswordPage = lazy(() => import('@/pages/Auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('@/pages/Auth/ResetPasswordPage'));
+const LandingPage = lazy(() => import('@/pages/Landing/LandingPage'));
 const WITHOUT_HEADER_ROUTES = ['/auth', '/verify-email', '/privacy-policy', '/auth/forgot-password', '/reset-password'];
 
 
@@ -45,12 +46,20 @@ const PageLoading = () => (
   </Box>
 );
 
+// Renders the correct page for '/' depending on auth state
+const RootRoute = () => {
+  const { user, hasOrganization } = useAuth();
+  if (!user) return <LandingPage />;
+  if (hasOrganization) return <OrganizationHome />;
+  return <Navigate to='/invites' replace />;
+};
+
 const AppRouter = () => {
   const { pathname } = useLocation();
-  const { user, hasOrganization, isAuthLoading } = useAuth();
-  const { isDesktop } = useScreen();
+  const { hasOrganization, isAuthLoading } = useAuth();
 
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  usePageTitle();
 
   if (isAuthLoading) return <PageLoading />;
 
@@ -60,16 +69,6 @@ const AppRouter = () => {
     [pathname]
   );
 
-  // Determina se deve exibir dropdown na navbar — removido
-
-  // Redireciona usuário não autenticado para auth
-  const defaultRedirect = useMemo(() => {
-    if (!user) {
-      return isDesktop ? '/auth' : '/';
-    }
-    return null;
-  }, [user, isDesktop]);
-
   return (
     <AppLayout
       hideHeader={!hasOrganization || routeWithoutHeader}
@@ -78,6 +77,9 @@ const AppRouter = () => {
       <Suspense fallback={<PageLoading />}>
         <Routes>
           {/* ==================== ROTAS PÚBLICAS ==================== */}
+          {/* Root: serves landing for unauthenticated, OrganizationHome for authenticated */}
+          <Route path='/' element={<RootRoute />} />
+
           <Route
             path='/auth'
             element={<Auth />}
@@ -95,28 +97,8 @@ const AppRouter = () => {
             element={<NotFoundPage />}
           />
 
-          {/* Redirect para não autenticados */}
-          {defaultRedirect && (
-            <Route
-              path='/'
-              element={
-                <Navigate
-                  to={defaultRedirect}
-                  replace
-                />
-              }
-            />
-          )}
-
           {/* ==================== ROTAS PROTEGIDAS ==================== */}
           <Route element={<ProtectedRoute />}>
-            {/* Home - requer organização */}
-            {hasOrganization && (
-              <Route
-                path='/'
-                element={<OrganizationHome />}
-              />
-            )}
 
             {/* Convites */}
             <Route
