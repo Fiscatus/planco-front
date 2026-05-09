@@ -4,6 +4,7 @@ import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 
 import { AppLayout } from '@/components';
 import { useAuth } from '@/hooks/useAuth';
+import { usePageTitle } from '@/hooks/usePageTitle';
 import { AdminRoute, ProtectedRoute } from './guards';
 
 // Lazy loaded pages
@@ -58,6 +59,7 @@ const AppRouter = () => {
   const { hasOrganization, isAuthLoading } = useAuth();
 
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  usePageTitle();
 
   if (isAuthLoading) return <PageLoading />;
 
